@@ -1,0 +1,327 @@
+@import "tailwindcss";
+@import 'react-loading-skeleton/dist/skeleton.css';
+@import 'swiper/css';
+@import 'swiper/css/free-mode';
+@import 'react-toastify/dist/ReactToastify.css';
+
+@theme inline {
+  --color-central-carbon: #11100F;
+  --color-central-ink: #191715;
+  --color-central-orange: #D88918;
+  --color-central-ember: #A65F08;
+  --color-central-cream: #EAD8BA;
+  --color-central-smoke: #9A8D7C;
+  --color-central-warm: #F7EBD4;
+  --shadow-soft: 0 18px 45px rgba(0,0,0,.18);
+  --shadow-orange: 0 18px 40px rgba(216,137,24,.24);
+  --shadow-dark: 0 28px 70px rgba(0,0,0,.52);
+  --radius-2xl: 1.25rem;
+  --radius-3xl: 1.75rem;
+  --font-display: Impact, "Arial Black", Sora, Inter, system-ui, sans-serif;
+  --font-sans: Inter, Geist, system-ui, sans-serif;
+  --font-mono: "Geist Mono", "JetBrains Mono", monospace;
+}
+
+:root {
+  --background: #0f0f0e;
+  --foreground: #f6ead6;
+  --brand-orange: #d88918;
+  --brand-orange-dark: #a65f08;
+  --brand-carbon: #11100f;
+  --brand-cream: #ead8ba;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+  background: #0f0f0e;
+}
+
+body {
+  margin: 0;
+  color: var(--foreground);
+  background:
+    radial-gradient(circle at 20% 0%, rgba(216, 137, 24, .18), transparent 28rem),
+    linear-gradient(180deg, #080807 0%, #161412 48%, #0d0d0c 100%);
+  font-family: Inter, Geist, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+::selection {
+  background: rgba(216, 137, 24, 0.32);
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.skeleton-dark .react-loading-skeleton {
+  --base-color: #24211e;
+  --highlight-color: #312b25;
+}
+
+.brick-wall {
+  background-color: #11100f;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, .035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, .028) 1px, transparent 1px),
+    radial-gradient(circle at 20% 18%, rgba(216, 137, 24, .16), transparent 26rem),
+    radial-gradient(circle at 84% 18%, rgba(255, 255, 255, .075), transparent 22rem),
+    linear-gradient(180deg, #171514, #080807 70%);
+  background-size: 76px 38px, 76px 38px, auto, auto, auto;
+}
+
+.grunge-border {
+  position: relative;
+}
+
+.grunge-border::before {
+  content: '';
+  pointer-events: none;
+  position: absolute;
+  inset: 12px;
+  border: 2px solid rgba(216, 137, 24, .78);
+  border-radius: 28px;
+  mask-image: linear-gradient(90deg, transparent 0 3%, #000 8% 92%, transparent 97% 100%);
+}
+
+.brush-line {
+  height: 8px;
+  width: min(360px, 70vw);
+  border-radius: 999px;
+  background: linear-gradient(90deg, transparent, #d88918 18%, #f0a522 50%, #9b5705 82%, transparent);
+  box-shadow: 0 0 24px rgba(216, 137, 24, .28);
+}
+
+.menu-title-shadow {
+  text-shadow:
+    0 2px 0 rgba(0, 0, 0, .8),
+    0 0 18px rgba(216, 137, 24, .14);
+}
+
+.watermark-text {
+  font-weight: 1000;
+  letter-spacing: -.07em;
+  line-height: .85;
+  color: rgba(234, 216, 186, .09);
+  transform: rotate(-8deg);
+  text-transform: uppercase;
+}
+
+.brand-stamp {
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  background: #ead8ba;
+  color: #11100f;
+  border: 5px solid #11100f;
+  outline: 3px solid #ead8ba;
+  box-shadow: 0 18px 50px rgba(0, 0, 0, .45);
+}
+
+.menu-card-texture {
+  background:
+    radial-gradient(circle at 12% 10%, rgba(216, 137, 24, .12), transparent 18rem),
+    linear-gradient(180deg, rgba(255,255,255,.035), rgba(255,255,255,.012)),
+    #171514;
+}
+
+.safe-modal-panel {
+  max-height: min(760px, calc(100dvh - 32px));
+  overflow: hidden;
+}
+
+.custom-scrollbar {
+  scrollbar-gutter: stable;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(216, 137, 24, .55) rgba(255, 255, 255, .09);
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 10px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, .08);
+  border-radius: 999px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, rgba(216, 137, 24, .9), rgba(166, 95, 8, .88));
+  border: 2px solid rgba(20, 18, 16, .95);
+  border-radius: 999px;
+}
+
+.category-tabs-swiper .swiper {
+  padding-bottom: 1px;
+}
+
+
+/* Scrollbar unificado para toda la app */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(216, 137, 24, .58) rgba(35, 35, 35, .65);
+}
+
+*::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+*::-webkit-scrollbar-track {
+  background: rgba(35, 35, 35, .68);
+}
+
+*::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, rgba(216, 137, 24, .88), rgba(166, 95, 8, .86));
+  border: 2px solid rgba(24, 22, 20, .95);
+  border-radius: 999px;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, rgba(237, 160, 43, .95), rgba(216, 137, 24, .9));
+}
+
+/* En el panel admin el radio debe ser más sobrio y menos “pill” */
+.admin-scope :is(.rounded-xl, .rounded-2xl, .rounded-3xl) {
+  border-radius: 0.125rem !important;
+}
+
+.admin-scope .admin-modal-field {
+  display: grid;
+  grid-template-columns: 122px minmax(0, 1fr);
+  align-items: start;
+  gap: 0.75rem;
+}
+
+@media (max-width: 760px) {
+  .admin-scope .admin-modal-field {
+    grid-template-columns: 1fr;
+    gap: 0.4rem;
+  }
+}
+
+.admin-scope .admin-modal-label {
+  padding-top: 0.55rem;
+  color: rgba(255,255,255,.86);
+  font-size: .875rem;
+  font-weight: 800;
+  line-height: 1.1;
+  text-align: right;
+}
+
+@media (max-width: 760px) {
+  .admin-scope .admin-modal-label { text-align: left; padding-top: 0; }
+}
+
+
+/* React Toastify adaptado a La Central Burger */
+.Toastify__toast-container {
+  z-index: 9999;
+}
+
+.Toastify__toast {
+  border-radius: 0.125rem;
+  border: 1px solid rgba(216, 137, 24, .28);
+  background: #191715;
+  color: #ead8ba;
+  box-shadow: 0 18px 45px rgba(0,0,0,.35);
+  font-family: Inter, Geist, system-ui, sans-serif;
+}
+
+.Toastify__toast--success {
+  border-color: rgba(52, 211, 153, .35);
+}
+
+.Toastify__toast--error {
+  border-color: rgba(248, 113, 113, .42);
+}
+
+.Toastify__toast--warning {
+  border-color: rgba(216, 137, 24, .55);
+}
+
+.Toastify__progress-bar {
+  background: linear-gradient(90deg, #d88918, #f0a522);
+}
+
+.Toastify__close-button {
+  color: #ead8ba;
+  opacity: .7;
+}
+
+
+@keyframes lcb-bell-ring {
+  0%, 56%, 100% { transform: rotate(0deg); }
+  6% { transform: rotate(14deg); }
+  12% { transform: rotate(-12deg); }
+  18% { transform: rotate(10deg); }
+  24% { transform: rotate(-8deg); }
+  30% { transform: rotate(5deg); }
+  36% { transform: rotate(-3deg); }
+}
+
+.lcb-bell-vibrate {
+  animation: lcb-bell-ring 1.5s ease-in-out infinite;
+  transform-origin: 50% 0%;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lcb-bell-vibrate {
+    animation: none;
+  }
+}
+
+/* Controles sticky del menú y formularios adaptados al teclado móvil */
+.menu-ordering-tools {
+  scroll-margin-top: 72px;
+}
+
+.keyboard-aware-scroll {
+  overscroll-behavior: contain;
+  scroll-padding-top: 5rem;
+  scroll-padding-bottom: max(5rem, 42dvh);
+}
+
+.keyboard-aware-scroll :is(input, textarea, select, [contenteditable="true"]) {
+  scroll-margin-top: 5rem;
+  scroll-margin-bottom: max(5rem, 42dvh);
+}
+
+@supports (height: 100dvh) {
+  .safe-modal-panel {
+    max-height: calc(100dvh - 1rem);
+  }
+}
+
+.admin-scope .admin-time-input::-webkit-calendar-picker-indicator {
+  margin-right: 1.55rem;
+  opacity: .55;
+}
+
+@media (max-width: 640px) {
+  html,
+  body {
+    min-height: 100dvh;
+  }
+
+  .Toastify__toast-container {
+    width: calc(100vw - 1rem);
+    left: .5rem;
+    right: .5rem;
+  }
+}

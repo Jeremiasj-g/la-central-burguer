@@ -1,0 +1,9 @@
+<svg width="900" height="620" viewBox="0 0 900 620" fill="none" xmlns="http://www.w3.org/2000/svg">
+<rect width="900" height="620" rx="48" fill="url(#g)"/>
+<circle cx="720" cy="110" r="180" fill="white" fill-opacity="0.08"/>
+<circle cx="210" cy="520" r="160" fill="black" fill-opacity="0.18"/>
+<text x="450" y="260" text-anchor="middle" font-size="128" font-family="Arial, sans-serif">🥪</text>
+<text x="450" y="390" text-anchor="middle" fill="white" font-size="54" font-weight="800" font-family="Arial, sans-serif">Lomito</text>
+<text x="450" y="445" text-anchor="middle" fill="#FFD8C7" font-size="24" font-weight="700" font-family="Arial, sans-serif">La Central Burger</text>
+<defs><linearGradient id="g" x1="0" y1="0" x2="900" y2="620"><stop stop-color="#151515"/><stop offset="1" stop-color="#E45712"/></linearGradient></defs>
+</svg>
