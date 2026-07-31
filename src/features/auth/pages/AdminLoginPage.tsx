@@ -9,7 +9,7 @@ import { Input } from '@/shared/components/ui/Input';
 
 export function AdminLoginPage() {
   const router = useRouter();
-  const [email, setEmail] = useState('gusdmeza@gmail.com');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
