@@ -21,27 +21,27 @@ export function ReportTables({ dataset, groups, groupBy, onGroupByChange }: Repo
   const [view, setView] = useState<'consolidated' | 'detail'>('consolidated');
 
   return (
-    <section className="rounded-sm border border-neutral-200 bg-white shadow-sm">
-      <div className="flex flex-col gap-4 border-b border-neutral-100 p-5 lg:flex-row lg:items-center lg:justify-between">
-        <div>
-          <h3 className="text-base font-extrabold text-central-carbon">Detalle y consolidación</h3>
-          <p className="mt-1 text-xs text-neutral-500">Alterná entre una vista agrupada y el detalle transaccional de pedidos.</p>
+    <section className="min-w-0 overflow-hidden rounded-sm border border-neutral-200 bg-white shadow-sm">
+      <div className="flex min-w-0 flex-col gap-4 border-b border-neutral-100 p-4 sm:p-5 lg:flex-row lg:items-center lg:justify-between">
+        <div className="min-w-0">
+          <h3 className="break-words text-base font-extrabold text-central-carbon">Detalle y consolidación</h3>
+          <p className="mt-1 break-words text-xs leading-5 text-neutral-500">Alterná entre una vista agrupada y el detalle transaccional de pedidos.</p>
         </div>
-        <div className="flex flex-wrap items-center gap-2">
-          <div className="flex rounded-sm border border-neutral-200 bg-neutral-50 p-1">
+        <div className="flex min-w-0 flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
+          <div className="grid min-w-0 grid-cols-2 rounded-sm border border-neutral-200 bg-neutral-50 p-1 sm:flex">
             <button
               type="button"
               onClick={() => setView('consolidated')}
-              className={`inline-flex items-center gap-2 rounded-sm px-3 py-2 text-xs font-bold ${view === 'consolidated' ? 'bg-white text-central-orange shadow-sm' : 'text-neutral-500'}`}
+              className={`inline-flex min-w-0 items-center justify-center gap-2 rounded-sm px-3 py-2 text-xs font-bold ${view === 'consolidated' ? 'bg-white text-central-orange shadow-sm' : 'text-neutral-500'}`}
             >
-              <Layers3 size={14} /> Consolidado
+              <Layers3 size={14} className="shrink-0" /> <span className="truncate">Consolidado</span>
             </button>
             <button
               type="button"
               onClick={() => setView('detail')}
-              className={`inline-flex items-center gap-2 rounded-sm px-3 py-2 text-xs font-bold ${view === 'detail' ? 'bg-white text-central-orange shadow-sm' : 'text-neutral-500'}`}
+              className={`inline-flex min-w-0 items-center justify-center gap-2 rounded-sm px-3 py-2 text-xs font-bold ${view === 'detail' ? 'bg-white text-central-orange shadow-sm' : 'text-neutral-500'}`}
             >
-              <List size={14} /> Detalle
+              <List size={14} className="shrink-0" /> <span className="truncate">Detalle</span>
             </button>
           </div>
 
@@ -49,7 +49,7 @@ export function ReportTables({ dataset, groups, groupBy, onGroupByChange }: Repo
             <select
               value={groupBy}
               onChange={(event) => onGroupByChange(event.target.value as ReportGroupBy)}
-              className="h-10 rounded-sm border border-neutral-200 bg-white px-3 text-xs font-bold text-neutral-700 outline-none focus:border-central-orange"
+              className="h-10 min-w-0 max-w-full rounded-sm border border-neutral-200 bg-white px-3 text-xs font-bold text-neutral-700 outline-none focus:border-central-orange sm:w-auto"
             >
               {(Object.entries(REPORT_GROUP_LABELS) as [ReportGroupBy, string][]).map(([value, label]) => (
                 <option key={value} value={value}>Agrupar por {label.toLocaleLowerCase('es-AR')}</option>
@@ -59,9 +59,9 @@ export function ReportTables({ dataset, groups, groupBy, onGroupByChange }: Repo
         </div>
       </div>
 
-      <div className="overflow-x-auto">
+      <div className="max-w-full overflow-x-auto overscroll-x-contain">
         {view === 'consolidated' ? (
-          <table className="min-w-[940px] w-full text-left text-sm">
+          <table className="w-full min-w-[940px] text-left text-sm">
             <thead className="bg-neutral-50 text-[11px] font-extrabold uppercase tracking-wider text-neutral-500">
               <tr>
                 <th className="px-5 py-3">{REPORT_GROUP_LABELS[groupBy]}</th>
@@ -88,7 +88,7 @@ export function ReportTables({ dataset, groups, groupBy, onGroupByChange }: Repo
             </tbody>
           </table>
         ) : (
-          <table className="min-w-[1120px] w-full text-left text-sm">
+          <table className="w-full min-w-[1120px] text-left text-sm">
             <thead className="bg-neutral-50 text-[11px] font-extrabold uppercase tracking-wider text-neutral-500">
               <tr>
                 <th className="px-5 py-3">Fecha</th>
@@ -105,7 +105,7 @@ export function ReportTables({ dataset, groups, groupBy, onGroupByChange }: Repo
             <tbody className="divide-y divide-neutral-100">
               {dataset.orders.map((order) => (
                 <tr key={order.id} className="transition hover:bg-neutral-50/70">
-                  <td className="px-5 py-3.5 whitespace-nowrap text-neutral-600">{formatReportDateTime(order.createdAt)}</td>
+                  <td className="whitespace-nowrap px-5 py-3.5 text-neutral-600">{formatReportDateTime(order.createdAt)}</td>
                   <td className="px-4 py-3.5 font-extrabold text-central-orange">{order.orderCode}</td>
                   <td className="px-4 py-3.5">
                     <p className="font-bold text-central-carbon">{order.customerName}</p>
