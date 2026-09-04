@@ -30,7 +30,8 @@ const PRESETS: { value: ReportDatePreset; label: string }[] = [
   { value: 'custom', label: 'Rango personalizado' },
 ];
 
-const adminSelectClass = 'border-neutral-200 bg-white text-central-carbon disabled:cursor-not-allowed disabled:bg-neutral-100 disabled:text-neutral-400';
+const adminSelectClass = '!border-neutral-200 !bg-white !text-central-carbon disabled:cursor-not-allowed disabled:!bg-neutral-100 disabled:!text-neutral-400 [&>option]:bg-white [&>option]:text-central-carbon';
+const adminInputClass = '!border-neutral-200 !bg-white !text-central-carbon placeholder:!text-neutral-400 disabled:cursor-not-allowed disabled:!bg-neutral-100 disabled:!text-neutral-400';
 
 export function ReportFilters({
   filters,
@@ -87,7 +88,7 @@ export function ReportFilters({
               value={filters.from}
               disabled={filters.allTime}
               onChange={(event) => patch({ from: event.target.value, allTime: false })}
-              className="min-w-0 pl-9 disabled:cursor-not-allowed disabled:bg-neutral-100 disabled:text-neutral-400"
+              className={`min-w-0 pl-9 ${adminInputClass}`}
             />
           </div>
           {filters.allTime ? <span className="mt-1 block text-[11px] text-neutral-400">Desde el primer pedido registrado.</span> : null}
@@ -102,7 +103,7 @@ export function ReportFilters({
               value={filters.to}
               disabled={filters.allTime}
               onChange={(event) => patch({ to: event.target.value, allTime: false })}
-              className="min-w-0 pl-9 disabled:cursor-not-allowed disabled:bg-neutral-100 disabled:text-neutral-400"
+              className={`min-w-0 pl-9 ${adminInputClass}`}
             />
           </div>
           {filters.allTime ? <span className="mt-1 block text-[11px] text-neutral-400">Incluye todo el historial disponible.</span> : null}
@@ -130,7 +131,7 @@ export function ReportFilters({
               value={filters.search}
               onChange={(event) => patch({ search: event.target.value })}
               placeholder="Pedido, cliente o teléfono"
-              className="min-w-0 pl-9"
+              className={`min-w-0 pl-9 ${adminInputClass}`}
             />
           </div>
         </label>
