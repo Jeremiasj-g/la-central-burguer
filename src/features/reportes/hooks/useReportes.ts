@@ -10,6 +10,7 @@ export function useReportes(filters: ReportFilters) {
   const [data, setData] = useState<ReportDataset>(EMPTY_DATASET);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [lastLoadedAt, setLastLoadedAt] = useState<Date | null>(null);
   const [revision, setRevision] = useState(0);
 
   const refresh = useCallback(() => setRevision((value) => value + 1), []);
@@ -21,7 +22,9 @@ export function useReportes(filters: ReportFilters) {
 
     getReportData(filters)
       .then((result) => {
-        if (active) setData(result);
+        if (!active) return;
+        setData(result);
+        setLastLoadedAt(new Date());
       })
       .catch((caught: unknown) => {
         if (!active) return;
@@ -37,5 +40,5 @@ export function useReportes(filters: ReportFilters) {
     };
   }, [filters, revision]);
 
-  return { data, isLoading, error, refresh };
+  return { data, isLoading, error, lastLoadedAt, refresh };
 }

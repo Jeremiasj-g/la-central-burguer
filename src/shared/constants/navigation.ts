@@ -5,6 +5,7 @@ import {
   BookOpenCheck,
   Boxes,
   ClipboardList,
+  FileSpreadsheet,
   LayoutDashboard,
   Pizza,
   Settings,
@@ -27,6 +28,7 @@ export const ADMIN_NAVIGATION = [
   { label: 'Recetas', href: ROUTES.adminRecetas, icon: BookOpenCheck },
   { label: 'Pedidos', href: ROUTES.adminPedidos, icon: ClipboardList },
   { label: 'Ventas', href: ROUTES.adminVentas, icon: BarChart3 },
+  { label: 'Reportes', href: ROUTES.adminReportes, icon: FileSpreadsheet },
   { label: 'Configuración', href: ROUTES.adminConfiguracion, icon: Settings },
 ] as const;
 
