@@ -11,6 +11,7 @@ export type ReportDatePreset =
   | 'last30'
   | 'thisMonth'
   | 'previousMonth'
+  | 'allTime'
   | 'custom';
 
 export type ReportStatusFilter = 'valid' | 'all' | 'aceptado' | 'cancelado';
@@ -19,6 +20,7 @@ export type ReportGroupBy = 'day' | 'week' | 'month' | 'category' | 'product' | 
 export interface ReportFilters {
   from: string;
   to: string;
+  allTime: boolean;
   status: ReportStatusFilter;
   paymentMethod: 'all' | PaymentMethodCode;
   deliveryMethod: 'all' | DeliveryMethod;
