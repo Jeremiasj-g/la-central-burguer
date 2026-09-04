@@ -26,6 +26,7 @@ import type {
 } from '../types/reporte.types';
 import {
   formatCurrency,
+  formatDateInput,
   formatNumber,
   formatReportDate,
   getPresetRange,
@@ -37,6 +38,7 @@ import { exportReportToExcel } from '../utils/xlsx-export.utils';
 function createDefaultFilters(): ReportFilterState {
   return {
     ...getPresetRange('thisMonth'),
+    allTime: false,
     status: 'valid',
     paymentMethod: 'all',
     deliveryMethod: 'all',
@@ -56,19 +58,26 @@ function MetricCard({
   icon: React.ComponentType<{ size?: number; className?: string }>;
 }) {
   return (
-    <article className="rounded-sm border border-neutral-200 bg-white p-5 shadow-sm">
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <p className="text-xs font-bold text-neutral-500">{label}</p>
-          <p className="mt-2 text-2xl font-extrabold tracking-tight text-central-carbon">{value}</p>
-          <p className="mt-1 text-xs text-neutral-500">{detail}</p>
-        </div>
-        <span className="grid h-10 w-10 shrink-0 place-items-center rounded-sm bg-central-orange/10 text-central-orange">
-          <Icon size={18} />
-        </span>
+    <article className="relative min-w-0 overflow-hidden rounded-sm border border-neutral-200 bg-white p-5 shadow-sm">
+      <span className="absolute right-4 top-4 grid h-10 w-10 shrink-0 place-items-center rounded-sm bg-central-orange/10 text-central-orange">
+        <Icon size={18} />
+      </span>
+      <div className="min-w-0 pr-12">
+        <p className="truncate text-xs font-bold text-neutral-500">{label}</p>
+        <p className="mt-2 break-words text-2xl font-extrabold tracking-tight text-central-carbon">{value}</p>
+        <p className="mt-1 max-w-full text-xs leading-5 text-neutral-500">{detail}</p>
       </div>
     </article>
   );
+}
+
+function getEarliestOrderDate(orders: { createdAt: string }[]) {
+  if (!orders.length) return null;
+  const earliest = orders.reduce((current, order) => {
+    const candidate = new Date(order.createdAt);
+    return candidate < current ? candidate : current;
+  }, new Date(orders[0].createdAt));
+  return earliest;
 }
 
 export function ReportesAdminPage() {
@@ -82,25 +91,41 @@ export function ReportesAdminPage() {
   const { data, isLoading, error, lastLoadedAt, refresh } = useReportes(appliedFilters);
   const summary = useMemo(() => getReportSummary(data), [data]);
   const groups = useMemo(() => groupReport(data, groupBy), [data, groupBy]);
+  const earliestOrderDate = useMemo(() => getEarliestOrderDate(data.orders), [data.orders]);
 
   function handlePresetChange(nextPreset: ReportDatePreset) {
     setPreset(nextPreset);
-    if (nextPreset !== 'custom') {
-      setDraftFilters((current) => ({ ...current, ...getPresetRange(nextPreset) }));
+
+    if (nextPreset === 'allTime') {
+      setDraftFilters((current) => ({ ...current, allTime: true }));
+      return;
     }
+
+    if (nextPreset !== 'custom') {
+      setDraftFilters((current) => ({
+        ...current,
+        ...getPresetRange(nextPreset),
+        allTime: false,
+      }));
+      return;
+    }
+
+    setDraftFilters((current) => ({ ...current, allTime: false }));
   }
 
   function handleDraftChange(next: ReportFilterState) {
-    if (next.from !== draftFilters.from || next.to !== draftFilters.to) setPreset('custom');
+    if (next.from !== draftFilters.from || next.to !== draftFilters.to) {
+      setPreset('custom');
+    }
     setDraftFilters(next);
   }
 
   function applyFilters() {
-    if (!draftFilters.from || !draftFilters.to) {
+    if (!draftFilters.allTime && (!draftFilters.from || !draftFilters.to)) {
       toast.warning('Seleccioná las fechas del reporte.');
       return;
     }
-    if (draftFilters.from > draftFilters.to) {
+    if (!draftFilters.allTime && draftFilters.from > draftFilters.to) {
       toast.warning('La fecha desde no puede ser posterior a la fecha hasta.');
       return;
     }
@@ -123,9 +148,17 @@ export function ReportesAdminPage() {
 
     setIsExporting(true);
     try {
+      const exportFilters = appliedFilters.allTime && earliestOrderDate
+        ? {
+            ...appliedFilters,
+            from: formatDateInput(earliestOrderDate),
+            to: formatDateInput(new Date()),
+          }
+        : appliedFilters;
+
       exportReportToExcel({
         dataset: data,
-        filters: appliedFilters,
+        filters: exportFilters,
         groupBy,
         businessName: config?.businessName ?? 'La Central Burger',
       });
@@ -137,8 +170,14 @@ export function ReportesAdminPage() {
     }
   }
 
+  const periodDescription = appliedFilters.allTime
+    ? earliestOrderDate
+      ? `Histórico completo · desde el ${formatReportDate(earliestOrderDate)} hasta hoy`
+      : 'Histórico completo · sin pedidos registrados'
+    : `Período aplicado: ${formatReportDate(`${appliedFilters.from}T12:00:00`)} al ${formatReportDate(`${appliedFilters.to}T12:00:00`)}`;
+
   return (
-    <div>
+    <div className="min-w-0">
       <AdminPageHeader
         eyebrow="Reportes"
         title="Centro de análisis comercial"
@@ -169,14 +208,14 @@ export function ReportesAdminPage() {
         <div className="mb-6 rounded-sm border border-red-200 bg-red-50 p-4 text-sm font-semibold text-red-700">{error}</div>
       ) : null}
 
-      <div className="mb-4 flex flex-col gap-1 text-xs text-neutral-500 sm:flex-row sm:items-center sm:justify-between">
-        <p>
-          Período aplicado: <span className="font-bold text-neutral-700">{formatReportDate(`${appliedFilters.from}T12:00:00`)}</span> al <span className="font-bold text-neutral-700">{formatReportDate(`${appliedFilters.to}T12:00:00`)}</span>
+      <div className="mb-4 flex min-w-0 flex-col gap-1 text-xs leading-5 text-neutral-500 sm:flex-row sm:items-center sm:justify-between">
+        <p className="min-w-0 break-words">
+          {periodDescription}
         </p>
-        <p>{lastLoadedAt ? `Actualizado ${lastLoadedAt.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' })}` : 'Preparando información…'}</p>
+        <p className="shrink-0">{lastLoadedAt ? `Actualizado ${lastLoadedAt.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' })}` : 'Preparando información…'}</p>
       </div>
 
-      <section className="mb-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-6">
+      <section className="mb-6 grid min-w-0 gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-6">
         <MetricCard label="Facturación neta" value={formatCurrency(summary.netRevenue)} detail="Pedidos no cancelados" icon={DollarSign} />
         <MetricCard label="Pedidos válidos" value={formatNumber(summary.validOrders)} detail={`${formatNumber(summary.totalOrders)} pedidos seleccionados`} icon={ShoppingBag} />
         <MetricCard label="Ticket promedio" value={formatCurrency(summary.averageTicket)} detail="Promedio por pedido válido" icon={ReceiptText} />
