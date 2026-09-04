@@ -75,9 +75,13 @@ async function fetchOrders(filters: ReportFilters): Promise<ReportOrder[]> {
     let query = supabase
       .from('orders')
       .select('*')
-      .gte('created_at', toStartIso(filters.from))
-      .lte('created_at', toEndIso(filters.to))
       .order('created_at', { ascending: false });
+
+    if (!filters.allTime) {
+      query = query
+        .gte('created_at', toStartIso(filters.from))
+        .lte('created_at', toEndIso(filters.to));
+    }
 
     if (filters.status === 'valid') query = query.neq('status', 'cancelado');
     if (filters.status === 'aceptado') query = query.eq('status', 'aceptado');
@@ -130,11 +134,11 @@ async function fetchItems(orderIds: string[]): Promise<ReportItem[]> {
 export async function getReportData(filters: ReportFilters): Promise<ReportDataset> {
   requireSupabaseConfigured('generar reportes');
 
-  if (!filters.from || !filters.to) {
+  if (!filters.allTime && (!filters.from || !filters.to)) {
     throw new Error('Seleccioná un período válido para generar el reporte.');
   }
 
-  if (filters.from > filters.to) {
+  if (!filters.allTime && filters.from > filters.to) {
     throw new Error('La fecha desde no puede ser posterior a la fecha hasta.');
   }
 
