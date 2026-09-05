@@ -1,6 +1,5 @@
 import {
   BadgePercent,
-  BarChart3,
   Beef,
   BookOpenCheck,
   Boxes,
@@ -27,7 +26,6 @@ export const ADMIN_NAVIGATION = [
   { label: 'Ingredientes', href: ROUTES.adminIngredientes, icon: Boxes },
   { label: 'Recetas', href: ROUTES.adminRecetas, icon: BookOpenCheck },
   { label: 'Pedidos', href: ROUTES.adminPedidos, icon: ClipboardList },
-  { label: 'Ventas', href: ROUTES.adminVentas, icon: BarChart3 },
   { label: 'Reportes', href: ROUTES.adminReportes, icon: FileSpreadsheet },
   { label: 'Configuración', href: ROUTES.adminConfiguracion, icon: Settings },
 ] as const;

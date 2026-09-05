@@ -5,7 +5,6 @@ import type {
   ReportGroupRow,
   ReportPresetRange,
   ReportSummary,
-  ReportTrendPoint,
 } from '../types/reporte.types';
 
 const currencyFormatter = new Intl.NumberFormat('es-AR', {
@@ -227,15 +226,6 @@ export function groupReport(dataset: ReportDataset, groupBy: ReportGroupBy): Rep
   }
 
   return toGroupRows(groups, totalRevenue);
-}
-
-export function getDailyTrend(dataset: ReportDataset): ReportTrendPoint[] {
-  return groupReport(dataset, 'day').map((row) => ({
-    key: row.key,
-    label: row.label.slice(0, 5),
-    revenue: row.revenue,
-    orders: row.orders,
-  }));
 }
 
 export const REPORT_GROUP_LABELS: Record<ReportGroupBy, string> = {

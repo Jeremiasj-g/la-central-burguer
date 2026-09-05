@@ -190,6 +190,33 @@ function sheetXml(sheet: ExportSheet) {
 </worksheet>`;
 }
 
+function rawSheetXml(columns: ExportColumn[], rows: Record<string, CellValue>[]) {
+  const lastColumn = columnName(columns.length - 1);
+  const lastRow = Math.max(rows.length + 1, 1);
+  const headerCells = columns
+    .map((column, index) => cellXml(`${columnName(index)}1`, column.header, 0))
+    .join('');
+  const dataRows = rows.map((row, rowIndex) => {
+    const excelRow = rowIndex + 2;
+    const cells = columns.map((column, columnIndex) =>
+      cellXml(`${columnName(columnIndex)}${excelRow}`, row[column.key], 0),
+    ).join('');
+    return `<row r="${excelRow}">${cells}</row>`;
+  }).join('');
+
+  return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">
+  <dimension ref="A1:${lastColumn}${lastRow}"/>
+  <sheetViews><sheetView workbookViewId="0"><pane ySplit="1" topLeftCell="A2" activePane="bottomLeft" state="frozen"/></sheetView></sheetViews>
+  <sheetFormatPr defaultRowHeight="15"/>
+  <sheetData>
+    <row r="1">${headerCells}</row>
+    ${dataRows}
+  </sheetData>
+  <autoFilter ref="A1:${lastColumn}${lastRow}"/>
+</worksheet>`;
+}
+
 function stylesXml() {
   return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">
@@ -415,6 +442,137 @@ function buildSheets(
   ];
 }
 
+const RAW_COLUMNS: ExportColumn[] = [
+  { header: 'Período', key: 'periodo', width: 12 },
+  { header: 'Año', key: 'anio', width: 8 },
+  { header: 'Mes', key: 'mes', width: 8 },
+  { header: 'Día', key: 'dia', width: 8 },
+  { header: 'Hora', key: 'hora', width: 8 },
+  { header: 'Fecha y hora pedido', key: 'fechaPedido', width: 24 },
+  { header: 'ID pedido', key: 'pedidoId', width: 38 },
+  { header: 'Código pedido', key: 'codigoPedido', width: 20 },
+  { header: 'Estado', key: 'estado', width: 18 },
+  { header: 'Venta válida', key: 'ventaValida', width: 14 },
+  { header: 'Origen', key: 'origen', width: 14 },
+  { header: 'ID cliente', key: 'clienteId', width: 38 },
+  { header: 'Cliente', key: 'cliente', width: 28 },
+  { header: 'Teléfono', key: 'telefono', width: 18 },
+  { header: 'Email', key: 'email', width: 28 },
+  { header: 'Tipo de entrega', key: 'entrega', width: 18 },
+  { header: 'Dirección', key: 'direccion', width: 36 },
+  { header: 'Latitud cliente', key: 'latitud', width: 16 },
+  { header: 'Longitud cliente', key: 'longitud', width: 16 },
+  { header: 'Distancia delivery km', key: 'distancia', width: 20 },
+  { header: 'URL mapa', key: 'mapa', width: 42 },
+  { header: 'Método de pago', key: 'pago', width: 18 },
+  { header: 'Subtotal pedido', key: 'subtotalPedido', width: 18 },
+  { header: 'Costo delivery pedido', key: 'deliveryPedido', width: 22 },
+  { header: 'Total pedido', key: 'totalPedido', width: 18 },
+  { header: 'Notas pedido', key: 'notasPedido', width: 36 },
+  { header: 'Fecha aceptación', key: 'fechaAceptacion', width: 24 },
+  { header: 'Fecha cancelación', key: 'fechaCancelacion', width: 24 },
+  { header: 'Última actualización pedido', key: 'fechaActualizacion', width: 28 },
+  { header: 'ID detalle', key: 'detalleId', width: 38 },
+  { header: 'Fecha detalle', key: 'fechaDetalle', width: 24 },
+  { header: 'ID producto', key: 'productoId', width: 38 },
+  { header: 'Producto', key: 'producto', width: 34 },
+  { header: 'ID categoría', key: 'categoriaId', width: 38 },
+  { header: 'Categoría', key: 'categoria', width: 24 },
+  { header: 'Es promoción', key: 'promocion', width: 14 },
+  { header: 'Cantidad', key: 'cantidad', width: 12 },
+  { header: 'Precio unitario', key: 'precioUnitario', width: 18 },
+  { header: 'Importe producto', key: 'importeProducto', width: 18 },
+  { header: 'Nota producto', key: 'notaProducto', width: 32 },
+  { header: 'URL imagen producto', key: 'imagenProducto', width: 42 },
+  { header: 'Cantidad pedidos imputable', key: 'pedidosImputables', width: 26 },
+  { header: 'Delivery imputable', key: 'deliveryImputable', width: 20 },
+  { header: 'Total venta imputable', key: 'totalImputable', width: 22 },
+];
+
+function getDateParts(value: string) {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    return { periodo: '', anio: null, mes: null, dia: null, hora: null };
+  }
+
+  return {
+    periodo: `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`,
+    anio: date.getFullYear(),
+    mes: date.getMonth() + 1,
+    dia: date.getDate(),
+    hora: date.getHours(),
+  };
+}
+
+function buildRawRows(dataset: ReportDataset) {
+  const itemsByOrder = new Map<string, ReportDataset['items']>();
+  for (const item of dataset.items) {
+    const rows = itemsByOrder.get(item.orderId) ?? [];
+    rows.push(item);
+    itemsByOrder.set(item.orderId, rows);
+  }
+
+  const rows: Record<string, CellValue>[] = [];
+
+  for (const order of dataset.orders) {
+    const orderItems = itemsByOrder.get(order.id) ?? [];
+    const detailRows = orderItems.length ? orderItems : [null];
+    const dateParts = getDateParts(order.createdAt);
+
+    detailRows.forEach((item, itemIndex) => {
+      const firstItem = itemIndex === 0;
+      const itemTotal = item?.total ?? 0;
+
+      rows.push({
+        ...dateParts,
+        fechaPedido: order.createdAt,
+        pedidoId: order.id,
+        codigoPedido: order.orderCode,
+        estado: order.status,
+        ventaValida: order.status === 'cancelado' ? 'No' : 'Sí',
+        origen: order.source,
+        clienteId: order.customerId,
+        cliente: order.customerName,
+        telefono: order.customerPhone,
+        email: order.customerEmail,
+        entrega: order.deliveryMethod,
+        direccion: order.address,
+        latitud: order.customerLatitude,
+        longitud: order.customerLongitude,
+        distancia: order.deliveryDistanceKm,
+        mapa: order.deliveryMapsUrl,
+        pago: order.paymentMethod,
+        subtotalPedido: order.subtotal,
+        deliveryPedido: order.deliveryCost,
+        totalPedido: order.total,
+        notasPedido: order.notes,
+        fechaAceptacion: order.acceptedAt,
+        fechaCancelacion: order.cancelledAt,
+        fechaActualizacion: order.updatedAt,
+        detalleId: item?.id,
+        fechaDetalle: item?.createdAt,
+        productoId: item?.productId,
+        producto: item?.productName,
+        categoriaId: item?.categoryId,
+        categoria: item?.categoryName,
+        promocion: item ? (item.isPromotion ? 'Sí' : 'No') : null,
+        cantidad: item?.quantity,
+        precioUnitario: item?.unitPrice,
+        importeProducto: item?.total,
+        notaProducto: item?.note,
+        imagenProducto: item?.imageUrl,
+        pedidosImputables: firstItem ? 1 : 0,
+        deliveryImputable: firstItem ? order.deliveryCost : 0,
+        totalImputable: item
+          ? itemTotal + (firstItem ? order.deliveryCost : 0)
+          : order.total,
+      });
+    });
+  }
+
+  return rows;
+}
+
 function slugifyFile(value: string) {
   return value
     .normalize('NFD')
@@ -424,13 +582,7 @@ function slugifyFile(value: string) {
     .replace(/^-|-$/g, '');
 }
 
-export function exportReportToExcel(params: {
-  dataset: ReportDataset;
-  filters: ReportFilters;
-  groupBy: ReportGroupBy;
-  businessName: string;
-}) {
-  const sheets = buildSheets(params.dataset, params.filters, params.groupBy, params.businessName);
+function buildWorkbookBytes(sheets: ExportSheet[], raw = false) {
   const entries: ZipEntry[] = [
     { name: '[Content_Types].xml', data: encoder.encode(contentTypesXml(sheets.length)) },
     { name: '_rels/.rels', data: encoder.encode(ROOT_RELS) },
@@ -439,19 +591,60 @@ export function exportReportToExcel(params: {
     { name: 'xl/styles.xml', data: encoder.encode(stylesXml()) },
     ...sheets.map((sheet, index) => ({
       name: `xl/worksheets/sheet${index + 1}.xml`,
-      data: encoder.encode(sheetXml(sheet)),
+      data: encoder.encode(raw ? rawSheetXml(sheet.columns, sheet.rows) : sheetXml(sheet)),
     })),
   ];
 
-  const bytes = createStoredZip(entries);
+  return createStoredZip(entries);
+}
+
+function downloadWorkbook(bytes: Uint8Array, filename: string) {
   const arrayBuffer = bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength) as ArrayBuffer;
   const blob = new Blob([arrayBuffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
   const url = URL.createObjectURL(blob);
   const anchor = document.createElement('a');
   anchor.href = url;
-  anchor.download = `${slugifyFile(params.businessName) || 'reporte'}-${params.filters.from}-a-${params.filters.to}.xlsx`;
+  anchor.download = filename;
   document.body.appendChild(anchor);
   anchor.click();
   anchor.remove();
   URL.revokeObjectURL(url);
+}
+
+export function buildRawReportWorkbookBytes(dataset: ReportDataset) {
+  const rawSheet: ExportSheet = {
+    name: 'Base cruda',
+    title: '',
+    subtitle: '',
+    columns: RAW_COLUMNS,
+    rows: buildRawRows(dataset),
+  };
+
+  return buildWorkbookBytes([rawSheet], true);
+}
+
+export function exportReportToExcel(params: {
+  dataset: ReportDataset;
+  filters: ReportFilters;
+  groupBy: ReportGroupBy;
+  businessName: string;
+}) {
+  const sheets = buildSheets(params.dataset, params.filters, params.groupBy, params.businessName);
+  const bytes = buildWorkbookBytes(sheets);
+  downloadWorkbook(
+    bytes,
+    `${slugifyFile(params.businessName) || 'reporte'}-${params.filters.from}-a-${params.filters.to}.xlsx`,
+  );
+}
+
+export function exportRawDataToExcel(params: {
+  dataset: ReportDataset;
+  businessName: string;
+}) {
+  const bytes = buildRawReportWorkbookBytes(params.dataset);
+  const today = new Date().toISOString().slice(0, 10);
+  downloadWorkbook(
+    bytes,
+    `${slugifyFile(params.businessName) || 'reporte'}-base-cruda-${today}.xlsx`,
+  );
 }

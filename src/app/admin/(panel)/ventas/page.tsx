@@ -1,3 +1,6 @@
-import { VentasAdminPage } from '@/features/ventas/pages/VentasAdminPage';
+import { permanentRedirect } from 'next/navigation';
+import { ROUTES } from '@/shared/constants/routes';
 
-export default function Page() { return <VentasAdminPage />; }
+export default function Page() {
+  permanentRedirect(ROUTES.adminReportes);
+}

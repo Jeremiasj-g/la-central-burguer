@@ -33,13 +33,24 @@ export interface ReportOrder {
   customerId: string | null;
   customerName: string;
   customerPhone: string;
+  customerEmail: string | null;
   deliveryMethod: DeliveryMethod;
+  address: string | null;
+  customerLatitude: number | null;
+  customerLongitude: number | null;
+  deliveryDistanceKm: number | null;
+  deliveryMapsUrl: string | null;
   paymentMethod: PaymentMethodCode;
   subtotal: number;
   deliveryCost: number;
   total: number;
   status: OrderStatus;
+  notes: string | null;
+  source: string;
+  acceptedAt: string | null;
+  cancelledAt: string | null;
   createdAt: string;
+  updatedAt: string;
 }
 
 export interface ReportItem {
@@ -49,10 +60,13 @@ export interface ReportItem {
   categoryId: string | null;
   productName: string;
   categoryName: string | null;
+  imageUrl: string | null;
   isPromotion: boolean;
   quantity: number;
   unitPrice: number;
   total: number;
+  note: string | null;
+  createdAt: string;
 }
 
 export interface ReportDataset {
@@ -81,13 +95,6 @@ export interface ReportGroupRow {
   deliveryRevenue: number;
   averageTicket: number;
   share: number;
-}
-
-export interface ReportTrendPoint {
-  key: string;
-  label: string;
-  revenue: number;
-  orders: number;
 }
 
 export interface ReportPresetRange {

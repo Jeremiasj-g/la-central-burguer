@@ -8,7 +8,6 @@ export const ROUTES = {
   adminIngredientes: '/admin/ingredientes',
   adminRecetas: '/admin/recetas',
   adminPedidos: '/admin/pedidos',
-  adminVentas: '/admin/ventas',
   adminReportes: '/admin/reportes',
   adminConfiguracion: '/admin/configuracion',
 } as const;

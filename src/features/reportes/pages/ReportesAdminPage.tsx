@@ -15,10 +15,11 @@ import { toast } from 'react-toastify';
 import { AdminPageHeader } from '@/shared/components/layout/AdminPageHeader';
 import { Button } from '@/shared/components/ui/Button';
 import { useBusinessConfig } from '@/features/configuracion/hooks/useBusinessConfig';
+import { ReportExportDialog, type ReportExportMode } from '../components/ReportExportDialog';
 import { ReportFilters } from '../components/ReportFilters';
-import { ReportCharts } from '../components/ReportCharts';
 import { ReportTables } from '../components/ReportTables';
 import { useReportes } from '../hooks/useReportes';
+import { getCompleteReportData } from '../services/reportes.service';
 import type {
   ReportDatePreset,
   ReportFilters as ReportFilterState,
@@ -33,7 +34,7 @@ import {
   getReportSummary,
   groupReport,
 } from '../utils/reportes.utils';
-import { exportReportToExcel } from '../utils/xlsx-export.utils';
+import { exportRawDataToExcel, exportReportToExcel } from '../utils/xlsx-export.utils';
 
 function createDefaultFilters(): ReportFilterState {
   return {
@@ -86,7 +87,8 @@ export function ReportesAdminPage() {
   const [draftFilters, setDraftFilters] = useState<ReportFilterState>(initial);
   const [appliedFilters, setAppliedFilters] = useState<ReportFilterState>(initial);
   const [groupBy, setGroupBy] = useState<ReportGroupBy>('day');
-  const [isExporting, setIsExporting] = useState(false);
+  const [exportDialogOpen, setExportDialogOpen] = useState(false);
+  const [exportingMode, setExportingMode] = useState<ReportExportMode | null>(null);
   const { config } = useBusinessConfig();
   const { data, isLoading, error, lastLoadedAt, refresh } = useReportes(appliedFilters);
   const summary = useMemo(() => getReportSummary(data), [data]);
@@ -140,14 +142,30 @@ export function ReportesAdminPage() {
     setGroupBy('day');
   }
 
-  function handleExport() {
-    if (!data.orders.length) {
+  async function handleExport(mode: ReportExportMode) {
+    if (mode === 'analytical' && !data.orders.length) {
       toast.info('No hay datos para exportar con los filtros seleccionados.');
       return;
     }
 
-    setIsExporting(true);
+    setExportingMode(mode);
     try {
+      if (mode === 'raw') {
+        const completeData = await getCompleteReportData();
+        if (!completeData.orders.length) {
+          toast.info('Todavía no hay información histórica para exportar.');
+          return;
+        }
+
+        exportRawDataToExcel({
+          dataset: completeData,
+          businessName: config?.businessName ?? 'La Central Burger',
+        });
+        toast.success('Base cruda completa generada correctamente.');
+        setExportDialogOpen(false);
+        return;
+      }
+
       const exportFilters = appliedFilters.allTime && earliestOrderDate
         ? {
             ...appliedFilters,
@@ -163,10 +181,11 @@ export function ReportesAdminPage() {
         businessName: config?.businessName ?? 'La Central Burger',
       });
       toast.success('Reporte Excel generado correctamente.');
+      setExportDialogOpen(false);
     } catch (caught: unknown) {
       toast.error(caught instanceof Error ? caught.message : 'No se pudo exportar el reporte.');
     } finally {
-      setIsExporting(false);
+      setExportingMode(null);
     }
   }
 
@@ -181,14 +200,14 @@ export function ReportesAdminPage() {
       <AdminPageHeader
         eyebrow="Reportes"
         title="Centro de análisis comercial"
-        description="Consolidá ventas por períodos, productos, categorías, medios de pago y entregas. Todos los indicadores se calculan sobre los datos reales registrados en Supabase."
+        description="Filtrá, consolidá y exportá la información comercial por períodos, productos, categorías, medios de pago y entregas."
         actions={(
           <>
             <Button type="button" variant="secondary" onClick={refresh} disabled={isLoading}>
               <RefreshCw size={16} className={isLoading ? 'animate-spin' : ''} /> Actualizar
             </Button>
-            <Button type="button" onClick={handleExport} disabled={isLoading || isExporting || !data.orders.length}>
-              <Download size={16} /> {isExporting ? 'Generando…' : 'Exportar Excel'}
+            <Button type="button" onClick={() => setExportDialogOpen(true)} disabled={isLoading || exportingMode !== null}>
+              <Download size={16} /> {exportingMode ? 'Generando…' : 'Exportar Excel'}
             </Button>
           </>
         )}
@@ -227,11 +246,18 @@ export function ReportesAdminPage() {
       {isLoading ? (
         <div className="mb-6 rounded-sm border border-neutral-200 bg-white p-12 text-center text-sm font-semibold text-neutral-500 shadow-sm">Procesando el reporte…</div>
       ) : (
-        <>
-          <ReportCharts dataset={data} />
-          <ReportTables dataset={data} groups={groups} groupBy={groupBy} onGroupByChange={setGroupBy} />
-        </>
+        <ReportTables dataset={data} groups={groups} groupBy={groupBy} onGroupByChange={setGroupBy} />
       )}
+
+      <ReportExportDialog
+        open={exportDialogOpen}
+        hasFilteredData={Boolean(data.orders.length)}
+        exportingMode={exportingMode}
+        onClose={() => {
+          if (!exportingMode) setExportDialogOpen(false);
+        }}
+        onExport={(mode) => void handleExport(mode)}
+      />
     </div>
   );
 }

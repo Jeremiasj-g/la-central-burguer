@@ -31,13 +31,24 @@ function mapOrder(row: OrderRow): ReportOrder {
     customerId: row.customer_id,
     customerName: row.customer_name,
     customerPhone: row.customer_phone,
+    customerEmail: row.customer_email,
     deliveryMethod: row.delivery_method,
+    address: row.address,
+    customerLatitude: row.customer_latitude,
+    customerLongitude: row.customer_longitude,
+    deliveryDistanceKm: row.delivery_distance_km === null ? null : Number(row.delivery_distance_km),
+    deliveryMapsUrl: row.delivery_maps_url,
     paymentMethod: row.payment_method,
     subtotal: Number(row.subtotal),
     deliveryCost: Number(row.delivery_cost),
     total: Number(row.total),
     status: row.status,
+    notes: row.notes,
+    source: row.source,
+    acceptedAt: row.accepted_at,
+    cancelledAt: row.cancelled_at,
     createdAt: row.created_at,
+    updatedAt: row.updated_at,
   };
 }
 
@@ -49,10 +60,13 @@ function mapItem(row: OrderItemRow): ReportItem {
     categoryId: row.category_id,
     productName: row.product_name,
     categoryName: row.category_name,
+    imageUrl: row.image_url,
     isPromotion: row.is_promotion,
     quantity: row.quantity,
     unitPrice: Number(row.unit_price),
     total: Number(row.total),
+    note: row.note,
+    createdAt: row.created_at,
   };
 }
 
@@ -146,4 +160,16 @@ export async function getReportData(filters: ReportFilters): Promise<ReportDatas
   const items = await fetchItems(orders.map((order) => order.id));
 
   return { orders, items };
+}
+
+export async function getCompleteReportData(): Promise<ReportDataset> {
+  return getReportData({
+    from: '',
+    to: '',
+    allTime: true,
+    status: 'all',
+    paymentMethod: 'all',
+    deliveryMethod: 'all',
+    search: '',
+  });
 }
