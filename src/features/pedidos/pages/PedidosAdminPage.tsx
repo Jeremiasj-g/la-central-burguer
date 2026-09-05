@@ -14,6 +14,11 @@ import { Select } from '@/shared/components/ui/Select';
 import { EmptyState } from '@/shared/components/ui/EmptyState';
 
 const adminInputClass = '!bg-white !text-central-carbon !placeholder:text-neutral-500 border-neutral-200';
+const STATUS_OPTIONS = [
+  { value: 'all', label: 'Todos los estados' },
+  { value: 'aceptado', label: 'Aceptados' },
+  { value: 'cancelado', label: 'Cancelados' },
+] as const;
 
 export function PedidosAdminPage() {
   const [search, setSearch] = useState('');
@@ -36,11 +41,13 @@ export function PedidosAdminPage() {
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-neutral-400" size={18} />
           <Input className={`pl-11 ${adminInputClass}`} value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Buscar por pedido, cliente o teléfono" />
         </label>
-        <Select className={adminInputClass} value={status} onChange={(event) => setStatus(event.target.value as 'all' | OrderStatus)}>
-          <option value="all">Todos los estados</option>
-          <option value="aceptado">Aceptados</option>
-          <option value="cancelado">Cancelados</option>
-        </Select>
+        <Select
+          aria-label="Filtrar pedidos por estado"
+          variant="light"
+          value={status}
+          options={STATUS_OPTIONS}
+          onValueChange={(nextStatus) => setStatus(nextStatus as 'all' | OrderStatus)}
+        />
       </div>
       {error ? (
         <div className="rounded-sm border border-red-200 bg-red-50 p-5 text-sm text-red-700">

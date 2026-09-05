@@ -1,23 +1,17 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { Search } from 'lucide-react';
 import { useProductos } from '@/features/productos/hooks/useProductos';
 import { useProductoReceta } from '../hooks/useProductoReceta';
 import { useIngredientes } from '@/features/ingredientes/hooks/useIngredientes';
 import { AdminPageHeader } from '@/shared/components/layout/AdminPageHeader';
-import { Input } from '@/shared/components/ui/Input';
-import { cn } from '@/shared/utils/cn';
+import { SearchableSelect } from '@/shared/components/ui/SearchableSelect';
 import { DataLoadError } from '@/shared/components/feedback/DataLoadError';
-
-const adminInputClass = '!bg-white !text-central-carbon !placeholder:text-neutral-500 border-neutral-200';
 
 export function RecetasAdminPage() {
   const { productos, error: productsError, refresh: refreshProducts } = useProductos({ active: 'all' });
   const { ingredientes, error: ingredientsError, refresh: refreshIngredients } = useIngredientes({ active: 'all' });
   const [productId, setProductId] = useState('');
-  const [search, setSearch] = useState('');
-  const [openOptions, setOpenOptions] = useState(false);
   const selectedProductId = productId || productos[0]?.id || '';
   const selectedProduct = productos.find((product) => product.id === selectedProductId);
   const { recipe, isLoading, error: recipeError, refresh: refreshRecipe } = useProductoReceta(selectedProductId);
@@ -26,44 +20,20 @@ export function RecetasAdminPage() {
     ? recipe.ingredients.map((item) => ({ id: item.id, ingredientId: item.ingredientId, quantity: item.quantity, unit: item.unit }))
     : (selectedProduct?.ingredientIds ?? []).map((ingredientId) => ({ id: `${selectedProductId}-${ingredientId}`, ingredientId, quantity: null, unit: null }));
 
-  const filteredProducts = productos.filter((product) => product.name.toLowerCase().includes(search.toLowerCase().trim()));
-
-  function selectProduct(nextProductId: string) {
-    const product = productos.find((item) => item.id === nextProductId);
-    setProductId(nextProductId);
-    setSearch(product?.name ?? '');
-    setOpenOptions(false);
-  }
-
   return (
     <div>
       <AdminPageHeader eyebrow="Recetas" title="Composición de productos" description="Visor inicial de ingredientes asociados a cada producto. Sin cálculo automático de precios." />
       <div className="mb-6 max-w-xl rounded-sm border border-neutral-200 bg-white p-4 shadow-soft">
         <label className="mb-2 block text-sm font-bold text-central-carbon">Producto</label>
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 z-10 -translate-y-1/2 text-neutral-400" size={17} />
-          <Input
-            className={`pl-10 ${adminInputClass}`}
-            value={openOptions ? search : search || selectedProduct?.name || ''}
-            onChange={(event) => { setSearch(event.target.value); setOpenOptions(true); }}
-            onFocus={() => { setSearch(''); setOpenOptions(true); }}
-            placeholder="Buscar producto o desplegar opciones"
-          />
-          {openOptions ? (
-            <div className="absolute left-0 right-0 top-[calc(100%+6px)] z-20 max-h-64 overflow-y-auto rounded-sm border border-neutral-200 bg-white p-1 shadow-soft custom-scrollbar">
-              {filteredProducts.length ? filteredProducts.map((product) => (
-                <button
-                  type="button"
-                  key={product.id}
-                  className={cn('block w-full rounded-sm px-3 py-2 text-left text-sm font-bold text-central-carbon hover:bg-central-orange/10 hover:text-central-orange', product.id === selectedProductId && 'bg-central-orange/10 text-central-orange')}
-                  onMouseDown={(event) => { event.preventDefault(); selectProduct(product.id); }}
-                >
-                  {product.name}
-                </button>
-              )) : <p className="px-3 py-3 text-sm text-neutral-500">No se encontraron productos.</p>}
-            </div>
-          ) : null}
-        </div>
+        <SearchableSelect
+          aria-label="Seleccionar producto para ver su receta"
+          value={selectedProductId}
+          options={productos.map((product) => ({ value: product.id, label: product.name }))}
+          onValueChange={setProductId}
+          placeholder="Seleccionar producto"
+          searchPlaceholder="Buscar producto…"
+          emptyMessage="No se encontraron productos."
+        />
       </div>
       {productsError || ingredientsError || recipeError ? (
         <DataLoadError

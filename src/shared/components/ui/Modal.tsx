@@ -25,8 +25,8 @@ const sizes = {
   xl: 'max-w-5xl',
 };
 
-function isFormControl(element: Element | null): element is HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement {
-  return Boolean(element?.matches('input, textarea, select, [contenteditable="true"]'));
+function isFormControl(element: Element | null): element is HTMLElement {
+  return Boolean(element?.matches('input, textarea, select, [role="combobox"], [contenteditable="true"]'));
 }
 
 export function Modal({ open, title, children, onClose, className, panelClassName, size = 'md', theme = 'light' }: ModalProps) {

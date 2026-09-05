@@ -84,10 +84,16 @@ export function ProductosAdminPage() {
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-neutral-400" size={18} />
           <Input className={`pl-11 ${adminInputClass}`} value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Buscar producto" />
         </label>
-        <Select className={adminInputClass} value={categoryId} onChange={(event) => setCategoryId(event.target.value)}>
-          <option value="all">Todas las categorías</option>
-          {categorias.map((category) => <option key={category.id} value={category.id}>{category.name}</option>)}
-        </Select>
+        <Select
+          aria-label="Filtrar productos por categoría"
+          variant="light"
+          value={categoryId}
+          options={[
+            { value: 'all', label: 'Todas las categorías' },
+            ...categorias.map((category) => ({ value: category.id, label: category.name })),
+          ]}
+          onValueChange={setCategoryId}
+        />
       </div>
       {productsError || categoriesError || ingredientsError ? (
         <DataLoadError

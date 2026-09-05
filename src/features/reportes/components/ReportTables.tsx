@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { Layers3, List } from 'lucide-react';
+import { Select } from '@/shared/components/ui/Select';
 import type { ReportDataset, ReportGroupBy, ReportGroupRow } from '../types/reporte.types';
 import {
   formatCurrency,
@@ -19,6 +20,10 @@ interface ReportTablesProps {
 
 export function ReportTables({ dataset, groups, groupBy, onGroupByChange }: ReportTablesProps) {
   const [view, setView] = useState<'consolidated' | 'detail'>('consolidated');
+  const groupOptions = (Object.entries(REPORT_GROUP_LABELS) as [ReportGroupBy, string][]).map(([value, label]) => ({
+    value,
+    label: `Agrupar por ${label.toLocaleLowerCase('es-AR')}`,
+  }));
 
   return (
     <section className="min-w-0 overflow-hidden rounded-sm border border-neutral-200 bg-white shadow-sm">
@@ -46,15 +51,14 @@ export function ReportTables({ dataset, groups, groupBy, onGroupByChange }: Repo
           </div>
 
           {view === 'consolidated' ? (
-            <select
+            <Select
+              aria-label="Agrupar reporte"
+              variant="light"
               value={groupBy}
-              onChange={(event) => onGroupByChange(event.target.value as ReportGroupBy)}
-              className="h-10 min-w-0 max-w-full rounded-sm border border-neutral-200 bg-white px-3 text-xs font-bold text-neutral-700 outline-none focus:border-central-orange sm:w-auto"
-            >
-              {(Object.entries(REPORT_GROUP_LABELS) as [ReportGroupBy, string][]).map(([value, label]) => (
-                <option key={value} value={value}>Agrupar por {label.toLocaleLowerCase('es-AR')}</option>
-              ))}
-            </select>
+              options={groupOptions}
+              onValueChange={(nextGroup) => onGroupByChange(nextGroup as ReportGroupBy)}
+              className="min-w-0 text-xs font-bold sm:w-auto sm:min-w-48"
+            />
           ) : null}
         </div>
       </div>

@@ -173,9 +173,14 @@ export function ProductoForm({ product, categories, ingredients, isSaving, onSub
 
           <div className="admin-modal-field">
             <label className={fieldLabelClass}>Categoría <span className="text-red-300">*</span></label>
-            <Select value={values.categoryId} onChange={(event) => setValues({ ...values, categoryId: event.target.value })} required>
-              {categories.map((category) => <option key={category.id} value={category.id}>{category.name}</option>)}
-            </Select>
+            <Select
+              aria-label="Categoría del producto"
+              value={values.categoryId}
+              options={categories.map((category) => ({ value: category.id, label: category.name }))}
+              onValueChange={(categoryId) => setValues({ ...values, categoryId })}
+              placeholder="Seleccionar categoría"
+              required
+            />
           </div>
         </div>
 

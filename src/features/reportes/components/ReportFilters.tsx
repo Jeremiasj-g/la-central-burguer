@@ -30,7 +30,25 @@ const PRESETS: { value: ReportDatePreset; label: string }[] = [
   { value: 'custom', label: 'Rango personalizado' },
 ];
 
-const adminSelectClass = '!border-neutral-200 !bg-white !text-central-carbon disabled:cursor-not-allowed disabled:!bg-neutral-100 disabled:!text-neutral-400 [&>option]:bg-white [&>option]:text-central-carbon';
+const STATUS_OPTIONS = [
+  { value: 'valid', label: 'Ventas válidas' },
+  { value: 'all', label: 'Todos' },
+  { value: 'aceptado', label: 'Aceptados' },
+  { value: 'cancelado', label: 'Cancelados' },
+] as const;
+
+const PAYMENT_OPTIONS = [
+  { value: 'all', label: 'Todos los métodos' },
+  { value: 'efectivo', label: 'Efectivo' },
+  { value: 'transferencia', label: 'Transferencia' },
+] as const;
+
+const DELIVERY_OPTIONS = [
+  { value: 'all', label: 'Todas las entregas' },
+  { value: 'delivery', label: 'Delivery' },
+  { value: 'retiro_local', label: 'Retiro local' },
+] as const;
+
 const adminInputClass = '!border-neutral-200 !bg-white !text-central-carbon placeholder:!text-neutral-400 disabled:cursor-not-allowed disabled:!bg-neutral-100 disabled:!text-neutral-400';
 
 export function ReportFilters({
@@ -71,12 +89,12 @@ export function ReportFilters({
         <label className="min-w-0 md:col-span-2 xl:col-span-3">
           <span className="mb-1.5 block text-xs font-bold uppercase tracking-wide text-neutral-500">Período</span>
           <Select
+            aria-label="Período del reporte"
+            variant="light"
             value={preset}
-            onChange={(event) => onPresetChange(event.target.value as ReportDatePreset)}
-            className={adminSelectClass}
-          >
-            {PRESETS.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
-          </Select>
+            options={PRESETS}
+            onValueChange={(nextPreset) => onPresetChange(nextPreset as ReportDatePreset)}
+          />
         </label>
 
         <label className="min-w-0 xl:col-span-2">
@@ -112,15 +130,12 @@ export function ReportFilters({
         <label className="min-w-0 xl:col-span-2">
           <span className="mb-1.5 block text-xs font-bold uppercase tracking-wide text-neutral-500">Estado</span>
           <Select
+            aria-label="Estado de las ventas"
+            variant="light"
             value={filters.status}
-            onChange={(event) => patch({ status: event.target.value as ReportFilters['status'] })}
-            className={adminSelectClass}
-          >
-            <option value="valid">Ventas válidas</option>
-            <option value="all">Todos</option>
-            <option value="aceptado">Aceptados</option>
-            <option value="cancelado">Cancelados</option>
-          </Select>
+            options={STATUS_OPTIONS}
+            onValueChange={(status) => patch({ status: status as ReportFilters['status'] })}
+          />
         </label>
 
         <label className="min-w-0 md:col-span-2 xl:col-span-3">
@@ -139,27 +154,23 @@ export function ReportFilters({
         <label className="min-w-0 xl:col-span-3">
           <span className="mb-1.5 block text-xs font-bold uppercase tracking-wide text-neutral-500">Método de pago</span>
           <Select
+            aria-label="Método de pago"
+            variant="light"
             value={filters.paymentMethod}
-            onChange={(event) => patch({ paymentMethod: event.target.value as ReportFilters['paymentMethod'] })}
-            className={adminSelectClass}
-          >
-            <option value="all">Todos los métodos</option>
-            <option value="efectivo">Efectivo</option>
-            <option value="transferencia">Transferencia</option>
-          </Select>
+            options={PAYMENT_OPTIONS}
+            onValueChange={(paymentMethod) => patch({ paymentMethod: paymentMethod as ReportFilters['paymentMethod'] })}
+          />
         </label>
 
         <label className="min-w-0 xl:col-span-3">
           <span className="mb-1.5 block text-xs font-bold uppercase tracking-wide text-neutral-500">Tipo de entrega</span>
           <Select
+            aria-label="Tipo de entrega"
+            variant="light"
             value={filters.deliveryMethod}
-            onChange={(event) => patch({ deliveryMethod: event.target.value as ReportFilters['deliveryMethod'] })}
-            className={adminSelectClass}
-          >
-            <option value="all">Todas las entregas</option>
-            <option value="delivery">Delivery</option>
-            <option value="retiro_local">Retiro local</option>
-          </Select>
+            options={DELIVERY_OPTIONS}
+            onValueChange={(deliveryMethod) => patch({ deliveryMethod: deliveryMethod as ReportFilters['deliveryMethod'] })}
+          />
         </label>
 
         <div className="flex min-w-0 items-end md:col-span-2 xl:col-span-6 xl:justify-end">

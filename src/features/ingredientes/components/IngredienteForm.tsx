@@ -6,6 +6,25 @@ import { Button } from '@/shared/components/ui/Button';
 import { Input } from '@/shared/components/ui/Input';
 import { Select } from '@/shared/components/ui/Select';
 
+const INGREDIENT_TYPE_OPTIONS = [
+  { value: 'proteina', label: 'Proteína' },
+  { value: 'panificados', label: 'Panificados' },
+  { value: 'lacteos', label: 'Lácteos' },
+  { value: 'verduras', label: 'Verduras' },
+  { value: 'insumos', label: 'Insumos' },
+  { value: 'bebidas', label: 'Bebidas' },
+  { value: 'otros', label: 'Otros' },
+] as const;
+
+const INGREDIENT_UNIT_OPTIONS = [
+  { value: 'kg', label: 'kg' },
+  { value: 'gr', label: 'gr' },
+  { value: 'unidad', label: 'unidad' },
+  { value: 'litro', label: 'litro' },
+  { value: 'ml', label: 'ml' },
+  { value: 'paquete', label: 'paquete' },
+] as const;
+
 export function IngredienteForm({ ingredient, isSaving, onSubmit, onCancel }: { ingredient?: Ingredient | null; isSaving?: boolean; onSubmit: (values: { name: string; type: Ingredient['type']; unit: Ingredient['unit']; supplier?: string; active: boolean }) => void; onCancel: () => void }) {
   const [values, setValues] = useState({ name: ingredient?.name ?? '', type: ingredient?.type ?? 'otros', unit: ingredient?.unit ?? 'unidad', supplier: ingredient?.supplier ?? '', active: ingredient?.active ?? true });
 
@@ -21,26 +40,21 @@ export function IngredienteForm({ ingredient, isSaving, onSubmit, onCancel }: { 
       </div>
       <div className="admin-modal-field">
         <label className="admin-modal-label">Tipo</label>
-        <Select value={values.type} onChange={(event) => setValues({ ...values, type: event.target.value as Ingredient['type'] })}>
-          <option value="proteina">Proteína</option>
-          <option value="panificados">Panificados</option>
-          <option value="lacteos">Lácteos</option>
-          <option value="verduras">Verduras</option>
-          <option value="insumos">Insumos</option>
-          <option value="bebidas">Bebidas</option>
-          <option value="otros">Otros</option>
-        </Select>
+        <Select
+          aria-label="Tipo de ingrediente"
+          value={values.type}
+          options={INGREDIENT_TYPE_OPTIONS}
+          onValueChange={(type) => setValues({ ...values, type: type as Ingredient['type'] })}
+        />
       </div>
       <div className="admin-modal-field">
         <label className="admin-modal-label">Unidad</label>
-        <Select value={values.unit} onChange={(event) => setValues({ ...values, unit: event.target.value as Ingredient['unit'] })}>
-          <option value="kg">kg</option>
-          <option value="gr">gr</option>
-          <option value="unidad">unidad</option>
-          <option value="litro">litro</option>
-          <option value="ml">ml</option>
-          <option value="paquete">paquete</option>
-        </Select>
+        <Select
+          aria-label="Unidad de medida"
+          value={values.unit}
+          options={INGREDIENT_UNIT_OPTIONS}
+          onValueChange={(unit) => setValues({ ...values, unit: unit as Ingredient['unit'] })}
+        />
       </div>
       <div className="admin-modal-field">
         <span className="admin-modal-label">Estado</span>
