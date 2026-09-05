@@ -302,6 +302,11 @@ select {
   to { opacity: 0; transform: translateY(-3px) scale(.99); }
 }
 
+@keyframes report-table-enter {
+  from { opacity: 0; transform: translateY(3px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
 .lcb-dropdown-content[data-state="open"] {
   animation: lcb-dropdown-in 140ms cubic-bezier(.16, 1, .3, 1);
   transform-origin: var(--radix-select-content-transform-origin, var(--radix-popover-content-transform-origin));
@@ -311,6 +316,10 @@ select {
   animation: lcb-dropdown-out 90ms ease-in;
 }
 
+.report-table-enter {
+  animation: report-table-enter 180ms ease-out;
+}
+
 .lcb-bell-vibrate {
   animation: lcb-bell-ring 1.5s ease-in-out infinite;
   transform-origin: 50% 0%;
@@ -318,7 +327,8 @@ select {
 
 @media (prefers-reduced-motion: reduce) {
   .lcb-bell-vibrate,
-  .lcb-dropdown-content {
+  .lcb-dropdown-content,
+  .report-table-enter {
     animation: none;
   }
 }

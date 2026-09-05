@@ -1,7 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Layers3, List } from 'lucide-react';
+import Skeleton from 'react-loading-skeleton';
 import { Select } from '@/shared/components/ui/Select';
 import type { ReportDataset, ReportGroupBy, ReportGroupRow } from '../types/reporte.types';
 import {
@@ -18,12 +19,77 @@ interface ReportTablesProps {
   onGroupByChange: (groupBy: ReportGroupBy) => void;
 }
 
+const VIEW_TRANSITION_MS = 220;
+
+function ReportTableSkeleton({ view }: { view: 'consolidated' | 'detail' }) {
+  const columnCount = view === 'consolidated' ? 7 : 9;
+  const minWidth = view === 'consolidated' ? 'min-w-[940px]' : 'min-w-[1120px]';
+
+  return (
+    <div role="status" aria-live="polite" className={minWidth}>
+      <span className="sr-only">Actualizando información del reporte…</span>
+      <div
+        className="grid gap-6 border-b border-neutral-100 bg-neutral-50 px-5 py-3"
+        style={{ gridTemplateColumns: `repeat(${columnCount}, minmax(0, 1fr))` }}
+      >
+        {Array.from({ length: columnCount }, (_, index) => (
+          <Skeleton key={`header-${index}`} height={10} width={index === 0 ? '72%' : '58%'} duration={0.65} />
+        ))}
+      </div>
+      <div className="divide-y divide-neutral-100 px-5">
+        {Array.from({ length: 7 }, (_, rowIndex) => (
+          <div
+            key={`row-${rowIndex}`}
+            className="grid items-center gap-6 py-3.5"
+            style={{ gridTemplateColumns: `repeat(${columnCount}, minmax(0, 1fr))` }}
+          >
+            {Array.from({ length: columnCount }, (_, columnIndex) => (
+              <Skeleton
+                key={`cell-${rowIndex}-${columnIndex}`}
+                height={12}
+                width={columnIndex === 0 ? '82%' : `${54 + ((rowIndex + columnIndex) % 4) * 9}%`}
+                duration={0.65}
+              />
+            ))}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export function ReportTables({ dataset, groups, groupBy, onGroupByChange }: ReportTablesProps) {
   const [view, setView] = useState<'consolidated' | 'detail'>('consolidated');
+  const [isTransitioning, setIsTransitioning] = useState(false);
+  const transitionTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const groupOptions = (Object.entries(REPORT_GROUP_LABELS) as [ReportGroupBy, string][]).map(([value, label]) => ({
     value,
     label: `Agrupar por ${label.toLocaleLowerCase('es-AR')}`,
   }));
+
+  useEffect(() => () => {
+    if (transitionTimerRef.current) clearTimeout(transitionTimerRef.current);
+  }, []);
+
+  function beginContentTransition(update: () => void) {
+    if (transitionTimerRef.current) clearTimeout(transitionTimerRef.current);
+    setIsTransitioning(true);
+    update();
+    transitionTimerRef.current = setTimeout(() => {
+      setIsTransitioning(false);
+      transitionTimerRef.current = null;
+    }, VIEW_TRANSITION_MS);
+  }
+
+  function handleViewChange(nextView: 'consolidated' | 'detail') {
+    if (nextView === view) return;
+    beginContentTransition(() => setView(nextView));
+  }
+
+  function handleGroupChange(nextGroup: ReportGroupBy) {
+    if (nextGroup === groupBy) return;
+    beginContentTransition(() => onGroupByChange(nextGroup));
+  }
 
   return (
     <section className="min-w-0 overflow-hidden rounded-sm border border-neutral-200 bg-white shadow-sm">
@@ -32,40 +98,50 @@ export function ReportTables({ dataset, groups, groupBy, onGroupByChange }: Repo
           <h3 className="break-words text-base font-extrabold text-central-carbon">Detalle y consolidación</h3>
           <p className="mt-1 break-words text-xs leading-5 text-neutral-500">Alterná entre una vista agrupada y el detalle transaccional de pedidos.</p>
         </div>
-        <div className="flex min-w-0 flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
+        <div className="grid min-w-0 gap-2 sm:grid-cols-[12rem_auto] sm:items-center">
+          <div className={view === 'consolidated' ? 'order-2 min-h-10 sm:order-1' : 'hidden sm:order-1 sm:block sm:min-h-10'}>
+            {view === 'consolidated' ? (
+              <Select
+                aria-label="Agrupar reporte"
+                variant="light"
+                value={groupBy}
+                options={groupOptions}
+                onValueChange={(nextGroup) => handleGroupChange(nextGroup as ReportGroupBy)}
+                className="min-w-0 text-xs font-bold"
+              />
+            ) : (
+              <div aria-hidden="true" className="hidden h-10 sm:block" />
+            )}
+          </div>
+
           <div className="grid min-w-0 grid-cols-2 rounded-sm border border-neutral-200 bg-neutral-50 p-1 sm:flex">
             <button
               type="button"
-              onClick={() => setView('consolidated')}
+              aria-pressed={view === 'consolidated'}
+              onClick={() => handleViewChange('consolidated')}
               className={`inline-flex min-w-0 items-center justify-center gap-2 rounded-sm px-3 py-2 text-xs font-bold ${view === 'consolidated' ? 'bg-white text-central-orange shadow-sm' : 'text-neutral-500'}`}
             >
               <Layers3 size={14} className="shrink-0" /> <span className="truncate">Consolidado</span>
             </button>
             <button
               type="button"
-              onClick={() => setView('detail')}
+              aria-pressed={view === 'detail'}
+              onClick={() => handleViewChange('detail')}
               className={`inline-flex min-w-0 items-center justify-center gap-2 rounded-sm px-3 py-2 text-xs font-bold ${view === 'detail' ? 'bg-white text-central-orange shadow-sm' : 'text-neutral-500'}`}
             >
               <List size={14} className="shrink-0" /> <span className="truncate">Detalle</span>
             </button>
           </div>
-
-          {view === 'consolidated' ? (
-            <Select
-              aria-label="Agrupar reporte"
-              variant="light"
-              value={groupBy}
-              options={groupOptions}
-              onValueChange={(nextGroup) => onGroupByChange(nextGroup as ReportGroupBy)}
-              className="min-w-0 text-xs font-bold sm:w-auto sm:min-w-48"
-            />
-          ) : null}
         </div>
       </div>
 
-      <div className="max-w-full overflow-x-auto overscroll-x-contain">
-        {view === 'consolidated' ? (
-          <table className="w-full min-w-[940px] text-left text-sm">
+      <div className="min-h-[30rem] max-w-full overflow-x-auto overscroll-x-contain sm:min-h-[34rem] xl:min-h-[38rem]">
+        {isTransitioning ? (
+          <ReportTableSkeleton view={view} />
+        ) : (
+          <div className="report-table-enter">
+            {view === 'consolidated' ? (
+              <table className="w-full min-w-[940px] text-left text-sm">
             <thead className="bg-neutral-50 text-[11px] font-extrabold uppercase tracking-wider text-neutral-500">
               <tr>
                 <th className="px-5 py-3">{REPORT_GROUP_LABELS[groupBy]}</th>
@@ -90,9 +166,9 @@ export function ReportTables({ dataset, groups, groupBy, onGroupByChange }: Repo
                 </tr>
               ))}
             </tbody>
-          </table>
-        ) : (
-          <table className="w-full min-w-[1120px] text-left text-sm">
+              </table>
+            ) : (
+              <table className="w-full min-w-[1120px] text-left text-sm">
             <thead className="bg-neutral-50 text-[11px] font-extrabold uppercase tracking-wider text-neutral-500">
               <tr>
                 <th className="px-5 py-3">Fecha</th>
@@ -128,13 +204,15 @@ export function ReportTables({ dataset, groups, groupBy, onGroupByChange }: Repo
                 </tr>
               ))}
             </tbody>
-          </table>
+              </table>
+            )}
+
+            {!dataset.orders.length ? (
+              <div className="border-t border-neutral-100 px-5 py-10 text-center text-sm text-neutral-500">No hay datos para el período y filtros seleccionados.</div>
+            ) : null}
+          </div>
         )}
       </div>
-
-      {!dataset.orders.length ? (
-        <div className="border-t border-neutral-100 px-5 py-10 text-center text-sm text-neutral-500">No hay datos para el período y filtros seleccionados.</div>
-      ) : null}
     </section>
   );
 }
