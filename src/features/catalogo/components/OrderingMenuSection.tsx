@@ -100,7 +100,7 @@ export function OrderingMenuSection() {
             </div>
           </div>
 
-          <CartSidebar items={cart.items} total={cart.totals.total} checkoutDisabled={!isBusinessOpen} onUpdateQuantity={cart.updateQuantity} onUpdateNote={cart.updateNote} onRemove={cart.removeItem} onCheckout={() => isBusinessOpen && setCheckoutOpen(true)} />
+          <CartSidebar items={cart.items} total={cart.totals.total} checkoutDisabled={!isBusinessOpen} onUpdateQuantity={cart.updateQuantity} onUpdateNote={cart.updateNote} onRemove={cart.removeItem} onClear={cart.clear} onCheckout={() => isBusinessOpen && setCheckoutOpen(true)} />
         </div>
       </div>
 
@@ -131,7 +131,7 @@ export function OrderingMenuSection() {
         categoryName={previewProduct ? categoryById[previewProduct.categoryId] : undefined}
         onClose={() => setPreviewProduct(null)}
       />
-      <CartDrawer open={cartOpen} onClose={() => setCartOpen(false)} items={cart.items} total={cart.totals.total} checkoutDisabled={!isBusinessOpen} onUpdateQuantity={cart.updateQuantity} onUpdateNote={cart.updateNote} onRemove={cart.removeItem} onCheckout={() => isBusinessOpen && setCheckoutOpen(true)} />
+      <CartDrawer open={cartOpen} onClose={() => setCartOpen(false)} items={cart.items} total={cart.totals.total} checkoutDisabled={!isBusinessOpen} onUpdateQuantity={cart.updateQuantity} onUpdateNote={cart.updateNote} onRemove={cart.removeItem} onClear={cart.clear} onCheckout={() => isBusinessOpen && setCheckoutOpen(true)} />
       <CheckoutModal open={checkoutOpen} onClose={() => setCheckoutOpen(false)} items={cart.items} onOrderCreated={() => setCartOpen(false)} />
       <CartFloatingButton count={cartCount} total={cart.totals.total} onClick={() => setCartOpen(true)} />
     </section>
