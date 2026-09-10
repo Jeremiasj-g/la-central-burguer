@@ -6,13 +6,31 @@ import { createPublicPedido } from '@/features/pedidos/services/pedidos.service'
 import { formatCurrency } from '@/shared/utils/format.utils';
 import { formatDistanceKm } from '@/features/delivery/utils/delivery.utils';
 
+function hasValidDeliveryQuote(values: CheckoutFormValues) {
+  return Boolean(
+    values.customerLocation
+      && typeof values.deliveryDistanceKm === 'number'
+      && Number.isFinite(values.deliveryDistanceKm)
+      && values.deliveryDistanceKm >= 0
+      && typeof values.deliveryCost === 'number'
+      && Number.isFinite(values.deliveryCost)
+      && values.deliveryCost >= 0
+      && values.deliveryMapsUrl,
+  );
+}
+
 export function validateCheckout(values: CheckoutFormValues) {
   const errors: Partial<Record<keyof CheckoutFormValues, string>> = {};
 
   if (!values.customerName.trim()) errors.customerName = 'Ingresá tu nombre.';
   if (!values.customerPhone.trim()) errors.customerPhone = 'Ingresá tu WhatsApp.';
-  if (values.deliveryMethod === 'delivery' && !values.address?.trim() && !values.customerLocation) {
-    errors.address = 'Ingresá la dirección o adjuntá tu ubicación actual.';
+
+  if (values.deliveryMethod === 'delivery') {
+    if (!values.customerLocation) {
+      errors.customerLocation = 'Para solicitar delivery, compartí tu ubicación GPS.';
+    } else if (!hasValidDeliveryQuote(values)) {
+      errors.customerLocation = 'No pudimos calcular un envío válido para esta ubicación. Volvé a compartir tu GPS.';
+    }
   }
 
   return errors;
@@ -26,9 +44,10 @@ export async function createCheckoutOrder(
     customerName: values.customerName,
     customerPhone: values.customerPhone,
     deliveryMethod: values.deliveryMethod,
-    address: values.address ?? '',
+    address: '',
     customerLat: values.customerLocation?.lat ?? null,
     customerLng: values.customerLocation?.lng ?? null,
+    expectedDeliveryCost: values.deliveryMethod === 'delivery' ? values.deliveryCost ?? null : null,
     paymentMethod: values.paymentMethod,
     notes: values.notes ?? '',
     items: items.map((item) => ({
@@ -52,7 +71,6 @@ export async function buildWhatsappUrl(order: Order) {
     `*Cliente:* ${order.customerName}`,
     `*Teléfono:* ${order.customerPhone}`,
     `*Entrega:* ${deliveryLabel}`,
-    order.address ? `*Dirección de entrega:* ${order.address}` : '',
     order.deliveryMapsUrl ? `*Ubicación adjunta:* ${order.deliveryMapsUrl}` : '',
     typeof order.deliveryDistanceKm === 'number'
       ? `*Distancia aprox.:* ${formatDistanceKm(order.deliveryDistanceKm)}`
@@ -66,12 +84,8 @@ export async function buildWhatsappUrl(order: Order) {
     }),
     '------------------------------',
     `*Subtotal:* ${formatCurrency(order.subtotal)}`,
-    order.deliveryMethod === 'delivery' && order.deliveryCost > 0
-      ? `*Envío estimado:* ${formatCurrency(order.deliveryCost)}`
-      : '*Envío:* A confirmar',
-    order.deliveryMethod === 'delivery' && order.deliveryCost > 0
-      ? `*Total estimado:* ${formatCurrency(order.total)}`
-      : `*Total sin envío:* ${formatCurrency(order.total)}`,
+    order.deliveryMethod === 'delivery' ? `*Envío:* ${formatCurrency(order.deliveryCost)}` : '',
+    `*Total:* ${formatCurrency(order.total)}`,
     order.notes ? '------------------------------' : '',
     order.notes ? `*Observaciones:* ${order.notes}` : '',
     order.paymentMethod === 'transferencia' ? '------------------------------' : '',

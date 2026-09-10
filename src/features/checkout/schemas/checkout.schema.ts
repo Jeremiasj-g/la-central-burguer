@@ -6,17 +6,35 @@ export const checkoutSchema = z.object({
   deliveryMethod: z.enum(['retiro_local', 'delivery']),
   address: z.string().optional(),
   customerLocation: z.object({
-    lat: z.number(),
-    lng: z.number(),
+    lat: z.number().finite(),
+    lng: z.number().finite(),
   }).nullable().optional(),
+  deliveryDistanceKm: z.number().finite().nonnegative().optional(),
+  deliveryCost: z.number().finite().nonnegative().optional(),
+  deliveryMapsUrl: z.string().url().optional(),
   paymentMethod: z.enum(['efectivo', 'transferencia']),
   notes: z.string().optional(),
 }).superRefine((values, context) => {
-  if (values.deliveryMethod === 'delivery' && !values.address?.trim() && !values.customerLocation) {
+  if (values.deliveryMethod !== 'delivery') return;
+
+  if (!values.customerLocation) {
     context.addIssue({
       code: z.ZodIssueCode.custom,
-      path: ['address'],
-      message: 'Ingresá la dirección o adjuntá tu ubicación actual.',
+      path: ['customerLocation'],
+      message: 'Para solicitar delivery, compartí tu ubicación GPS.',
+    });
+    return;
+  }
+
+  if (
+    typeof values.deliveryDistanceKm !== 'number'
+    || typeof values.deliveryCost !== 'number'
+    || !values.deliveryMapsUrl
+  ) {
+    context.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ['customerLocation'],
+      message: 'No pudimos calcular un envío válido para esta ubicación. Volvé a compartir tu GPS.',
     });
   }
 });

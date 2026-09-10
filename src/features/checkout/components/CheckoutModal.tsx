@@ -36,6 +36,10 @@ function RequiredMark() {
   return <span className="ml-1 text-central-orange" aria-hidden="true">*</span>;
 }
 
+function hasFiniteNonNegativeValue(value: unknown): value is number {
+  return typeof value === 'number' && Number.isFinite(value) && value >= 0;
+}
+
 export function CheckoutModal({ open, onClose, items, onOrderCreated }: CheckoutModalProps) {
   const [confirmSendOpen, setConfirmSendOpen] = useState(false);
   const [deliveryQuote, setDeliveryQuote] = useState<DeliveryQuote | null>(null);
@@ -49,9 +53,17 @@ export function CheckoutModal({ open, onClose, items, onOrderCreated }: Checkout
     [config],
   );
   const { isLoading: isGettingLocation, requestLocation, clearLocation } = useCurrentLocation();
+  const isDelivery = values.deliveryMethod === 'delivery';
+  const hasValidDeliveryQuote = !isDelivery || Boolean(
+    values.customerLocation
+      && values.deliveryMapsUrl
+      && hasFiniteNonNegativeValue(values.deliveryDistanceKm)
+      && hasFiniteNonNegativeValue(values.deliveryCost)
+      && deliveryQuote?.isWithinRange !== false,
+  );
   const totals = useMemo(
-    () => calculateCartTotals(items, values.deliveryMethod === 'delivery' ? values.deliveryCost ?? 0 : 0),
-    [items, values.deliveryCost, values.deliveryMethod],
+    () => calculateCartTotals(items, isDelivery ? values.deliveryCost ?? 0 : 0),
+    [isDelivery, items, values.deliveryCost],
   );
 
   useEffect(() => {
@@ -97,13 +109,16 @@ export function CheckoutModal({ open, onClose, items, onOrderCreated }: Checkout
   }
 
   function setDeliveryMethod(method: CheckoutFormValues['deliveryMethod']) {
+    clearError('customerLocation');
     clearError('address');
+
     if (method === 'retiro_local') {
       clearLocation();
       setDeliveryQuote(null);
       setValues((current) => ({
         ...current,
         deliveryMethod: method,
+        address: '',
         customerLocation: null,
         deliveryDistanceKm: undefined,
         deliveryCost: undefined,
@@ -112,33 +127,36 @@ export function CheckoutModal({ open, onClose, items, onOrderCreated }: Checkout
       return;
     }
 
-    setValues((current) => ({ ...current, deliveryMethod: method }));
+    setValues((current) => ({ ...current, deliveryMethod: method, address: '' }));
   }
 
   async function attachCurrentLocation() {
+    clearError('customerLocation');
     const location = await requestLocation();
     if (!location) return;
 
-    clearError('address');
     setIsQuotingDelivery(true);
     try {
       const quote = await getDeliveryQuote(location);
       if (!quote) {
-        toast.warning('Ubicación del local no configurada. El envío queda a confirmar.');
+        clearLocation();
         setDeliveryQuote(null);
         setValues((current) => ({
           ...current,
-          customerLocation: location,
+          address: '',
+          customerLocation: null,
           deliveryDistanceKm: undefined,
           deliveryCost: undefined,
           deliveryMapsUrl: undefined,
         }));
+        toast.error('No pudimos calcular el envío. Verificá la ubicación del local e intentá nuevamente.');
         return;
       }
 
       setDeliveryQuote(quote);
       setValues((current) => ({
         ...current,
+        address: '',
         customerLocation: location,
         deliveryDistanceKm: quote.distanceKm,
         deliveryCost: quote.isWithinRange ? quote.deliveryCost : undefined,
@@ -146,18 +164,33 @@ export function CheckoutModal({ open, onClose, items, onOrderCreated }: Checkout
       }));
 
       if (!quote.isWithinRange) {
-        toast.warning('La ubicación parece estar fuera del radio de entrega. El local puede confirmarlo por WhatsApp.');
+        toast.warning('Esta ubicación está fuera del radio de entrega configurado.');
       }
+    } catch (error) {
+      clearLocation();
+      setDeliveryQuote(null);
+      setValues((current) => ({
+        ...current,
+        address: '',
+        customerLocation: null,
+        deliveryDistanceKm: undefined,
+        deliveryCost: undefined,
+        deliveryMapsUrl: undefined,
+      }));
+      const message = error instanceof Error ? error.message : 'No pudimos calcular el envío.';
+      toast.error(message);
     } finally {
       setIsQuotingDelivery(false);
     }
   }
 
   function removeLocation() {
+    clearError('customerLocation');
     clearLocation();
     setDeliveryQuote(null);
     setValues((current) => ({
       ...current,
+      address: '',
       customerLocation: null,
       deliveryDistanceKm: undefined,
       deliveryCost: undefined,
@@ -178,11 +211,14 @@ export function CheckoutModal({ open, onClose, items, onOrderCreated }: Checkout
 
   const deliveryHelperText = deliveryQuote
     ? deliveryQuote.isWithinRange
-      ? `Distancia aproximada: ${formatDistanceKm(deliveryQuote.distanceKm)} · Envío estimado: ${formatCurrency(deliveryQuote.deliveryCost)}`
-      : `Distancia aproximada: ${formatDistanceKm(deliveryQuote.distanceKm)} · Fuera del radio configurado, el envío queda a confirmar.`
-    : values.customerLocation
-      ? 'Ubicación adjuntada. La dirección escrita deja de ser obligatoria.'
-      : 'Podés adjuntar tu ubicación para estimar el costo de envío.';
+      ? `Distancia aproximada: ${formatDistanceKm(deliveryQuote.distanceKm)} · Envío: ${formatCurrency(deliveryQuote.deliveryCost)}`
+      : `Distancia aproximada: ${formatDistanceKm(deliveryQuote.distanceKm)} · Fuera del radio de entrega.`
+    : 'Para solicitar delivery, activá el GPS y compartí tu ubicación actual. La utilizaremos para calcular el envío y localizar la entrega.';
+
+  const canSendOrder = !isSubmitting
+    && items.length > 0
+    && activePaymentMethods.length > 0
+    && hasValidDeliveryQuote;
 
   return (
     <Modal
@@ -224,59 +260,63 @@ export function CheckoutModal({ open, onClose, items, onOrderCreated }: Checkout
             <div>
               <label className="mb-2 block text-xs font-bold text-white/80 sm:mb-3 sm:text-sm">Opciones de entrega<RequiredMark /></label>
               <div className="grid grid-cols-2 gap-2 sm:gap-3">
-                <label className={cn('flex cursor-pointer items-center gap-2 rounded-sm border p-3 text-xs font-bold transition sm:gap-3 sm:p-4 sm:text-sm', values.deliveryMethod === 'delivery' ? 'border-central-orange bg-central-orange/12 text-central-cream' : 'border-white/10 bg-white/[.035] text-white/70 hover:border-central-orange/50')}>
-                  <input type="radio" className="accent-central-orange" checked={values.deliveryMethod === 'delivery'} onChange={() => setDeliveryMethod('delivery')} /> Envío
+                <label className={cn('flex cursor-pointer items-center gap-2 rounded-sm border p-3 text-xs font-bold transition-[border-color,background-color,color,transform] duration-200 ease-out active:scale-[.99] motion-reduce:transition-none sm:gap-3 sm:p-4 sm:text-sm', isDelivery ? 'border-central-orange bg-central-orange/12 text-central-cream' : 'border-white/10 bg-white/[.035] text-white/70 hover:border-central-orange/50')}>
+                  <input type="radio" className="accent-central-orange" checked={isDelivery} onChange={() => setDeliveryMethod('delivery')} /> Envío
                 </label>
-                <label className={cn('flex cursor-pointer items-center gap-2 rounded-sm border p-3 text-xs font-bold transition sm:gap-3 sm:p-4 sm:text-sm', values.deliveryMethod === 'retiro_local' ? 'border-central-orange bg-central-orange/12 text-central-cream' : 'border-white/10 bg-white/[.035] text-white/70 hover:border-central-orange/50')}>
+                <label className={cn('flex cursor-pointer items-center gap-2 rounded-sm border p-3 text-xs font-bold transition-[border-color,background-color,color,transform] duration-200 ease-out active:scale-[.99] motion-reduce:transition-none sm:gap-3 sm:p-4 sm:text-sm', values.deliveryMethod === 'retiro_local' ? 'border-central-orange bg-central-orange/12 text-central-cream' : 'border-white/10 bg-white/[.035] text-white/70 hover:border-central-orange/50')}>
                   <input type="radio" className="accent-central-orange" checked={values.deliveryMethod === 'retiro_local'} onChange={() => setDeliveryMethod('retiro_local')} /> Retiro
                 </label>
               </div>
             </div>
 
-            {values.deliveryMethod === 'delivery' ? (
-              <div>
-                <label className="mb-1.5 block text-xs font-bold text-white/80 sm:mb-2 sm:text-sm">
-                  Dirección de entrega{!values.customerLocation ? <RequiredMark /> : null}
-                </label>
-                <Input
-                  autoComplete="street-address"
-                  enterKeyHint="next"
-                  value={values.address}
-                  onChange={(event) => update('address', event.target.value)}
-                  placeholder={values.customerLocation ? 'Opcional: calle, número o referencia' : 'Calle, número, depto, referencia, etc.'}
-                />
-                {errors.address ? <p className="mt-1 text-xs text-red-300">{errors.address}</p> : null}
-                <div className="mt-2 rounded-sm border border-white/10 bg-white/[.035] p-3">
-                  <div className="flex flex-wrap items-center justify-between gap-2 sm:gap-3">
-                    <div className="min-w-0 flex-1">
-                      <p className="flex items-center gap-2 text-xs font-black text-white sm:text-sm"><MapPin size={15} className="text-central-orange" /> Ubicación GPS</p>
-                      <p className="mt-1 text-[11px] leading-4 text-white/50 sm:text-xs sm:leading-5">{deliveryHelperText}</p>
+            <div
+              aria-hidden={!isDelivery}
+              className={cn(
+                'grid transition-[grid-template-rows,opacity] duration-200 ease-out motion-reduce:transition-none',
+                isDelivery ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0',
+              )}
+            >
+              <div className="min-h-0 overflow-hidden">
+                <div>
+                  <label className="mb-1.5 block text-xs font-bold text-white/80 sm:mb-2 sm:text-sm">
+                    Ubicación GPS<RequiredMark />
+                  </label>
+                  <div className={cn(
+                    'rounded-sm border bg-white/[.035] p-3 transition-colors duration-200 motion-reduce:transition-none',
+                    deliveryQuote && !deliveryQuote.isWithinRange ? 'border-red-400/35' : 'border-white/10',
+                  )}>
+                    <div className="flex flex-wrap items-center justify-between gap-2 sm:gap-3">
+                      <div className="min-w-0 flex-1">
+                        <p className="flex items-center gap-2 text-xs font-black text-white sm:text-sm"><MapPin size={15} className="text-central-orange" /> Compartir ubicación actual</p>
+                        <p className={cn('mt-1 text-[11px] leading-4 sm:text-xs sm:leading-5', deliveryQuote && !deliveryQuote.isWithinRange ? 'text-red-200/80' : 'text-white/50')}>{deliveryHelperText}</p>
+                      </div>
+                      {values.customerLocation ? (
+                        <Button type="button" variant="ghost" size="sm" className="h-8 px-2 text-xs text-white/70 hover:bg-white/10" title="Quitar ubicación adjunta" onClick={removeLocation} disabled={!isDelivery}>
+                          <XCircle size={14} /> Quitar
+                        </Button>
+                      ) : (
+                        <Button type="button" variant="secondary" size="sm" className="h-8 px-2 text-xs" title="Compartir ubicación GPS actual" onClick={attachCurrentLocation} disabled={!isDelivery || isGettingLocation || isQuotingDelivery}>
+                          <Navigation size={14} /> {isGettingLocation || isQuotingDelivery ? 'Calculando...' : 'Usar ubicación'}
+                        </Button>
+                      )}
                     </div>
-                    {values.customerLocation ? (
-                      <Button type="button" variant="ghost" size="sm" className="h-8 px-2 text-xs text-white/70 hover:bg-white/10" title="Quitar ubicación adjunta" onClick={removeLocation}>
-                        <XCircle size={14} /> Quitar
-                      </Button>
-                    ) : (
-                      <Button type="button" variant="secondary" size="sm" className="h-8 px-2 text-xs" title="Adjuntar ubicación actual" onClick={attachCurrentLocation} disabled={isGettingLocation || isQuotingDelivery}>
-                        <Navigation size={14} /> {isGettingLocation || isQuotingDelivery ? 'Calculando...' : 'Usar ubicación'}
-                      </Button>
-                    )}
+                    {values.deliveryMapsUrl ? (
+                      <a href={values.deliveryMapsUrl} target="_blank" rel="noreferrer" className="mt-2 inline-flex text-[11px] font-bold text-central-orange transition-colors duration-200 hover:text-central-cream sm:mt-3 sm:text-xs">
+                        Ver ubicación en Google Maps
+                      </a>
+                    ) : null}
                   </div>
-                  {values.deliveryMapsUrl ? (
-                    <a href={values.deliveryMapsUrl} target="_blank" rel="noreferrer" className="mt-2 inline-flex text-[11px] font-bold text-central-orange hover:text-central-cream sm:mt-3 sm:text-xs">
-                      Ver ubicación en Google Maps
-                    </a>
-                  ) : null}
+                  {errors.customerLocation ? <p className="mt-1 text-xs text-red-300">{errors.customerLocation}</p> : null}
                 </div>
               </div>
-            ) : null}
+            </div>
 
             <div>
               <label className="mb-2 block text-xs font-bold text-white/80 sm:mb-3 sm:text-sm">Método de pago<RequiredMark /></label>
               {activePaymentMethods.length ? (
                 <div className="grid grid-cols-2 gap-2 sm:gap-3">
                   {activePaymentMethods.map((method) => (
-                    <label key={method.id} className={cn('flex cursor-pointer items-center gap-2 rounded-sm border p-3 text-xs font-bold transition sm:gap-3 sm:p-4 sm:text-sm', values.paymentMethod === method.type ? 'border-central-orange bg-central-orange/12 text-central-cream' : 'border-white/10 bg-white/[.035] text-white/70 hover:border-central-orange/50')}>
+                    <label key={method.id} className={cn('flex cursor-pointer items-center gap-2 rounded-sm border p-3 text-xs font-bold transition-[border-color,background-color,color,transform] duration-200 ease-out active:scale-[.99] motion-reduce:transition-none sm:gap-3 sm:p-4 sm:text-sm', values.paymentMethod === method.type ? 'border-central-orange bg-central-orange/12 text-central-cream' : 'border-white/10 bg-white/[.035] text-white/70 hover:border-central-orange/50')}>
                       <input type="radio" className="accent-central-orange" checked={values.paymentMethod === method.type} onChange={() => update('paymentMethod', method.type)} /> {method.name}
                     </label>
                   ))}
@@ -304,12 +344,14 @@ export function CheckoutModal({ open, onClose, items, onOrderCreated }: Checkout
             </div>
             <div className="mt-4 border-t border-white/10 pt-4 text-xs sm:mt-5 sm:pt-5 sm:text-sm">
               <div className="flex justify-between text-white/65"><span>Subtotal</span><span>{formatCurrency(totals.subtotal)}</span></div>
-              <div className="mt-2 flex justify-between text-white/65"><span>Envío</span><span>{values.deliveryMethod === 'delivery' && values.deliveryCost ? formatCurrency(values.deliveryCost) : 'A confirmar'}</span></div>
-              <div className="mt-3 flex justify-between text-base font-black text-white sm:mt-4 sm:text-lg"><span>{values.deliveryMethod === 'delivery' && values.deliveryCost ? 'Total estimado' : 'Total sin envío'}</span><span className="text-central-orange">{formatCurrency(totals.total)}</span></div>
+              {isDelivery ? (
+                <div className="mt-2 flex justify-between text-white/65"><span>Envío</span><span>{hasValidDeliveryQuote ? formatCurrency(values.deliveryCost ?? 0) : '—'}</span></div>
+              ) : null}
+              <div className="mt-3 flex justify-between text-base font-black text-white sm:mt-4 sm:text-lg"><span>Total</span><span className="text-central-orange">{formatCurrency(totals.total)}</span></div>
             </div>
-            <p className="mt-3 text-[10px] leading-4 text-white/45 sm:mt-5 sm:text-xs sm:leading-5">El costo de envío se estima por distancia y puede ser confirmado por WhatsApp.</p>
+            {isDelivery && !hasValidDeliveryQuote ? <p className="mt-3 text-[10px] leading-4 text-white/45 sm:mt-5 sm:text-xs sm:leading-5">Compartí tu ubicación GPS para calcular el envío y obtener el total final.</p> : null}
             {values.paymentMethod === 'transferencia' ? <p className="mt-2 text-[10px] leading-4 text-white/45 sm:mt-3 sm:text-xs sm:leading-5">Los datos de transferencia se enviarán automáticamente en el mensaje de WhatsApp.</p> : null}
-            <Button size="sm" className="mt-4 w-full rounded-sm sm:mt-5 sm:h-11" disabled={isSubmitting || items.length === 0 || activePaymentMethods.length === 0} onClick={() => setConfirmSendOpen(true)}>{isSubmitting ? 'Creando pedido...' : 'Enviar a WhatsApp'}</Button>
+            <Button size="sm" className="mt-4 w-full rounded-sm sm:mt-5 sm:h-11" disabled={!canSendOrder} onClick={() => setConfirmSendOpen(true)}>{isSubmitting ? 'Creando pedido...' : 'Enviar a WhatsApp'}</Button>
           </aside>
         </div>
       )}

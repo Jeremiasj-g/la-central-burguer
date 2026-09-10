@@ -49,13 +49,30 @@ export function Modal({ open, title, children, onClose, className, panelClassNam
     if (!open) return;
 
     let timeout = 0;
+
     function keepFocusedControlVisible(target?: EventTarget | null) {
       const element = target instanceof Element ? target : document.activeElement;
-      if (!isFormControl(element) || !panelRef.current?.contains(element)) return;
+      const scrollArea = scrollAreaRef.current;
+
+      if (!isFormControl(element) || !scrollArea?.contains(element)) return;
+
+      const viewportWidth = window.visualViewport?.width ?? window.innerWidth;
+      if (viewportWidth > 768) return;
 
       window.clearTimeout(timeout);
       timeout = window.setTimeout(() => {
-        element.scrollIntoView({ block: 'center', inline: 'nearest', behavior: 'smooth' });
+        const currentScrollArea = scrollAreaRef.current;
+        if (!currentScrollArea?.contains(element)) return;
+
+        const areaRect = currentScrollArea.getBoundingClientRect();
+        const controlRect = element.getBoundingClientRect();
+        const safeOffset = 18;
+        const nextTop = currentScrollArea.scrollTop + controlRect.top - areaRect.top - safeOffset;
+
+        currentScrollArea.scrollTo({
+          top: Math.max(0, nextTop),
+          behavior: 'smooth',
+        });
       }, 180);
     }
 
@@ -112,7 +129,7 @@ export function Modal({ open, title, children, onClose, className, panelClassNam
       >
         <div className="flex shrink-0 items-start justify-between gap-4 border-b border-current/10 px-3.5 py-3 sm:px-5 sm:py-4">
           {title ? <h2 className="min-w-0 text-base font-black tracking-tight sm:text-xl">{title}</h2> : <span />}
-          <button className="shrink-0 rounded-full p-2 text-current/70 transition hover:bg-current/10 hover:text-current" onClick={onClose} aria-label="Cerrar modal">
+          <button className="shrink-0 rounded-full p-2 text-current/70 transition duration-200 hover:bg-current/10 hover:text-current" onClick={onClose} aria-label="Cerrar modal">
             <X size={20} />
           </button>
         </div>
