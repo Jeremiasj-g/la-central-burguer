@@ -2,59 +2,72 @@ import { getSupabaseBrowserClient } from '@/lib/supabase/client';
 import { requireSupabaseConfigured } from '@/lib/config/env';
 import type { DeliveryAdminDashboard, DriverFormPayload } from '../types/delivery-management.types';
 
+type RpcError = { message: string } | null;
+type RpcInvoker = <T>(name: string, args?: Record<string, unknown>) => Promise<{ data: T | null; error: RpcError }>;
+
 function client() {
   requireSupabaseConfigured('gestionar delivery');
-  return getSupabaseBrowserClient() as any;
+  return getSupabaseBrowserClient();
+}
+
+async function deliveryRpc<T>(name: string, args?: Record<string, unknown>) {
+  const supabase = client();
+  const invoke = supabase.rpc as unknown as RpcInvoker;
+  const { data, error } = await invoke<T>(name, args);
+  if (error) throw new Error(error.message);
+  return data;
 }
 
 export async function getDeliveryAdminDashboard(): Promise<DeliveryAdminDashboard> {
-  const { data, error } = await client().rpc('get_delivery_admin_dashboard');
-  if (error) throw new Error(error.message);
-  return data as DeliveryAdminDashboard;
+  const data = await deliveryRpc<DeliveryAdminDashboard>('get_delivery_admin_dashboard');
+  if (!data) throw new Error('El panel de delivery no devolvió información.');
+  return data;
 }
 
 export async function assignDelivery(orderId: string, driverId: string, note?: string) {
-  const { error } = await client().rpc('admin_assign_delivery', {
+  await deliveryRpc<string>('admin_assign_delivery', {
     order_uuid: orderId,
     driver_uuid: driverId,
     note: note?.trim() || null,
   });
-  if (error) throw new Error(error.message);
 }
 
 export async function cancelDeliveryAssignment(assignmentId: string, reason?: string) {
-  const { error } = await client().rpc('admin_cancel_delivery_assignment', {
+  await deliveryRpc<null>('admin_cancel_delivery_assignment', {
     assignment_uuid: assignmentId,
     reason: reason?.trim() || null,
   });
-  if (error) throw new Error(error.message);
 }
 
 export async function createDeliverySettlement(driverId: string, from: string, to: string, notes?: string) {
   const fromTs = new Date(`${from}T00:00:00`).toISOString();
   const toDate = new Date(`${to}T00:00:00`);
   toDate.setDate(toDate.getDate() + 1);
-  const { error } = await client().rpc('admin_create_delivery_settlement', {
+  await deliveryRpc<string>('admin_create_delivery_settlement', {
     driver_uuid: driverId,
     from_ts: fromTs,
     to_ts: toDate.toISOString(),
     settlement_notes: notes?.trim() || null,
   });
-  if (error) throw new Error(error.message);
 }
 
 export async function markDeliverySettlementPaid(settlementId: string) {
-  const { error } = await client().rpc('admin_mark_delivery_settlement_paid', {
+  await deliveryRpc<null>('admin_mark_delivery_settlement_paid', {
     settlement_uuid: settlementId,
   });
-  if (error) throw new Error(error.message);
 }
 
 export async function cancelDeliverySettlement(settlementId: string) {
-  const { error } = await client().rpc('admin_cancel_delivery_settlement', {
+  await deliveryRpc<null>('admin_cancel_delivery_settlement', {
     settlement_uuid: settlementId,
   });
-  if (error) throw new Error(error.message);
+}
+
+function edgeError(data: unknown) {
+  if (data && typeof data === 'object' && 'error' in data && typeof data.error === 'string') {
+    return data.error;
+  }
+  return null;
 }
 
 export async function saveDeliveryDriver(payload: DriverFormPayload) {
@@ -65,7 +78,8 @@ export async function saveDeliveryDriver(payload: DriverFormPayload) {
     },
   });
   if (error) throw new Error(error.message);
-  if (data?.error) throw new Error(data.error);
+  const message = edgeError(data);
+  if (message) throw new Error(message);
 }
 
 export async function toggleDeliveryDriver(driverId: string, active: boolean) {
@@ -73,7 +87,8 @@ export async function toggleDeliveryDriver(driverId: string, active: boolean) {
     body: { action: 'toggle', driverId, active },
   });
   if (error) throw new Error(error.message);
-  if (data?.error) throw new Error(data.error);
+  const message = edgeError(data);
+  if (message) throw new Error(message);
 }
 
 export async function resetDeliveryDriverPassword(driverId: string, password: string) {
@@ -81,5 +96,6 @@ export async function resetDeliveryDriverPassword(driverId: string, password: st
     body: { action: 'resetPassword', driverId, password },
   });
   if (error) throw new Error(error.message);
-  if (data?.error) throw new Error(data.error);
+  const message = edgeError(data);
+  if (message) throw new Error(message);
 }
