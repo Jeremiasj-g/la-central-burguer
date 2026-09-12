@@ -4,6 +4,15 @@ import type { DeliveryAssignmentStatus, DeliveryDriverDashboard } from '../types
 
 type RpcError = { message: string } | null;
 type RpcInvoker = <T>(name: string, args?: Record<string, unknown>) => Promise<{ data: T | null; error: RpcError }>;
+type AccessContext = {
+  userId: string;
+  fullName: string;
+  phone: string | null;
+  active: boolean;
+  email: string | null;
+  roles: string[];
+  permissions: string[];
+};
 
 function client() {
   requireSupabaseConfigured('usar el panel de repartidor');
@@ -12,14 +21,14 @@ function client() {
 
 async function deliveryRpc<T>(name: string, args?: Record<string, unknown>) {
   const supabase = client();
-  const invoke = supabase.rpc as unknown as RpcInvoker;
+  const invoke = supabase.rpc.bind(supabase) as unknown as RpcInvoker;
   const { data, error } = await invoke<T>(name, args);
   if (error) throw new Error(error.message);
   return data;
 }
 
-function isDeliveryRole(role: unknown) {
-  return String(role) === 'delivery';
+async function getAccessContext() {
+  return deliveryRpc<AccessContext>('get_current_access_context');
 }
 
 export async function loginDeliveryDriver(email: string, password: string) {
@@ -30,22 +39,13 @@ export async function loginDeliveryDriver(email: string, password: string) {
   }
   if (!data.user) throw new Error('No se pudo validar el usuario.');
 
-  const { data: profile, error: profileError } = await supabase
-    .from('profiles')
-    .select('full_name,role,active')
-    .eq('id', data.user.id)
-    .maybeSingle();
-
-  if (profileError || !profile || !isDeliveryRole(profile.role) || !profile.active) {
-    await supabase.auth.signOut();
-    throw new Error('Este usuario no tiene acceso al panel de reparto.');
-  }
-
   try {
+    const access = await getAccessContext();
+    if (!access?.active || !access.roles.includes('delivery')) throw new Error('Sin rol de delivery.');
     await deliveryRpc<DeliveryDriverDashboard>('get_delivery_driver_dashboard');
   } catch {
     await supabase.auth.signOut();
-    throw new Error('El repartidor no está habilitado para operar.');
+    throw new Error('Este usuario no tiene acceso al panel de reparto.');
   }
 }
 
@@ -53,12 +53,12 @@ export async function isDeliveryDriverLoggedIn() {
   const supabase = client();
   const { data, error } = await supabase.auth.getUser();
   if (error || !data.user) return false;
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('role,active')
-    .eq('id', data.user.id)
-    .maybeSingle();
-  return Boolean(profile && isDeliveryRole(profile.role) && profile.active);
+  try {
+    const access = await getAccessContext();
+    return Boolean(access?.active && access.roles.includes('delivery'));
+  } catch {
+    return false;
+  }
 }
 
 export async function logoutDeliveryDriver() {
