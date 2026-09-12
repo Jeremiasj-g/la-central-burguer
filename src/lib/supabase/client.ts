@@ -1,4 +1,5 @@
-import { createClient, type SupabaseClient } from '@supabase/supabase-js';
+import { createBrowserClient } from '@supabase/ssr';
+import type { SupabaseClient } from '@supabase/supabase-js';
 import { env, isSupabaseConfigured } from '@/lib/config/env';
 import type { Database } from './database.types';
 
@@ -10,12 +11,7 @@ export function getSupabaseBrowserClient(): SupabaseClient<Database> {
   }
 
   if (!browserClient) {
-    browserClient = createClient<Database>(env.supabaseUrl, env.supabasePublishableKey, {
-      auth: {
-        persistSession: true,
-        autoRefreshToken: true,
-        detectSessionInUrl: true,
-      },
+    browserClient = createBrowserClient<Database>(env.supabaseUrl, env.supabasePublishableKey, {
       realtime: {
         params: { eventsPerSecond: 10 },
       },
