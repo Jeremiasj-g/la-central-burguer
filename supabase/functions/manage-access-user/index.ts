@@ -2,6 +2,7 @@ import { withSupabase } from 'npm:@supabase/server';
 
 const json = (body: unknown, status = 200) => Response.json(body, { status });
 const vehicleTypes = new Set(['moto', 'auto', 'bici', 'otro']);
+const activeDeliveryStatuses = ['assigned', 'accepted', 'picked_up', 'in_transit'];
 
 function text(value: unknown) {
   return String(value ?? '').trim();
@@ -98,6 +99,26 @@ async function ensureNotLastAdmin(admin: any, targetId: string, adminRoleId: str
   if (!profiles || profiles.length === 0) throw new Error('No podés quitar o desactivar al último administrador activo.');
 }
 
+async function assertNoActiveDeliveries(admin: any, userId: string) {
+  const { data: rates, error: rateError } = await admin
+    .from('delivery_driver_rates')
+    .select('id')
+    .eq('driver_id', userId);
+  if (rateError) throw rateError;
+  const rateIds = (rates ?? []).map((rate: any) => rate.id);
+  if (rateIds.length === 0) return;
+
+  const { count, error } = await admin
+    .from('delivery_assignments')
+    .select('id', { count: 'exact', head: true })
+    .in('rate_id', rateIds)
+    .in('status', activeDeliveryStatuses);
+  if (error) throw error;
+  if ((count ?? 0) > 0) {
+    throw new Error('El repartidor tiene entregas activas. Reasignalas o finalizalas antes de quitar el rol, desactivar o archivar la cuenta.');
+  }
+}
+
 async function syncRoles(admin: any, userId: string, actorId: string, roles: Array<{ id: string; code: string }>) {
   const { error: deleteError } = await admin.from('user_roles').delete().eq('user_id', userId);
   if (deleteError) throw deleteError;
@@ -117,6 +138,7 @@ async function syncDelivery(admin: any, userId: string, actorId: string, roleCod
 
   if (!isDelivery) {
     if (currentDriver) {
+      await assertNoActiveDeliveries(admin, userId);
       const { error } = await admin.from('delivery_drivers').update({ active: false }).eq('profile_id', userId);
       if (error) throw error;
     }
@@ -230,6 +252,7 @@ export default {
         const keepsAdmin = roleRows.some((role) => role.id === adminRoleId);
         if (!keepsAdmin) await ensureNotLastAdmin(admin, userId, adminRoleId);
         if (roleCodes.includes('delivery')) commission(body.commissionPercent);
+        else await assertNoActiveDeliveries(admin, userId);
 
         const { data: profile, error: profileReadError } = await admin
           .from('profiles')
@@ -256,7 +279,10 @@ export default {
       if (action === 'setActive') {
         const userId = required(body.userId, 'Usuario');
         const active = Boolean(body.active);
-        if (!active) await ensureNotLastAdmin(admin, userId, adminRoleId);
+        if (!active) {
+          await ensureNotLastAdmin(admin, userId, adminRoleId);
+          await assertNoActiveDeliveries(admin, userId);
+        }
         const { error: profileError } = await admin.from('profiles').update({ active }).eq('id', userId).is('archived_at', null);
         if (profileError) throw profileError;
         const { error: driverError } = await admin.from('delivery_drivers').update({ active }).eq('profile_id', userId);
@@ -268,6 +294,7 @@ export default {
         const userId = required(body.userId, 'Usuario');
         if (userId === actorId) throw new Error('No podés archivar tu propia cuenta.');
         await ensureNotLastAdmin(admin, userId, adminRoleId);
+        await assertNoActiveDeliveries(admin, userId);
         const stamp = new Date().toISOString();
         const { error: profileError } = await admin.from('profiles').update({ active: false, archived_at: stamp }).eq('id', userId);
         if (profileError) throw profileError;
