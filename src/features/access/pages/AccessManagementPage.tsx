@@ -4,7 +4,6 @@ import { useEffect, useMemo, useState } from 'react';
 import {
   Archive,
   Bike,
-  CheckCircle2,
   Edit3,
   KeyRound,
   Plus,
