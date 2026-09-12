@@ -1,11 +1,13 @@
 export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[];
 
-export type AppRole = 'admin' | 'staff';
 export type IngredientType = 'proteina' | 'panificados' | 'lacteos' | 'verduras' | 'insumos' | 'bebidas' | 'otros';
 export type IngredientUnit = 'kg' | 'gr' | 'unidad' | 'litro' | 'ml' | 'paquete';
 export type OrderStatus = 'pendiente' | 'aceptado' | 'en_preparacion' | 'listo' | 'en_camino' | 'entregado' | 'cancelado';
 export type DeliveryMethod = 'retiro_local' | 'delivery';
 export type PaymentMethodCode = 'efectivo' | 'transferencia';
+export type DeliveryVehicleType = 'moto' | 'auto' | 'bici' | 'otro';
+export type DeliveryAssignmentStatus = 'assigned' | 'accepted' | 'picked_up' | 'in_transit' | 'delivered' | 'cancelled';
+export type DeliverySettlementStatus = 'draft' | 'paid' | 'cancelled';
 
 export interface DeliveryQuoteRow {
   distance_km: number;
@@ -25,9 +27,29 @@ export interface Database {
   public: {
     Tables: {
       profiles: TableDefinition<
-        { id: string; full_name: string; role: AppRole; active: boolean; created_at: string; updated_at: string },
-        { id: string; full_name?: string; role?: AppRole; active?: boolean; created_at?: string; updated_at?: string },
-        { full_name?: string; role?: AppRole; active?: boolean; updated_at?: string }
+        { id: string; full_name: string; phone: string | null; notes: string | null; active: boolean; archived_at: string | null; created_at: string; updated_at: string },
+        { id: string; full_name?: string; phone?: string | null; notes?: string | null; active?: boolean; archived_at?: string | null; created_at?: string; updated_at?: string },
+        { full_name?: string; phone?: string | null; notes?: string | null; active?: boolean; archived_at?: string | null; updated_at?: string }
+      >;
+      roles: TableDefinition<
+        { id: string; code: string; name: string; description: string | null; is_system: boolean; active: boolean; created_by: string | null; created_at: string; updated_at: string },
+        { id?: string; code: string; name: string; description?: string | null; is_system?: boolean; active?: boolean; created_by?: string | null; created_at?: string; updated_at?: string },
+        { code?: string; name?: string; description?: string | null; is_system?: boolean; active?: boolean; created_by?: string | null; updated_at?: string }
+      >;
+      permissions: TableDefinition<
+        { id: string; code: string; name: string; module: string; description: string | null; is_system: boolean; active: boolean; created_at: string },
+        { id?: string; code: string; name: string; module: string; description?: string | null; is_system?: boolean; active?: boolean; created_at?: string },
+        { code?: string; name?: string; module?: string; description?: string | null; is_system?: boolean; active?: boolean }
+      >;
+      role_permissions: TableDefinition<
+        { role_id: string; permission_id: string; assigned_at: string },
+        { role_id: string; permission_id: string; assigned_at?: string },
+        { role_id?: string; permission_id?: string; assigned_at?: string }
+      >;
+      user_roles: TableDefinition<
+        { user_id: string; role_id: string; assigned_by: string | null; assigned_at: string },
+        { user_id: string; role_id: string; assigned_by?: string | null; assigned_at?: string },
+        { user_id?: string; role_id?: string; assigned_by?: string | null; assigned_at?: string }
       >;
       business_config: TableDefinition<
         {
@@ -110,6 +132,36 @@ export interface Database {
         { id?: never; actor_id?: string | null; table_name: string; record_id?: string | null; action: string; old_data?: Json | null; new_data?: Json | null; created_at?: string },
         { actor_id?: string | null; table_name?: string; record_id?: string | null; action?: string; old_data?: Json | null; new_data?: Json | null }
       >;
+      delivery_drivers: TableDefinition<
+        { profile_id: string; vehicle_type: DeliveryVehicleType; active: boolean; started_at: string; notes: string | null; created_at: string; updated_at: string },
+        { profile_id: string; vehicle_type?: DeliveryVehicleType; active?: boolean; started_at?: string; notes?: string | null; created_at?: string; updated_at?: string },
+        { vehicle_type?: DeliveryVehicleType; active?: boolean; started_at?: string; notes?: string | null; updated_at?: string }
+      >;
+      delivery_driver_rates: TableDefinition<
+        { id: string; driver_id: string; commission_percent: number; valid_from: string; valid_to: string | null; created_by: string | null; created_at: string },
+        { id?: string; driver_id: string; commission_percent: number; valid_from?: string; valid_to?: string | null; created_by?: string | null; created_at?: string },
+        { commission_percent?: number; valid_from?: string; valid_to?: string | null; created_by?: string | null }
+      >;
+      delivery_assignments: TableDefinition<
+        { id: string; order_id: string; rate_id: string; status: DeliveryAssignmentStatus; assigned_by: string | null; assigned_at: string; accepted_at: string | null; picked_up_at: string | null; in_transit_at: string | null; delivered_at: string | null; cancelled_at: string | null; cancellation_reason: string | null; created_at: string; updated_at: string },
+        { id?: string; order_id: string; rate_id: string; status?: DeliveryAssignmentStatus; assigned_by?: string | null; assigned_at?: string; accepted_at?: string | null; picked_up_at?: string | null; in_transit_at?: string | null; delivered_at?: string | null; cancelled_at?: string | null; cancellation_reason?: string | null; created_at?: string; updated_at?: string },
+        { status?: DeliveryAssignmentStatus; assigned_by?: string | null; accepted_at?: string | null; picked_up_at?: string | null; in_transit_at?: string | null; delivered_at?: string | null; cancelled_at?: string | null; cancellation_reason?: string | null; updated_at?: string }
+      >;
+      delivery_assignment_events: TableDefinition<
+        { id: number; assignment_id: string; status: DeliveryAssignmentStatus; actor_id: string | null; note: string | null; created_at: string },
+        { id?: never; assignment_id: string; status: DeliveryAssignmentStatus; actor_id?: string | null; note?: string | null; created_at?: string },
+        { status?: DeliveryAssignmentStatus; actor_id?: string | null; note?: string | null }
+      >;
+      delivery_settlements: TableDefinition<
+        { id: string; driver_id: string; period_from: string; period_to: string; status: DeliverySettlementStatus; notes: string | null; created_by: string | null; paid_by: string | null; paid_at: string | null; created_at: string; updated_at: string },
+        { id?: string; driver_id: string; period_from: string; period_to: string; status?: DeliverySettlementStatus; notes?: string | null; created_by?: string | null; paid_by?: string | null; paid_at?: string | null; created_at?: string; updated_at?: string },
+        { period_from?: string; period_to?: string; status?: DeliverySettlementStatus; notes?: string | null; paid_by?: string | null; paid_at?: string | null; updated_at?: string }
+      >;
+      delivery_settlement_items: TableDefinition<
+        { settlement_id: string; assignment_id: string; created_at: string },
+        { settlement_id: string; assignment_id: string; created_at?: string },
+        { settlement_id?: string; assignment_id?: string }
+      >;
     };
     Views: {
       sales_ledger: {
@@ -123,14 +175,30 @@ export interface Database {
       get_dashboard_stats: { Args: { days_back?: number }; Returns: Json };
       is_business_open: { Args: Record<PropertyKey, never>; Returns: boolean };
       calculate_delivery_quote: { Args: { customer_lat: number; customer_lng: number }; Returns: DeliveryQuoteRow[] };
+      get_current_access_context: { Args: Record<PropertyKey, never>; Returns: Json };
+      get_access_management_dashboard: { Args: Record<PropertyKey, never>; Returns: Json };
+      admin_create_role: { Args: { role_code: string; role_name: string; role_description?: string | null; permission_codes?: string[] }; Returns: string };
+      admin_update_role: { Args: { role_uuid: string; role_code: string; role_name: string; role_description: string | null; role_active: boolean; permission_codes?: string[] }; Returns: undefined };
+      admin_delete_role: { Args: { role_uuid: string }; Returns: undefined };
+      get_delivery_admin_dashboard: { Args: Record<PropertyKey, never>; Returns: Json };
+      get_delivery_driver_dashboard: { Args: Record<PropertyKey, never>; Returns: Json };
+      admin_assign_delivery: { Args: { order_uuid: string; driver_uuid: string; note?: string | null }; Returns: string };
+      admin_cancel_delivery_assignment: { Args: { assignment_uuid: string; reason?: string | null }; Returns: undefined };
+      admin_create_delivery_settlement: { Args: { driver_uuid: string; from_ts: string; to_ts: string; settlement_notes?: string | null }; Returns: string };
+      admin_mark_delivery_settlement_paid: { Args: { settlement_uuid: string }; Returns: undefined };
+      admin_cancel_delivery_settlement: { Args: { settlement_uuid: string }; Returns: undefined };
+      admin_set_delivery_driver_rate: { Args: { target_driver_id: string; new_percent: number }; Returns: undefined };
+      driver_advance_delivery: { Args: { assignment_uuid: string; next_status: DeliveryAssignmentStatus; note?: string | null }; Returns: Json };
     };
     Enums: {
-      app_role: AppRole;
       ingredient_type: IngredientType;
       ingredient_unit: IngredientUnit;
       order_status: OrderStatus;
       delivery_method: DeliveryMethod;
       payment_method_code: PaymentMethodCode;
+      delivery_vehicle_type: DeliveryVehicleType;
+      delivery_assignment_status: DeliveryAssignmentStatus;
+      delivery_settlement_status: DeliverySettlementStatus;
     };
     CompositeTypes: Record<PropertyKey, never>;
   };
