@@ -9,6 +9,7 @@ export const ROUTES = {
   adminRecetas: '/admin/recetas',
   adminPedidos: '/admin/pedidos',
   adminDelivery: '/admin/delivery',
+  adminUsuarios: '/admin/usuarios',
   adminReportes: '/admin/reportes',
   adminConfiguracion: '/admin/configuracion',
   deliveryLogin: '/delivery/login',
