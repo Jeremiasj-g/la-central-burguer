@@ -2,9 +2,24 @@ import { getSupabaseBrowserClient } from '@/lib/supabase/client';
 import { requireSupabaseConfigured } from '@/lib/config/env';
 import type { DeliveryAssignmentStatus, DeliveryDriverDashboard } from '../types/delivery-management.types';
 
+type RpcError = { message: string } | null;
+type RpcInvoker = <T>(name: string, args?: Record<string, unknown>) => Promise<{ data: T | null; error: RpcError }>;
+
 function client() {
   requireSupabaseConfigured('usar el panel de repartidor');
-  return getSupabaseBrowserClient() as any;
+  return getSupabaseBrowserClient();
+}
+
+async function deliveryRpc<T>(name: string, args?: Record<string, unknown>) {
+  const supabase = client();
+  const invoke = supabase.rpc as unknown as RpcInvoker;
+  const { data, error } = await invoke<T>(name, args);
+  if (error) throw new Error(error.message);
+  return data;
+}
+
+function isDeliveryRole(role: unknown) {
+  return String(role) === 'delivery';
 }
 
 export async function loginDeliveryDriver(email: string, password: string) {
@@ -21,13 +36,14 @@ export async function loginDeliveryDriver(email: string, password: string) {
     .eq('id', data.user.id)
     .maybeSingle();
 
-  if (profileError || !profile || profile.role !== 'delivery' || !profile.active) {
+  if (profileError || !profile || !isDeliveryRole(profile.role) || !profile.active) {
     await supabase.auth.signOut();
     throw new Error('Este usuario no tiene acceso al panel de reparto.');
   }
 
-  const { error: dashboardError } = await supabase.rpc('get_delivery_driver_dashboard');
-  if (dashboardError) {
+  try {
+    await deliveryRpc<DeliveryDriverDashboard>('get_delivery_driver_dashboard');
+  } catch {
     await supabase.auth.signOut();
     throw new Error('El repartidor no está habilitado para operar.');
   }
@@ -42,7 +58,7 @@ export async function isDeliveryDriverLoggedIn() {
     .select('role,active')
     .eq('id', data.user.id)
     .maybeSingle();
-  return Boolean(profile?.role === 'delivery' && profile?.active);
+  return Boolean(profile && isDeliveryRole(profile.role) && profile.active);
 }
 
 export async function logoutDeliveryDriver() {
@@ -51,9 +67,9 @@ export async function logoutDeliveryDriver() {
 }
 
 export async function getDeliveryDriverDashboard(): Promise<DeliveryDriverDashboard> {
-  const { data, error } = await client().rpc('get_delivery_driver_dashboard');
-  if (error) throw new Error(error.message);
-  return data as DeliveryDriverDashboard;
+  const data = await deliveryRpc<DeliveryDriverDashboard>('get_delivery_driver_dashboard');
+  if (!data) throw new Error('El panel de reparto no devolvió información.');
+  return data;
 }
 
 export async function advanceDeliveryAssignment(
@@ -61,10 +77,9 @@ export async function advanceDeliveryAssignment(
   nextStatus: DeliveryAssignmentStatus,
   note?: string,
 ) {
-  const { error } = await client().rpc('driver_advance_delivery', {
+  await deliveryRpc<unknown>('driver_advance_delivery', {
     assignment_uuid: assignmentId,
     next_status: nextStatus,
     note: note?.trim() || null,
   });
-  if (error) throw new Error(error.message);
 }
