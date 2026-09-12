@@ -5,7 +5,14 @@ import { getSupabaseBrowserClient } from '@/lib/supabase/client';
 import type { Order } from '@/features/pedidos/types/pedido.types';
 
 type DashboardRpc = {
-  metrics?: Array<{ label: string; value: string | number; hint: string; trend: string }>;
+  metrics?: Array<{
+    label: string;
+    value: string | number;
+    hint: string;
+    trend: string;
+    productRevenue?: string | number;
+    deliveryRevenue?: string | number;
+  }>;
   salesEvolution?: ChartPoint[];
   revenueByDay?: ChartPoint[];
   topProducts?: ChartPoint[];
@@ -27,12 +34,21 @@ function normalizePoints(points?: ChartPoint[]) {
 }
 
 function normalizeMetrics(metrics?: DashboardRpc['metrics']): MetricSummary[] {
-  return (metrics ?? []).map((metric) => ({
-    ...metric,
-    value: ['Ventas del día', 'Ticket promedio'].includes(metric.label)
-      ? formatCurrency(Number(metric.value))
-      : String(metric.value),
-  }));
+  return (metrics ?? []).map((metric) => {
+    const isDailySales = metric.label === 'Ventas del día';
+    const hasRevenueBreakdown = metric.productRevenue !== undefined && metric.deliveryRevenue !== undefined;
+
+    return {
+      label: isDailySales && hasRevenueBreakdown ? 'Ventas del día + delivery' : metric.label,
+      value: isDailySales || metric.label === 'Ticket promedio'
+        ? formatCurrency(Number(metric.value))
+        : String(metric.value),
+      hint: isDailySales && hasRevenueBreakdown
+        ? `Productos ${formatCurrency(Number(metric.productRevenue))} + delivery ${formatCurrency(Number(metric.deliveryRevenue))}`
+        : metric.hint,
+      trend: metric.trend,
+    };
+  });
 }
 
 export async function getDashboardStats(): Promise<DashboardStats> {
