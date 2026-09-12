@@ -235,11 +235,11 @@ export function ReportesAdminPage() {
       </div>
 
       <section className="mb-6 grid min-w-0 gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-6">
-        <MetricCard label="Facturación neta" value={formatCurrency(summary.netRevenue)} detail="Pedidos no cancelados" icon={DollarSign} />
+        <MetricCard label="Ventas + delivery" value={formatCurrency(summary.netRevenue)} detail={`Productos ${formatCurrency(summary.netRevenue - summary.deliveryRevenue)} + delivery ${formatCurrency(summary.deliveryRevenue)}`} icon={DollarSign} />
         <MetricCard label="Pedidos válidos" value={formatNumber(summary.validOrders)} detail={`${formatNumber(summary.totalOrders)} pedidos seleccionados`} icon={ShoppingBag} />
         <MetricCard label="Ticket promedio" value={formatCurrency(summary.averageTicket)} detail="Promedio por pedido válido" icon={ReceiptText} />
         <MetricCard label="Unidades vendidas" value={formatNumber(summary.unitsSold)} detail="Productos de ventas válidas" icon={PackageCheck} />
-        <MetricCard label="Delivery cobrado" value={formatCurrency(summary.deliveryRevenue)} detail="Importe facturado por envíos" icon={Truck} />
+        <MetricCard label="Delivery cobrado" value={formatCurrency(summary.deliveryRevenue)} detail="Incluido en Ventas + delivery" icon={Truck} />
         <MetricCard label="Cancelaciones" value={formatNumber(summary.cancelledOrders)} detail={`${(summary.cancellationRate * 100).toFixed(1)}% del total seleccionado`} icon={Ban} />
       </section>
 
