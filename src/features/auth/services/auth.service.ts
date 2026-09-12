@@ -9,6 +9,26 @@ export interface AdminSession {
   createdAt: string;
 }
 
+type RpcError = { message: string } | null;
+type RpcInvoker = <T>(name: string, args?: Record<string, unknown>) => Promise<{ data: T | null; error: RpcError }>;
+type AccessContext = {
+  userId: string;
+  fullName: string;
+  phone: string | null;
+  active: boolean;
+  email: string | null;
+  roles: string[];
+  permissions: string[];
+};
+
+async function getAccessContext(): Promise<AccessContext | null> {
+  const supabase = getSupabaseBrowserClient();
+  const invoke = supabase.rpc.bind(supabase) as unknown as RpcInvoker;
+  const { data, error } = await invoke<AccessContext>('get_current_access_context');
+  if (error) throw new Error(error.message);
+  return data;
+}
+
 export async function loginAdmin(email: string, password: string): Promise<AdminSession> {
   requireSupabaseConfigured('iniciar sesión en el panel administrador');
 
@@ -25,24 +45,21 @@ export async function loginAdmin(email: string, password: string): Promise<Admin
 
   if (!data.user) throw new Error('No se pudo obtener el usuario autenticado.');
 
-  const { data: profile, error: profileError } = await supabase
-    .from('profiles')
-    .select('full_name,role,active')
-    .eq('id', data.user.id)
-    .single();
+  try {
+    const access = await getAccessContext();
+    if (!access?.active || !access.roles.includes('admin')) throw new Error('Sin rol administrador.');
 
-  if (profileError || !profile || profile.role !== 'admin' || !profile.active) {
+    return {
+      id: data.user.id,
+      email: data.user.email ?? email,
+      name: access.fullName || 'Administrador',
+      role: 'admin',
+      createdAt: data.user.created_at,
+    };
+  } catch {
     await supabase.auth.signOut();
     throw new Error('Este usuario no tiene permisos para ingresar al panel.');
   }
-
-  return {
-    id: data.user.id,
-    email: data.user.email ?? email,
-    name: profile.full_name || 'Administrador',
-    role: 'admin',
-    createdAt: data.user.created_at,
-  };
 }
 
 export async function logoutAdmin() {
@@ -58,23 +75,20 @@ export async function getAdminSession(): Promise<AdminSession | null> {
   const { data, error } = await supabase.auth.getUser();
   if (error || !data.user) return null;
 
-  const { data: profile, error: profileError } = await supabase
-    .from('profiles')
-    .select('full_name,role,active')
-    .eq('id', data.user.id)
-    .maybeSingle();
+  try {
+    const access = await getAccessContext();
+    if (!access?.active || !access.roles.includes('admin')) return null;
 
-  if (profileError || !profile || profile.role !== 'admin' || !profile.active) {
+    return {
+      id: data.user.id,
+      email: data.user.email ?? '',
+      name: access.fullName || 'Administrador',
+      role: 'admin',
+      createdAt: data.user.created_at,
+    };
+  } catch {
     return null;
   }
-
-  return {
-    id: data.user.id,
-    email: data.user.email ?? '',
-    name: profile.full_name || 'Administrador',
-    role: 'admin',
-    createdAt: data.user.created_at,
-  };
 }
 
 export async function isAdminLoggedIn() {
