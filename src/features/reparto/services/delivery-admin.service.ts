@@ -5,6 +5,11 @@ import type { DeliveryAdminDashboard, DriverFormPayload } from '../types/deliver
 type RpcError = { message: string } | null;
 type RpcInvoker = <T>(name: string, args?: Record<string, unknown>) => Promise<{ data: T | null; error: RpcError }>;
 
+type AccessDashboard = {
+  users: Array<{ id: string; roles: Array<{ id: string; code: string; name: string }> }>;
+  roles: Array<{ id: string; code: string; name: string; active: boolean }>;
+};
+
 function client() {
   requireSupabaseConfigured('gestionar delivery');
   return getSupabaseBrowserClient();
@@ -12,9 +17,15 @@ function client() {
 
 async function deliveryRpc<T>(name: string, args?: Record<string, unknown>) {
   const supabase = client();
-  const invoke = supabase.rpc as unknown as RpcInvoker;
+  const invoke = supabase.rpc.bind(supabase) as unknown as RpcInvoker;
   const { data, error } = await invoke<T>(name, args);
   if (error) throw new Error(error.message);
+  return data;
+}
+
+async function getAccessDashboard() {
+  const data = await deliveryRpc<AccessDashboard>('get_access_management_dashboard');
+  if (!data) throw new Error('No se pudo obtener la configuración de usuarios y roles.');
   return data;
 }
 
@@ -64,38 +75,44 @@ export async function cancelDeliverySettlement(settlementId: string) {
 }
 
 function edgeError(data: unknown) {
-  if (data && typeof data === 'object' && 'error' in data && typeof data.error === 'string') {
-    return data.error;
-  }
+  if (data && typeof data === 'object' && 'error' in data && typeof data.error === 'string') return data.error;
   return null;
 }
 
-export async function saveDeliveryDriver(payload: DriverFormPayload) {
-  const { data, error } = await client().functions.invoke('manage-delivery-driver', {
-    body: {
-      action: payload.driverId ? 'update' : 'create',
-      ...payload,
-    },
-  });
+async function invokeAccessUser(body: Record<string, unknown>) {
+  const { data, error } = await client().functions.invoke('manage-access-user', { body });
   if (error) throw new Error(error.message);
   const message = edgeError(data);
   if (message) throw new Error(message);
+}
+
+export async function saveDeliveryDriver(payload: DriverFormPayload) {
+  const access = await getAccessDashboard();
+  const deliveryRole = access.roles.find((role) => role.code === 'delivery' && role.active);
+  if (!deliveryRole) throw new Error('El rol Delivery no está disponible.');
+
+  const existingUser = payload.driverId ? access.users.find((user) => user.id === payload.driverId) : undefined;
+  const roleIds = existingUser
+    ? [...new Set([...existingUser.roles.map((role) => role.id), deliveryRole.id])]
+    : [deliveryRole.id];
+
+  await invokeAccessUser({
+    action: payload.driverId ? 'update' : 'create',
+    userId: payload.driverId,
+    fullName: payload.fullName,
+    email: payload.email,
+    password: payload.password,
+    phone: payload.phone,
+    roleIds,
+    vehicleType: payload.vehicleType,
+    commissionPercent: payload.commissionPercent,
+  });
 }
 
 export async function toggleDeliveryDriver(driverId: string, active: boolean) {
-  const { data, error } = await client().functions.invoke('manage-delivery-driver', {
-    body: { action: 'toggle', driverId, active },
-  });
-  if (error) throw new Error(error.message);
-  const message = edgeError(data);
-  if (message) throw new Error(message);
+  await invokeAccessUser({ action: 'setActive', userId: driverId, active });
 }
 
 export async function resetDeliveryDriverPassword(driverId: string, password: string) {
-  const { data, error } = await client().functions.invoke('manage-delivery-driver', {
-    body: { action: 'resetPassword', driverId, password },
-  });
-  if (error) throw new Error(error.message);
-  const message = edgeError(data);
-  if (message) throw new Error(message);
+  await invokeAccessUser({ action: 'resetPassword', userId: driverId, password });
 }
