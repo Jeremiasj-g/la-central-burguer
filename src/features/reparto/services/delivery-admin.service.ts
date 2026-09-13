@@ -94,9 +94,25 @@ function edgeError(data: unknown) {
   return null;
 }
 
+async function getFunctionErrorMessage(error: unknown) {
+  if (error && typeof error === 'object' && 'context' in error) {
+    const response = (error as { context?: unknown }).context;
+    if (response instanceof Response) {
+      try {
+        const body = await response.clone().json() as unknown;
+        const message = edgeError(body);
+        if (message) return message;
+      } catch {
+        // Si el cuerpo no es JSON, se usa el mensaje del SDK.
+      }
+    }
+  }
+  return error instanceof Error ? error.message : 'No se pudo completar la operación.';
+}
+
 async function invokeAccessUser(body: Record<string, unknown>) {
   const { data, error } = await client().functions.invoke('manage-access-user', { body });
-  if (error) throw new Error(error.message);
+  if (error) throw new Error(await getFunctionErrorMessage(error));
   const message = edgeError(data);
   if (message) throw new Error(message);
 }
