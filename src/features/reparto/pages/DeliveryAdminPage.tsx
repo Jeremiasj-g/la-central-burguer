@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   BadgeDollarSign,
   Bike,
@@ -19,6 +19,7 @@ import {
   WalletCards,
 } from 'lucide-react';
 import { toast } from 'react-toastify';
+import { useBusinessConfig } from '@/features/configuracion/hooks/useBusinessConfig';
 import { AdminPageHeader } from '@/shared/components/layout/AdminPageHeader';
 import { Button } from '@/shared/components/ui/Button';
 import { ConfirmDialog } from '@/shared/components/ui/ConfirmDialog';
@@ -37,6 +38,7 @@ import {
   markDeliverySettlementPaid,
   resetDeliveryDriverPassword,
   saveDeliveryDriver,
+  subscribeToDeliveryOrders,
   toggleDeliveryDriver,
 } from '../services/delivery-admin.service';
 import type {
@@ -49,6 +51,7 @@ import type {
 } from '../types/delivery-management.types';
 
 type Tab = 'operation' | 'drivers' | 'settlements';
+type UnassignedScope = 'today' | 'all';
 type PendingConfirmation =
   | { type: 'cancel-assignment'; assignment: DeliveryAssignment }
   | { type: 'toggle-driver'; driver: DeliveryDriver }
@@ -82,11 +85,39 @@ const VEHICLE_OPTIONS = [
   { value: 'otro', label: 'Otro' },
 ] as const;
 
+const UNASSIGNED_SCOPE_OPTIONS = [
+  { value: 'today', label: 'Pendientes de hoy' },
+  { value: 'all', label: 'Todos sin asignar' },
+] as const;
+
 function statusClass(status: DeliveryAssignmentStatus) {
   if (status === 'delivered') return 'border-emerald-200 bg-emerald-50 text-emerald-700';
   if (status === 'cancelled') return 'border-red-200 bg-red-50 text-red-700';
   if (status === 'in_transit' || status === 'picked_up') return 'border-blue-200 bg-blue-50 text-blue-700';
   return 'border-amber-200 bg-amber-50 text-amber-700';
+}
+
+function dateKey(value: string | Date, timeZone: string) {
+  const date = typeof value === 'string' ? new Date(value) : value;
+  if (Number.isNaN(date.getTime())) return '';
+
+  try {
+    const parts = new Intl.DateTimeFormat('en-US', {
+      timeZone,
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+    }).formatToParts(date);
+    const year = parts.find((part) => part.type === 'year')?.value;
+    const month = parts.find((part) => part.type === 'month')?.value;
+    const day = parts.find((part) => part.type === 'day')?.value;
+    return year && month && day ? `${year}-${month}-${day}` : '';
+  } catch {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
 }
 
 function DriverModal({ driver, onClose, onSaved }: { driver?: DeliveryDriver; onClose: () => void; onSaved: () => void }) {
@@ -184,11 +215,13 @@ function DriverModal({ driver, onClose, onSaved }: { driver?: DeliveryDriver; on
 }
 
 export function DeliveryAdminPage() {
+  const { config } = useBusinessConfig();
   const [data, setData] = useState<DeliveryAdminDashboard>(EMPTY);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [tab, setTab] = useState<Tab>('operation');
   const [query, setQuery] = useState('');
+  const [unassignedScope, setUnassignedScope] = useState<UnassignedScope>('today');
   const [driverModal, setDriverModal] = useState<DeliveryDriver | 'new' | null>(null);
   const [resetDriver, setResetDriver] = useState<DeliveryDriver | null>(null);
   const [newPassword, setNewPassword] = useState('');
@@ -205,11 +238,19 @@ export function DeliveryAdminPage() {
   const activeDriverOptions = useMemo(() => activeDrivers.map((driver) => ({ value: driver.id, label: `${driver.fullName} · ${driver.commissionPercent}%` })), [activeDrivers]);
   const allDriverOptions = useMemo(() => data.drivers.map((driver) => ({ value: driver.id, label: `${driver.fullName}${driver.active ? '' : ' · inactivo'}`, disabled: !driver.active })), [data.drivers]);
 
+  const businessTimeZone = config?.timezone ?? 'America/Argentina/Buenos_Aires';
+  const todayKey = dateKey(new Date(), businessTimeZone);
+  const todayUnassignedOrders = useMemo(
+    () => data.unassignedOrders.filter((order) => dateKey(order.createdAt, businessTimeZone) === todayKey),
+    [businessTimeZone, data.unassignedOrders, todayKey],
+  );
+  const scopedOrders = unassignedScope === 'today' ? todayUnassignedOrders : data.unassignedOrders;
+
   const normalizedQuery = query.trim().toLocaleLowerCase('es');
   const filteredOrders = useMemo(() => {
-    if (!normalizedQuery) return data.unassignedOrders;
-    return data.unassignedOrders.filter((order) => [order.orderCode, order.customerName, order.customerPhone, order.address ?? ''].some((value) => value.toLocaleLowerCase('es').includes(normalizedQuery)));
-  }, [data.unassignedOrders, normalizedQuery]);
+    if (!normalizedQuery) return scopedOrders;
+    return scopedOrders.filter((order) => [order.orderCode, order.customerName, order.customerPhone, order.address ?? ''].some((value) => value.toLocaleLowerCase('es').includes(normalizedQuery)));
+  }, [normalizedQuery, scopedOrders]);
   const filteredAssignments = useMemo(() => {
     if (!normalizedQuery) return activeAssignments;
     return activeAssignments.filter((item) => [item.orderCode, item.customerName, item.customerPhone, item.address ?? '', item.driverName].some((value) => value.toLocaleLowerCase('es').includes(normalizedQuery)));
@@ -219,7 +260,7 @@ export function DeliveryAdminPage() {
     return data.drivers.filter((driver) => [driver.fullName, driver.email ?? '', driver.phone ?? ''].some((value) => value.toLocaleLowerCase('es').includes(normalizedQuery)));
   }, [data.drivers, normalizedQuery]);
 
-  async function load(background = false) {
+  const load = useCallback(async (background = false) => {
     background ? setRefreshing(true) : setLoading(true);
     try {
       setData(await getDeliveryAdminDashboard());
@@ -229,9 +270,21 @@ export function DeliveryAdminPage() {
       setLoading(false);
       setRefreshing(false);
     }
-  }
+  }, []);
 
-  useEffect(() => { void load(); }, []);
+  useEffect(() => {
+    void load();
+    let refreshTimer: ReturnType<typeof setTimeout> | null = null;
+    const unsubscribe = subscribeToDeliveryOrders(() => {
+      if (refreshTimer) clearTimeout(refreshTimer);
+      refreshTimer = setTimeout(() => void load(true), 150);
+    });
+
+    return () => {
+      if (refreshTimer) clearTimeout(refreshTimer);
+      unsubscribe();
+    };
+  }, [load]);
 
   async function handleAssign(orderId: string, driverId: string, assignmentId?: string) {
     if (!driverId) return toast.info('Seleccioná un repartidor.');
@@ -312,6 +365,12 @@ export function DeliveryAdminPage() {
     { id: 'settlements', label: 'Liquidaciones', icon: WalletCards },
   ];
 
+  const emptyOrdersMessage = normalizedQuery
+    ? 'No hay pedidos que coincidan con la búsqueda.'
+    : unassignedScope === 'today'
+      ? 'No hay pedidos delivery sin asignar para hoy.'
+      : 'No hay pedidos delivery pendientes de asignación.';
+
   const confirmCopy = pendingConfirmation?.type === 'cancel-assignment'
     ? { title: 'Quitar asignación', description: `El pedido ${pendingConfirmation.assignment.orderCode} volverá a la cola sin asignar. El historial de la asignación anterior se conservará.`, label: 'Quitar asignación', tone: 'danger' as const }
     : pendingConfirmation?.type === 'toggle-driver'
@@ -339,7 +398,14 @@ export function DeliveryAdminPage() {
       {loading ? <DeliveryAdminSkeleton /> : (
         <>
           <section className="mb-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
-            <DeliveryMetricCard icon={PackageCheck} label="Sin asignar" value={String(data.summary.unassignedOrders)} detail="Pedidos delivery esperando repartidor" />
+            <DeliveryMetricCard
+              icon={PackageCheck}
+              label="Sin asignar hoy"
+              value={String(todayUnassignedOrders.length)}
+              detail={data.summary.unassignedOrders > todayUnassignedOrders.length
+                ? `${data.summary.unassignedOrders} pendientes sin asignar en total`
+                : 'Pedidos delivery de hoy esperando repartidor'}
+            />
             <DeliveryMetricCard icon={Truck} label="En operación" value={String(data.summary.activeAssignments)} detail="Asignaciones abiertas ahora" />
             <DeliveryMetricCard icon={Users} label="Repartidores activos" value={String(data.summary.activeDrivers)} detail="Habilitados para recibir pedidos" />
             <DeliveryMetricCard icon={BadgeDollarSign} label="Comisión pendiente" value={formatCurrency(data.summary.pendingCommission)} detail="Ganancias aún no conciliadas" />
@@ -369,15 +435,33 @@ export function DeliveryAdminPage() {
           {tab === 'operation' ? (
             <div className="grid min-w-0 gap-6 xl:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
               <section className="min-w-0 rounded-sm border border-neutral-200 bg-white p-5 shadow-sm">
-                <div className="mb-4 flex items-center justify-between gap-3">
-                  <div><h2 className="font-black text-central-carbon">Pedidos sin asignar</h2><p className="text-xs text-neutral-500">Solo pedidos delivery abiertos.</p></div>
-                  <span className="rounded-full bg-central-orange/10 px-3 py-1 text-xs font-black text-central-orange">{filteredOrders.length}</span>
+                <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
+                  <div>
+                    <h2 className="font-black text-central-carbon">Pedidos sin asignar</h2>
+                    <p className="text-xs text-neutral-500">Por defecto se muestran solo los pedidos delivery de hoy.</p>
+                  </div>
+                  <div className="flex min-w-0 items-center gap-2">
+                    <div className="w-44 sm:w-48">
+                      <Select
+                        variant="light"
+                        value={unassignedScope}
+                        options={UNASSIGNED_SCOPE_OPTIONS}
+                        onValueChange={(value) => setUnassignedScope(value as UnassignedScope)}
+                        aria-label="Período de pedidos sin asignar"
+                      />
+                    </div>
+                    <span className="rounded-full bg-central-orange/10 px-3 py-1 text-xs font-black text-central-orange">{filteredOrders.length}</span>
+                  </div>
                 </div>
                 <div className="custom-scrollbar max-h-[68vh] space-y-3 overflow-y-auto pr-1">
-                  {filteredOrders.length === 0 ? <div className="rounded-sm border border-dashed border-neutral-200 p-8 text-center text-sm text-neutral-500">No hay pedidos que coincidan con la búsqueda.</div> : filteredOrders.map((order) => (
+                  {filteredOrders.length === 0 ? <div className="rounded-sm border border-dashed border-neutral-200 p-8 text-center text-sm text-neutral-500">{emptyOrdersMessage}</div> : filteredOrders.map((order) => (
                     <article key={order.id} className="rounded-sm border border-neutral-200 p-4">
                       <div className="flex flex-wrap items-start justify-between gap-3">
-                        <div className="min-w-0"><p className="break-words font-black text-central-carbon">{order.orderCode} · {order.customerName}</p><p className="mt-1 break-words text-xs leading-5 text-neutral-500">{order.address || 'Dirección sin texto'} · {order.distanceKm?.toFixed(1) ?? '—'} km</p></div>
+                        <div className="min-w-0">
+                          <p className="break-words font-black text-central-carbon">{order.orderCode} · {order.customerName}</p>
+                          <p className="mt-1 break-words text-xs leading-5 text-neutral-500">{order.address || 'Dirección sin texto'} · {order.distanceKm?.toFixed(1) ?? '—'} km</p>
+                          {unassignedScope === 'all' ? <p className="mt-1 text-[11px] text-neutral-400">Creado {formatDateTime(order.createdAt)}</p> : null}
+                        </div>
                         <div className="text-right"><p className="font-black">{formatCurrency(order.total)}</p><p className="text-xs text-neutral-500">Envío {formatCurrency(order.deliveryCost)}</p></div>
                       </div>
                       <div className="mt-4 grid gap-2 sm:grid-cols-[minmax(0,1fr)_auto]">
