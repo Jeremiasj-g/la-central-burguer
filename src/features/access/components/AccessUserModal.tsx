@@ -5,6 +5,7 @@ import { Bike, Check, ShieldCheck } from 'lucide-react';
 import { toast } from 'react-toastify';
 import { Button } from '@/shared/components/ui/Button';
 import { Modal } from '@/shared/components/ui/Modal';
+import { PasswordInput } from '@/shared/components/ui/PasswordInput';
 import { Select } from '@/shared/components/ui/Select';
 import { saveAccessUser } from '../services/access.service';
 import type {
@@ -95,7 +96,7 @@ export function AccessUserModal({ user, roles, onClose, onSaved, defaultRoleCode
           <label className="sm:col-span-2"><span className={labelClass}>Nombre y apellido</span><input className={fieldClass} value={form.fullName} onChange={(event) => setForm({ ...form, fullName: event.target.value })} required /></label>
           <label><span className={labelClass}>Email de acceso</span><input type="email" className={fieldClass} value={form.email} onChange={(event) => setForm({ ...form, email: event.target.value })} required /></label>
           <label><span className={labelClass}>Teléfono</span><input className={fieldClass} value={form.phone} onChange={(event) => setForm({ ...form, phone: event.target.value })} placeholder="Opcional" /></label>
-          {!user ? <label className="sm:col-span-2"><span className={labelClass}>Contraseña inicial</span><input type="password" minLength={8} className={fieldClass} value={form.password} onChange={(event) => setForm({ ...form, password: event.target.value })} required /></label> : null}
+          {!user ? <label className="sm:col-span-2"><span className={labelClass}>Contraseña inicial</span><PasswordInput variant="light" minLength={8} value={form.password} onChange={(event) => setForm({ ...form, password: event.target.value })} required autoComplete="new-password" /></label> : null}
           <label className="sm:col-span-2"><span className={labelClass}>Notas internas</span><textarea className={textareaClass} value={form.notes} onChange={(event) => setForm({ ...form, notes: event.target.value })} placeholder="Observaciones administrativas opcionales" /></label>
         </div>
 
