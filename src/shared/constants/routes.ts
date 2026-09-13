@@ -1,6 +1,7 @@
 export const ROUTES = {
   home: '/',
   menu: '/menu',
+  activateAccount: '/activar-cuenta',
   adminLogin: '/admin/login',
   adminDashboard: '/admin/dashboard',
   adminProductos: '/admin/productos',
