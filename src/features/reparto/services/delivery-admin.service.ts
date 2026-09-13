@@ -1,5 +1,6 @@
 import { getSupabaseBrowserClient } from '@/lib/supabase/client';
 import { requireSupabaseConfigured } from '@/lib/config/env';
+import { createSharedRealtimeSubscription } from '@/lib/supabase/realtime-subscription';
 import type { DeliveryAdminDashboard, DriverFormPayload } from '../types/delivery-management.types';
 
 type RpcError = { message: string } | null;
@@ -72,6 +73,20 @@ export async function cancelDeliverySettlement(settlementId: string) {
   await deliveryRpc<null>('admin_cancel_delivery_settlement', {
     settlement_uuid: settlementId,
   });
+}
+
+const subscribeDeliveryOrdersRealtime = createSharedRealtimeSubscription(
+  'delivery-admin-orders',
+  (channel, notifyListeners) =>
+    channel.on(
+      'postgres_changes',
+      { event: '*', schema: 'public', table: 'orders' },
+      notifyListeners,
+    ),
+);
+
+export function subscribeToDeliveryOrders(onChange: () => void) {
+  return subscribeDeliveryOrdersRealtime(onChange);
 }
 
 function edgeError(data: unknown) {
