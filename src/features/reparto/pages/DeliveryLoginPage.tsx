@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Bike, LockKeyhole, Mail, ShieldCheck } from 'lucide-react';
 import { toast } from 'react-toastify';
 import { Button } from '@/shared/components/ui/Button';
+import { PasswordInput } from '@/shared/components/ui/PasswordInput';
 import { ROUTES } from '@/shared/constants/routes';
 import { loginDeliveryDriver } from '../services/delivery-driver.service';
 
@@ -44,7 +45,7 @@ export function DeliveryLoginPage() {
           </label>
           <label className="mt-4 block">
             <span className="mb-2 flex items-center gap-2 text-xs font-bold uppercase tracking-wide text-white/55"><LockKeyhole size={14} /> Contraseña</span>
-            <input type="password" autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} required className="h-12 w-full rounded-xl border border-white/10 bg-black/20 px-4 text-base text-white outline-none transition focus:border-central-orange focus:ring-2 focus:ring-central-orange/20" />
+            <PasswordInput autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} required className="h-12 rounded-xl border-white/10 bg-black/20 px-4 pr-12 text-base text-white focus:ring-central-orange/20" />
           </label>
           <Button type="submit" className="mt-6 h-12 w-full rounded-xl" disabled={loading}>{loading ? 'Ingresando…' : 'Ingresar a mis entregas'}</Button>
           <div className="mt-5 flex items-start gap-2 rounded-xl bg-white/[.04] p-3 text-xs leading-5 text-white/50"><ShieldCheck size={16} className="mt-0.5 shrink-0 text-central-orange" /> El acceso está limitado a cuentas de repartidor habilitadas por administración.</div>
