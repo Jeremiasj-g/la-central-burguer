@@ -24,6 +24,7 @@ import { AdminPageHeader } from '@/shared/components/layout/AdminPageHeader';
 import { Button } from '@/shared/components/ui/Button';
 import { ConfirmDialog } from '@/shared/components/ui/ConfirmDialog';
 import { Modal } from '@/shared/components/ui/Modal';
+import { PasswordInput } from '@/shared/components/ui/PasswordInput';
 import { SearchableSelect } from '@/shared/components/ui/SearchableSelect';
 import { Select } from '@/shared/components/ui/Select';
 import { formatCurrency, formatDateTime } from '@/shared/utils/format.utils';
@@ -178,7 +179,7 @@ function DriverModal({ driver, onClose, onSaved }: { driver?: DeliveryDriver; on
           {!driver ? (
             <label className="sm:col-span-2">
               <span className={labelClass}>Contraseña inicial</span>
-              <input type="password" minLength={8} className={fieldClass} value={form.password} onChange={(event) => setForm({ ...form, password: event.target.value })} required />
+              <PasswordInput variant="light" minLength={8} value={form.password} onChange={(event) => setForm({ ...form, password: event.target.value })} required autoComplete="new-password" />
             </label>
           ) : null}
           <div>
@@ -565,7 +566,7 @@ export function DeliveryAdminPage() {
       <Modal open={Boolean(resetDriver)} onClose={() => { setResetDriver(null); setNewPassword(''); }} title="Cambiar contraseña" size="sm" theme="light">
         <div>
           <p className="mb-4 text-sm leading-6 text-neutral-600">Definí una nueva contraseña para <strong>{resetDriver?.fullName}</strong>. El cambio se aplica inmediatamente al acceso del repartidor.</p>
-          <label><span className={labelClass}>Nueva contraseña</span><input type="password" minLength={8} className={fieldClass} value={newPassword} onChange={(event) => setNewPassword(event.target.value)} autoFocus /></label>
+          <label><span className={labelClass}>Nueva contraseña</span><PasswordInput variant="light" minLength={8} value={newPassword} onChange={(event) => setNewPassword(event.target.value)} autoFocus autoComplete="new-password" /></label>
           <div className="mt-5 flex justify-end gap-2"><Button variant="secondary" onClick={() => { setResetDriver(null); setNewPassword(''); }}>Cancelar</Button><Button onClick={() => void handleResetPassword()} disabled={!resetDriver || busyId === resetDriver.id}>Guardar contraseña</Button></div>
         </div>
       </Modal>
