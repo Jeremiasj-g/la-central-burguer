@@ -1,0 +1,16 @@
+<!doctype html>
+<html lang="es">
+  <body style="margin:0;padding:0;background:#f3f1ec;font-family:Arial,Helvetica,sans-serif;color:#171717;">
+    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#f3f1ec;padding:32px 16px;">
+      <tr><td align="center">
+        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:560px;background:#fff;border:1px solid #e7e2d9;border-radius:16px;overflow:hidden;">
+          <tr><td style="background:#111;padding:28px 32px;text-align:center;"><div style="display:inline-block;background:#e6900a;color:#fff;font-weight:800;font-size:14px;letter-spacing:2px;padding:10px 14px;border-radius:8px;">LA CENTRAL</div><div style="margin-top:9px;color:#e6900a;font-size:11px;font-weight:700;letter-spacing:3px;">BURGER</div></td></tr>
+          <tr><td style="padding:34px 32px 10px;"><div style="color:#e6900a;font-size:11px;font-weight:800;letter-spacing:2px;text-transform:uppercase;">Seguridad de la cuenta</div><h1 style="margin:10px 0 14px;font-size:27px;color:#111;">Recuperá tu contraseña</h1><p style="margin:0;color:#5b5b5b;font-size:15px;line-height:1.7;">Recibimos una solicitud para cambiar la contraseña asociada a <strong>{{ .Email }}</strong>.</p></td></tr>
+          <tr><td style="padding:22px 32px;"><a href="{{ .ConfirmationURL }}" style="display:block;background:#e6900a;color:#fff;text-align:center;text-decoration:none;font-size:15px;font-weight:800;padding:15px 20px;border-radius:10px;">CREAR NUEVA CONTRASEÑA</a></td></tr>
+          <tr><td style="padding:0 32px 30px;color:#8a8a8a;font-size:12px;line-height:1.6;">Si vos no solicitaste este cambio, ignorá el correo. Tu contraseña actual seguirá siendo válida.<div style="margin-top:16px;word-break:break-all;color:#a2a2a2;">Enlace alternativo:<br />{{ .ConfirmationURL }}</div></td></tr>
+          <tr><td style="background:#111;padding:20px 32px;text-align:center;color:#898989;font-size:11px;">La Central Burger · Seguridad de acceso</td></tr>
+        </table>
+      </td></tr>
+    </table>
+  </body>
+</html>
