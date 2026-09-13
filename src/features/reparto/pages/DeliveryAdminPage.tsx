@@ -7,6 +7,7 @@ import {
   CheckCircle2,
   CircleDollarSign,
   Edit3,
+  MailCheck,
   PackageCheck,
   RefreshCw,
   RotateCcw,
@@ -126,19 +127,14 @@ function DriverModal({ driver, onClose, onSaved }: { driver?: DeliveryDriver; on
     driverId: driver?.id,
     fullName: driver?.fullName ?? '',
     email: driver?.email ?? '',
-    password: '',
     phone: driver?.phone ?? '',
     vehicleType: driver?.vehicleType ?? 'moto',
-    commissionPercent: driver?.commissionPercent ?? 0,
+    commissionPercent: driver?.commissionPercent ?? 30,
   });
   const [saving, setSaving] = useState(false);
 
   async function submit(event: React.FormEvent) {
     event.preventDefault();
-    if (!driver && (!form.password || form.password.length < 8)) {
-      toast.warning('La contraseña inicial debe tener al menos 8 caracteres.');
-      return;
-    }
     if (form.commissionPercent < 0 || form.commissionPercent > 100) {
       toast.warning('La comisión debe estar entre 0% y 100%.');
       return;
@@ -147,7 +143,7 @@ function DriverModal({ driver, onClose, onSaved }: { driver?: DeliveryDriver; on
     setSaving(true);
     try {
       await saveDeliveryDriver(form);
-      toast.success(driver ? 'Repartidor actualizado.' : 'Repartidor creado correctamente.');
+      toast.success(driver ? 'Repartidor actualizado.' : 'Invitación enviada. El repartidor deberá verificar su email y crear su contraseña.');
       onSaved();
       onClose();
     } catch (error) {
@@ -158,11 +154,16 @@ function DriverModal({ driver, onClose, onSaved }: { driver?: DeliveryDriver; on
   }
 
   return (
-    <Modal open onClose={onClose} title={driver ? 'Editar repartidor' : 'Nuevo repartidor'} size="md" theme="light">
+    <Modal open onClose={onClose} title={driver ? 'Editar repartidor' : 'Invitar repartidor'} size="md" theme="light">
       <form onSubmit={submit}>
         <div className="mb-5 rounded-sm border border-central-orange/15 bg-central-orange/[.05] p-3 text-xs leading-5 text-neutral-600">
-          La cuenta de acceso, los datos operativos y la tarifa se gestionan por separado para conservar el historial de entregas y comisiones.
+          {driver
+            ? 'La cuenta de acceso, los datos operativos y la tarifa se gestionan por separado para conservar el historial de entregas y comisiones.'
+            : 'Se enviará una invitación al email indicado. El repartidor verificará su correo y elegirá su propia contraseña antes de quedar disponible para recibir pedidos.'}
         </div>
+        {!driver ? (
+          <div className="mb-4 flex items-start gap-3 rounded-sm border border-blue-100 bg-blue-50 p-3 text-xs leading-5 text-blue-700"><MailCheck size={17} className="mt-0.5 shrink-0" /><span>No necesitás comunicarle una contraseña temporal. La activación se completa desde el correo de invitación.</span></div>
+        ) : null}
         <div className="grid gap-4 sm:grid-cols-2">
           <label className="sm:col-span-2">
             <span className={labelClass}>Nombre y apellido</span>
@@ -176,12 +177,6 @@ function DriverModal({ driver, onClose, onSaved }: { driver?: DeliveryDriver; on
             <span className={labelClass}>Teléfono</span>
             <input className={fieldClass} value={form.phone} onChange={(event) => setForm({ ...form, phone: event.target.value })} />
           </label>
-          {!driver ? (
-            <label className="sm:col-span-2">
-              <span className={labelClass}>Contraseña inicial</span>
-              <PasswordInput variant="light" minLength={8} value={form.password} onChange={(event) => setForm({ ...form, password: event.target.value })} required autoComplete="new-password" />
-            </label>
-          ) : null}
           <div>
             <span className={labelClass}>Vehículo</span>
             <Select
@@ -208,7 +203,7 @@ function DriverModal({ driver, onClose, onSaved }: { driver?: DeliveryDriver; on
         </div>
         <div className="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
           <Button type="button" variant="secondary" onClick={onClose}>Cancelar</Button>
-          <Button type="submit" disabled={saving}>{saving ? 'Guardando…' : driver ? 'Guardar cambios' : 'Crear repartidor'}</Button>
+          <Button type="submit" disabled={saving}>{saving ? (driver ? 'Guardando…' : 'Enviando…') : driver ? 'Guardar cambios' : 'Enviar invitación'}</Button>
         </div>
       </form>
     </Modal>
@@ -520,10 +515,10 @@ export function DeliveryAdminPage() {
                   <article key={driver.id} className={`rounded-sm border p-4 ${driver.active ? 'border-neutral-200' : 'border-neutral-200 bg-neutral-50 opacity-75'}`}>
                     <div className="flex items-start justify-between gap-3">
                       <div className="min-w-0"><div className="flex items-center gap-2"><span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-central-orange/10 text-central-orange"><Bike size={17} /></span><div className="min-w-0"><p className="truncate font-black text-central-carbon">{driver.fullName}</p><p className="truncate text-xs text-neutral-500">{driver.email || 'Sin email'}</p></div></div></div>
-                      <span className={`rounded-full px-2.5 py-1 text-[11px] font-black ${driver.active ? 'bg-emerald-50 text-emerald-700' : 'bg-neutral-200 text-neutral-600'}`}>{driver.active ? 'Activo' : 'Inactivo'}</span>
+                      <span className={`rounded-full px-2.5 py-1 text-[11px] font-black ${driver.active ? 'bg-emerald-50 text-emerald-700' : 'bg-neutral-200 text-neutral-600'}`}>{driver.active ? 'Activo' : 'Inactivo / pendiente'}</span>
                     </div>
                     <div className="mt-4 grid grid-cols-3 gap-2 rounded-sm bg-neutral-50 p-3 text-center"><div><p className="text-[11px] text-neutral-500">Comisión</p><p className="mt-1 text-sm font-black">{driver.commissionPercent ?? 0}%</p></div><div><p className="text-[11px] text-neutral-500">Activos</p><p className="mt-1 text-sm font-black">{driver.activeAssignments}</p></div><div><p className="text-[11px] text-neutral-500">Pendiente</p><p className="mt-1 text-sm font-black">{formatCurrency(driver.pendingCommission)}</p></div></div>
-                    <div className="mt-4 flex flex-wrap gap-2"><Button size="sm" variant="secondary" onClick={() => setDriverModal(driver)}><Edit3 size={14} /> Editar</Button><Button size="sm" variant="secondary" onClick={() => { setResetDriver(driver); setNewPassword(''); }} disabled={busyId === driver.id}><ShieldCheck size={14} /> Clave</Button><Button size="sm" variant={driver.active ? 'danger' : 'dark'} onClick={() => setPendingConfirmation({ type: 'toggle-driver', driver })} disabled={busyId === driver.id}>{driver.active ? 'Desactivar' : 'Activar'}</Button></div>
+                    <div className="mt-4 flex flex-wrap gap-2"><Button size="sm" variant="secondary" onClick={() => setDriverModal(driver)}><Edit3 size={14} /> Editar</Button>{driver.active ? <Button size="sm" variant="secondary" onClick={() => { setResetDriver(driver); setNewPassword(''); }} disabled={busyId === driver.id}><ShieldCheck size={14} /> Clave</Button> : null}<Button size="sm" variant={driver.active ? 'danger' : 'dark'} onClick={() => setPendingConfirmation({ type: 'toggle-driver', driver })} disabled={busyId === driver.id}>{driver.active ? 'Desactivar' : 'Activar'}</Button></div>
                   </article>
                 ))}
                 {filteredDrivers.length === 0 ? <div className="md:col-span-2 2xl:col-span-3 rounded-sm border border-dashed border-neutral-200 p-10 text-center text-sm text-neutral-500">No hay repartidores que coincidan con la búsqueda.</div> : null}
