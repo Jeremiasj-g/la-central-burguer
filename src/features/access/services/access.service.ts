@@ -27,9 +27,31 @@ function edgeError(data: unknown) {
   return null;
 }
 
+async function edgeFunctionErrorMessage(error: unknown) {
+  if (error && typeof error === 'object' && 'context' in error) {
+    const context = (error as { context?: unknown }).context;
+    if (context instanceof Response) {
+      try {
+        const payload = await context.clone().json() as unknown;
+        const message = edgeError(payload);
+        if (message) return message;
+      } catch {
+        try {
+          const text = await context.clone().text();
+          if (text.trim()) return text.trim();
+        } catch {
+          // Ignora y usa el mensaje genérico del SDK.
+        }
+      }
+    }
+  }
+
+  return error instanceof Error ? error.message : 'No se pudo completar la operación.';
+}
+
 async function invokeUserAction(body: Record<string, unknown>) {
   const { data, error } = await client().functions.invoke('manage-access-user', { body });
-  if (error) throw new Error(error.message);
+  if (error) throw new Error(await edgeFunctionErrorMessage(error));
   const message = edgeError(data);
   if (message) throw new Error(message);
   return data;
