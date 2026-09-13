@@ -21,6 +21,7 @@ import { AdminPageHeader } from '@/shared/components/layout/AdminPageHeader';
 import { Button } from '@/shared/components/ui/Button';
 import { ConfirmDialog } from '@/shared/components/ui/ConfirmDialog';
 import { Modal } from '@/shared/components/ui/Modal';
+import { PasswordInput } from '@/shared/components/ui/PasswordInput';
 import { formatDateTime } from '@/shared/utils/format.utils';
 import { AccessManagementSkeleton } from '../components/AccessManagementSkeleton';
 import { AccessRoleModal } from '../components/AccessRoleModal';
@@ -43,7 +44,6 @@ type ConfirmState =
   | { type: 'delete-role'; role: AccessRole };
 
 const EMPTY: AccessManagementDashboard = { users: [], roles: [], permissions: [] };
-const fieldClass = 'h-10 w-full rounded-sm border border-neutral-200 bg-white px-3 text-sm text-central-carbon outline-none transition focus:border-central-orange focus:ring-2 focus:ring-central-orange/15';
 const labelClass = 'mb-1.5 block text-xs font-bold uppercase tracking-wide text-neutral-500';
 
 function Metric({ icon: Icon, label, value, helper }: { icon: React.ComponentType<{ size?: number }>; label: string; value: string; helper: string }) {
@@ -251,7 +251,7 @@ export function AccessManagementPage() {
 
       <Modal open={Boolean(passwordUser)} onClose={() => { setPasswordUser(null); setNewPassword(''); }} title="Cambiar contraseña" size="sm" theme="light">
         <p className="mb-4 text-sm leading-6 text-neutral-600">Definí una nueva contraseña para <strong>{passwordUser?.fullName}</strong>. El cambio se aplica inmediatamente.</p>
-        <label><span className={labelClass}>Nueva contraseña</span><input type="password" minLength={8} className={fieldClass} value={newPassword} onChange={(event) => setNewPassword(event.target.value)} autoFocus /></label>
+        <label><span className={labelClass}>Nueva contraseña</span><PasswordInput variant="light" minLength={8} value={newPassword} onChange={(event) => setNewPassword(event.target.value)} autoFocus autoComplete="new-password" /></label>
         <div className="mt-5 flex justify-end gap-2"><Button variant="secondary" onClick={() => { setPasswordUser(null); setNewPassword(''); }}>Cancelar</Button><Button onClick={() => void resetPassword()} disabled={busy}>Guardar contraseña</Button></div>
       </Modal>
 
