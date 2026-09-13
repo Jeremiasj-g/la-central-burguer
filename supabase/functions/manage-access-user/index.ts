@@ -1,8 +1,20 @@
-import { withSupabase } from 'npm:@supabase/server';
+import { createClient } from 'npm:@supabase/supabase-js@2';
 
-const json = (body: unknown, status = 200) => Response.json(body, { status });
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+};
+
 const vehicleTypes = new Set(['moto', 'auto', 'bici', 'otro']);
 const activeDeliveryStatuses = ['assigned', 'accepted', 'picked_up', 'in_transit'];
+
+function json(body: unknown, status = 200) {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+  });
+}
 
 function text(value: unknown) {
   return String(value ?? '').trim();
@@ -30,6 +42,21 @@ function commission(value: unknown) {
     throw new Error('La comisión debe estar entre 0 y 100.');
   }
   return Math.round(parsed * 100) / 100;
+}
+
+function friendlyError(error: unknown) {
+  const message = error instanceof Error ? error.message : String(error ?? 'No se pudo completar la operación.');
+  const normalized = message.toLowerCase();
+  if (normalized.includes('already') && normalized.includes('register')) {
+    return 'Ya existe un usuario registrado con ese email.';
+  }
+  if (normalized.includes('email_exists') || normalized.includes('already exists')) {
+    return 'Ya existe un usuario registrado con ese email.';
+  }
+  if (normalized.includes('password') && normalized.includes('weak')) {
+    return 'La contraseña no cumple con los requisitos de seguridad configurados.';
+  }
+  return message;
 }
 
 async function getRoleRows(admin: any, roleIds: string[]) {
@@ -72,12 +99,13 @@ async function assertAdmin(admin: any, actorId: string) {
 }
 
 async function ensureNotLastAdmin(admin: any, targetId: string, adminRoleId: string) {
-  const { data: targetAdmin } = await admin
+  const { data: targetAdmin, error: targetError } = await admin
     .from('user_roles')
     .select('user_id')
     .eq('user_id', targetId)
     .eq('role_id', adminRoleId)
     .maybeSingle();
+  if (targetError) throw targetError;
   if (!targetAdmin) return;
 
   const { data: otherAssignments, error } = await admin
@@ -130,11 +158,12 @@ async function syncRoles(admin: any, userId: string, actorId: string, roles: Arr
 
 async function syncDelivery(admin: any, userId: string, actorId: string, roleCodes: string[], body: any, accountActive: boolean) {
   const isDelivery = roleCodes.includes('delivery');
-  const { data: currentDriver } = await admin
+  const { data: currentDriver, error: driverReadError } = await admin
     .from('delivery_drivers')
     .select('profile_id,vehicle_type,active')
     .eq('profile_id', userId)
     .maybeSingle();
+  if (driverReadError) throw driverReadError;
 
   if (!isDelivery) {
     if (currentDriver) {
@@ -185,147 +214,177 @@ async function syncDelivery(admin: any, userId: string, actorId: string, roleCod
   }
 }
 
-export default {
-  fetch: withSupabase({ auth: 'user' }, async (req, ctx) => {
-    if (req.method === 'OPTIONS') return new Response('ok');
-    if (req.method !== 'POST') return json({ error: 'Método no permitido.' }, 405);
+Deno.serve(async (req: Request) => {
+  if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
+  if (req.method !== 'POST') return json({ error: 'Método no permitido.' }, 405);
 
-    const actorId = ctx.userClaims?.sub;
-    if (!actorId) return json({ error: 'Sesión inválida.' }, 401);
+  const supabaseUrl = Deno.env.get('SUPABASE_URL');
+  const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+  if (!supabaseUrl || !serviceRoleKey) {
+    return json({ error: 'La función no tiene configuradas las credenciales del proyecto.' }, 500);
+  }
 
-    try {
-      const admin = ctx.supabaseAdmin;
-      const adminRoleId = await assertAdmin(admin, actorId);
-      const body = await req.json();
-      const action = text(body?.action);
+  const authorization = req.headers.get('Authorization') ?? '';
+  const token = authorization.replace(/^Bearer\s+/i, '').trim();
+  if (!token) return json({ error: 'Sesión inválida.' }, 401);
 
-      if (action === 'create') {
-        const fullName = required(body.fullName, 'Nombre', 2);
-        const email = required(body.email, 'Email', 5).toLowerCase();
-        const password = required(body.password, 'Contraseña', 8);
-        const phone = optional(body.phone);
-        const notes = optional(body.notes);
-        const roleIds = uniqueIds(body.roleIds);
-        const roleRows = await getRoleRows(admin, roleIds);
-        const roleCodes = roleRows.map((role) => role.code);
-        if (roleCodes.includes('delivery')) commission(body.commissionPercent);
+  const admin = createClient(supabaseUrl, serviceRoleKey, {
+    auth: { autoRefreshToken: false, persistSession: false },
+  });
 
-        let createdUserId: string | null = null;
-        try {
-          const { data: created, error: createError } = await admin.auth.admin.createUser({
-            email,
-            password,
-            email_confirm: true,
-            user_metadata: { full_name: fullName },
-            app_metadata: { app_roles: roleCodes },
-          });
-          if (createError || !created.user) throw new Error(createError?.message ?? 'No se pudo crear el usuario.');
-          createdUserId = created.user.id;
+  const { data: userData, error: userError } = await admin.auth.getUser(token);
+  if (userError || !userData.user) return json({ error: 'Sesión inválida o vencida.' }, 401);
 
-          const { error: profileError } = await admin.from('profiles').update({
-            full_name: fullName,
-            phone,
-            notes,
-            active: true,
-            archived_at: null,
-          }).eq('id', createdUserId);
-          if (profileError) throw profileError;
+  const actorId = userData.user.id;
 
-          await syncRoles(admin, createdUserId, actorId, roleRows);
-          await syncDelivery(admin, createdUserId, actorId, roleCodes, body, true);
-          return json({ ok: true, userId: createdUserId });
-        } catch (error) {
-          if (createdUserId) await admin.auth.admin.deleteUser(createdUserId);
-          throw error;
-        }
-      }
+  try {
+    const adminRoleId = await assertAdmin(admin, actorId);
+    const body = await req.json();
+    const action = text(body?.action);
 
-      if (action === 'update') {
-        const userId = required(body.userId, 'Usuario');
-        const fullName = required(body.fullName, 'Nombre', 2);
-        const email = required(body.email, 'Email', 5).toLowerCase();
-        const phone = optional(body.phone);
-        const notes = optional(body.notes);
-        const roleIds = uniqueIds(body.roleIds);
-        const roleRows = await getRoleRows(admin, roleIds);
-        const roleCodes = roleRows.map((role) => role.code);
-        const keepsAdmin = roleRows.some((role) => role.id === adminRoleId);
-        if (!keepsAdmin) await ensureNotLastAdmin(admin, userId, adminRoleId);
-        if (roleCodes.includes('delivery')) commission(body.commissionPercent);
-        else await assertNoActiveDeliveries(admin, userId);
+    if (action === 'create') {
+      const fullName = required(body.fullName, 'Nombre', 2);
+      const email = required(body.email, 'Email', 5).toLowerCase();
+      const password = required(body.password, 'Contraseña', 8);
+      const phone = optional(body.phone);
+      const notes = optional(body.notes);
+      const roleIds = uniqueIds(body.roleIds);
+      const roleRows = await getRoleRows(admin, roleIds);
+      const roleCodes = roleRows.map((role) => role.code);
+      if (roleCodes.includes('delivery')) commission(body.commissionPercent);
 
-        const { data: profile, error: profileReadError } = await admin
-          .from('profiles')
-          .select('active,archived_at')
-          .eq('id', userId)
-          .maybeSingle();
-        if (profileReadError) throw profileReadError;
-        if (!profile) throw new Error('Usuario no encontrado.');
-
-        const { error: authError } = await admin.auth.admin.updateUserById(userId, {
+      let createdUserId: string | null = null;
+      try {
+        const { data: created, error: createError } = await admin.auth.admin.createUser({
           email,
+          password,
+          email_confirm: true,
           user_metadata: { full_name: fullName },
           app_metadata: { app_roles: roleCodes },
         });
-        if (authError) throw authError;
+        if (createError || !created.user) throw createError ?? new Error('No se pudo crear el usuario.');
+        createdUserId = created.user.id;
 
-        const { error: profileError } = await admin.from('profiles').update({ full_name: fullName, phone, notes }).eq('id', userId);
-        if (profileError) throw profileError;
-        await syncRoles(admin, userId, actorId, roleRows);
-        await syncDelivery(admin, userId, actorId, roleCodes, body, Boolean(profile.active && !profile.archived_at));
-        return json({ ok: true, userId });
-      }
-
-      if (action === 'setActive') {
-        const userId = required(body.userId, 'Usuario');
-        const active = Boolean(body.active);
-        if (!active) {
-          await ensureNotLastAdmin(admin, userId, adminRoleId);
-          await assertNoActiveDeliveries(admin, userId);
+        const { data: profile, error: profileReadError } = await admin
+          .from('profiles')
+          .select('id')
+          .eq('id', createdUserId)
+          .maybeSingle();
+        if (profileReadError) throw profileReadError;
+        if (!profile) {
+          const { error: profileInsertError } = await admin.from('profiles').insert({ id: createdUserId, full_name: fullName });
+          if (profileInsertError) throw profileInsertError;
         }
-        const { error: profileError } = await admin.from('profiles').update({ active }).eq('id', userId).is('archived_at', null);
-        if (profileError) throw profileError;
-        const { error: driverError } = await admin.from('delivery_drivers').update({ active }).eq('profile_id', userId);
-        if (driverError) throw driverError;
-        return json({ ok: true, userId, active });
-      }
 
-      if (action === 'archive') {
-        const userId = required(body.userId, 'Usuario');
-        if (userId === actorId) throw new Error('No podés archivar tu propia cuenta.');
+        const { error: profileError } = await admin.from('profiles').update({
+          full_name: fullName,
+          phone,
+          notes,
+          active: true,
+          archived_at: null,
+        }).eq('id', createdUserId);
+        if (profileError) throw profileError;
+
+        await syncRoles(admin, createdUserId, actorId, roleRows);
+        await syncDelivery(admin, createdUserId, actorId, roleCodes, body, true);
+        return json({ ok: true, userId: createdUserId });
+      } catch (error) {
+        if (createdUserId) await admin.auth.admin.deleteUser(createdUserId);
+        throw error;
+      }
+    }
+
+    if (action === 'update') {
+      const userId = required(body.userId, 'Usuario');
+      const fullName = required(body.fullName, 'Nombre', 2);
+      const email = required(body.email, 'Email', 5).toLowerCase();
+      const phone = optional(body.phone);
+      const notes = optional(body.notes);
+      const roleIds = uniqueIds(body.roleIds);
+      const roleRows = await getRoleRows(admin, roleIds);
+      const roleCodes = roleRows.map((role) => role.code);
+      const keepsAdmin = roleRows.some((role) => role.id === adminRoleId);
+      if (!keepsAdmin) await ensureNotLastAdmin(admin, userId, adminRoleId);
+      if (roleCodes.includes('delivery')) commission(body.commissionPercent);
+      else await assertNoActiveDeliveries(admin, userId);
+
+      const { data: profile, error: profileReadError } = await admin
+        .from('profiles')
+        .select('active,archived_at')
+        .eq('id', userId)
+        .maybeSingle();
+      if (profileReadError) throw profileReadError;
+      if (!profile) throw new Error('Usuario no encontrado.');
+
+      const { error: authError } = await admin.auth.admin.updateUserById(userId, {
+        email,
+        user_metadata: { full_name: fullName },
+        app_metadata: { app_roles: roleCodes },
+      });
+      if (authError) throw authError;
+
+      const { error: profileError } = await admin.from('profiles').update({ full_name: fullName, phone, notes }).eq('id', userId);
+      if (profileError) throw profileError;
+      await syncRoles(admin, userId, actorId, roleRows);
+      await syncDelivery(admin, userId, actorId, roleCodes, body, Boolean(profile.active && !profile.archived_at));
+      return json({ ok: true, userId });
+    }
+
+    if (action === 'setActive') {
+      const userId = required(body.userId, 'Usuario');
+      const active = Boolean(body.active);
+      if (!active) {
         await ensureNotLastAdmin(admin, userId, adminRoleId);
         await assertNoActiveDeliveries(admin, userId);
-        const stamp = new Date().toISOString();
-        const { error: profileError } = await admin.from('profiles').update({ active: false, archived_at: stamp }).eq('id', userId);
-        if (profileError) throw profileError;
-        const { error: driverError } = await admin.from('delivery_drivers').update({ active: false }).eq('profile_id', userId);
-        if (driverError) throw driverError;
-        return json({ ok: true, userId, archivedAt: stamp });
       }
-
-      if (action === 'restore') {
-        const userId = required(body.userId, 'Usuario');
-        const { error: profileError } = await admin.from('profiles').update({ active: true, archived_at: null }).eq('id', userId);
-        if (profileError) throw profileError;
-        const { data: deliveryRole } = await admin.from('roles').select('id').eq('code', 'delivery').maybeSingle();
-        if (deliveryRole) {
-          const { data: hasDelivery } = await admin.from('user_roles').select('user_id').eq('user_id', userId).eq('role_id', deliveryRole.id).maybeSingle();
-          if (hasDelivery) await admin.from('delivery_drivers').update({ active: true }).eq('profile_id', userId);
-        }
-        return json({ ok: true, userId });
-      }
-
-      if (action === 'resetPassword') {
-        const userId = required(body.userId, 'Usuario');
-        const password = required(body.password, 'Contraseña', 8);
-        const { error } = await admin.auth.admin.updateUserById(userId, { password });
-        if (error) throw error;
-        return json({ ok: true, userId });
-      }
-
-      return json({ error: 'Acción no soportada.' }, 400);
-    } catch (error) {
-      return json({ error: error instanceof Error ? error.message : 'No se pudo completar la operación.' }, 400);
+      const { error: profileError } = await admin.from('profiles').update({ active }).eq('id', userId).is('archived_at', null);
+      if (profileError) throw profileError;
+      const { error: driverError } = await admin.from('delivery_drivers').update({ active }).eq('profile_id', userId);
+      if (driverError) throw driverError;
+      return json({ ok: true, userId, active });
     }
-  }),
-};
+
+    if (action === 'archive') {
+      const userId = required(body.userId, 'Usuario');
+      if (userId === actorId) throw new Error('No podés archivar tu propia cuenta.');
+      await ensureNotLastAdmin(admin, userId, adminRoleId);
+      await assertNoActiveDeliveries(admin, userId);
+      const stamp = new Date().toISOString();
+      const { error: profileError } = await admin.from('profiles').update({ active: false, archived_at: stamp }).eq('id', userId);
+      if (profileError) throw profileError;
+      const { error: driverError } = await admin.from('delivery_drivers').update({ active: false }).eq('profile_id', userId);
+      if (driverError) throw driverError;
+      return json({ ok: true, userId, archivedAt: stamp });
+    }
+
+    if (action === 'restore') {
+      const userId = required(body.userId, 'Usuario');
+      const { error: profileError } = await admin.from('profiles').update({ active: true, archived_at: null }).eq('id', userId);
+      if (profileError) throw profileError;
+      const { data: deliveryRole, error: roleError } = await admin.from('roles').select('id').eq('code', 'delivery').maybeSingle();
+      if (roleError) throw roleError;
+      if (deliveryRole) {
+        const { data: hasDelivery, error: roleAssignmentError } = await admin.from('user_roles').select('user_id').eq('user_id', userId).eq('role_id', deliveryRole.id).maybeSingle();
+        if (roleAssignmentError) throw roleAssignmentError;
+        if (hasDelivery) {
+          const { error: driverError } = await admin.from('delivery_drivers').update({ active: true }).eq('profile_id', userId);
+          if (driverError) throw driverError;
+        }
+      }
+      return json({ ok: true, userId });
+    }
+
+    if (action === 'resetPassword') {
+      const userId = required(body.userId, 'Usuario');
+      const password = required(body.password, 'Contraseña', 8);
+      const { error } = await admin.auth.admin.updateUserById(userId, { password });
+      if (error) throw error;
+      return json({ ok: true, userId });
+    }
+
+    return json({ error: 'Acción no soportada.' }, 400);
+  } catch (error) {
+    console.error('manage-access-user:', error);
+    return json({ error: friendlyError(error) }, 400);
+  }
+});
