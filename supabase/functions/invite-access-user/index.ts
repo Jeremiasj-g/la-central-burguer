@@ -7,6 +7,21 @@ const cors = {
 };
 const respond = (body: unknown, status = 200) => new Response(JSON.stringify(body), { status, headers: { ...cors, 'Content-Type': 'application/json' } });
 
+function friendlyError(error: unknown) {
+  const message = error instanceof Error ? error.message : String(error ?? 'No se pudo enviar la invitación.');
+  const normalized = message.toLowerCase();
+  if (normalized.includes('email address not authorized')) {
+    return 'Supabase no puede enviar a este email con el servicio de correo de prueba. En DEV usá una dirección autorizada del equipo o configurá SMTP propio.';
+  }
+  if ((normalized.includes('already') && normalized.includes('register')) || normalized.includes('already exists') || normalized.includes('email_exists')) {
+    return 'Ya existe un usuario registrado con ese email.';
+  }
+  if (normalized.includes('rate limit')) {
+    return 'Se alcanzó temporalmente el límite de envío de emails. Esperá unos minutos e intentá nuevamente.';
+  }
+  return message;
+}
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: cors });
   if (req.method !== 'POST') return respond({ error: 'Método no permitido.' }, 405);
@@ -47,6 +62,6 @@ Deno.serve(async (req) => {
 
     return respond({ ok: true, userId: data.user.id });
   } catch (error) {
-    return respond({ error: error instanceof Error ? error.message : 'No se pudo enviar la invitación.' }, 400);
+    return respond({ error: friendlyError(error) }, 400);
   }
 });
