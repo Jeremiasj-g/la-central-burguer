@@ -1,3 +1,4 @@
+import { getAccessManagementDashboard, resetAccessUserPassword, saveAccessUser, setAccessUserActive } from '@/features/access/services/access.service';
 import { getSupabaseBrowserClient } from '@/lib/supabase/client';
 import { requireSupabaseConfigured } from '@/lib/config/env';
 import { createSharedRealtimeSubscription } from '@/lib/supabase/realtime-subscription';
@@ -5,11 +6,6 @@ import type { DeliveryAdminDashboard, DriverFormPayload } from '../types/deliver
 
 type RpcError = { message: string } | null;
 type RpcInvoker = <T>(name: string, args?: Record<string, unknown>) => Promise<{ data: T | null; error: RpcError }>;
-
-type AccessDashboard = {
-  users: Array<{ id: string; roles: Array<{ id: string; code: string; name: string }> }>;
-  roles: Array<{ id: string; code: string; name: string; active: boolean }>;
-};
 
 function client() {
   requireSupabaseConfigured('gestionar delivery');
@@ -24,16 +20,27 @@ async function deliveryRpc<T>(name: string, args?: Record<string, unknown>) {
   return data;
 }
 
-async function getAccessDashboard() {
-  const data = await deliveryRpc<AccessDashboard>('get_access_management_dashboard');
-  if (!data) throw new Error('No se pudo obtener la configuración de usuarios y roles.');
-  return data;
-}
-
 export async function getDeliveryAdminDashboard(): Promise<DeliveryAdminDashboard> {
-  const data = await deliveryRpc<DeliveryAdminDashboard>('get_delivery_admin_dashboard');
-  if (!data) throw new Error('El panel de delivery no devolvió información.');
-  return data;
+  const [delivery, access] = await Promise.all([
+    deliveryRpc<DeliveryAdminDashboard>('get_delivery_admin_dashboard'),
+    getAccessManagementDashboard(),
+  ]);
+  if (!delivery) throw new Error('El panel de delivery no devolvió información.');
+
+  const activeUserIds = new Set(access.users.filter((user) => user.accessStatus === 'active').map((user) => user.id));
+  const drivers = delivery.drivers.map((driver) => ({
+    ...driver,
+    active: driver.active && activeUserIds.has(driver.id),
+  }));
+
+  return {
+    ...delivery,
+    drivers,
+    summary: {
+      ...delivery.summary,
+      activeDrivers: drivers.filter((driver) => driver.active).length,
+    },
+  };
 }
 
 export async function assignDelivery(orderId: string, driverId: string, note?: string) {
@@ -89,36 +96,8 @@ export function subscribeToDeliveryOrders(onChange: () => void) {
   return subscribeDeliveryOrdersRealtime(onChange);
 }
 
-function edgeError(data: unknown) {
-  if (data && typeof data === 'object' && 'error' in data && typeof data.error === 'string') return data.error;
-  return null;
-}
-
-async function getFunctionErrorMessage(error: unknown) {
-  if (error && typeof error === 'object' && 'context' in error) {
-    const response = (error as { context?: unknown }).context;
-    if (response instanceof Response) {
-      try {
-        const body = await response.clone().json() as unknown;
-        const message = edgeError(body);
-        if (message) return message;
-      } catch {
-        // Si el cuerpo no es JSON, se usa el mensaje del SDK.
-      }
-    }
-  }
-  return error instanceof Error ? error.message : 'No se pudo completar la operación.';
-}
-
-async function invokeAccessUser(body: Record<string, unknown>) {
-  const { data, error } = await client().functions.invoke('manage-access-user', { body });
-  if (error) throw new Error(await getFunctionErrorMessage(error));
-  const message = edgeError(data);
-  if (message) throw new Error(message);
-}
-
 export async function saveDeliveryDriver(payload: DriverFormPayload) {
-  const access = await getAccessDashboard();
+  const access = await getAccessManagementDashboard();
   const deliveryRole = access.roles.find((role) => role.code === 'delivery' && role.active);
   if (!deliveryRole) throw new Error('El rol Delivery no está disponible.');
 
@@ -127,13 +106,12 @@ export async function saveDeliveryDriver(payload: DriverFormPayload) {
     ? [...new Set([...existingUser.roles.map((role) => role.id), deliveryRole.id])]
     : [deliveryRole.id];
 
-  await invokeAccessUser({
-    action: payload.driverId ? 'update' : 'create',
+  await saveAccessUser({
     userId: payload.driverId,
     fullName: payload.fullName,
     email: payload.email,
-    password: payload.password,
     phone: payload.phone,
+    notes: existingUser?.notes ?? '',
     roleIds,
     vehicleType: payload.vehicleType,
     commissionPercent: payload.commissionPercent,
@@ -141,9 +119,9 @@ export async function saveDeliveryDriver(payload: DriverFormPayload) {
 }
 
 export async function toggleDeliveryDriver(driverId: string, active: boolean) {
-  await invokeAccessUser({ action: 'setActive', userId: driverId, active });
+  await setAccessUserActive(driverId, active);
 }
 
 export async function resetDeliveryDriverPassword(driverId: string, password: string) {
-  await invokeAccessUser({ action: 'resetPassword', userId: driverId, password });
+  await resetAccessUserPassword(driverId, password);
 }
