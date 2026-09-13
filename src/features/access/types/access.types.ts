@@ -1,4 +1,5 @@
 export type AccessVehicleType = 'moto' | 'auto' | 'bici' | 'otro';
+export type AccessUserStatus = 'active' | 'pending_activation' | 'inactive' | 'archived';
 
 export interface AccessPermission {
   id: string;
@@ -36,6 +37,10 @@ export interface AccessUser {
   archivedAt: string | null;
   createdAt: string;
   lastSignInAt: string | null;
+  invitedAt: string | null;
+  confirmationSentAt: string | null;
+  emailConfirmedAt: string | null;
+  accessStatus: AccessUserStatus;
   roles: AccessUserRole[];
   delivery: {
     vehicleType: AccessVehicleType;
@@ -54,7 +59,6 @@ export interface AccessUserFormPayload {
   userId?: string;
   fullName: string;
   email: string;
-  password?: string;
   phone: string;
   notes: string;
   roleIds: string[];
