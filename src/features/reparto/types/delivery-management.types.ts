@@ -139,7 +139,6 @@ export interface DriverFormPayload {
   driverId?: string;
   fullName: string;
   email: string;
-  password?: string;
   phone: string;
   vehicleType: DeliveryVehicleType;
   commissionPercent: number;
