@@ -8,7 +8,6 @@ import {
   Check,
   CheckCircle2,
   ChevronRight,
-  CircleDollarSign,
   LogOut,
   MapPin,
   Navigation,
@@ -22,6 +21,7 @@ import {
   XCircle,
 } from 'lucide-react';
 import { toast } from 'react-toastify';
+import { AnimatedFormattedValue } from '@/shared/components/ui/AnimatedValue';
 import { ROUTES } from '@/shared/constants/routes';
 import { formatCurrency, formatDateTime } from '@/shared/utils/format.utils';
 import {
@@ -91,22 +91,40 @@ function SummaryCard({
   value,
   helper,
 }: {
-  icon: React.ComponentType<{ size?: number }>;
+  icon?: React.ComponentType<{ size?: number }>;
   label: string;
   value: string;
   helper: string;
 }) {
+  const isPrimary = label === 'Hoy';
+
+  if (isPrimary) {
+    return (
+      <article className="order-first col-span-3 px-1 pb-3 pt-2 sm:col-span-6 sm:pb-4 sm:pt-3">
+        <p className="text-[13px] font-medium text-[#8E8E93]">Hoy</p>
+        <p className="mt-1 text-[46px] font-semibold leading-none tracking-[-0.055em] text-[#00A86B] sm:text-[54px]">
+          <AnimatedFormattedValue value={value} duration={950} />
+        </p>
+        <p className="mt-2 text-[13px] text-[#8E8E93]">{helper}</p>
+      </article>
+    );
+  }
+
   return (
-    <article className="rounded-[22px] border border-black/[0.045] bg-white p-4 shadow-[0_1px_2px_rgba(0,0,0,0.03),0_10px_30px_rgba(0,0,0,0.025)]">
-      <div className="flex items-start justify-between gap-3">
+    <article className="col-span-1 min-w-0 rounded-[18px] border border-black/[0.045] bg-white p-3.5 shadow-[0_1px_2px_rgba(0,0,0,0.025),0_8px_24px_rgba(0,0,0,0.025)] sm:col-span-2 sm:p-4">
+      <div className="flex min-w-0 items-start justify-between gap-2">
         <div className="min-w-0">
-          <p className="text-[11px] font-medium text-[#8E8E93]">{label}</p>
-          <p className="mt-1.5 text-[22px] font-semibold tracking-[-0.035em] text-[#1C1C1E]">{value}</p>
-          <p className="mt-1 text-[12px] leading-4 text-[#8E8E93]">{helper}</p>
+          <p className="truncate text-[10px] font-medium text-[#8E8E93] sm:text-[11px]">{label}</p>
+          <p className="mt-1.5 truncate text-[18px] font-semibold tracking-[-0.035em] text-[#1C1C1E] sm:text-[21px]">
+            <AnimatedFormattedValue value={value} />
+          </p>
+          <p className="mt-1 text-[10px] leading-3.5 text-[#8E8E93] sm:text-[11px] sm:leading-4">{helper}</p>
         </div>
-        <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-[#F2F2F7] text-[#FF9500]">
-          <Icon size={16} />
-        </span>
+        {Icon ? (
+          <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-[#FFF5E8] text-[#FF9500] sm:h-9 sm:w-9">
+            <Icon size={15} />
+          </span>
+        ) : null}
       </div>
     </article>
   );
@@ -552,9 +570,9 @@ export function DeliveryDriverPage() {
           <p className="mt-1 max-w-xl text-[14px] leading-5 text-[#8E8E93]">Los pedidos asignados aparecen automáticamente y cambian de estado en tiempo real.</p>
         </section>
 
-        <section className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+        <section className="grid grid-cols-3 gap-2.5 sm:grid-cols-6 sm:gap-3">
           <SummaryCard icon={Route} label="Activos" value={String(data.summary.activeAssignments)} helper="Pedidos en curso" />
-          <SummaryCard icon={CircleDollarSign} label="Hoy" value={formatCurrency(data.summary.todayCommission)} helper="Comisión ganada" />
+          <SummaryCard label="Hoy" value={formatCurrency(data.summary.todayCommission)} helper="Comisión ganada" />
           <SummaryCard icon={WalletCards} label="Este mes" value={formatCurrency(data.summary.monthCommission)} helper="Comisión acumulada" />
           <SummaryCard icon={Banknote} label="Efectivo" value={formatCurrency(data.summary.cashPending)} helper="Pendiente de rendir" />
         </section>
@@ -562,7 +580,7 @@ export function DeliveryDriverPage() {
         <section className="mt-8">
           <div className="mb-3 flex items-end justify-between gap-3 px-1">
             <div><p className="text-[13px] text-[#8E8E93]">Operación</p><h2 className="mt-0.5 text-[21px] font-semibold tracking-[-0.025em]">En curso</h2></div>
-            <span className="rounded-full bg-white px-3 py-1 text-[12px] font-medium text-[#636366] shadow-sm">{data.activeAssignments.length}</span>
+            <span className="rounded-full bg-white px-3 py-1 text-[12px] font-medium text-[#636366] shadow-sm"><AnimatedFormattedValue value={String(data.activeAssignments.length)} /></span>
           </div>
 
           <div className="space-y-4">
