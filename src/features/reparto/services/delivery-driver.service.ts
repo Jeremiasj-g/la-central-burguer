@@ -1,5 +1,6 @@
 import { getSupabaseBrowserClient } from '@/lib/supabase/client';
 import { requireSupabaseConfigured } from '@/lib/config/env';
+import { createSharedRealtimeSubscription } from '@/lib/supabase/realtime-subscription';
 import type { DeliveryAssignmentStatus, DeliveryDriverDashboard } from '../types/delivery-management.types';
 
 type RpcError = { message: string } | null;
@@ -82,4 +83,36 @@ export async function advanceDeliveryAssignment(
     next_status: nextStatus,
     note: note?.trim() || null,
   });
+}
+
+export async function rejectDeliveryAssignment(assignmentId: string, reason: string) {
+  await deliveryRpc<unknown>('driver_reject_delivery', {
+    assignment_uuid: assignmentId,
+    reason: reason.trim() || 'Cliente rechazó el pedido',
+  });
+}
+
+const subscribeDriverDeliveryRealtime = createSharedRealtimeSubscription(
+  'delivery-driver-feed',
+  (channel, notifyListeners) =>
+    channel
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'delivery_assignments' },
+        notifyListeners,
+      )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'delivery_assignment_compensation' },
+        notifyListeners,
+      )
+      .on(
+        'postgres_changes',
+        { event: 'UPDATE', schema: 'public', table: 'orders' },
+        notifyListeners,
+      ),
+);
+
+export function subscribeToDriverDeliveries(onChange: () => void) {
+  return subscribeDriverDeliveryRealtime(onChange);
 }
