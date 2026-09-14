@@ -23,6 +23,12 @@ export function formatNumber(value: number) {
   return numberFormatter.format(value);
 }
 
+export function formatOrderSource(source: string) {
+  if (source === 'admin') return 'Venta mostrador';
+  if (source === 'import') return 'Importado';
+  return 'Web';
+}
+
 export function formatDateInput(date: Date) {
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, '0');
@@ -121,7 +127,13 @@ function startOfWeek(date: Date) {
   return copy;
 }
 
-function orderGroupDescriptor(createdAt: string, groupBy: ReportGroupBy, payment: string, delivery: string) {
+function orderGroupDescriptor(
+  createdAt: string,
+  groupBy: ReportGroupBy,
+  payment: string,
+  delivery: string,
+  source: string,
+) {
   const date = new Date(createdAt);
 
   if (groupBy === 'day') {
@@ -147,6 +159,10 @@ function orderGroupDescriptor(createdAt: string, groupBy: ReportGroupBy, payment
 
   if (groupBy === 'payment') {
     return { key: payment, label: payment === 'transferencia' ? 'Transferencia' : 'Efectivo' };
+  }
+
+  if (groupBy === 'source') {
+    return { key: source, label: formatOrderSource(source) };
   }
 
   return { key: delivery, label: delivery === 'delivery' ? 'Delivery' : 'Retiro local' };
@@ -210,7 +226,13 @@ export function groupReport(dataset: ReportDataset, groupBy: ReportGroupBy): Rep
 
   const groups = new Map<string, MutableGroup>();
   for (const order of dataset.orders) {
-    const descriptor = orderGroupDescriptor(order.createdAt, groupBy, order.paymentMethod, order.deliveryMethod);
+    const descriptor = orderGroupDescriptor(
+      order.createdAt,
+      groupBy,
+      order.paymentMethod,
+      order.deliveryMethod,
+      order.source,
+    );
     const current = groups.get(descriptor.key) ?? {
       ...descriptor,
       orderIds: new Set<string>(),
@@ -242,4 +264,5 @@ export const REPORT_GROUP_LABELS: Record<ReportGroupBy, string> = {
   product: 'Producto',
   payment: 'Método de pago',
   delivery: 'Tipo de entrega',
+  source: 'Origen de venta',
 };
