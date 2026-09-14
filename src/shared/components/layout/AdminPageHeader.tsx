@@ -10,13 +10,19 @@ interface AdminPageHeaderProps {
 
 export function AdminPageHeader({ eyebrow, title, description, actions, className }: AdminPageHeaderProps) {
   return (
-    <div className={cn('mb-6 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between', className)}>
-      <div>
-        {eyebrow ? <p className="text-xs font-black uppercase tracking-[.25em] text-central-orange">{eyebrow}</p> : null}
-        <h1 className="mt-2 text-3xl font-black tracking-tight text-central-carbon sm:text-4xl">{title}</h1>
-        {description ? <p className="mt-2 max-w-2xl text-sm text-neutral-500">{description}</p> : null}
+    <div className={cn('mb-7 flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between', className)}>
+      <div className="min-w-0">
+        {eyebrow ? (
+          <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-[#8E8E93]">{eyebrow}</p>
+        ) : null}
+        <h1 className={cn('text-[34px] font-semibold leading-[1.08] tracking-[-0.045em] text-[#1C1C1E] sm:text-[40px]', eyebrow && 'mt-1.5')}>
+          {title}
+        </h1>
+        {description ? (
+          <p className="mt-2.5 max-w-3xl text-[14px] leading-5 text-[#8E8E93] sm:text-[15px]">{description}</p>
+        ) : null}
       </div>
-      {actions ? <div className="flex flex-wrap gap-3">{actions}</div> : null}
+      {actions ? <div className="flex flex-wrap items-center gap-2.5">{actions}</div> : null}
     </div>
   );
 }
