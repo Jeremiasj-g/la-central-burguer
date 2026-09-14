@@ -19,6 +19,8 @@ import { AdminPageHeader } from '@/shared/components/layout/AdminPageHeader';
 import { formatCurrency } from '@/shared/utils/format.utils';
 import { getProductos, subscribeToProducts } from '@/features/productos/services/productos.service';
 import type { Product } from '@/features/productos/types/producto.types';
+import { getCategorias, subscribeToCategories } from '@/features/categorias/services/categorias.service';
+import type { Category } from '@/features/categorias/types/categoria.types';
 import {
   createCounterSale,
   type CounterPaymentMethod,
@@ -32,8 +34,10 @@ type CartLine = {
 
 export function VentaMostradorPage() {
   const [products, setProducts] = useState<Product[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [cart, setCart] = useState<CartLine[]>([]);
   const [query, setQuery] = useState('');
+  const [selectedCategoryId, setSelectedCategoryId] = useState('all');
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [serviceMode, setServiceMode] = useState<CounterServiceMode>('takeaway');
@@ -54,18 +58,54 @@ export function VentaMostradorPage() {
     }
   }
 
+  async function loadCategories() {
+    try {
+      setCategories(await getCategorias({ active: 'active' }));
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'No se pudieron cargar las categorías.');
+    }
+  }
+
   useEffect(() => {
     void loadProducts();
-    return subscribeToProducts(() => void loadProducts(true));
+    void loadCategories();
+
+    const unsubscribeProducts = subscribeToProducts(() => void loadProducts(true));
+    const unsubscribeCategories = subscribeToCategories(() => void loadCategories());
+
+    return () => {
+      unsubscribeProducts();
+      unsubscribeCategories();
+    };
   }, []);
+
+  const visibleCategories = useMemo(
+    () => categories.filter((category) => products.some((product) => product.categoryId === category.id)),
+    [categories, products],
+  );
+
+  useEffect(() => {
+    if (
+      selectedCategoryId !== 'all'
+      && !visibleCategories.some((category) => category.id === selectedCategoryId)
+    ) {
+      setSelectedCategoryId('all');
+    }
+  }, [selectedCategoryId, visibleCategories]);
 
   const filteredProducts = useMemo(() => {
     const normalized = query.trim().toLocaleLowerCase('es');
-    if (!normalized) return products;
-    return products.filter((product) =>
-      [product.name, product.description].some((value) => value.toLocaleLowerCase('es').includes(normalized)),
-    );
-  }, [products, query]);
+
+    return products.filter((product) => {
+      const matchesCategory = selectedCategoryId === 'all' || product.categoryId === selectedCategoryId;
+      if (!matchesCategory) return false;
+      if (!normalized) return true;
+
+      return [product.name, product.description].some((value) =>
+        value.toLocaleLowerCase('es').includes(normalized),
+      );
+    });
+  }, [products, query, selectedCategoryId]);
 
   const itemCount = cart.reduce((total, line) => total + line.quantity, 0);
   const total = cart.reduce((sum, line) => sum + line.product.currentPrice * line.quantity, 0);
@@ -192,6 +232,45 @@ export function VentaMostradorPage() {
               </div>
             </div>
 
+            {visibleCategories.length ? (
+              <div className="mb-4 -mx-1 overflow-x-auto px-1 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                <div className="flex w-max min-w-full items-center gap-2" role="tablist" aria-label="Filtrar productos por categoría">
+                  <button
+                    type="button"
+                    role="tab"
+                    aria-selected={selectedCategoryId === 'all'}
+                    onClick={() => setSelectedCategoryId('all')}
+                    className={`whitespace-nowrap rounded-full border px-3.5 py-1.5 text-xs font-bold transition ${
+                      selectedCategoryId === 'all'
+                        ? 'border-red-200 bg-red-50 text-red-700 shadow-sm'
+                        : 'border-neutral-200 bg-neutral-50 text-neutral-600 hover:border-neutral-300 hover:bg-white hover:text-central-carbon'
+                    }`}
+                  >
+                    Todos
+                  </button>
+                  {visibleCategories.map((category) => {
+                    const active = selectedCategoryId === category.id;
+                    return (
+                      <button
+                        key={category.id}
+                        type="button"
+                        role="tab"
+                        aria-selected={active}
+                        onClick={() => setSelectedCategoryId(category.id)}
+                        className={`whitespace-nowrap rounded-full border px-3.5 py-1.5 text-xs font-bold transition ${
+                          active
+                            ? 'border-red-200 bg-red-50 text-red-700 shadow-sm'
+                            : 'border-neutral-200 bg-neutral-50 text-neutral-600 hover:border-neutral-300 hover:bg-white hover:text-central-carbon'
+                        }`}
+                      >
+                        {category.name}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            ) : null}
+
             {loading ? (
               <div className="grid gap-3 sm:grid-cols-2 2xl:grid-cols-3">
                 {Array.from({ length: 6 }).map((_, index) => (
@@ -239,7 +318,7 @@ export function VentaMostradorPage() {
                 })}
               </div>
             ) : (
-              <div className="rounded-sm border border-dashed border-neutral-300 p-10 text-center text-sm text-neutral-500">No hay productos que coincidan con la búsqueda.</div>
+              <div className="rounded-sm border border-dashed border-neutral-300 p-10 text-center text-sm text-neutral-500">No hay productos que coincidan con los filtros.</div>
             )}
           </div>
 
