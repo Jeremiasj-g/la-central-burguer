@@ -109,6 +109,31 @@ export interface DeliveryDriverAssignment {
   assignedAt: string;
 }
 
+export interface DeliveryDriverDeliveryDetail {
+  id: string;
+  orderId: string;
+  orderCode: string;
+  customerName: string;
+  customerPhone: string;
+  address: string | null;
+  mapsUrl: string | null;
+  distanceKm: number | null;
+  subtotal: number;
+  orderTotal: number;
+  deliveryFee: number;
+  paymentMethod: 'efectivo' | 'transferencia';
+  cashToCollect: number;
+  commissionPercent: number;
+  commissionAmount: number;
+  notes: string | null;
+  status: DeliveryAssignmentStatus;
+  assignedAt: string;
+  acceptedAt: string | null;
+  pickedUpAt: string | null;
+  inTransitAt: string | null;
+  deliveredAt: string;
+}
+
 export interface DeliveryDriverDashboard {
   driver: {
     id: string;
