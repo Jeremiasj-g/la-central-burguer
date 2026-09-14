@@ -19,9 +19,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
   const [checked, setChecked] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
   const { config } = useBusinessConfig();
-  const businessWords = (config?.businessName?.trim() || 'La Central Burger').split(/\s+/);
-  const businessLastWord = businessWords.pop() || '';
-  const businessFirstWords = businessWords.join(' ') || businessLastWord;
+  const businessName = config?.businessName?.trim() || 'La Central Burger';
 
   useEffect(() => {
     let active = true;
@@ -52,8 +50,8 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
 
   if (authError) {
     return (
-      <div className="grid min-h-screen place-items-center bg-central-carbon px-5 text-white">
-        <div className="max-w-lg rounded-sm border border-red-400/30 bg-red-500/10 p-5 text-center text-sm text-red-100">
+      <div className="grid min-h-screen place-items-center bg-[#F2F2F7] px-5 text-[#1C1C1E]">
+        <div className="max-w-lg rounded-[22px] border border-[#FF3B30]/15 bg-white p-5 text-center text-sm text-[#C9342B] shadow-[0_12px_40px_rgba(0,0,0,0.06)]">
           {authError}
         </div>
       </div>
@@ -61,21 +59,29 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
   }
 
   if (!checked) {
-    return <div className="grid min-h-screen place-items-center bg-central-carbon text-white">Cargando panel...</div>;
+    return (
+      <div className="grid min-h-screen place-items-center bg-[#F2F2F7] text-[14px] font-medium text-[#8E8E93]">
+        Cargando panel...
+      </div>
+    );
   }
 
   const sidebar = (
-    <aside className="flex h-full flex-col bg-central-carbon text-white">
-      <div className="flex items-center gap-3 border-b border-white/10 px-5 py-5">
-        <span className="grid h-11 w-11 shrink-0 place-items-center overflow-hidden rounded-sm bg-central-orange text-white">
-          <BusinessLogo logoUrl={config?.logoUrl} businessName={config?.businessName} mode="admin" />
-        </span>
-        <div>
-          <p className="max-w-40 truncate text-base font-black leading-none">{businessFirstWords}</p>
-          <p className="text-xs font-bold uppercase tracking-[.22em] text-central-orange">{businessLastWord || 'Admin'} · Admin</p>
+    <aside className="flex h-full flex-col bg-white/95 text-[#1C1C1E] backdrop-blur-2xl">
+      <div className="px-5 pb-4 pt-5">
+        <div className="flex items-center gap-3 rounded-[20px] bg-[#F2F2F7] p-3">
+          <span className="grid h-11 w-11 shrink-0 place-items-center overflow-hidden rounded-[14px] bg-white text-[#FF9500] shadow-[0_1px_2px_rgba(0,0,0,0.04),0_8px_24px_rgba(0,0,0,0.04)]">
+            <BusinessLogo logoUrl={config?.logoUrl} businessName={config?.businessName} mode="admin" />
+          </span>
+          <div className="min-w-0">
+            <p className="truncate text-[15px] font-semibold tracking-[-0.015em] text-[#1C1C1E]">{businessName}</p>
+            <p className="mt-0.5 text-[11px] font-medium text-[#8E8E93]">Panel administrativo</p>
+          </div>
         </div>
       </div>
-      <nav className="flex-1 space-y-1 overflow-y-auto px-3 py-4">
+
+      <nav className="no-scrollbar flex-1 space-y-1 overflow-y-auto px-3 pb-4">
+        <p className="px-3 pb-2 pt-1 text-[11px] font-semibold uppercase tracking-[0.08em] text-[#AEAEB2]">Administración</p>
         {ADMIN_NAVIGATION.map((item) => {
           const Icon = item.icon;
           const active = pathname === item.href;
@@ -85,49 +91,87 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
               href={item.href}
               onClick={() => setMobileOpen(false)}
               className={cn(
-                'flex items-center gap-3 rounded-sm px-4 py-3 text-sm font-bold text-white/65 transition hover:bg-white/10 hover:text-white',
-                active && 'bg-central-orange text-white shadow-orange',
+                'group flex items-center gap-3 rounded-[14px] px-3.5 py-2.5 text-[14px] font-medium text-[#636366] transition-[background-color,color,transform] duration-200 hover:bg-[#F2F2F7] hover:text-[#1C1C1E] active:scale-[0.985]',
+                active && 'bg-[#FFF3E0] font-semibold text-[#C86E00]',
               )}
             >
-              <Icon size={18} />
-              {item.label}
+              <span
+                className={cn(
+                  'grid h-8 w-8 shrink-0 place-items-center rounded-[10px] bg-[#F2F2F7] text-[#8E8E93] transition-colors',
+                  active && 'bg-white text-[#FF9500] shadow-[0_1px_2px_rgba(0,0,0,0.04)]',
+                )}
+              >
+                <Icon size={17} strokeWidth={2} />
+              </span>
+              <span className="truncate">{item.label}</span>
+              {active ? <span className="ml-auto h-1.5 w-1.5 rounded-full bg-[#FF9500]" /> : null}
             </Link>
           );
         })}
       </nav>
-      <div className="border-t border-white/10 p-4">
-        <button onClick={handleLogout} className="flex w-full items-center gap-3 rounded-sm px-4 py-3 text-sm font-bold text-white/65 transition hover:bg-white/10 hover:text-white">
-          <LogOut size={18} /> Salir
+
+      <div className="border-t border-[#E5E5EA] p-3">
+        <button
+          onClick={handleLogout}
+          className="flex w-full items-center gap-3 rounded-[14px] px-3.5 py-2.5 text-[14px] font-medium text-[#FF3B30] transition hover:bg-[#FFF0EF] active:scale-[0.985]"
+        >
+          <span className="grid h-8 w-8 place-items-center rounded-[10px] bg-[#FFF0EF]">
+            <LogOut size={17} />
+          </span>
+          Salir
         </button>
       </div>
     </aside>
   );
 
   return (
-    <div className="admin-scope min-h-screen bg-[#f6f4ef] text-central-carbon">
-      <div className="fixed inset-y-0 left-0 z-40 hidden w-72 lg:block">{sidebar}</div>
+    <div className="admin-scope min-h-screen bg-[#F2F2F7] text-[#1C1C1E]">
+      <div className="fixed inset-y-0 left-0 z-40 hidden w-[272px] border-r border-[#E5E5EA] bg-white lg:block">{sidebar}</div>
 
       {mobileOpen ? (
-        <div className="fixed inset-0 z-50 bg-black/60 lg:hidden" onClick={() => setMobileOpen(false)}>
-          <div className="h-full w-72" onClick={(event) => event.stopPropagation()}>{sidebar}</div>
+        <div
+          className="fixed inset-0 z-50 bg-black/25 backdrop-blur-[2px] lg:hidden"
+          onClick={() => setMobileOpen(false)}
+        >
+          <div
+            className="h-full w-[min(86vw,304px)] overflow-hidden rounded-r-[28px] shadow-[18px_0_60px_rgba(0,0,0,0.18)]"
+            onClick={(event) => event.stopPropagation()}
+          >
+            {sidebar}
+          </div>
         </div>
       ) : null}
 
-      <div className="lg:pl-72">
-        <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-neutral-200 bg-white/85 px-4 backdrop-blur-xl sm:px-6">
-          <button className="rounded-sm border border-neutral-200 p-2 lg:hidden" onClick={() => setMobileOpen((value) => !value)} aria-label="Abrir navegación">
-            {mobileOpen ? <X /> : <Menu />}
-          </button>
-          <div>
-            <p className="text-sm font-bold text-neutral-500">Panel de gestión</p>
-            <p className="text-lg font-black text-central-carbon">{config?.businessName ?? 'La Central Burger'}</p>
-          </div>
-          <div className="flex items-center gap-3">
-            <AdminNotifications />
-            <Link href={ROUTES.menu} className="rounded-sm bg-central-orange/10 px-4 py-2 text-sm font-bold text-central-orange hover:bg-central-orange hover:text-white">Ver sitio</Link>
+      <div className="lg:pl-[272px]">
+        <header className="sticky top-0 z-30 border-b border-black/[0.05] bg-white/78 backdrop-blur-2xl supports-[backdrop-filter]:bg-white/72">
+          <div className="mx-auto flex h-[68px] max-w-[1680px] items-center justify-between gap-3 px-4 sm:px-6 lg:px-8">
+            <div className="flex min-w-0 items-center gap-3">
+              <button
+                className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-[#F2F2F7] text-[#1C1C1E] transition active:scale-95 lg:hidden"
+                onClick={() => setMobileOpen((value) => !value)}
+                aria-label="Abrir navegación"
+              >
+                {mobileOpen ? <X size={20} /> : <Menu size={20} />}
+              </button>
+              <div className="min-w-0">
+                <p className="text-[11px] font-medium text-[#8E8E93]">Panel de gestión</p>
+                <p className="truncate text-[16px] font-semibold tracking-[-0.02em] text-[#1C1C1E]">{businessName}</p>
+              </div>
+            </div>
+
+            <div className="flex shrink-0 items-center gap-2">
+              <AdminNotifications />
+              <Link
+                href={ROUTES.menu}
+                className="inline-flex h-10 items-center rounded-full bg-[#FFF3E0] px-4 text-[13px] font-semibold text-[#C86E00] transition hover:bg-[#FFE7C2] active:scale-[0.98]"
+              >
+                Ver sitio
+              </Link>
+            </div>
           </div>
         </header>
-        <main className="p-4 sm:p-6 lg:p-8">{children}</main>
+
+        <main className="mx-auto w-full max-w-[1680px] p-4 sm:p-6 lg:p-8 xl:p-9">{children}</main>
       </div>
     </div>
   );
