@@ -202,26 +202,36 @@ export function VentaMostradorPage() {
               <div className="grid min-w-0 gap-3 sm:grid-cols-2 2xl:grid-cols-3">
                 {filteredProducts.map((product) => {
                   const quantity = cart.find((line) => line.product.id === product.id)?.quantity ?? 0;
+                  const isSelected = quantity > 0;
                   return (
                     <button
                       key={product.id}
                       type="button"
                       onClick={() => addProduct(product)}
-                      className="group min-w-0 rounded-sm border border-neutral-200 bg-white p-4 text-left shadow-sm transition hover:border-red-300 hover:bg-red-50/40"
+                      aria-pressed={isSelected}
+                      className={`group min-w-0 rounded-sm border p-4 text-left shadow-sm transition ${
+                        isSelected
+                          ? 'border-red-400 bg-red-50/70 shadow-[0_8px_20px_rgba(239,68,68,.08)] hover:border-red-500 hover:bg-red-50'
+                          : 'border-neutral-200 bg-white hover:border-red-300 hover:bg-red-50/40'
+                      }`}
                     >
                       <div className="flex items-start justify-between gap-3">
                         <div className="min-w-0">
                           <p className="truncate text-sm font-black text-central-carbon">{product.name}</p>
                           <p className="mt-1 line-clamp-2 text-xs leading-5 text-neutral-500">{product.description || 'Sin descripción'}</p>
                         </div>
-                        <span className="grid h-8 w-8 shrink-0 place-items-center rounded-sm bg-red-50 text-red-600 transition group-hover:bg-red-600 group-hover:text-white">
+                        <span className={`grid h-8 w-8 shrink-0 place-items-center rounded-sm transition ${
+                          isSelected
+                            ? 'bg-red-600 text-white group-hover:bg-red-700'
+                            : 'bg-red-50 text-red-600 group-hover:bg-red-600 group-hover:text-white'
+                        }`}>
                           <Plus size={16} />
                         </span>
                       </div>
                       <div className="mt-3 flex items-end justify-between gap-2">
                         <p className="text-lg font-black text-central-carbon">{formatCurrency(product.currentPrice)}</p>
                         {quantity > 0 ? (
-                          <span className="rounded-sm border border-red-200 bg-red-50 px-2 py-1 text-[10px] font-black text-red-700">{quantity} en venta</span>
+                          <span className="rounded-sm border border-red-200 bg-white/80 px-2 py-1 text-[10px] font-black text-red-700">{quantity} en venta</span>
                         ) : null}
                       </div>
                     </button>
