@@ -6,6 +6,8 @@ import {
   Bike,
   Edit3,
   KeyRound,
+  LayoutGrid,
+  List,
   MailCheck,
   Plus,
   RefreshCw,
@@ -38,6 +40,7 @@ import {
 import type { AccessManagementDashboard, AccessRole, AccessUser } from '../types/access.types';
 
 type Tab = 'users' | 'roles';
+type UserViewMode = 'grid' | 'table';
 type ConfirmState =
   | { type: 'set-active'; user: AccessUser; active: boolean }
   | { type: 'archive'; user: AccessUser }
@@ -118,6 +121,109 @@ function UserCard({ user, onEdit, onPassword, onConfirm }: {
   );
 }
 
+function TableActionButton({ label, tone = 'default', children, onClick }: {
+  label: string;
+  tone?: 'default' | 'danger' | 'dark';
+  children: React.ReactNode;
+  onClick: () => void;
+}) {
+  const toneClass = tone === 'danger'
+    ? 'border-red-200 bg-red-50 text-red-600 hover:bg-red-100'
+    : tone === 'dark'
+      ? 'border-central-carbon bg-central-carbon text-white hover:bg-neutral-800'
+      : 'border-neutral-200 bg-white text-neutral-600 hover:border-central-orange/50 hover:text-central-orange';
+
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`grid h-8 w-8 shrink-0 place-items-center rounded-sm border transition active:scale-95 ${toneClass}`}
+      title={label}
+      aria-label={label}
+    >
+      {children}
+    </button>
+  );
+}
+
+function UserTableRow({ user, onEdit, onPassword, onConfirm }: {
+  user: AccessUser;
+  onEdit: () => void;
+  onPassword: () => void;
+  onConfirm: (state: ConfirmState) => void;
+}) {
+  const pending = user.accessStatus === 'pending_activation';
+  const active = user.accessStatus === 'active';
+  const createdLabel = pending ? 'Invitación enviada' : 'Creado';
+  const createdValue = pending && user.confirmationSentAt ? formatDateTime(user.confirmationSentAt) : formatDateTime(user.createdAt);
+  const lastLabel = pending ? 'Email verificado' : 'Último ingreso';
+  const lastValue = pending ? 'Pendiente' : user.lastSignInAt ? formatDateTime(user.lastSignInAt) : 'Nunca';
+
+  return (
+    <div className={`grid min-w-0 grid-cols-1 gap-3 border-t border-neutral-200 px-4 py-3 sm:grid-cols-2 xl:grid-cols-[minmax(0,1.55fr)_minmax(0,.8fr)_minmax(0,1.05fr)_minmax(0,.9fr)_minmax(0,.9fr)_minmax(0,1.35fr)] xl:items-center ${user.accessStatus === 'archived' ? 'opacity-65' : ''}`}>
+      <div className="min-w-0">
+        <div className="flex min-w-0 flex-wrap items-center gap-1.5">
+          <p className="min-w-0 break-words text-[13px] font-black text-central-carbon">{user.fullName}</p>
+          <StatusBadge user={user} />
+        </div>
+        <p className="mt-1 break-all text-[11px] leading-4 text-neutral-500">{user.email || 'Sin email'}</p>
+        {user.phone ? <p className="mt-0.5 text-[10px] text-neutral-400">{user.phone}</p> : null}
+      </div>
+
+      <div className="min-w-0">
+        <p className="mb-1 text-[10px] font-bold uppercase tracking-wide text-neutral-400 xl:hidden">Roles</p>
+        <div className="flex min-w-0 flex-wrap gap-1">
+          {user.roles.map((role) => (
+            <span key={role.id} className={`rounded-full border px-2 py-0.5 text-[10px] font-bold ${role.code === 'admin' ? 'border-violet-200 bg-violet-50 text-violet-700' : role.code === 'delivery' ? 'border-orange-200 bg-orange-50 text-orange-700' : 'border-neutral-200 bg-neutral-50 text-neutral-600'}`}>{role.name}</span>
+          ))}
+          {user.roles.length === 0 ? <span className="text-[10px] text-red-500">Sin roles</span> : null}
+        </div>
+      </div>
+
+      <div className="min-w-0">
+        <p className="mb-1 text-[10px] font-bold uppercase tracking-wide text-neutral-400 xl:hidden">Delivery</p>
+        {user.delivery ? (
+          <div className="flex min-w-0 items-center gap-2">
+            <span className="grid h-7 w-7 shrink-0 place-items-center rounded-sm bg-central-orange/10 text-central-orange"><Bike size={13} /></span>
+            <div className="min-w-0">
+              <div className="flex items-center gap-1.5"><p className="truncate text-[11px] font-black capitalize text-central-carbon">{user.delivery.vehicleType}</p><span className={`h-2 w-2 shrink-0 rounded-full ${user.delivery.active ? 'bg-emerald-500' : 'bg-neutral-300'}`} /></div>
+              <p className="mt-0.5 text-[10px] text-neutral-500">Comisión {user.delivery.commissionPercent ?? 0}%</p>
+            </div>
+          </div>
+        ) : <span className="text-[11px] text-neutral-400">—</span>}
+      </div>
+
+      <div className="min-w-0">
+        <p className="text-[10px] text-neutral-400">{createdLabel}</p>
+        <p className="mt-1 break-words text-[11px] font-bold leading-4 text-neutral-700">{createdValue}</p>
+      </div>
+
+      <div className="min-w-0">
+        <p className="text-[10px] text-neutral-400">{lastLabel}</p>
+        <p className="mt-1 break-words text-[11px] font-bold leading-4 text-neutral-700">{lastValue}</p>
+      </div>
+
+      <div className="min-w-0">
+        <p className="mb-1.5 text-[10px] font-bold uppercase tracking-wide text-neutral-400 xl:hidden">Acciones</p>
+        <div className="flex min-w-0 flex-wrap items-center gap-1.5 xl:justify-end">
+          <TableActionButton label="Editar" onClick={onEdit}><Edit3 size={14} /></TableActionButton>
+          {!pending && user.accessStatus !== 'archived' ? <TableActionButton label="Cambiar clave" onClick={onPassword}><KeyRound size={14} /></TableActionButton> : null}
+          {!pending && user.accessStatus !== 'archived' ? (
+            <TableActionButton label={active ? 'Desactivar' : 'Activar'} tone={active ? 'default' : 'dark'} onClick={() => onConfirm({ type: 'set-active', user, active: !active })}>
+              {active ? <UserRoundX size={14} /> : <UserRoundCheck size={14} />}
+            </TableActionButton>
+          ) : null}
+          {user.accessStatus !== 'archived' ? (
+            <TableActionButton label="Archivar" tone="danger" onClick={() => onConfirm({ type: 'archive', user })}><Archive size={14} /></TableActionButton>
+          ) : (
+            <TableActionButton label="Restaurar" tone="dark" onClick={() => onConfirm({ type: 'restore', user })}><RotateCcw size={14} /></TableActionButton>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function RoleCard({ role, onEdit, onDelete }: { role: AccessRole; onEdit: () => void; onDelete: () => void }) {
   return (
     <article className={`rounded-sm border bg-white p-4 shadow-sm ${role.active ? 'border-neutral-200' : 'border-neutral-200 opacity-65'}`}>
@@ -137,6 +243,7 @@ export function AccessManagementPage() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [tab, setTab] = useState<Tab>('users');
+  const [userViewMode, setUserViewMode] = useState<UserViewMode>('table');
   const [query, setQuery] = useState('');
   const [userModal, setUserModal] = useState<AccessUser | 'new' | null>(null);
   const [roleModal, setRoleModal] = useState<AccessRole | 'new' | null>(null);
@@ -246,11 +353,45 @@ export function AccessManagementPage() {
 
           {tab === 'users' ? (
             <section className="rounded-sm border border-neutral-200 bg-white p-5 shadow-sm">
-              <div className="mb-5 flex flex-wrap items-center justify-between gap-3"><div><h2 className="font-black text-central-carbon">Cuentas de usuario</h2><p className="text-xs text-neutral-500">Las altas se realizan por invitación; el usuario verifica su email y define su propia contraseña.</p></div><Button onClick={() => setUserModal('new')}><MailCheck size={16} /> Invitar usuario</Button></div>
-              <div className="grid min-w-0 gap-4 md:grid-cols-2 2xl:grid-cols-3">
-                {users.map((user) => <UserCard key={user.id} user={user} onEdit={() => setUserModal(user)} onPassword={() => { setPasswordUser(user); setNewPassword(''); }} onConfirm={setConfirmState} />)}
-                {users.length === 0 ? <div className="md:col-span-2 2xl:col-span-3 rounded-sm border border-dashed border-neutral-200 p-10 text-center text-sm text-neutral-500">No hay usuarios que coincidan con la búsqueda.</div> : null}
+              <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
+                <div><h2 className="font-black text-central-carbon">Cuentas de usuario</h2><p className="text-xs text-neutral-500">Las altas se realizan por invitación; el usuario verifica su email y define su propia contraseña.</p></div>
+                <div className="flex flex-wrap items-center gap-2">
+                  <div className="inline-flex rounded-sm border border-neutral-200 bg-neutral-50 p-1" role="group" aria-label="Cambiar vista de usuarios">
+                    <button
+                      type="button"
+                      onClick={() => setUserViewMode('grid')}
+                      className={`inline-flex h-8 items-center gap-1.5 rounded-sm px-3 text-xs font-bold transition ${userViewMode === 'grid' ? 'bg-white text-central-carbon shadow-sm' : 'text-neutral-500 hover:text-central-carbon'}`}
+                      aria-pressed={userViewMode === 'grid'}
+                    >
+                      <LayoutGrid size={14} /> Cuadros
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setUserViewMode('table')}
+                      className={`inline-flex h-8 items-center gap-1.5 rounded-sm px-3 text-xs font-bold transition ${userViewMode === 'table' ? 'bg-white text-central-carbon shadow-sm' : 'text-neutral-500 hover:text-central-carbon'}`}
+                      aria-pressed={userViewMode === 'table'}
+                    >
+                      <List size={15} /> Tabla
+                    </button>
+                  </div>
+                  <Button onClick={() => setUserModal('new')}><MailCheck size={16} /> Invitar usuario</Button>
+                </div>
               </div>
+
+              {userViewMode === 'grid' ? (
+                <div className="grid min-w-0 gap-4 md:grid-cols-2 2xl:grid-cols-3">
+                  {users.map((user) => <UserCard key={user.id} user={user} onEdit={() => setUserModal(user)} onPassword={() => { setPasswordUser(user); setNewPassword(''); }} onConfirm={setConfirmState} />)}
+                  {users.length === 0 ? <div className="md:col-span-2 2xl:col-span-3 rounded-sm border border-dashed border-neutral-200 p-10 text-center text-sm text-neutral-500">No hay usuarios que coincidan con la búsqueda.</div> : null}
+                </div>
+              ) : (
+                <div className="min-w-0 overflow-hidden rounded-sm border border-neutral-200 bg-white">
+                  <div className="hidden grid-cols-[minmax(0,1.55fr)_minmax(0,.8fr)_minmax(0,1.05fr)_minmax(0,.9fr)_minmax(0,.9fr)_minmax(0,1.35fr)] items-center gap-3 bg-neutral-50 px-4 py-2.5 text-[10px] font-black uppercase tracking-wide text-neutral-500 xl:grid">
+                    <span>Usuario</span><span>Roles</span><span>Delivery</span><span>Creado</span><span>Último ingreso</span><span className="text-right">Acciones</span>
+                  </div>
+                  {users.map((user) => <UserTableRow key={user.id} user={user} onEdit={() => setUserModal(user)} onPassword={() => { setPasswordUser(user); setNewPassword(''); }} onConfirm={setConfirmState} />)}
+                  {users.length === 0 ? <div className="p-10 text-center text-sm text-neutral-500">No hay usuarios que coincidan con la búsqueda.</div> : null}
+                </div>
+              )}
             </section>
           ) : (
             <section className="rounded-sm border border-neutral-200 bg-white p-5 shadow-sm">
