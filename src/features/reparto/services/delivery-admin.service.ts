@@ -43,11 +43,17 @@ export async function getDeliveryAdminDashboard(): Promise<DeliveryAdminDashboar
   };
 }
 
-export async function assignDelivery(orderId: string, driverId: string, note?: string) {
+export async function assignDelivery(
+  orderId: string,
+  driverId: string,
+  commissionPercentOverride: number | null = null,
+  note?: string,
+) {
   await deliveryRpc<string>('admin_assign_delivery', {
     order_uuid: orderId,
     driver_uuid: driverId,
     note: note?.trim() || null,
+    commission_percent_override: commissionPercentOverride,
   });
 }
 
