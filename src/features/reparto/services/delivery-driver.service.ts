@@ -1,7 +1,11 @@
 import { getSupabaseBrowserClient } from '@/lib/supabase/client';
 import { requireSupabaseConfigured } from '@/lib/config/env';
 import { createSharedRealtimeSubscription } from '@/lib/supabase/realtime-subscription';
-import type { DeliveryAssignmentStatus, DeliveryDriverDashboard } from '../types/delivery-management.types';
+import type {
+  DeliveryAssignmentStatus,
+  DeliveryDriverDashboard,
+  DeliveryDriverDeliveryDetail,
+} from '../types/delivery-management.types';
 
 type RpcError = { message: string } | null;
 type RpcInvoker = <T>(name: string, args?: Record<string, unknown>) => Promise<{ data: T | null; error: RpcError }>;
@@ -70,6 +74,14 @@ export async function logoutDeliveryDriver() {
 export async function getDeliveryDriverDashboard(): Promise<DeliveryDriverDashboard> {
   const data = await deliveryRpc<DeliveryDriverDashboard>('get_delivery_driver_dashboard');
   if (!data) throw new Error('El panel de reparto no devolvió información.');
+  return data;
+}
+
+export async function getDeliveryDriverDeliveryDetail(assignmentId: string): Promise<DeliveryDriverDeliveryDetail> {
+  const data = await deliveryRpc<DeliveryDriverDeliveryDetail>('get_delivery_driver_delivery_detail', {
+    assignment_uuid: assignmentId,
+  });
+  if (!data) throw new Error('No se pudo obtener el detalle de la entrega.');
   return data;
 }
 
