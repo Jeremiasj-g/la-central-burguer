@@ -69,13 +69,26 @@ export interface ReportItem {
   createdAt: string;
 }
 
+export interface ReportSettledDeliveryCommission {
+  settlementId: string;
+  assignmentId: string;
+  orderId: string;
+  commissionPercent: number;
+  deliveryFee: number;
+  amount: number;
+  paidAt: string | null;
+}
+
 export interface ReportDataset {
   orders: ReportOrder[];
   items: ReportItem[];
+  settledDeliveryCommissions: ReportSettledDeliveryCommission[];
 }
 
 export interface ReportSummary {
+  grossRevenue: number;
   netRevenue: number;
+  settledDeliveryCommission: number;
   validOrders: number;
   cancelledOrders: number;
   totalOrders: number;
