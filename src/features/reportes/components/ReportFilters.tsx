@@ -10,11 +10,11 @@ import type {
 } from '../types/reporte.types';
 
 interface ReportFiltersProps {
-  filters: ReportFilters;
+  filters: ReportFilters & { source?: 'all' | 'web' | 'admin' | 'import' };
   preset: ReportDatePreset;
   isLoading: boolean;
   onPresetChange: (preset: ReportDatePreset) => void;
-  onChange: (next: ReportFilters) => void;
+  onChange: (next: ReportFilters & { source?: 'all' | 'web' | 'admin' | 'import' }) => void;
   onApply: () => void;
   onReset: () => void;
 }
@@ -49,6 +49,13 @@ const DELIVERY_OPTIONS = [
   { value: 'retiro_local', label: 'Retiro local' },
 ] as const;
 
+const SOURCE_OPTIONS = [
+  { value: 'all', label: 'Todos los orígenes' },
+  { value: 'web', label: 'Web' },
+  { value: 'admin', label: 'Venta mostrador' },
+  { value: 'import', label: 'Importado' },
+] as const;
+
 const adminInputClass = '!border-neutral-200 !bg-white !text-central-carbon placeholder:!text-neutral-400 disabled:cursor-not-allowed disabled:!bg-neutral-100 disabled:!text-neutral-400';
 
 export function ReportFilters({
@@ -60,7 +67,7 @@ export function ReportFilters({
   onApply,
   onReset,
 }: ReportFiltersProps) {
-  function patch(patchValues: Partial<ReportFilters>) {
+  function patch(patchValues: Partial<ReportFilters & { source?: 'all' | 'web' | 'admin' | 'import' }>) {
     onChange({ ...filters, ...patchValues });
   }
 
@@ -173,7 +180,18 @@ export function ReportFilters({
           />
         </label>
 
-        <div className="flex min-w-0 items-end md:col-span-2 xl:col-span-6 xl:justify-end">
+        <label className="min-w-0 xl:col-span-3">
+          <span className="mb-1.5 block text-xs font-bold uppercase tracking-wide text-neutral-500">Origen</span>
+          <Select
+            aria-label="Origen de la venta"
+            variant="light"
+            value={filters.source ?? 'all'}
+            options={SOURCE_OPTIONS}
+            onValueChange={(source) => patch({ source: source as 'all' | 'web' | 'admin' | 'import' })}
+          />
+        </label>
+
+        <div className="flex min-w-0 items-end md:col-span-2 xl:col-span-3 xl:justify-end">
           <Button type="button" onClick={onApply} disabled={isLoading} className="w-full sm:w-auto">
             {isLoading ? 'Procesando…' : 'Aplicar filtros'}
           </Button>
