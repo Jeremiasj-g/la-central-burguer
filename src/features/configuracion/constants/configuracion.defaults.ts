@@ -10,6 +10,7 @@ export const BUSINESS_CONFIG_DEFAULTS: BusinessConfig = {
   transferCvu: '0000003100068262525673',
   address: 'Madariaga 246',
   specialty: 'Papas incluidas',
+  timezone: 'America/Argentina/Cordoba',
   isOpen: true,
   autoScheduleEnabled: true,
   autoOpenTime: '20:00',

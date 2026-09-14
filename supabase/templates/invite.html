@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Activá tu cuenta · La Central Burger</title>
+  </head>
+  <body style="margin:0;padding:0;background:#f3f1ec;font-family:Arial,Helvetica,sans-serif;color:#171717;">
+    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#f3f1ec;padding:32px 16px;">
+      <tr>
+        <td align="center">
+          <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:560px;background:#ffffff;border:1px solid #e7e2d9;border-radius:16px;overflow:hidden;">
+            <tr>
+              <td style="background:#111111;padding:28px 32px;text-align:center;">
+                <div style="display:inline-block;background:#e6900a;color:#ffffff;font-weight:800;font-size:14px;letter-spacing:2px;padding:10px 14px;border-radius:8px;">LA CENTRAL</div>
+                <div style="margin-top:9px;color:#e6900a;font-size:11px;font-weight:700;letter-spacing:3px;">BURGER</div>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:34px 32px 10px;">
+                <div style="color:#e6900a;font-size:11px;font-weight:800;letter-spacing:2px;text-transform:uppercase;">Invitación al equipo</div>
+                <h1 style="margin:10px 0 14px;font-size:28px;line-height:1.2;color:#111111;">¡Hola {{ .Data.full_name }}!</h1>
+                <p style="margin:0;color:#5b5b5b;font-size:15px;line-height:1.7;">Administración creó una cuenta para vos en <strong style="color:#111111;">La Central Burger</strong>. Para comenzar, verificá que este email te pertenece y elegí tu propia contraseña.</p>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:22px 32px;">
+                <a href="{{ .ConfirmationURL }}" style="display:block;background:#e6900a;color:#ffffff;text-align:center;text-decoration:none;font-size:15px;font-weight:800;padding:15px 20px;border-radius:10px;">ACTIVAR MI CUENTA</a>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:0 32px 26px;">
+                <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#faf8f4;border:1px solid #eee9df;border-radius:10px;">
+                  <tr>
+                    <td style="padding:18px 20px;color:#666666;font-size:13px;line-height:1.65;">
+                      <strong style="color:#111111;">¿Qué pasa después?</strong><br />
+                      1. Confirmamos tu dirección de email.<br />
+                      2. Elegís una contraseña que sólo vos vas a conocer.<br />
+                      3. Te llevamos automáticamente al portal correspondiente a tu rol.
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:0 32px 30px;color:#8a8a8a;font-size:12px;line-height:1.6;">
+                Si no esperabas esta invitación, podés ignorar este correo. Por seguridad, no compartas este enlace con otras personas.
+                <div style="margin-top:16px;word-break:break-all;color:#a2a2a2;">Si el botón no funciona, copiá este enlace en tu navegador:<br />{{ .ConfirmationURL }}</div>
+              </td>
+            </tr>
+            <tr>
+              <td style="background:#111111;padding:20px 32px;text-align:center;color:#898989;font-size:11px;line-height:1.6;">
+                La Central Burger · Acceso interno<br />
+                Este mensaje fue generado automáticamente.
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>

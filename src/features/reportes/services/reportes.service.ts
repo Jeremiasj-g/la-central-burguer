@@ -6,6 +6,7 @@ import type {
   ReportFilters,
   ReportItem,
   ReportOrder,
+  ReportSettledDeliveryCommission,
 } from '../types/reporte.types';
 
 const PAGE_SIZE = 1000;
@@ -13,6 +14,11 @@ const ITEM_ID_CHUNK_SIZE = 180;
 
 type OrderRow = Database['public']['Tables']['orders']['Row'];
 type OrderItemRow = Database['public']['Tables']['order_items']['Row'];
+type DeliveryAssignmentRow = Database['public']['Tables']['delivery_assignments']['Row'];
+type DeliverySettlementItemRow = Database['public']['Tables']['delivery_settlement_items']['Row'];
+type DeliverySettlementRow = Database['public']['Tables']['delivery_settlements']['Row'];
+type DeliveryCompensationRow = Database['public']['Tables']['delivery_assignment_compensation']['Row'];
+type DeliveryRateRow = Database['public']['Tables']['delivery_driver_rates']['Row'];
 
 function toStartIso(dateInput: string) {
   const [year, month, day] = dateInput.split('-').map(Number);
@@ -145,6 +151,123 @@ async function fetchItems(orderIds: string[]): Promise<ReportItem[]> {
   return rows.map(mapItem);
 }
 
+async function fetchSettledDeliveryCommissions(
+  orders: ReportOrder[],
+): Promise<ReportSettledDeliveryCommission[]> {
+  const deliveryOrders = orders.filter((order) => order.deliveryMethod === 'delivery');
+  if (!deliveryOrders.length) return [];
+
+  const supabase = getSupabaseBrowserClient();
+  const orderMap = new Map(deliveryOrders.map((order) => [order.id, order]));
+  const assignments: Pick<DeliveryAssignmentRow, 'id' | 'order_id' | 'rate_id'>[] = [];
+
+  for (let index = 0; index < deliveryOrders.length; index += ITEM_ID_CHUNK_SIZE) {
+    const orderIds = deliveryOrders.slice(index, index + ITEM_ID_CHUNK_SIZE).map((order) => order.id);
+    const { data, error } = await supabase
+      .from('delivery_assignments')
+      .select('id,order_id,rate_id')
+      .in('order_id', orderIds)
+      .eq('status', 'delivered');
+
+    if (error) throw new Error(error.message);
+    assignments.push(...((data ?? []) as Pick<DeliveryAssignmentRow, 'id' | 'order_id' | 'rate_id'>[]));
+  }
+
+  if (!assignments.length) return [];
+
+  const assignmentIds = assignments.map((assignment) => assignment.id);
+  const settlementItems: Pick<DeliverySettlementItemRow, 'settlement_id' | 'assignment_id'>[] = [];
+
+  for (let index = 0; index < assignmentIds.length; index += ITEM_ID_CHUNK_SIZE) {
+    const { data, error } = await supabase
+      .from('delivery_settlement_items')
+      .select('settlement_id,assignment_id')
+      .in('assignment_id', assignmentIds.slice(index, index + ITEM_ID_CHUNK_SIZE));
+
+    if (error) throw new Error(error.message);
+    settlementItems.push(...((data ?? []) as Pick<DeliverySettlementItemRow, 'settlement_id' | 'assignment_id'>[]));
+  }
+
+  if (!settlementItems.length) return [];
+
+  const settlementIds = [...new Set(settlementItems.map((item) => item.settlement_id))];
+  const settlements: Pick<DeliverySettlementRow, 'id' | 'paid_at'>[] = [];
+
+  for (let index = 0; index < settlementIds.length; index += ITEM_ID_CHUNK_SIZE) {
+    const { data, error } = await supabase
+      .from('delivery_settlements')
+      .select('id,paid_at')
+      .in('id', settlementIds.slice(index, index + ITEM_ID_CHUNK_SIZE))
+      .eq('status', 'paid');
+
+    if (error) throw new Error(error.message);
+    settlements.push(...((data ?? []) as Pick<DeliverySettlementRow, 'id' | 'paid_at'>[]));
+  }
+
+  if (!settlements.length) return [];
+
+  const settlementMap = new Map(settlements.map((settlement) => [settlement.id, settlement]));
+  const settlementItemByAssignment = new Map(
+    settlementItems
+      .filter((item) => settlementMap.has(item.settlement_id))
+      .map((item) => [item.assignment_id, item]),
+  );
+  const paidAssignments = assignments.filter((assignment) => settlementItemByAssignment.has(assignment.id));
+  if (!paidAssignments.length) return [];
+
+  const paidAssignmentIds = paidAssignments.map((assignment) => assignment.id);
+  const compensations: Pick<DeliveryCompensationRow, 'assignment_id' | 'delivery_fee_snapshot' | 'commission_percent_override'>[] = [];
+
+  for (let index = 0; index < paidAssignmentIds.length; index += ITEM_ID_CHUNK_SIZE) {
+    const { data, error } = await supabase
+      .from('delivery_assignment_compensation')
+      .select('assignment_id,delivery_fee_snapshot,commission_percent_override')
+      .in('assignment_id', paidAssignmentIds.slice(index, index + ITEM_ID_CHUNK_SIZE));
+
+    if (error) throw new Error(error.message);
+    compensations.push(...((data ?? []) as Pick<DeliveryCompensationRow, 'assignment_id' | 'delivery_fee_snapshot' | 'commission_percent_override'>[]));
+  }
+
+  const rateIds = [...new Set(paidAssignments.map((assignment) => assignment.rate_id))];
+  const rates: Pick<DeliveryRateRow, 'id' | 'commission_percent'>[] = [];
+
+  for (let index = 0; index < rateIds.length; index += ITEM_ID_CHUNK_SIZE) {
+    const { data, error } = await supabase
+      .from('delivery_driver_rates')
+      .select('id,commission_percent')
+      .in('id', rateIds.slice(index, index + ITEM_ID_CHUNK_SIZE));
+
+    if (error) throw new Error(error.message);
+    rates.push(...((data ?? []) as Pick<DeliveryRateRow, 'id' | 'commission_percent'>[]));
+  }
+
+  const compensationMap = new Map(compensations.map((row) => [row.assignment_id, row]));
+  const rateMap = new Map(rates.map((rate) => [rate.id, rate]));
+
+  return paidAssignments.flatMap((assignment) => {
+    const order = orderMap.get(assignment.order_id);
+    const settlementItem = settlementItemByAssignment.get(assignment.id);
+    const settlement = settlementItem ? settlementMap.get(settlementItem.settlement_id) : undefined;
+    const compensation = compensationMap.get(assignment.id);
+    const rate = rateMap.get(assignment.rate_id);
+    if (!order || !settlementItem || !settlement || !rate) return [];
+
+    const deliveryFee = Number(compensation?.delivery_fee_snapshot ?? order.deliveryCost);
+    const commissionPercent = Number(compensation?.commission_percent_override ?? rate.commission_percent);
+    const amount = Math.round((deliveryFee * commissionPercent / 100) * 100) / 100;
+
+    return [{
+      settlementId: settlementItem.settlement_id,
+      assignmentId: assignment.id,
+      orderId: assignment.order_id,
+      commissionPercent,
+      deliveryFee,
+      amount,
+      paidAt: settlement.paid_at,
+    }];
+  });
+}
+
 export async function getReportData(filters: ReportFilters): Promise<ReportDataset> {
   requireSupabaseConfigured('generar reportes');
 
@@ -157,9 +280,12 @@ export async function getReportData(filters: ReportFilters): Promise<ReportDatas
   }
 
   const orders = await fetchOrders(filters);
-  const items = await fetchItems(orders.map((order) => order.id));
+  const [items, settledDeliveryCommissions] = await Promise.all([
+    fetchItems(orders.map((order) => order.id)),
+    fetchSettledDeliveryCommissions(orders),
+  ]);
 
-  return { orders, items };
+  return { orders, items, settledDeliveryCommissions };
 }
 
 export async function getCompleteReportData(): Promise<ReportDataset> {

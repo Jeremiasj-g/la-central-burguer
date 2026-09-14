@@ -1,6 +1,7 @@
 export const ROUTES = {
   home: '/',
   menu: '/menu',
+  activateAccount: '/activar-cuenta',
   adminLogin: '/admin/login',
   adminDashboard: '/admin/dashboard',
   adminProductos: '/admin/productos',
@@ -8,6 +9,10 @@ export const ROUTES = {
   adminIngredientes: '/admin/ingredientes',
   adminRecetas: '/admin/recetas',
   adminPedidos: '/admin/pedidos',
+  adminDelivery: '/admin/delivery',
+  adminUsuarios: '/admin/usuarios',
   adminReportes: '/admin/reportes',
   adminConfiguracion: '/admin/configuracion',
+  deliveryLogin: '/delivery/login',
+  deliveryPanel: '/delivery',
 } as const;

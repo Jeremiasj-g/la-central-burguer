@@ -15,6 +15,7 @@ export interface BusinessConfig {
   transferCvu: string;
   address: string;
   specialty: string;
+  timezone: string;
   isOpen: boolean;
   autoScheduleEnabled: boolean;
   autoOpenTime: string;

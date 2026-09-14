@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { getReportData } from '../services/reportes.service';
 import type { ReportDataset, ReportFilters } from '../types/reporte.types';
 
-const EMPTY_DATASET: ReportDataset = { orders: [], items: [] };
+const EMPTY_DATASET: ReportDataset = { orders: [], items: [], settledDeliveryCommissions: [] };
 
 export function useReportes(filters: ReportFilters) {
   const [data, setData] = useState<ReportDataset>(EMPTY_DATASET);

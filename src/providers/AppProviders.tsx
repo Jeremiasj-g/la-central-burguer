@@ -3,6 +3,7 @@
 import type { ReactNode } from 'react';
 import { useEffect } from 'react';
 import { ToastContainer } from 'react-toastify';
+import { AccountOnboardingGuard } from '@/features/auth/components/AccountOnboardingGuard';
 import { clearLegacyPersistence } from '@/shared/utils/legacy-storage.utils';
 import { recoverOrphanedBodyScrollLock } from '@/shared/utils/body-scroll-lock.utils';
 
@@ -14,8 +15,6 @@ export function AppProviders({ children }: { children: ReactNode }) {
       window.requestAnimationFrame(() => recoverOrphanedBodyScrollLock());
     };
 
-    // Limpia cualquier bloqueo huérfano dejado por una recarga en caliente,
-    // una navegación del historial o un cierre inesperado de un overlay.
     recoverScroll();
     window.addEventListener('pageshow', recoverScroll);
     window.addEventListener('popstate', recoverScroll);
@@ -30,6 +29,7 @@ export function AppProviders({ children }: { children: ReactNode }) {
 
   return (
     <>
+      <AccountOnboardingGuard />
       {children}
       <ToastContainer
         position="top-right"

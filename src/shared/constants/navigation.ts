@@ -10,6 +10,8 @@ import {
   Settings,
   ShoppingBag,
   Tags,
+  Truck,
+  Users,
   Utensils,
 } from 'lucide-react';
 import { ROUTES } from './routes';
@@ -26,6 +28,8 @@ export const ADMIN_NAVIGATION = [
   { label: 'Ingredientes', href: ROUTES.adminIngredientes, icon: Boxes },
   { label: 'Recetas', href: ROUTES.adminRecetas, icon: BookOpenCheck },
   { label: 'Pedidos', href: ROUTES.adminPedidos, icon: ClipboardList },
+  { label: 'Delivery', href: ROUTES.adminDelivery, icon: Truck },
+  { label: 'Usuarios y roles', href: ROUTES.adminUsuarios, icon: Users },
   { label: 'Reportes', href: ROUTES.adminReportes, icon: FileSpreadsheet },
   { label: 'Configuración', href: ROUTES.adminConfiguracion, icon: Settings },
 ] as const;
