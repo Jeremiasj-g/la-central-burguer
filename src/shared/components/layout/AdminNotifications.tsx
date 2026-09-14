@@ -78,45 +78,45 @@ export function AdminNotifications() {
         type="button"
         onClick={() => setOpen((value) => !value)}
         className={cn(
-          'relative grid h-10 w-10 place-items-center rounded-sm border border-neutral-200 bg-white text-central-carbon shadow-sm transition hover:border-central-orange hover:text-central-orange',
-          unseenCount > 0 && 'border-central-orange/50 bg-central-orange/10 text-central-orange',
+          'relative grid h-10 w-10 place-items-center rounded-full bg-[#F2F2F7] text-[#1C1C1E] transition hover:bg-[#E9E9EE] active:scale-95',
+          unseenCount > 0 && 'bg-[#FFF3E0] text-[#FF9500] hover:bg-[#FFE7C2]',
         )}
         aria-label={unseenCount > 0 ? `${unseenCount} pedidos nuevos` : 'Notificaciones de pedidos'}
         title="Notificaciones de pedidos"
       >
         <Bell size={18} className={cn(unseenCount > 0 && 'lcb-bell-vibrate')} />
         {unseenCount > 0 ? (
-          <span className="absolute -right-2 -top-2 grid min-h-5 min-w-5 place-items-center rounded-full bg-red-600 px-1.5 text-[10px] font-black leading-none text-white ring-2 ring-white">
+          <span className="absolute -right-1.5 -top-1.5 grid min-h-5 min-w-5 place-items-center rounded-full bg-[#FF3B30] px-1 text-[10px] font-semibold leading-none text-white ring-2 ring-white">
             {unseenCount > 9 ? '9+' : unseenCount}
           </span>
         ) : null}
       </button>
 
       {open ? (
-        <div className="absolute right-0 top-12 z-50 w-[min(92vw,390px)] overflow-hidden rounded-sm border border-neutral-200 bg-white text-central-carbon shadow-dark">
-          <div className="flex items-start justify-between gap-3 border-b border-neutral-100 p-4">
+        <div className="absolute right-0 top-12 z-50 w-[min(92vw,400px)] overflow-hidden rounded-[24px] border border-black/[0.06] bg-white/96 text-[#1C1C1E] shadow-[0_18px_60px_rgba(0,0,0,0.16)] backdrop-blur-2xl">
+          <div className="flex items-start justify-between gap-3 border-b border-[#E5E5EA] px-5 py-4">
             <div>
-              <p className="text-xs font-black uppercase tracking-[.22em] text-central-orange">Pedidos</p>
-              <h3 className="mt-1 text-lg font-black">Notificaciones</h3>
-              <p className="mt-1 text-xs text-neutral-500">Pedidos recibidos desde el sitio.</p>
+              <p className="text-[11px] font-medium text-[#8E8E93]">Pedidos</p>
+              <h3 className="mt-0.5 text-[20px] font-semibold tracking-[-0.025em]">Notificaciones</h3>
+              <p className="mt-1 text-[12px] text-[#8E8E93]">Pedidos recibidos desde el sitio.</p>
             </div>
             <button
               type="button"
               onClick={() => setOpen(false)}
-              className="rounded-sm p-1 text-neutral-400 transition hover:bg-neutral-100 hover:text-central-carbon"
+              className="grid h-8 w-8 place-items-center rounded-full bg-[#F2F2F7] text-[#8E8E93] transition hover:text-[#1C1C1E] active:scale-95"
               aria-label="Cerrar notificaciones"
             >
-              <X size={18} />
+              <X size={16} />
             </button>
           </div>
 
-          <div className="max-h-[430px] space-y-2 overflow-y-auto p-3 custom-scrollbar">
+          <div className="max-h-[430px] space-y-2 overflow-y-auto bg-[#F7F7FA] p-3 custom-scrollbar">
             {error ? (
-              <div className="rounded-sm border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+              <div className="rounded-[16px] border border-[#FF3B30]/15 bg-[#FFF0EF] p-4 text-[13px] text-[#C9342B]">
                 {error}
               </div>
             ) : orders.length === 0 ? (
-              <div className="rounded-sm border border-dashed border-neutral-200 p-6 text-center text-sm text-neutral-500">
+              <div className="rounded-[16px] border border-dashed border-[#D1D1D6] bg-white p-6 text-center text-[13px] text-[#8E8E93]">
                 Todavía no hay pedidos para mostrar.
               </div>
             ) : orders.map((order) => {
@@ -127,33 +127,33 @@ export function AdminNotifications() {
                   href={ROUTES.adminPedidos}
                   onClick={() => setOpen(false)}
                   className={cn(
-                    'block rounded-sm border p-3 transition hover:border-central-orange hover:bg-central-orange/5',
+                    'block rounded-[18px] border bg-white p-3.5 transition active:scale-[0.992]',
                     unseen
-                      ? 'border-central-orange/55 bg-central-orange/10'
-                      : 'border-neutral-200 bg-neutral-50 opacity-75',
+                      ? 'border-[#FF9500]/25 shadow-[0_1px_2px_rgba(0,0,0,0.03),0_8px_24px_rgba(0,0,0,0.035)]'
+                      : 'border-black/[0.04] opacity-80',
                   )}
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
                       <div className="flex flex-wrap items-center gap-2">
-                        <p className="font-mono text-xs font-black text-central-orange">{order.orderCode}</p>
+                        <p className="font-mono text-[11px] font-semibold text-[#FF9500]">{order.orderCode}</p>
                         <span className={cn(
-                          'rounded-full px-2 py-0.5 text-[10px] font-black uppercase',
+                          'rounded-full px-2 py-0.5 text-[10px] font-semibold',
                           unseen
-                            ? 'bg-central-orange text-white'
-                            : 'bg-neutral-200 text-neutral-500',
+                            ? 'bg-[#FFF3E0] text-[#C86E00]'
+                            : 'bg-[#F2F2F7] text-[#8E8E93]',
                         )}>
                           {unseen ? 'Nuevo' : 'Visto'}
                         </span>
                       </div>
-                      <p className="mt-1 truncate text-sm font-black">{order.customerName}</p>
-                      <p className="mt-0.5 text-xs text-neutral-500">
+                      <p className="mt-1 truncate text-[14px] font-semibold">{order.customerName}</p>
+                      <p className="mt-0.5 text-[11px] text-[#8E8E93]">
                         {order.deliveryMethod === 'delivery' ? 'Delivery' : 'Retiro local'} · {formatDateTime(order.createdAt)}
                       </p>
                     </div>
-                    <strong className="shrink-0 text-sm text-central-carbon">{formatCurrency(order.total)}</strong>
+                    <strong className="shrink-0 text-[13px] font-semibold text-[#1C1C1E]">{formatCurrency(order.total)}</strong>
                   </div>
-                  <p className="mt-2 line-clamp-2 text-xs leading-5 text-neutral-600">
+                  <p className="mt-2 line-clamp-2 text-[12px] leading-4.5 text-[#636366]">
                     {order.items.map((item) => `${item.quantity}x ${item.productName}`).join(', ')}
                   </p>
                 </Link>
@@ -161,12 +161,12 @@ export function AdminNotifications() {
             })}
           </div>
 
-          <div className="flex items-center justify-between gap-3 border-t border-neutral-100 bg-neutral-50 p-3">
-            <div className="flex items-center gap-2 text-xs font-bold text-neutral-500">
+          <div className="flex items-center justify-between gap-3 border-t border-[#E5E5EA] bg-white px-3.5 py-3">
+            <div className="flex items-center gap-2 text-[11px] font-medium text-[#8E8E93]">
               {unseenCount > 0 ? (
-                <Clock3 size={15} className="text-central-orange" />
+                <Clock3 size={14} className="text-[#FF9500]" />
               ) : (
-                <PackageCheck size={15} className="text-green-600" />
+                <PackageCheck size={14} className="text-[#34C759]" />
               )}
               {unseenCount > 0 ? `${unseenCount} sin ver` : 'Todo visto'}
             </div>
@@ -175,14 +175,14 @@ export function AdminNotifications() {
                 type="button"
                 onClick={markAllAsSeen}
                 disabled={Boolean(error) || orders.length === 0}
-                className="rounded-sm border border-neutral-200 bg-white px-3 py-2 text-xs font-black text-neutral-700 transition hover:border-central-orange hover:text-central-orange disabled:cursor-not-allowed disabled:opacity-50"
+                className="rounded-full bg-[#F2F2F7] px-3 py-2 text-[11px] font-semibold text-[#636366] transition hover:bg-[#E9E9EE] disabled:cursor-not-allowed disabled:opacity-50"
               >
-                <CheckCheck size={14} className="mr-1 inline" /> Vistos
+                <CheckCheck size={13} className="mr-1 inline" /> Vistos
               </button>
               <Link
                 href={ROUTES.adminPedidos}
                 onClick={() => setOpen(false)}
-                className="rounded-sm bg-central-orange px-3 py-2 text-xs font-black text-white transition hover:bg-central-ember"
+                className="rounded-full bg-[#FF9500] px-3 py-2 text-[11px] font-semibold text-white transition hover:bg-[#E88300] active:scale-[0.98]"
               >
                 Ver pedidos
               </Link>
