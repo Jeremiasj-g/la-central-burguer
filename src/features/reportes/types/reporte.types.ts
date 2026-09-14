@@ -26,7 +26,7 @@ export interface ReportFilters {
   status: ReportStatusFilter;
   paymentMethod: 'all' | PaymentMethodCode;
   deliveryMethod: 'all' | DeliveryMethod;
-  source: ReportSourceFilter;
+  source?: ReportSourceFilter;
   search: string;
 }
 
@@ -49,7 +49,7 @@ export interface ReportOrder {
   total: number;
   status: OrderStatus;
   notes: string | null;
-  source: ReportSource;
+  source: string;
   acceptedAt: string | null;
   cancelledAt: string | null;
   createdAt: string;
