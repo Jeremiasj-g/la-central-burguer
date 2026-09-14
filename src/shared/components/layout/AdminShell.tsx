@@ -85,12 +85,21 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
               href={item.href}
               onClick={() => setMobileOpen(false)}
               className={cn(
-                'flex items-center gap-3 rounded-sm px-4 py-3 text-sm font-bold text-white/65 transition hover:bg-white/10 hover:text-white',
-                active && 'bg-central-orange text-white shadow-orange',
+                'flex items-center gap-3 rounded-sm px-4 py-3 text-sm font-bold transition',
+                item.development
+                  ? 'border border-red-500/45 bg-red-500/10 text-red-300 hover:border-red-400/70 hover:bg-red-500/20 hover:text-red-200'
+                  : 'text-white/65 hover:bg-white/10 hover:text-white',
+                active && !item.development && 'bg-central-orange text-white shadow-orange',
+                active && item.development && 'border-red-400 bg-red-500/25 text-red-100 shadow-[0_12px_30px_rgba(239,68,68,.14)]',
               )}
             >
               <Icon size={18} />
-              {item.label}
+              <span className="min-w-0 flex-1 truncate">{item.label}</span>
+              {item.development ? (
+                <span className="rounded-sm border border-red-400/50 bg-red-500/15 px-1.5 py-0.5 text-[9px] font-black uppercase tracking-[.12em] text-red-300">
+                  Dev
+                </span>
+              ) : null}
             </Link>
           );
         })}
