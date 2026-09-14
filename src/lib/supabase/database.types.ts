@@ -6,7 +6,7 @@ export type OrderStatus = 'pendiente' | 'aceptado' | 'en_preparacion' | 'listo' 
 export type DeliveryMethod = 'retiro_local' | 'delivery';
 export type PaymentMethodCode = 'efectivo' | 'transferencia';
 export type DeliveryVehicleType = 'moto' | 'auto' | 'bici' | 'otro';
-export type DeliveryAssignmentStatus = 'assigned' | 'accepted' | 'picked_up' | 'in_transit' | 'delivered' | 'cancelled';
+export type DeliveryAssignmentStatus = 'assigned' | 'accepted' | 'picked_up' | 'in_transit' | 'rejected_by_customer' | 'delivered' | 'cancelled';
 export type DeliverySettlementStatus = 'draft' | 'paid' | 'cancelled';
 
 export interface DeliveryQuoteRow {
@@ -143,9 +143,14 @@ export interface Database {
         { commission_percent?: number; valid_from?: string; valid_to?: string | null; created_by?: string | null }
       >;
       delivery_assignments: TableDefinition<
-        { id: string; order_id: string; rate_id: string; status: DeliveryAssignmentStatus; assigned_by: string | null; assigned_at: string; accepted_at: string | null; picked_up_at: string | null; in_transit_at: string | null; delivered_at: string | null; cancelled_at: string | null; cancellation_reason: string | null; created_at: string; updated_at: string },
-        { id?: string; order_id: string; rate_id: string; status?: DeliveryAssignmentStatus; assigned_by?: string | null; assigned_at?: string; accepted_at?: string | null; picked_up_at?: string | null; in_transit_at?: string | null; delivered_at?: string | null; cancelled_at?: string | null; cancellation_reason?: string | null; created_at?: string; updated_at?: string },
-        { status?: DeliveryAssignmentStatus; assigned_by?: string | null; accepted_at?: string | null; picked_up_at?: string | null; in_transit_at?: string | null; delivered_at?: string | null; cancelled_at?: string | null; cancellation_reason?: string | null; updated_at?: string }
+        { id: string; order_id: string; rate_id: string; status: DeliveryAssignmentStatus; assigned_by: string | null; assigned_at: string; accepted_at: string | null; picked_up_at: string | null; in_transit_at: string | null; delivered_at: string | null; cancelled_at: string | null; cancellation_reason: string | null; rejected_at: string | null; rejection_reason: string | null; created_at: string; updated_at: string },
+        { id?: string; order_id: string; rate_id: string; status?: DeliveryAssignmentStatus; assigned_by?: string | null; assigned_at?: string; accepted_at?: string | null; picked_up_at?: string | null; in_transit_at?: string | null; delivered_at?: string | null; cancelled_at?: string | null; cancellation_reason?: string | null; rejected_at?: string | null; rejection_reason?: string | null; created_at?: string; updated_at?: string },
+        { status?: DeliveryAssignmentStatus; assigned_by?: string | null; accepted_at?: string | null; picked_up_at?: string | null; in_transit_at?: string | null; delivered_at?: string | null; cancelled_at?: string | null; cancellation_reason?: string | null; rejected_at?: string | null; rejection_reason?: string | null; updated_at?: string }
+      >;
+      delivery_assignment_compensation: TableDefinition<
+        { assignment_id: string; delivery_fee_snapshot: number; commission_percent_override: number | null; created_at: string },
+        { assignment_id: string; delivery_fee_snapshot: number; commission_percent_override?: number | null; created_at?: string },
+        { delivery_fee_snapshot?: number; commission_percent_override?: number | null }
       >;
       delivery_assignment_events: TableDefinition<
         { id: number; assignment_id: string; status: DeliveryAssignmentStatus; actor_id: string | null; note: string | null; created_at: string },
@@ -182,13 +187,15 @@ export interface Database {
       admin_delete_role: { Args: { role_uuid: string }; Returns: undefined };
       get_delivery_admin_dashboard: { Args: Record<PropertyKey, never>; Returns: Json };
       get_delivery_driver_dashboard: { Args: Record<PropertyKey, never>; Returns: Json };
-      admin_assign_delivery: { Args: { order_uuid: string; driver_uuid: string; note?: string | null }; Returns: string };
+      get_delivery_driver_delivery_detail: { Args: { assignment_uuid: string }; Returns: Json };
+      admin_assign_delivery: { Args: { order_uuid: string; driver_uuid: string; note?: string | null; commission_percent_override?: number | null }; Returns: string };
       admin_cancel_delivery_assignment: { Args: { assignment_uuid: string; reason?: string | null }; Returns: undefined };
       admin_create_delivery_settlement: { Args: { driver_uuid: string; from_ts: string; to_ts: string; settlement_notes?: string | null }; Returns: string };
       admin_mark_delivery_settlement_paid: { Args: { settlement_uuid: string }; Returns: undefined };
       admin_cancel_delivery_settlement: { Args: { settlement_uuid: string }; Returns: undefined };
       admin_set_delivery_driver_rate: { Args: { target_driver_id: string; new_percent: number }; Returns: undefined };
       driver_advance_delivery: { Args: { assignment_uuid: string; next_status: DeliveryAssignmentStatus; note?: string | null }; Returns: Json };
+      driver_reject_delivery: { Args: { assignment_uuid: string; reason?: string | null }; Returns: Json };
     };
     Enums: {
       ingredient_type: IngredientType;
