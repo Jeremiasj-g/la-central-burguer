@@ -9,6 +9,7 @@ import {
   Pizza,
   Settings,
   ShoppingBag,
+  Store,
   Tags,
   Truck,
   Users,
@@ -22,16 +23,17 @@ export const PUBLIC_NAVIGATION = [
 ] as const;
 
 export const ADMIN_NAVIGATION = [
-  { label: 'Dashboard', href: ROUTES.adminDashboard, icon: LayoutDashboard },
-  { label: 'Productos', href: ROUTES.adminProductos, icon: Beef },
-  { label: 'Categorías', href: ROUTES.adminCategorias, icon: Tags },
-  { label: 'Ingredientes', href: ROUTES.adminIngredientes, icon: Boxes },
-  { label: 'Recetas', href: ROUTES.adminRecetas, icon: BookOpenCheck },
-  { label: 'Pedidos', href: ROUTES.adminPedidos, icon: ClipboardList },
-  { label: 'Delivery', href: ROUTES.adminDelivery, icon: Truck },
-  { label: 'Usuarios y roles', href: ROUTES.adminUsuarios, icon: Users },
-  { label: 'Reportes', href: ROUTES.adminReportes, icon: FileSpreadsheet },
-  { label: 'Configuración', href: ROUTES.adminConfiguracion, icon: Settings },
+  { label: 'Dashboard', href: ROUTES.adminDashboard, icon: LayoutDashboard, development: false },
+  { label: 'Productos', href: ROUTES.adminProductos, icon: Beef, development: false },
+  { label: 'Categorías', href: ROUTES.adminCategorias, icon: Tags, development: false },
+  { label: 'Ingredientes', href: ROUTES.adminIngredientes, icon: Boxes, development: false },
+  { label: 'Recetas', href: ROUTES.adminRecetas, icon: BookOpenCheck, development: false },
+  { label: 'Pedidos', href: ROUTES.adminPedidos, icon: ClipboardList, development: false },
+  { label: 'Venta mostrador', href: ROUTES.adminVentaMostrador, icon: Store, development: true },
+  { label: 'Delivery', href: ROUTES.adminDelivery, icon: Truck, development: false },
+  { label: 'Usuarios y roles', href: ROUTES.adminUsuarios, icon: Users, development: false },
+  { label: 'Reportes', href: ROUTES.adminReportes, icon: FileSpreadsheet, development: false },
+  { label: 'Configuración', href: ROUTES.adminConfiguracion, icon: Settings, development: false },
 ] as const;
 
 export const CATEGORY_ICON_HINTS = {
