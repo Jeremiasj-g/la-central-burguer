@@ -173,8 +173,8 @@ export function VentaMostradorPage() {
         </div>
       ) : null}
 
-      <section className="overflow-hidden rounded-sm border-2 border-red-200 bg-red-50/30 shadow-soft">
-        <div className="grid min-w-0 gap-0 xl:grid-cols-[minmax(0,1fr)_420px]">
+      <section className="overflow-visible rounded-sm border-2 border-red-200 bg-red-50/30 shadow-soft">
+        <div className="grid min-w-0 items-start gap-0 xl:grid-cols-[minmax(0,1fr)_420px]">
           <div className="min-w-0 border-b border-red-100 bg-white p-4 sm:p-5 xl:border-b-0 xl:border-r">
             <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div>
@@ -233,7 +233,7 @@ export function VentaMostradorPage() {
             )}
           </div>
 
-          <aside className="min-w-0 bg-white p-4 sm:p-5 xl:sticky xl:top-16 xl:self-start">
+          <aside className="min-w-0 self-start bg-white p-4 sm:p-5 xl:sticky xl:top-20 xl:max-h-[calc(100vh-6rem)] xl:overflow-y-auto">
             <div className="flex items-start justify-between gap-3">
               <div>
                 <p className="text-xs font-black uppercase tracking-[.12em] text-red-600">Venta rápida</p>
