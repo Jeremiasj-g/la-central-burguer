@@ -37,12 +37,14 @@ function normalizeMetrics(metrics?: DashboardRpc['metrics']): MetricSummary[] {
   return (metrics ?? []).map((metric) => {
     const isDailySales = metric.label === 'Ventas del día';
     const hasRevenueBreakdown = metric.productRevenue !== undefined && metric.deliveryRevenue !== undefined;
+    const numericValue = Number(metric.value);
+    const valueKind = isDailySales || metric.label === 'Ticket promedio' ? 'currency' : 'number';
 
     return {
       label: isDailySales && hasRevenueBreakdown ? 'Ventas del día + delivery' : metric.label,
-      value: isDailySales || metric.label === 'Ticket promedio'
-        ? formatCurrency(Number(metric.value))
-        : String(metric.value),
+      value: valueKind === 'currency' ? formatCurrency(numericValue) : String(metric.value),
+      numericValue,
+      valueKind,
       hint: isDailySales && hasRevenueBreakdown
         ? `Productos ${formatCurrency(Number(metric.productRevenue))} + delivery ${formatCurrency(Number(metric.deliveryRevenue))}`
         : metric.hint,
