@@ -1,0 +1,408 @@
+/*
+ * Experimento visual exclusivo del panel administrativo.
+ * No modifica lógica ni componentes públicos: sólo redefine superficies,
+ * tipografía, controles, tablas, overlays y estados dentro de /admin.
+ */
+
+.admin-ios-root {
+  min-height: 100vh;
+  background: #f2f2f7;
+  color: #1c1c1e;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", Inter, system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+.admin-ios-root ::selection {
+  background: rgba(255, 149, 0, 0.2);
+}
+
+.admin-ios-root .admin-scope {
+  --ios-bg: #f2f2f7;
+  --ios-surface: #ffffff;
+  --ios-surface-soft: #f7f7fa;
+  --ios-separator: #e5e5ea;
+  --ios-separator-strong: #d1d1d6;
+  --ios-text: #1c1c1e;
+  --ios-text-secondary: #636366;
+  --ios-text-tertiary: #8e8e93;
+  --ios-orange: #ff9500;
+  --ios-orange-soft: #fff3e0;
+  --ios-blue: #007aff;
+  --ios-green: #34c759;
+  --ios-red: #ff3b30;
+  background:
+    radial-gradient(circle at 78% -10%, rgba(255, 149, 0, 0.055), transparent 24rem),
+    #f2f2f7;
+  color: var(--ios-text);
+}
+
+/* El admin histórico forzaba radios mínimos. Esta rama invierte esa decisión. */
+.admin-ios-root .admin-scope .rounded-sm {
+  border-radius: 12px !important;
+}
+
+.admin-ios-root .admin-scope .rounded-md {
+  border-radius: 14px !important;
+}
+
+.admin-ios-root .admin-scope .rounded-lg {
+  border-radius: 16px !important;
+}
+
+.admin-ios-root .admin-scope .rounded-xl {
+  border-radius: 18px !important;
+}
+
+.admin-ios-root .admin-scope .rounded-2xl {
+  border-radius: 22px !important;
+}
+
+.admin-ios-root .admin-scope .rounded-3xl {
+  border-radius: 28px !important;
+}
+
+.admin-ios-root .admin-scope :is(.shadow-soft, .shadow-dark) {
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.025), 0 12px 34px rgba(0, 0, 0, 0.055) !important;
+}
+
+.admin-ios-root .admin-scope .shadow-orange {
+  box-shadow: 0 8px 24px rgba(255, 149, 0, 0.16) !important;
+}
+
+/* Colores de marca traducidos al lenguaje visual iOS. */
+.admin-ios-root .admin-scope .bg-central-orange {
+  background-color: #ff9500 !important;
+}
+
+.admin-ios-root .admin-scope .text-central-orange {
+  color: #ff9500 !important;
+}
+
+.admin-ios-root .admin-scope .border-central-orange {
+  border-color: #ff9500 !important;
+}
+
+.admin-ios-root .admin-scope .text-central-carbon {
+  color: #1c1c1e !important;
+}
+
+.admin-ios-root .admin-scope .bg-neutral-50 {
+  background-color: #f7f7fa !important;
+}
+
+.admin-ios-root .admin-scope .bg-neutral-100 {
+  background-color: #f2f2f7 !important;
+}
+
+.admin-ios-root .admin-scope .border-neutral-100,
+.admin-ios-root .admin-scope .border-neutral-200 {
+  border-color: #e5e5ea !important;
+}
+
+.admin-ios-root .admin-scope .text-neutral-400 {
+  color: #aeaeb2 !important;
+}
+
+.admin-ios-root .admin-scope .text-neutral-500 {
+  color: #8e8e93 !important;
+}
+
+.admin-ios-root .admin-scope .text-neutral-600,
+.admin-ios-root .admin-scope .text-neutral-700 {
+  color: #636366 !important;
+}
+
+/* Tarjetas y superficies blancas con elevación muy contenida. */
+.admin-ios-root .admin-scope :is(.bg-white.border, .bg-white[class*="shadow"], article.bg-white) {
+  border-color: rgba(0, 0, 0, 0.055) !important;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.025), 0 10px 28px rgba(0, 0, 0, 0.035) !important;
+}
+
+.admin-ios-root .admin-scope section,
+.admin-ios-root .admin-scope article {
+  transition: box-shadow 180ms ease, border-color 180ms ease, transform 180ms ease;
+}
+
+/* Inputs y filtros: superficies agrupadas estilo Settings. */
+.admin-ios-root .admin-scope :is(
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
+  textarea,
+  select,
+  [role="combobox"]
+) {
+  border-color: #d1d1d6 !important;
+  background-color: #ffffff !important;
+  color: #1c1c1e !important;
+  border-radius: 12px !important;
+  box-shadow: none !important;
+  outline: none;
+  transition: border-color 160ms ease, box-shadow 160ms ease, background-color 160ms ease;
+}
+
+.admin-ios-root .admin-scope :is(input, textarea)::placeholder {
+  color: #aeaeb2 !important;
+  opacity: 1;
+}
+
+.admin-ios-root .admin-scope :is(
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
+  textarea,
+  select,
+  [role="combobox"]
+):focus,
+.admin-ios-root .admin-scope [role="combobox"][data-state="open"] {
+  border-color: #ff9500 !important;
+  box-shadow: 0 0 0 3px rgba(255, 149, 0, 0.12) !important;
+}
+
+.admin-ios-root .admin-scope input[type="checkbox"],
+.admin-ios-root .admin-scope input[type="radio"] {
+  accent-color: #ff9500;
+}
+
+/* Botones: menos peso visual, feedback táctil y radios suaves. */
+.admin-ios-root .admin-scope button,
+.admin-ios-root .admin-scope a {
+  -webkit-tap-highlight-color: transparent;
+}
+
+.admin-ios-root .admin-scope button:not(:disabled) {
+  transition: transform 150ms ease, background-color 160ms ease, border-color 160ms ease, color 160ms ease, box-shadow 160ms ease;
+}
+
+.admin-ios-root .admin-scope button:not(:disabled):active {
+  transform: scale(0.985);
+}
+
+.admin-ios-root .admin-scope :is(button, a).font-black {
+  font-weight: 600 !important;
+}
+
+/* Tablas: cabeceras secundarias, separadores finos y lectura tipo lista. */
+.admin-ios-root .admin-scope table {
+  color: #1c1c1e;
+  font-variant-numeric: tabular-nums;
+}
+
+.admin-ios-root .admin-scope thead {
+  background: #f7f7fa !important;
+}
+
+.admin-ios-root .admin-scope th {
+  border-color: #e5e5ea !important;
+  color: #8e8e93 !important;
+  font-size: 11px !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.025em;
+}
+
+.admin-ios-root .admin-scope td {
+  border-color: #e5e5ea !important;
+}
+
+.admin-ios-root .admin-scope tbody tr {
+  transition: background-color 150ms ease;
+}
+
+.admin-ios-root .admin-scope tbody tr:hover {
+  background-color: rgba(242, 242, 247, 0.72);
+}
+
+/* Pestañas y chips conservan forma pill, como controles segmentados de iOS. */
+.admin-ios-root .admin-scope [role="tablist"] {
+  border-color: #e5e5ea !important;
+  background: #ededf2 !important;
+  border-radius: 12px !important;
+}
+
+.admin-ios-root .admin-scope [role="tab"] {
+  border-radius: 9px !important;
+  font-weight: 500 !important;
+}
+
+.admin-ios-root .admin-scope [role="tab"][data-state="active"],
+.admin-ios-root .admin-scope [role="tab"][aria-selected="true"] {
+  background: #ffffff !important;
+  color: #1c1c1e !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08) !important;
+}
+
+/* Formularios de modal históricos. */
+.admin-ios-root .admin-scope .admin-modal-field {
+  display: grid;
+  grid-template-columns: 122px minmax(0, 1fr);
+  align-items: start;
+  gap: 0.8rem;
+}
+
+.admin-ios-root .admin-scope .admin-modal-label {
+  padding-top: 0.6rem;
+  color: #636366 !important;
+  font-size: 0.8125rem;
+  font-weight: 600 !important;
+  line-height: 1.2;
+  text-align: right;
+}
+
+.admin-ios-root .admin-scope .admin-time-input::-webkit-calendar-picker-indicator {
+  margin-right: 1.55rem;
+  opacity: 0.55;
+}
+
+@media (max-width: 760px) {
+  .admin-ios-root .admin-scope .admin-modal-field {
+    grid-template-columns: 1fr;
+    gap: 0.45rem;
+  }
+
+  .admin-ios-root .admin-scope .admin-modal-label {
+    padding-top: 0;
+    text-align: left;
+  }
+}
+
+/* Scrollbars discretos dentro del panel. */
+.admin-ios-root .admin-scope,
+.admin-ios-root .admin-scope * {
+  scrollbar-width: thin;
+  scrollbar-color: #c7c7cc transparent;
+}
+
+.admin-ios-root .admin-scope *::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.admin-ios-root .admin-scope *::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.admin-ios-root .admin-scope *::-webkit-scrollbar-thumb {
+  border: 2px solid transparent;
+  border-radius: 999px;
+  background: #c7c7cc;
+  background-clip: padding-box;
+}
+
+/* Skeletons claros dentro del admin. */
+.admin-ios-root .admin-scope .react-loading-skeleton,
+body:has(.admin-ios-root) [data-lcb-scroll-lock-overlay="true"] .react-loading-skeleton {
+  --base-color: #ececf1;
+  --highlight-color: #f8f8fb;
+}
+
+/*
+ * Modal usa portal al body, por eso :has(.admin-ios-root) mantiene el rediseño
+ * limitado a /admin sin afectar checkout ni el sitio público.
+ */
+body:has(.admin-ios-root) [data-lcb-scroll-lock-overlay="true"] {
+  background: rgba(28, 28, 30, 0.28) !important;
+  backdrop-filter: blur(8px) !important;
+}
+
+body:has(.admin-ios-root) [data-lcb-scroll-lock-overlay="true"] > section {
+  border: 1px solid rgba(0, 0, 0, 0.06) !important;
+  border-radius: 26px !important;
+  background: rgba(255, 255, 255, 0.98) !important;
+  color: #1c1c1e !important;
+  box-shadow: 0 28px 80px rgba(0, 0, 0, 0.18) !important;
+}
+
+body:has(.admin-ios-root) [data-lcb-scroll-lock-overlay="true"] > section > div:first-child {
+  border-color: #e5e5ea !important;
+}
+
+body:has(.admin-ios-root) [data-lcb-scroll-lock-overlay="true"] h2 {
+  color: #1c1c1e !important;
+  font-weight: 600 !important;
+  letter-spacing: -0.02em;
+}
+
+body:has(.admin-ios-root) [data-lcb-scroll-lock-overlay="true"] :is(label, p, span).text-white,
+body:has(.admin-ios-root) [data-lcb-scroll-lock-overlay="true"] .text-white\/70,
+body:has(.admin-ios-root) [data-lcb-scroll-lock-overlay="true"] .text-white\/75,
+body:has(.admin-ios-root) [data-lcb-scroll-lock-overlay="true"] .text-white\/80 {
+  color: #636366 !important;
+}
+
+body:has(.admin-ios-root) [data-lcb-scroll-lock-overlay="true"] :is(
+  input:not([type="checkbox"]):not([type="radio"]),
+  textarea,
+  select,
+  [role="combobox"]
+) {
+  border-color: #d1d1d6 !important;
+  border-radius: 12px !important;
+  background: #f7f7fa !important;
+  color: #1c1c1e !important;
+  box-shadow: none !important;
+}
+
+body:has(.admin-ios-root) [data-lcb-scroll-lock-overlay="true"] :is(input, textarea)::placeholder {
+  color: #aeaeb2 !important;
+}
+
+body:has(.admin-ios-root) [data-lcb-scroll-lock-overlay="true"] :is(
+  input:not([type="checkbox"]):not([type="radio"]),
+  textarea,
+  select,
+  [role="combobox"]
+):focus {
+  border-color: #ff9500 !important;
+  box-shadow: 0 0 0 3px rgba(255, 149, 0, 0.12) !important;
+}
+
+/* Dropdowns Radix portaleados al body. */
+body:has(.admin-ios-root) .lcb-dropdown-content {
+  border: 1px solid rgba(0, 0, 0, 0.06) !important;
+  border-radius: 16px !important;
+  background: rgba(255, 255, 255, 0.98) !important;
+  color: #1c1c1e !important;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.14) !important;
+  backdrop-filter: blur(18px);
+}
+
+/* Toasts del admin: tarjetas claras, sin tocar los toasts del sitio público. */
+body:has(.admin-ios-root) .Toastify__toast {
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.97);
+  color: #1c1c1e;
+  box-shadow: 0 16px 46px rgba(0, 0, 0, 0.14);
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", Inter, system-ui, sans-serif;
+  backdrop-filter: blur(18px);
+}
+
+body:has(.admin-ios-root) .Toastify__progress-bar {
+  background: #ff9500;
+}
+
+body:has(.admin-ios-root) .Toastify__close-button {
+  color: #636366;
+}
+
+/* Login administrativo. */
+.admin-ios-root .admin-login-scope :is(input, textarea) {
+  -webkit-appearance: none;
+}
+
+@media (max-width: 640px) {
+  .admin-ios-root .admin-scope {
+    background: #f2f2f7;
+  }
+
+  .admin-ios-root .admin-scope table {
+    font-size: 12px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .admin-ios-root .admin-scope *,
+  .admin-ios-root .admin-login-scope * {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}
