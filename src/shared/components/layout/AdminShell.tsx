@@ -67,21 +67,21 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
   }
 
   const sidebar = (
-    <aside className="flex h-full flex-col bg-white/95 text-[#1C1C1E] backdrop-blur-2xl">
+    <aside className="flex h-full flex-col bg-[#11100F] text-white">
       <div className="px-5 pb-4 pt-5">
-        <div className="flex items-center gap-3 rounded-[20px] bg-[#F2F2F7] p-3">
-          <span className="grid h-11 w-11 shrink-0 place-items-center overflow-hidden rounded-[14px] bg-white text-[#FF9500] shadow-[0_1px_2px_rgba(0,0,0,0.04),0_8px_24px_rgba(0,0,0,0.04)]">
+        <div className="flex items-center gap-3 rounded-[20px] border border-white/[0.07] bg-white/[0.045] p-3">
+          <span className="grid h-11 w-11 shrink-0 place-items-center overflow-hidden rounded-[14px] bg-[#FF9500] text-white shadow-[0_8px_24px_rgba(255,149,0,0.18)]">
             <BusinessLogo logoUrl={config?.logoUrl} businessName={config?.businessName} mode="admin" />
           </span>
           <div className="min-w-0">
-            <p className="truncate text-[15px] font-semibold tracking-[-0.015em] text-[#1C1C1E]">{businessName}</p>
-            <p className="mt-0.5 text-[11px] font-medium text-[#8E8E93]">Panel administrativo</p>
+            <p className="truncate text-[15px] font-semibold tracking-[-0.015em] text-white">{businessName}</p>
+            <p className="mt-0.5 text-[11px] font-medium text-white/45">Panel administrativo</p>
           </div>
         </div>
       </div>
 
       <nav className="no-scrollbar flex-1 space-y-1 overflow-y-auto px-3 pb-4">
-        <p className="px-3 pb-2 pt-1 text-[11px] font-semibold uppercase tracking-[0.08em] text-[#AEAEB2]">Administración</p>
+        <p className="px-3 pb-2 pt-1 text-[11px] font-semibold uppercase tracking-[0.08em] text-white/30">Administración</p>
         {ADMIN_NAVIGATION.map((item) => {
           const Icon = item.icon;
           const active = pathname === item.href;
@@ -91,14 +91,14 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
               href={item.href}
               onClick={() => setMobileOpen(false)}
               className={cn(
-                'group flex items-center gap-3 rounded-[14px] px-3.5 py-2.5 text-[14px] font-medium text-[#636366] transition-[background-color,color,transform] duration-200 hover:bg-[#F2F2F7] hover:text-[#1C1C1E] active:scale-[0.985]',
-                active && 'bg-[#FFF3E0] font-semibold text-[#C86E00]',
+                'group flex items-center gap-3 rounded-[14px] px-3.5 py-2.5 text-[14px] font-medium text-white/58 transition-[background-color,color,transform] duration-200 hover:bg-white/[0.07] hover:text-white active:scale-[0.985]',
+                active && 'bg-[#FF9500]/15 font-semibold text-[#FFB340]',
               )}
             >
               <span
                 className={cn(
-                  'grid h-8 w-8 shrink-0 place-items-center rounded-[10px] bg-[#F2F2F7] text-[#8E8E93] transition-colors',
-                  active && 'bg-white text-[#FF9500] shadow-[0_1px_2px_rgba(0,0,0,0.04)]',
+                  'grid h-8 w-8 shrink-0 place-items-center rounded-[10px] bg-white/[0.055] text-white/42 transition-colors',
+                  active && 'bg-[#FF9500]/15 text-[#FF9500]',
                 )}
               >
                 <Icon size={17} strokeWidth={2} />
@@ -110,12 +110,12 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
         })}
       </nav>
 
-      <div className="border-t border-[#E5E5EA] p-3">
+      <div className="border-t border-white/[0.07] p-3">
         <button
           onClick={handleLogout}
-          className="flex w-full items-center gap-3 rounded-[14px] px-3.5 py-2.5 text-[14px] font-medium text-[#FF3B30] transition hover:bg-[#FFF0EF] active:scale-[0.985]"
+          className="flex w-full items-center gap-3 rounded-[14px] px-3.5 py-2.5 text-[14px] font-medium text-[#FF6961] transition hover:bg-[#FF3B30]/10 active:scale-[0.985]"
         >
-          <span className="grid h-8 w-8 place-items-center rounded-[10px] bg-[#FFF0EF]">
+          <span className="grid h-8 w-8 place-items-center rounded-[10px] bg-[#FF3B30]/10">
             <LogOut size={17} />
           </span>
           Salir
@@ -126,15 +126,15 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="admin-scope min-h-screen bg-[#F2F2F7] text-[#1C1C1E]">
-      <div className="fixed inset-y-0 left-0 z-40 hidden w-[272px] border-r border-[#E5E5EA] bg-white lg:block">{sidebar}</div>
+      <div className="fixed inset-y-0 left-0 z-40 hidden w-[272px] border-r border-black/10 bg-[#11100F] lg:block">{sidebar}</div>
 
       {mobileOpen ? (
         <div
-          className="fixed inset-0 z-50 bg-black/25 backdrop-blur-[2px] lg:hidden"
+          className="fixed inset-0 z-50 bg-black/35 backdrop-blur-[2px] lg:hidden"
           onClick={() => setMobileOpen(false)}
         >
           <div
-            className="h-full w-[min(86vw,304px)] overflow-hidden rounded-r-[28px] shadow-[18px_0_60px_rgba(0,0,0,0.18)]"
+            className="h-full w-[min(86vw,304px)] overflow-hidden rounded-r-[28px] bg-[#11100F] shadow-[18px_0_60px_rgba(0,0,0,0.28)]"
             onClick={(event) => event.stopPropagation()}
           >
             {sidebar}
