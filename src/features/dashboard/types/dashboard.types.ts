@@ -1,8 +1,12 @@
 import type { Order } from '@/features/pedidos/types/pedido.types';
 
+export type MetricValueKind = 'currency' | 'number';
+
 export interface MetricSummary {
   label: string;
   value: string;
+  numericValue: number;
+  valueKind: MetricValueKind;
   hint: string;
   trend: string;
 }
