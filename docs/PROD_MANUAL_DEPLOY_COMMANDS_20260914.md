@@ -31,7 +31,28 @@ Si tenés el CLI instalado globalmente, reemplazá `npx supabase` por `supabase`
 
 El CLI puede pedir la contraseña de la base. Ingresarla directamente en la terminal; no compartirla por chat ni guardarla en Git.
 
-## 3. Alinear solamente el historial de migraciones ya existentes
+## 3. Backup local previo al cambio
+
+Como la organización está actualmente en plan Free, guardar una copia local antes de tocar el esquema.
+
+Crear una carpeta fuera de `supabase/` o asegurarse de que esté ignorada por Git:
+
+```bash
+mkdir backups-prod
+```
+
+Guardar esquema y datos públicos actuales:
+
+```bash
+npx supabase db dump --linked > backups-prod/pre-delivery-schema-20260914.sql
+npx supabase db dump --data-only --linked > backups-prod/pre-delivery-data-20260914.sql
+```
+
+Comprobar que ambos archivos existen y tienen contenido antes de seguir. No subir estos backups a GitHub: el dump de datos contiene información real del negocio/clientes.
+
+Este backup complementa el snapshot de conteos tomado por la auditoría previa; no reemplaza los backups administrados/PITR de planes superiores.
+
+## 4. Alinear solamente el historial de migraciones ya existentes
 
 PROD ya tiene físicamente el esquema inicial, los campos de logo y la versión final de `get_dashboard_stats`, pero su historial remoto no usa exactamente los mismos timestamps del repositorio.
 
@@ -65,7 +86,7 @@ npx supabase migration list
 
 No continuar si aparecen migraciones remotas desconocidas o divergencias distintas de las documentadas.
 
-## 4. Dry-run obligatorio
+## 5. Dry-run obligatorio
 
 ```bash
 npx supabase db push --dry-run
@@ -88,7 +109,7 @@ El dry-run debe proponer únicamente estas migraciones nuevas, en este orden:
 
 Si intenta aplicar `202607310001`, `202607310002`, `20260910202734` o `20260912141000`, detenerse y revisar el historial antes de continuar.
 
-## 5. Aplicar migraciones
+## 6. Aplicar migraciones
 
 Sólo si el dry-run coincide exactamente:
 
@@ -100,7 +121,7 @@ No agregar `--include-seed`.
 
 El push aplica estructura y datos de sistema versionados; no copia la base DEV ni su seed/datos operativos.
 
-## 6. Desplegar Edge Functions
+## 7. Desplegar Edge Functions
 
 Con PROD todavía vinculado:
 
@@ -114,7 +135,7 @@ npx supabase functions deploy manage-delivery-driver
 
 Estas funciones sólo dependen de variables estándar del proyecto (`SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`) y no requieren copiar secretos personalizados de DEV.
 
-## 7. No mergear `main` todavía
+## 8. No mergear `main` todavía
 
 Al terminar los comandos anteriores, volver al chat y avisar que finalizaron. Desde la sesión se hará una auditoría de sólo lectura sobre PROD para comprobar:
 
@@ -128,7 +149,7 @@ Al terminar los comandos anteriores, volver al chat y avisar que finalizaron. De
 
 Sólo después de esas verificaciones se habilitará el PR de release para merge a `main`.
 
-## 8. Configuraciones manuales posteriores
+## 9. Configuraciones manuales posteriores
 
 Una vez validado el backend PROD, completar en Supabase PROD:
 
