@@ -113,6 +113,10 @@ const subscribeDriverDeliveryRealtime = createSharedRealtimeSubscription(
       ),
 );
 
-export function subscribeToDriverDeliveries(onChange: () => void) {
-  return subscribeDriverDeliveryRealtime(onChange);
+export function subscribeToDriverDeliveries(onChange: () => void): () => undefined {
+  const unsubscribe = subscribeDriverDeliveryRealtime(onChange);
+  return () => {
+    unsubscribe();
+    return undefined;
+  };
 }
