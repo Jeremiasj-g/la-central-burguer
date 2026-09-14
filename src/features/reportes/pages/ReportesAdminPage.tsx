@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'react-toastify';
 import { AdminPageHeader } from '@/shared/components/layout/AdminPageHeader';
+import { AnimatedValue } from '@/shared/components/ui/AnimatedValue';
 import { Button } from '@/shared/components/ui/Button';
 import { useBusinessConfig } from '@/features/configuracion/hooks/useBusinessConfig';
 import { ReportExportDialog, type ReportExportMode } from '../components/ReportExportDialog';
@@ -52,11 +53,13 @@ function MetricCard({
   value,
   detail,
   icon: Icon,
+  formatter,
 }: {
   label: string;
-  value: string;
+  value: number;
   detail: string;
   icon: React.ComponentType<{ size?: number; className?: string }>;
+  formatter: (value: number) => string;
 }) {
   return (
     <article className="relative min-w-0 overflow-hidden rounded-sm border border-neutral-200 bg-white p-5 shadow-sm">
@@ -65,7 +68,9 @@ function MetricCard({
       </span>
       <div className="min-w-0 pr-12">
         <p className="truncate text-xs font-bold text-neutral-500">{label}</p>
-        <p className="mt-2 break-words text-2xl font-extrabold tracking-tight text-central-carbon">{value}</p>
+        <p className="mt-2 break-words text-2xl font-extrabold tracking-tight text-central-carbon">
+          <AnimatedValue value={value} formatter={formatter} />
+        </p>
         <p className="mt-1 max-w-full text-xs leading-5 text-neutral-500">{detail}</p>
       </div>
     </article>
@@ -228,19 +233,17 @@ export function ReportesAdminPage() {
       ) : null}
 
       <div className="mb-4 flex min-w-0 flex-col gap-1 text-xs leading-5 text-neutral-500 sm:flex-row sm:items-center sm:justify-between">
-        <p className="min-w-0 break-words">
-          {periodDescription}
-        </p>
+        <p className="min-w-0 break-words">{periodDescription}</p>
         <p className="shrink-0">{lastLoadedAt ? `Actualizado ${lastLoadedAt.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' })}` : 'Preparando información…'}</p>
       </div>
 
       <section className="mb-6 grid min-w-0 gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-6">
-        <MetricCard label="Ventas + delivery" value={formatCurrency(summary.netRevenue)} detail={`Productos ${formatCurrency(summary.netRevenue - summary.deliveryRevenue)} + delivery ${formatCurrency(summary.deliveryRevenue)}`} icon={DollarSign} />
-        <MetricCard label="Pedidos válidos" value={formatNumber(summary.validOrders)} detail={`${formatNumber(summary.totalOrders)} pedidos seleccionados`} icon={ShoppingBag} />
-        <MetricCard label="Ticket promedio" value={formatCurrency(summary.averageTicket)} detail="Promedio por pedido válido" icon={ReceiptText} />
-        <MetricCard label="Unidades vendidas" value={formatNumber(summary.unitsSold)} detail="Productos de ventas válidas" icon={PackageCheck} />
-        <MetricCard label="Delivery cobrado" value={formatCurrency(summary.deliveryRevenue)} detail="Incluido en Ventas + delivery" icon={Truck} />
-        <MetricCard label="Cancelaciones" value={formatNumber(summary.cancelledOrders)} detail={`${(summary.cancellationRate * 100).toFixed(1)}% del total seleccionado`} icon={Ban} />
+        <MetricCard label="Ventas + delivery" value={summary.netRevenue} detail={`Productos ${formatCurrency(summary.netRevenue - summary.deliveryRevenue)} + delivery ${formatCurrency(summary.deliveryRevenue)}`} icon={DollarSign} formatter={formatCurrency} />
+        <MetricCard label="Pedidos válidos" value={summary.validOrders} detail={`${formatNumber(summary.totalOrders)} pedidos seleccionados`} icon={ShoppingBag} formatter={formatNumber} />
+        <MetricCard label="Ticket promedio" value={summary.averageTicket} detail="Promedio por pedido válido" icon={ReceiptText} formatter={formatCurrency} />
+        <MetricCard label="Unidades vendidas" value={summary.unitsSold} detail="Productos de ventas válidas" icon={PackageCheck} formatter={formatNumber} />
+        <MetricCard label="Delivery cobrado" value={summary.deliveryRevenue} detail="Incluido en Ventas + delivery" icon={Truck} formatter={formatCurrency} />
+        <MetricCard label="Cancelaciones" value={summary.cancelledOrders} detail={`${(summary.cancellationRate * 100).toFixed(1)}% del total seleccionado`} icon={Ban} formatter={formatNumber} />
       </section>
 
       {isLoading ? (
