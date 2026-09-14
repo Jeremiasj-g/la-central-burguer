@@ -15,7 +15,9 @@ export type ReportDatePreset =
   | 'custom';
 
 export type ReportStatusFilter = 'valid' | 'all' | 'aceptado' | 'cancelado';
-export type ReportGroupBy = 'day' | 'week' | 'month' | 'category' | 'product' | 'payment' | 'delivery';
+export type ReportSource = 'web' | 'admin' | 'import';
+export type ReportSourceFilter = 'all' | ReportSource;
+export type ReportGroupBy = 'day' | 'week' | 'month' | 'category' | 'product' | 'payment' | 'delivery' | 'source';
 
 export interface ReportFilters {
   from: string;
@@ -24,6 +26,7 @@ export interface ReportFilters {
   status: ReportStatusFilter;
   paymentMethod: 'all' | PaymentMethodCode;
   deliveryMethod: 'all' | DeliveryMethod;
+  source: ReportSourceFilter;
   search: string;
 }
 
@@ -46,7 +49,7 @@ export interface ReportOrder {
   total: number;
   status: OrderStatus;
   notes: string | null;
-  source: string;
+  source: ReportSource;
   acceptedAt: string | null;
   cancelledAt: string | null;
   createdAt: string;
