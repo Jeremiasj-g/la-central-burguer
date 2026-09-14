@@ -76,6 +76,7 @@ const STATUS_LABELS: Record<DeliveryAssignmentStatus, string> = {
   accepted: 'Aceptado',
   picked_up: 'Retirado',
   in_transit: 'En camino',
+  rejected_by_customer: 'Rechazado por cliente',
   delivered: 'Entregado',
   cancelled: 'Cancelado',
 };
@@ -94,7 +95,7 @@ const UNASSIGNED_SCOPE_OPTIONS = [
 
 function statusClass(status: DeliveryAssignmentStatus) {
   if (status === 'delivered') return 'border-emerald-200 bg-emerald-50 text-emerald-700';
-  if (status === 'cancelled') return 'border-red-200 bg-red-50 text-red-700';
+  if (status === 'cancelled' || status === 'rejected_by_customer') return 'border-red-200 bg-red-50 text-red-700';
   if (status === 'in_transit' || status === 'picked_up') return 'border-blue-200 bg-blue-50 text-blue-700';
   return 'border-amber-200 bg-amber-50 text-amber-700';
 }
@@ -222,6 +223,7 @@ export function DeliveryAdminPage() {
   const [resetDriver, setResetDriver] = useState<DeliveryDriver | null>(null);
   const [newPassword, setNewPassword] = useState('');
   const [driverByOrder, setDriverByOrder] = useState<Record<string, string>>({});
+  const [commissionByOrder, setCommissionByOrder] = useState<Record<string, number>>({});
   const [driverByAssignment, setDriverByAssignment] = useState<Record<string, string>>({});
   const [settlementDriver, setSettlementDriver] = useState('');
   const [settlementFrom, setSettlementFrom] = useState(() => new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().slice(0, 10));
@@ -282,11 +284,36 @@ export function DeliveryAdminPage() {
     };
   }, [load]);
 
-  async function handleAssign(orderId: string, driverId: string, assignmentId?: string) {
+  function handleOrderDriverChange(orderId: string, driverId: string) {
+    setDriverByOrder((current) => ({ ...current, [orderId]: driverId }));
+    const driver = activeDrivers.find((item) => item.id === driverId);
+    if (driver?.commissionPercent !== null && driver?.commissionPercent !== undefined) {
+      setCommissionByOrder((current) => ({ ...current, [orderId]: driver.commissionPercent as number }));
+    }
+  }
+
+  async function handleAssign(orderId: string, driverId: string, commissionPercent?: number, assignmentId?: string) {
     if (!driverId) return toast.info('Seleccioná un repartidor.');
+    const driver = activeDrivers.find((item) => item.id === driverId);
+    const baseCommission = driver?.commissionPercent ?? null;
+    const effectiveCommission = commissionPercent ?? baseCommission;
+
+    if (effectiveCommission === null || effectiveCommission < 0 || effectiveCommission > 100) {
+      return toast.warning('La comisión debe estar entre 0% y 100%.');
+    }
+
+    const override = baseCommission !== null && Math.abs(effectiveCommission - baseCommission) < 0.005
+      ? null
+      : effectiveCommission;
+
     setBusyId(assignmentId ?? orderId);
     try {
-      await assignDelivery(orderId, driverId, assignmentId ? 'Reasignación desde panel de delivery' : undefined);
+      await assignDelivery(
+        orderId,
+        driverId,
+        override,
+        assignmentId ? 'Reasignación desde panel de delivery' : undefined,
+      );
       toast.success(assignmentId ? 'Pedido reasignado.' : 'Pedido asignado.');
       await load(true);
     } catch (error) {
@@ -450,30 +477,63 @@ export function DeliveryAdminPage() {
                   </div>
                 </div>
                 <div className="custom-scrollbar max-h-[68vh] space-y-3 overflow-y-auto pr-1">
-                  {filteredOrders.length === 0 ? <div className="rounded-sm border border-dashed border-neutral-200 p-8 text-center text-sm text-neutral-500">{emptyOrdersMessage}</div> : filteredOrders.map((order) => (
-                    <article key={order.id} className="rounded-sm border border-neutral-200 p-4">
-                      <div className="flex flex-wrap items-start justify-between gap-3">
-                        <div className="min-w-0">
-                          <p className="break-words font-black text-central-carbon">{order.orderCode} · {order.customerName}</p>
-                          <p className="mt-1 break-words text-xs leading-5 text-neutral-500">{order.address || 'Dirección sin texto'} · {order.distanceKm?.toFixed(1) ?? '—'} km</p>
-                          {unassignedScope === 'all' ? <p className="mt-1 text-[11px] text-neutral-400">Creado {formatDateTime(order.createdAt)}</p> : null}
+                  {filteredOrders.length === 0 ? <div className="rounded-sm border border-dashed border-neutral-200 p-8 text-center text-sm text-neutral-500">{emptyOrdersMessage}</div> : filteredOrders.map((order) => {
+                    const selectedDriverId = driverByOrder[order.id] ?? '';
+                    const selectedDriver = activeDrivers.find((driver) => driver.id === selectedDriverId);
+                    const commissionPercent = commissionByOrder[order.id] ?? selectedDriver?.commissionPercent ?? 0;
+                    const isCustomCommission = Boolean(selectedDriver && selectedDriver.commissionPercent !== null && Math.abs(commissionPercent - selectedDriver.commissionPercent) >= 0.005);
+                    const commissionAmount = order.deliveryCost * commissionPercent / 100;
+
+                    return (
+                      <article key={order.id} className="rounded-sm border border-neutral-200 p-4">
+                        <div className="flex flex-wrap items-start justify-between gap-3">
+                          <div className="min-w-0">
+                            <p className="break-words font-black text-central-carbon">{order.orderCode} · {order.customerName}</p>
+                            <p className="mt-1 break-words text-xs leading-5 text-neutral-500">{order.address || 'Dirección sin texto'} · {order.distanceKm?.toFixed(1) ?? '—'} km</p>
+                            {unassignedScope === 'all' ? <p className="mt-1 text-[11px] text-neutral-400">Creado {formatDateTime(order.createdAt)}</p> : null}
+                          </div>
+                          <div className="text-right"><p className="font-black">{formatCurrency(order.total)}</p><p className="text-xs text-neutral-500">Envío {formatCurrency(order.deliveryCost)}</p></div>
                         </div>
-                        <div className="text-right"><p className="font-black">{formatCurrency(order.total)}</p><p className="text-xs text-neutral-500">Envío {formatCurrency(order.deliveryCost)}</p></div>
-                      </div>
-                      <div className="mt-4 grid gap-2 sm:grid-cols-[minmax(0,1fr)_auto]">
-                        <SearchableSelect
-                          value={driverByOrder[order.id]}
-                          options={activeDriverOptions}
-                          onValueChange={(value) => setDriverByOrder((current) => ({ ...current, [order.id]: value }))}
-                          placeholder="Seleccionar repartidor"
-                          searchPlaceholder="Buscar repartidor…"
-                          emptyMessage="No hay repartidores activos."
-                          aria-label={`Repartidor para ${order.orderCode}`}
-                        />
-                        <Button size="sm" onClick={() => void handleAssign(order.id, driverByOrder[order.id] ?? '')} disabled={busyId === order.id}>Asignar</Button>
-                      </div>
-                    </article>
-                  ))}
+
+                        <div className="mt-4 grid gap-2 sm:grid-cols-[minmax(0,1fr)_118px_auto]">
+                          <SearchableSelect
+                            value={selectedDriverId}
+                            options={activeDriverOptions}
+                            onValueChange={(value) => handleOrderDriverChange(order.id, value)}
+                            placeholder="Seleccionar repartidor"
+                            searchPlaceholder="Buscar repartidor…"
+                            emptyMessage="No hay repartidores activos."
+                            aria-label={`Repartidor para ${order.orderCode}`}
+                          />
+                          <label className="relative block">
+                            <span className="sr-only">Comisión para este pedido</span>
+                            <input
+                              type="number"
+                              min="0"
+                              max="100"
+                              step="0.5"
+                              disabled={!selectedDriver}
+                              value={selectedDriver ? commissionPercent : ''}
+                              onChange={(event) => setCommissionByOrder((current) => ({ ...current, [order.id]: Number(event.target.value) }))}
+                              className="h-10 w-full rounded-sm border border-neutral-200 bg-white px-3 pr-8 text-sm font-semibold text-central-carbon outline-none transition focus:border-central-orange focus:ring-2 focus:ring-central-orange/15 disabled:bg-neutral-50 disabled:text-neutral-300"
+                              placeholder="%"
+                            />
+                            <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold text-neutral-400">%</span>
+                          </label>
+                          <Button size="sm" onClick={() => void handleAssign(order.id, selectedDriverId, commissionPercent)} disabled={busyId === order.id || !selectedDriver}>Asignar</Button>
+                        </div>
+
+                        {selectedDriver ? (
+                          <div className="mt-2.5 flex flex-wrap items-center justify-between gap-2 rounded-sm bg-neutral-50 px-3 py-2 text-xs">
+                            <span className="text-neutral-500">
+                              Base {selectedDriver.commissionPercent}% {isCustomCommission ? '· comisión personalizada' : '· comisión base'}
+                            </span>
+                            <span className="font-semibold text-emerald-700">Recibe {formatCurrency(commissionAmount)}</span>
+                          </div>
+                        ) : null}
+                      </article>
+                    );
+                  })}
                 </div>
               </section>
 
@@ -497,7 +557,7 @@ export function DeliveryAdminPage() {
                           searchPlaceholder="Buscar repartidor…"
                           aria-label={`Reasignar ${item.orderCode}`}
                         />
-                        <Button size="sm" variant="secondary" onClick={() => void handleAssign(item.orderId, driverByAssignment[item.id] ?? item.driverId, item.id)} disabled={busyId === item.id}><RotateCcw size={14} /> Reasignar</Button>
+                        <Button size="sm" variant="secondary" onClick={() => void handleAssign(item.orderId, driverByAssignment[item.id] ?? item.driverId, undefined, item.id)} disabled={busyId === item.id}><RotateCcw size={14} /> Reasignar</Button>
                         <Button size="sm" variant="danger" onClick={() => setPendingConfirmation({ type: 'cancel-assignment', assignment: item })} disabled={busyId === item.id}>Quitar</Button>
                       </div>
                     </article>
