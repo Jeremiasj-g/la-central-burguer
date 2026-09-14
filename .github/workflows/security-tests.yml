@@ -1,0 +1,27 @@
+name: Tests de seguridad
+
+on:
+  push:
+    branches:
+      - tests-seguridad
+  workflow_dispatch:
+
+jobs:
+  security-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install app dependencies
+        run: npm ci
+
+      - name: Run isolated security tests
+        run: npx -y vitest@3.2.4 run --config vitest.security.config.mjs
