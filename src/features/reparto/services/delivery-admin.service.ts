@@ -89,13 +89,24 @@ export async function cancelDeliverySettlement(settlementId: string) {
 }
 
 const subscribeDeliveryOrdersRealtime = createSharedRealtimeSubscription(
-  'delivery-admin-orders',
+  'delivery-admin-operation',
   (channel, notifyListeners) =>
-    channel.on(
-      'postgres_changes',
-      { event: '*', schema: 'public', table: 'orders' },
-      notifyListeners,
-    ),
+    channel
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'orders' },
+        notifyListeners,
+      )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'delivery_assignments' },
+        notifyListeners,
+      )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'delivery_assignment_compensation' },
+        notifyListeners,
+      ),
 );
 
 export function subscribeToDeliveryOrders(onChange: () => void) {
