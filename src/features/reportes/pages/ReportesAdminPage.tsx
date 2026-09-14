@@ -10,6 +10,7 @@ import {
   RefreshCw,
   ShoppingBag,
   Truck,
+  WalletCards,
 } from 'lucide-react';
 import { toast } from 'react-toastify';
 import { AdminPageHeader } from '@/shared/components/layout/AdminPageHeader';
@@ -48,6 +49,45 @@ function createDefaultFilters(): ReportFilterState {
   };
 }
 
+function FeaturedMetricCard({
+  label,
+  value,
+  detail,
+  tone,
+}: {
+  label: string;
+  value: number;
+  detail: string;
+  tone: 'gross' | 'net';
+}) {
+  const isNet = tone === 'net';
+
+  return (
+    <article
+      className={`relative min-h-[178px] overflow-hidden rounded-sm border p-6 shadow-sm sm:col-span-2 xl:col-span-3 2xl:col-span-6 ${
+        isNet
+          ? 'border-emerald-200 bg-[#eef8f3]'
+          : 'border-central-carbon bg-central-carbon text-white'
+      }`}
+    >
+      <div className="relative z-10 flex h-full flex-col justify-between gap-6">
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <p className={`text-xs font-semibold uppercase tracking-[0.12em] ${isNet ? 'text-emerald-700' : 'text-white/55'}`}>{label}</p>
+            <p className={`mt-3 text-4xl font-semibold tracking-[-0.04em] sm:text-[42px] ${isNet ? 'text-[#0f8a5f]' : 'text-white'}`}>
+              <AnimatedValue value={value} formatter={formatCurrency} duration={900} />
+            </p>
+          </div>
+          <span className={`grid h-11 w-11 shrink-0 place-items-center rounded-sm ${isNet ? 'bg-white text-[#0f8a5f] shadow-sm' : 'bg-white/10 text-central-orange'}`}>
+            <DollarSign size={20} />
+          </span>
+        </div>
+        <p className={`max-w-2xl text-sm leading-6 ${isNet ? 'text-emerald-900/70' : 'text-white/60'}`}>{detail}</p>
+      </div>
+    </article>
+  );
+}
+
 function MetricCard({
   label,
   value,
@@ -62,7 +102,7 @@ function MetricCard({
   formatter: (value: number) => string;
 }) {
   return (
-    <article className="relative min-w-0 overflow-hidden rounded-sm border border-neutral-200 bg-white p-5 shadow-sm">
+    <article className="relative min-w-0 overflow-hidden rounded-sm border border-neutral-200 bg-white p-5 shadow-sm xl:col-span-2 2xl:col-span-2">
       <span className="absolute right-4 top-4 grid h-10 w-10 shrink-0 place-items-center rounded-sm bg-central-orange/10 text-central-orange">
         <Icon size={18} />
       </span>
@@ -237,12 +277,24 @@ export function ReportesAdminPage() {
         <p className="shrink-0">{lastLoadedAt ? `Actualizado ${lastLoadedAt.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' })}` : 'Preparando información…'}</p>
       </div>
 
-      <section className="mb-6 grid min-w-0 gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-6">
-        <MetricCard label="Ventas + delivery" value={summary.netRevenue} detail={`Productos ${formatCurrency(summary.netRevenue - summary.deliveryRevenue)} + delivery ${formatCurrency(summary.deliveryRevenue)}`} icon={DollarSign} formatter={formatCurrency} />
+      <section className="mb-6 grid min-w-0 gap-4 sm:grid-cols-2 xl:grid-cols-6 2xl:grid-cols-12">
+        <FeaturedMetricCard
+          label="Ganancia bruta"
+          value={summary.grossRevenue}
+          detail={`Ventas válidas: productos ${formatCurrency(summary.grossRevenue - summary.deliveryRevenue)} + delivery ${formatCurrency(summary.deliveryRevenue)}.`}
+          tone="gross"
+        />
+        <FeaturedMetricCard
+          label="Ganancia neta"
+          value={summary.netRevenue}
+          detail={`Ganancia bruta ${formatCurrency(summary.grossRevenue)} − comisiones de delivery liquidadas ${formatCurrency(summary.settledDeliveryCommission)}.`}
+          tone="net"
+        />
         <MetricCard label="Pedidos válidos" value={summary.validOrders} detail={`${formatNumber(summary.totalOrders)} pedidos seleccionados`} icon={ShoppingBag} formatter={formatNumber} />
         <MetricCard label="Ticket promedio" value={summary.averageTicket} detail="Promedio por pedido válido" icon={ReceiptText} formatter={formatCurrency} />
         <MetricCard label="Unidades vendidas" value={summary.unitsSold} detail="Productos de ventas válidas" icon={PackageCheck} formatter={formatNumber} />
-        <MetricCard label="Delivery cobrado" value={summary.deliveryRevenue} detail="Incluido en Ventas + delivery" icon={Truck} formatter={formatCurrency} />
+        <MetricCard label="Delivery cobrado" value={summary.deliveryRevenue} detail="Incluido en la ganancia bruta" icon={Truck} formatter={formatCurrency} />
+        <MetricCard label="Comisiones liquidadas" value={summary.settledDeliveryCommission} detail="Sólo liquidaciones marcadas como pagadas" icon={WalletCards} formatter={formatCurrency} />
         <MetricCard label="Cancelaciones" value={summary.cancelledOrders} detail={`${(summary.cancellationRate * 100).toFixed(1)}% del total seleccionado`} icon={Ban} formatter={formatNumber} />
       </section>
 
