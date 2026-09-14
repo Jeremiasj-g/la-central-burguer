@@ -81,16 +81,22 @@ export function getReportSummary(dataset: ReportDataset): ReportSummary {
   const cancelledOrders = dataset.orders.filter((order) => order.status === 'cancelado');
   const validIds = new Set(validOrders.map((order) => order.id));
   const validItems = dataset.items.filter((item) => validIds.has(item.orderId));
-  const netRevenue = validOrders.reduce((total, order) => total + order.total, 0);
+  const grossRevenue = validOrders.reduce((total, order) => total + order.total, 0);
   const deliveryRevenue = validOrders.reduce((total, order) => total + order.deliveryCost, 0);
+  const settledDeliveryCommission = dataset.settledDeliveryCommissions
+    .filter((commission) => validIds.has(commission.orderId))
+    .reduce((total, commission) => total + commission.amount, 0);
+  const netRevenue = grossRevenue - settledDeliveryCommission;
   const totalOrders = dataset.orders.length;
 
   return {
+    grossRevenue,
     netRevenue,
+    settledDeliveryCommission,
     validOrders: validOrders.length,
     cancelledOrders: cancelledOrders.length,
     totalOrders,
-    averageTicket: validOrders.length ? netRevenue / validOrders.length : 0,
+    averageTicket: validOrders.length ? grossRevenue / validOrders.length : 0,
     unitsSold: validItems.reduce((total, item) => total + item.quantity, 0),
     deliveryRevenue,
     cancellationRate: totalOrders ? cancelledOrders.length / totalOrders : 0,
