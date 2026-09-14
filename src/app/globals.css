@@ -187,7 +187,6 @@ select {
   padding-bottom: 1px;
 }
 
-
 /* Scrollbar unificado para toda la app */
 * {
   scrollbar-width: thin;
@@ -245,7 +244,6 @@ select {
   .admin-scope .admin-modal-label { text-align: left; padding-top: 0; }
 }
 
-
 /* React Toastify adaptado a La Central Burger */
 .Toastify__toast-container {
   z-index: 9999;
@@ -280,7 +278,6 @@ select {
   color: #ead8ba;
   opacity: .7;
 }
-
 
 @keyframes lcb-bell-ring {
   0%, 56%, 100% { transform: rotate(0deg); }
@@ -371,6 +368,15 @@ select {
     left: .5rem;
     right: .5rem;
   }
+}
+
+/* Los indicadores secundarios del repartidor no llevan iconos. */
+main[style*="SF Pro Display"] section.grid.grid-cols-3 > article:not([class*="order-first"]) > div > span {
+  display: none !important;
+}
+
+main[style*="SF Pro Display"] section.grid.grid-cols-3 > article:not([class*="order-first"]) > div {
+  display: block;
 }
 
 /* Resumen del repartidor: más legible en pantallas móviles angostas */
