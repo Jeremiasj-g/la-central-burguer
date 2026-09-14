@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
 interface AnimatedValueProps {
   value: number;
@@ -9,8 +9,54 @@ interface AnimatedValueProps {
   className?: string;
 }
 
+interface AnimatedFormattedValueProps {
+  value: string;
+  duration?: number;
+  className?: string;
+}
+
 const defaultFormatter = (value: number) =>
   new Intl.NumberFormat('es-AR', { maximumFractionDigits: 0 }).format(Math.round(value));
+
+function parseFormattedValue(input: string) {
+  const match = input.match(/-?[\d.,]+/);
+  if (!match || match.index === undefined) return null;
+
+  const token = match[0];
+  const prefix = input.slice(0, match.index);
+  const suffix = input.slice(match.index + token.length);
+  const commaParts = token.split(',');
+  const dotParts = token.split('.');
+  const hasComma = commaParts.length > 1;
+  const hasDot = dotParts.length > 1;
+  let decimalSeparator: ',' | '.' | null = null;
+
+  if (hasComma && hasDot) {
+    decimalSeparator = token.lastIndexOf(',') > token.lastIndexOf('.') ? ',' : '.';
+  } else if (hasComma) {
+    const lastPart = commaParts.at(-1) ?? '';
+    decimalSeparator = commaParts.length === 2 && lastPart.length > 0 && lastPart.length <= 2 ? ',' : null;
+  } else if (hasDot) {
+    const lastPart = dotParts.at(-1) ?? '';
+    decimalSeparator = dotParts.length === 2 && lastPart.length > 0 && lastPart.length <= 2 ? '.' : null;
+  }
+
+  const fractionDigits = decimalSeparator ? (token.split(decimalSeparator).at(-1)?.length ?? 0) : 0;
+  let normalized = token;
+
+  if (decimalSeparator === ',') {
+    normalized = token.replace(/\./g, '').replace(',', '.');
+  } else if (decimalSeparator === '.') {
+    normalized = token.replace(/,/g, '');
+  } else {
+    normalized = token.replace(/[.,]/g, '');
+  }
+
+  const numericValue = Number(normalized);
+  if (!Number.isFinite(numericValue)) return null;
+
+  return { numericValue, prefix, suffix, fractionDigits };
+}
 
 export function AnimatedValue({
   value,
@@ -63,4 +109,21 @@ export function AnimatedValue({
       {formatter(displayValue)}
     </span>
   );
+}
+
+export function AnimatedFormattedValue({ value, duration = 850, className }: AnimatedFormattedValueProps) {
+  const parsed = useMemo(() => parseFormattedValue(value), [value]);
+
+  if (!parsed) return <span className={className}>{value}</span>;
+
+  const formatter = (current: number) => {
+    const formattedNumber = new Intl.NumberFormat('es-AR', {
+      minimumFractionDigits: parsed.fractionDigits,
+      maximumFractionDigits: parsed.fractionDigits,
+    }).format(current);
+
+    return `${parsed.prefix}${formattedNumber}${parsed.suffix}`;
+  };
+
+  return <AnimatedValue value={parsed.numericValue} formatter={formatter} duration={duration} className={className} />;
 }
