@@ -1,0 +1,59 @@
+.admin-ios-root .admin-scope :is(.font-black, .font-extrabold) {
+  font-weight: 600 !important;
+}
+
+.admin-ios-root .admin-scope .font-bold {
+  font-weight: 600 !important;
+}
+
+.admin-ios-root .admin-scope :is(h1, h2, h3, h4) {
+  letter-spacing: -0.025em;
+}
+
+.admin-ios-root .admin-scope .bg-central-carbon {
+  background-color: #1c1c1e !important;
+}
+
+.admin-ios-root .admin-scope :is(.text-3xl, .text-4xl, .text-5xl) {
+  font-variant-numeric: tabular-nums;
+}
+
+.admin-ios-root .admin-scope :is(.uppercase) {
+  letter-spacing: 0.06em;
+}
+
+.admin-ios-root .admin-scope :is(.border-dashed) {
+  border-color: #d1d1d6 !important;
+}
+
+.admin-ios-root .admin-scope :is(.bg-red-50, .bg-red-500\/10) {
+  background-color: #fff0ef !important;
+}
+
+.admin-ios-root .admin-scope :is(.bg-emerald-50, .bg-green-50) {
+  background-color: #eaf8ee !important;
+}
+
+.admin-ios-root .admin-scope :is(.bg-blue-50) {
+  background-color: #eaf3ff !important;
+}
+
+.admin-ios-root .admin-scope :is(.bg-amber-50, .bg-yellow-50) {
+  background-color: #fff8e8 !important;
+}
+
+.admin-ios-root .admin-scope :is(.text-green-600, .text-emerald-600, .text-emerald-700) {
+  color: #248a3d !important;
+}
+
+.admin-ios-root .admin-scope :is(.text-red-600, .text-red-700) {
+  color: #d70015 !important;
+}
+
+.admin-ios-root .admin-scope :is(.text-blue-600, .text-blue-700) {
+  color: #007aff !important;
+}
+
+.admin-ios-root .admin-scope :is(.text-amber-600, .text-amber-700) {
+  color: #c86e00 !important;
+}
