@@ -29,7 +29,7 @@ export const ADMIN_NAVIGATION = [
   { label: 'Ingredientes', href: ROUTES.adminIngredientes, icon: Boxes, development: false },
   { label: 'Recetas', href: ROUTES.adminRecetas, icon: BookOpenCheck, development: false },
   { label: 'Pedidos', href: ROUTES.adminPedidos, icon: ClipboardList, development: false },
-  { label: 'Venta mostrador', href: ROUTES.adminVentaMostrador, icon: Store, development: true },
+  { label: 'Venta mostrador', href: ROUTES.adminVentaMostrador, icon: Store, development: false },
   { label: 'Delivery', href: ROUTES.adminDelivery, icon: Truck, development: false },
   { label: 'Usuarios y roles', href: ROUTES.adminUsuarios, icon: Users, development: false },
   { label: 'Reportes', href: ROUTES.adminReportes, icon: FileSpreadsheet, development: false },
