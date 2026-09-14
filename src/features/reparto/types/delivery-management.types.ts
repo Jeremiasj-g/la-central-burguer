@@ -1,5 +1,5 @@
 export type DeliveryVehicleType = 'moto' | 'auto' | 'bici' | 'otro';
-export type DeliveryAssignmentStatus = 'assigned' | 'accepted' | 'picked_up' | 'in_transit' | 'delivered' | 'cancelled';
+export type DeliveryAssignmentStatus = 'assigned' | 'accepted' | 'picked_up' | 'in_transit' | 'rejected_by_customer' | 'delivered' | 'cancelled';
 export type DeliverySettlementStatus = 'draft' | 'paid' | 'cancelled';
 
 export interface DeliverySummary {
@@ -61,6 +61,8 @@ export interface DeliveryAssignment {
   pickedUpAt: string | null;
   inTransitAt: string | null;
   deliveredAt: string | null;
+  rejectedAt?: string | null;
+  rejectionReason?: string | null;
 }
 
 export interface DeliverySettlement {
