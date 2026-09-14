@@ -2,7 +2,6 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import {
-  AlertTriangle,
   Banknote,
   CheckCircle2,
   CreditCard,
@@ -187,19 +186,6 @@ export function VentaMostradorPage() {
         description="Registrá rápidamente ventas realizadas fuera de la web, sin pasar por el checkout del cliente."
       />
 
-      <div className="mb-6 flex items-start gap-3 rounded-sm border border-red-300 bg-red-50 px-4 py-3 text-red-700 shadow-sm">
-        <AlertTriangle className="mt-0.5 shrink-0" size={18} />
-        <div>
-          <div className="flex flex-wrap items-center gap-2">
-            <p className="text-sm font-black uppercase tracking-[.08em]">Módulo en desarrollo</p>
-            <span className="rounded-sm border border-red-300 bg-red-100 px-2 py-0.5 text-[10px] font-black uppercase tracking-[.12em] text-red-700">Beta</span>
-          </div>
-          <p className="mt-1 text-xs leading-5 text-red-600">
-            La venta ya se registra dentro de Pedidos y Reportes, pero esta pantalla todavía puede recibir ajustes de flujo y diseño.
-          </p>
-        </div>
-      </div>
-
       {lastSale ? (
         <div className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-sm border border-emerald-200 bg-emerald-50 px-4 py-3 text-emerald-800">
           <div className="flex items-center gap-3">
@@ -213,15 +199,15 @@ export function VentaMostradorPage() {
         </div>
       ) : null}
 
-      <section className="overflow-visible rounded-sm border-2 border-red-200 bg-red-50/30 shadow-soft">
+      <section className="overflow-visible rounded-sm border border-neutral-200 bg-white shadow-soft">
         <div className="grid min-w-0 items-start gap-0 xl:grid-cols-[minmax(0,1fr)_420px]">
-          <div className="min-w-0 border-b border-red-100 bg-white p-4 sm:p-5 xl:border-b-0 xl:border-r">
+          <div className="min-w-0 border-b border-neutral-200 bg-white p-4 sm:p-5 xl:border-b-0 xl:border-r">
             <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <h2 className="font-black text-central-carbon">Productos</h2>
                 <p className="mt-1 text-xs text-neutral-500">Tocá un producto para agregarlo a la venta.</p>
               </div>
-              <div className="flex h-10 w-full max-w-md items-center gap-2 rounded-sm border border-neutral-200 bg-neutral-50 px-3 focus-within:border-red-300 focus-within:ring-2 focus-within:ring-red-100 sm:w-80">
+              <div className="flex h-10 w-full max-w-md items-center gap-2 rounded-sm border border-neutral-200 bg-neutral-50 px-3 focus-within:border-central-orange focus-within:ring-2 focus-within:ring-orange-100 sm:w-80">
                 <Search size={16} className="text-neutral-400" />
                 <input
                   value={query}
@@ -242,7 +228,7 @@ export function VentaMostradorPage() {
                     onClick={() => setSelectedCategoryId('all')}
                     className={`whitespace-nowrap rounded-full border px-3.5 py-1.5 text-xs font-bold transition ${
                       selectedCategoryId === 'all'
-                        ? 'border-red-200 bg-red-50 text-red-700 shadow-sm'
+                        ? 'border-central-orange/30 bg-central-orange/10 text-central-orange shadow-sm'
                         : 'border-neutral-200 bg-neutral-50 text-neutral-600 hover:border-neutral-300 hover:bg-white hover:text-central-carbon'
                     }`}
                   >
@@ -259,7 +245,7 @@ export function VentaMostradorPage() {
                         onClick={() => setSelectedCategoryId(category.id)}
                         className={`whitespace-nowrap rounded-full border px-3.5 py-1.5 text-xs font-bold transition ${
                           active
-                            ? 'border-red-200 bg-red-50 text-red-700 shadow-sm'
+                            ? 'border-central-orange/30 bg-central-orange/10 text-central-orange shadow-sm'
                             : 'border-neutral-200 bg-neutral-50 text-neutral-600 hover:border-neutral-300 hover:bg-white hover:text-central-carbon'
                         }`}
                       >
@@ -290,8 +276,8 @@ export function VentaMostradorPage() {
                       aria-pressed={isSelected}
                       className={`group min-w-0 rounded-sm border p-4 text-left shadow-sm transition ${
                         isSelected
-                          ? 'border-red-400 bg-red-50/70 shadow-[0_8px_20px_rgba(239,68,68,.08)] hover:border-red-500 hover:bg-red-50'
-                          : 'border-neutral-200 bg-white hover:border-red-300 hover:bg-red-50/40'
+                          ? 'border-central-orange/60 bg-central-orange/10 shadow-[0_8px_20px_rgba(234,88,12,.08)] hover:border-central-orange hover:bg-central-orange/15'
+                          : 'border-neutral-200 bg-white hover:border-central-orange/40 hover:bg-orange-50/40'
                       }`}
                     >
                       <div className="flex items-start justify-between gap-3">
@@ -301,8 +287,8 @@ export function VentaMostradorPage() {
                         </div>
                         <span className={`grid h-8 w-8 shrink-0 place-items-center rounded-sm transition ${
                           isSelected
-                            ? 'bg-red-600 text-white group-hover:bg-red-700'
-                            : 'bg-red-50 text-red-600 group-hover:bg-red-600 group-hover:text-white'
+                            ? 'bg-central-orange text-white group-hover:brightness-95'
+                            : 'bg-central-orange/10 text-central-orange group-hover:bg-central-orange group-hover:text-white'
                         }`}>
                           <Plus size={16} />
                         </span>
@@ -310,7 +296,7 @@ export function VentaMostradorPage() {
                       <div className="mt-3 flex items-end justify-between gap-2">
                         <p className="text-lg font-black text-central-carbon">{formatCurrency(product.currentPrice)}</p>
                         {quantity > 0 ? (
-                          <span className="rounded-sm border border-red-200 bg-white/80 px-2 py-1 text-[10px] font-black text-red-700">{quantity} en venta</span>
+                          <span className="rounded-sm border border-central-orange/20 bg-white/80 px-2 py-1 text-[10px] font-black text-central-orange">{quantity} en venta</span>
                         ) : null}
                       </div>
                     </button>
@@ -325,24 +311,24 @@ export function VentaMostradorPage() {
           <aside className="min-w-0 self-start bg-white p-4 sm:p-5 xl:sticky xl:top-20 xl:max-h-[calc(100vh-6rem)] xl:overflow-y-auto">
             <div className="flex items-start justify-between gap-3">
               <div>
-                <p className="text-xs font-black uppercase tracking-[.12em] text-red-600">Venta rápida</p>
+                <p className="text-xs font-black uppercase tracking-[.12em] text-central-orange">Venta rápida</p>
                 <h2 className="mt-1 text-xl font-black text-central-carbon">Resumen</h2>
               </div>
-              <span className="rounded-sm border border-red-200 bg-red-50 px-2.5 py-1 text-xs font-black text-red-700">{itemCount} ítems</span>
+              <span className="rounded-sm border border-central-orange/20 bg-central-orange/10 px-2.5 py-1 text-xs font-black text-central-orange">{itemCount} ítems</span>
             </div>
 
             <div className="mt-5 grid grid-cols-2 gap-2">
               <button
                 type="button"
                 onClick={() => setServiceMode('takeaway')}
-                className={`flex items-center justify-center gap-2 rounded-sm border px-3 py-3 text-sm font-bold transition ${serviceMode === 'takeaway' ? 'border-red-500 bg-red-50 text-red-700' : 'border-neutral-200 bg-white text-neutral-500 hover:border-neutral-300'}`}
+                className={`flex items-center justify-center gap-2 rounded-sm border px-3 py-3 text-sm font-bold transition ${serviceMode === 'takeaway' ? 'border-central-orange bg-central-orange/10 text-central-orange' : 'border-neutral-200 bg-white text-neutral-500 hover:border-neutral-300'}`}
               >
                 <ShoppingBag size={16} /> Para llevar
               </button>
               <button
                 type="button"
                 onClick={() => setServiceMode('dine_in')}
-                className={`flex items-center justify-center gap-2 rounded-sm border px-3 py-3 text-sm font-bold transition ${serviceMode === 'dine_in' ? 'border-red-500 bg-red-50 text-red-700' : 'border-neutral-200 bg-white text-neutral-500 hover:border-neutral-300'}`}
+                className={`flex items-center justify-center gap-2 rounded-sm border px-3 py-3 text-sm font-bold transition ${serviceMode === 'dine_in' ? 'border-central-orange bg-central-orange/10 text-central-orange' : 'border-neutral-200 bg-white text-neutral-500 hover:border-neutral-300'}`}
               >
                 <UtensilsCrossed size={16} /> Comer ahí
               </button>
@@ -351,19 +337,19 @@ export function VentaMostradorPage() {
             <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-1 2xl:grid-cols-2">
               <label className="min-w-0">
                 <span className="mb-1.5 block text-xs font-bold text-neutral-500">Cliente <span className="font-normal">(opcional)</span></span>
-                <input value={customerName} onChange={(event) => setCustomerName(event.target.value)} placeholder="Ej. Juan" className="h-10 w-full rounded-sm border border-neutral-200 bg-white px-3 text-sm outline-none focus:border-red-300 focus:ring-2 focus:ring-red-100" />
+                <input value={customerName} onChange={(event) => setCustomerName(event.target.value)} placeholder="Ej. Juan" className="h-10 w-full rounded-sm border border-neutral-200 bg-white px-3 text-sm outline-none focus:border-central-orange focus:ring-2 focus:ring-orange-100" />
               </label>
               <label className="min-w-0">
                 <span className="mb-1.5 block text-xs font-bold text-neutral-500">Teléfono <span className="font-normal">(opcional)</span></span>
-                <input value={customerPhone} onChange={(event) => setCustomerPhone(event.target.value)} placeholder="Ej. 3794…" inputMode="tel" className="h-10 w-full rounded-sm border border-neutral-200 bg-white px-3 text-sm outline-none focus:border-red-300 focus:ring-2 focus:ring-red-100" />
+                <input value={customerPhone} onChange={(event) => setCustomerPhone(event.target.value)} placeholder="Ej. 3794…" inputMode="tel" className="h-10 w-full rounded-sm border border-neutral-200 bg-white px-3 text-sm outline-none focus:border-central-orange focus:ring-2 focus:ring-orange-100" />
               </label>
             </div>
 
             <div className="mt-4">
               <p className="mb-1.5 text-xs font-bold text-neutral-500">Medio de pago</p>
               <div className="grid grid-cols-2 gap-2">
-                <button type="button" onClick={() => setPaymentMethod('efectivo')} className={`flex items-center justify-center gap-2 rounded-sm border px-3 py-2.5 text-xs font-bold transition ${paymentMethod === 'efectivo' ? 'border-red-500 bg-red-50 text-red-700' : 'border-neutral-200 text-neutral-500'}`}><Banknote size={15} /> Efectivo</button>
-                <button type="button" onClick={() => setPaymentMethod('transferencia')} className={`flex items-center justify-center gap-2 rounded-sm border px-3 py-2.5 text-xs font-bold transition ${paymentMethod === 'transferencia' ? 'border-red-500 bg-red-50 text-red-700' : 'border-neutral-200 text-neutral-500'}`}><CreditCard size={15} /> Transferencia</button>
+                <button type="button" onClick={() => setPaymentMethod('efectivo')} className={`flex items-center justify-center gap-2 rounded-sm border px-3 py-2.5 text-xs font-bold transition ${paymentMethod === 'efectivo' ? 'border-central-orange bg-central-orange/10 text-central-orange' : 'border-neutral-200 text-neutral-500'}`}><Banknote size={15} /> Efectivo</button>
+                <button type="button" onClick={() => setPaymentMethod('transferencia')} className={`flex items-center justify-center gap-2 rounded-sm border px-3 py-2.5 text-xs font-bold transition ${paymentMethod === 'transferencia' ? 'border-central-orange bg-central-orange/10 text-central-orange' : 'border-neutral-200 text-neutral-500'}`}><CreditCard size={15} /> Transferencia</button>
               </div>
             </div>
 
@@ -397,7 +383,7 @@ export function VentaMostradorPage() {
 
             <label className="mt-4 block">
               <span className="mb-1.5 block text-xs font-bold text-neutral-500">Observaciones <span className="font-normal">(opcional)</span></span>
-              <textarea value={notes} onChange={(event) => setNotes(event.target.value)} rows={3} placeholder="Ej. sin cebolla, mesa del patio…" className="w-full resize-none rounded-sm border border-neutral-200 bg-white px-3 py-2.5 text-sm outline-none focus:border-red-300 focus:ring-2 focus:ring-red-100" />
+              <textarea value={notes} onChange={(event) => setNotes(event.target.value)} rows={3} placeholder="Ej. sin cebolla, mesa del patio…" className="w-full resize-none rounded-sm border border-neutral-200 bg-white px-3 py-2.5 text-sm outline-none focus:border-central-orange focus:ring-2 focus:ring-orange-100" />
             </label>
 
             <div className="mt-5 flex items-end justify-between gap-4 border-t border-neutral-200 pt-4">
@@ -412,7 +398,7 @@ export function VentaMostradorPage() {
               type="button"
               onClick={() => void registerSale()}
               disabled={submitting || !cart.length}
-              className="mt-4 flex h-12 w-full items-center justify-center gap-2 rounded-sm border border-red-700 bg-red-600 px-4 text-sm font-black text-white shadow-[0_12px_28px_rgba(220,38,38,.18)] transition hover:bg-red-700 disabled:cursor-not-allowed disabled:border-red-200 disabled:bg-red-200 disabled:text-red-400 disabled:shadow-none"
+              className="mt-4 flex h-12 w-full items-center justify-center gap-2 rounded-sm border border-central-orange bg-central-orange px-4 text-sm font-black text-white shadow-orange transition hover:brightness-95 disabled:cursor-not-allowed disabled:border-neutral-200 disabled:bg-neutral-200 disabled:text-neutral-400 disabled:shadow-none"
             >
               <Store size={17} /> {submitting ? 'Registrando venta…' : 'Registrar venta mostrador'}
             </button>
