@@ -18,6 +18,7 @@ Este release incluye:
 - Realtime para asignaciones y cambios de estado.
 - Dashboards y reportes actualizados.
 - Ganancia bruta / neta después de comisiones liquidadas de delivery.
+- Hardening de permisos `EXECUTE` para funciones sensibles.
 
 ## Baseline PROD previo al release
 
@@ -90,6 +91,7 @@ Aplicar sobre `central-burguer` PROD en este orden:
 9. `20260913214000_delivery_customer_rejection_status.sql`
 10. `20260913214100_delivery_rejection_and_realtime.sql`
 11. `20260913231500_delivery_history_detail.sql`
+12. `20260914050000_harden_function_execution_grants.sql`
 
 `20260910202734_require_gps_delivery_and_final_price.sql` ya existe en PROD.
 
@@ -140,7 +142,21 @@ Todas con autenticación habilitada según la versión actualmente validada en D
 
 ## Realtime
 
-Comprobar que PROD publique, como mínimo:
+DEV validado publica actualmente:
+
+- `business_config`
+- `categories`
+- `delivery_assignment_compensation`
+- `delivery_assignments`
+- `ingredients`
+- `orders`
+- `payment_methods`
+- `product_ingredients`
+- `products`
+
+PROD previo al release ya publica todo lo anterior excepto las dos tablas nuevas de Delivery, que todavía no existen.
+
+Comprobar que después de migrar PROD publique, como mínimo:
 
 - `orders`
 - `delivery_assignments`
@@ -171,6 +187,7 @@ Estas opciones pertenecen al proyecto Supabase PROD y no viajan con el esquema S
    - `Site URL`: URL final de producción.
    - Agregar `/activar-cuenta` a Redirect URLs.
 5. Revisar expiración de enlaces, rate limits y política de contraseña.
+6. Evaluar activar Leaked Password Protection si el plan/configuración del proyecto lo permite.
 
 ## Variables de entorno de producción
 
@@ -210,6 +227,27 @@ Esperado inmediatamente después de migrar, si no entraron operaciones nuevas du
 
 Las nuevas tablas Delivery deberían comenzar vacías en PROD, salvo `roles`, `permissions`, `role_permissions` y el `user_roles` del administrador real.
 
+## Security Advisor preflight
+
+Antes del hardening, DEV reportaba funciones trigger y administrativas con grants demasiado amplios. Se agregó `20260914050000_harden_function_execution_grants.sql` y se aplicó correctamente en DEV.
+
+Después del hardening, las únicas funciones `SECURITY DEFINER` ejecutables por `anon` que permanecen son intencionales para el flujo público:
+
+- `calculate_delivery_quote`
+- `create_public_order`
+- `is_business_open`
+
+Las RPC de administración y Delivery continúan ejecutables por `authenticated`, pero cada una valida internamente RBAC/admin o identidad del repartidor. El linter las seguirá reportando por diseño.
+
+Avisos no bloqueantes que permanecen:
+
+- `citext` y `unaccent` instaladas históricamente en `public`.
+- Leaked Password Protection deshabilitado (configuración Auth manual).
+- Índices aún no utilizados en DEV por bajo volumen.
+- Policies permisivas duplicadas en algunas tablas históricas del catálogo.
+
+No se moverán extensiones ni se reescribirán policies históricas durante este release para evitar introducir riesgo no relacionado con Delivery.
+
 ## Smoke test obligatorio
 
 Después del despliegue frontend:
@@ -233,7 +271,14 @@ Después del despliegue frontend:
 
 ## Advisors
 
-Después del DDL, correr Security y Performance Advisors y revisar cualquier alerta nueva antes de considerar cerrado el release.
+Después del DDL, correr Security y Performance Advisors nuevamente y comparar contra este baseline. No se debe introducir una alerta nueva de alta severidad.
+
+Referencias útiles:
+
+- Security Definer executable: https://supabase.com/docs/guides/database/database-linter?lint=0029_authenticated_security_definer_function_executable
+- Extension in public: https://supabase.com/docs/guides/database/database-linter?lint=0014_extension_in_public
+- Leaked Password Protection: https://supabase.com/docs/guides/auth/password-security#password-strength-and-leaked-password-protection
+- Multiple permissive policies: https://supabase.com/docs/guides/database/database-linter?lint=0006_multiple_permissive_policies
 
 ## Merge Git
 
