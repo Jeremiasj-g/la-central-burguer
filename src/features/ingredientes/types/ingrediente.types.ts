@@ -5,6 +5,7 @@ export interface Ingredient {
   name: string;
   type: 'proteina' | 'panificados' | 'lacteos' | 'verduras' | 'insumos' | 'bebidas' | 'otros';
   unit: IngredientUnit;
+  unitCost: number;
   supplier?: string;
   active: boolean;
   lastUpdatedAt: string;
@@ -15,6 +16,7 @@ export interface IngredientRow {
   name: string;
   type: string;
   unit: IngredientUnit;
+  unit_cost: number;
   supplier: string | null;
   active: boolean;
   last_updated_at: string;
@@ -24,6 +26,7 @@ export interface CreateIngredientInput {
   name: string;
   type: Ingredient['type'];
   unit: IngredientUnit;
+  unitCost: number;
   supplier?: string;
   active?: boolean;
 }
