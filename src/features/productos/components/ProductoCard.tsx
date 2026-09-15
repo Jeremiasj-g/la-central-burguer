@@ -16,8 +16,10 @@ interface ProductoCardProps {
 export function ProductoCard({ product, categoryName, disabled = false, onSelect, onPreviewImage }: ProductoCardProps) {
   return (
     <article className={cn(
-      'group relative min-h-[136px] overflow-hidden rounded-sm border border-central-orange/18 bg-[#171514] shadow-dark transition duration-300',
-      disabled ? 'opacity-70' : 'hover:-translate-y-1 hover:border-central-orange/65 hover:shadow-orange',
+      'group relative min-h-[136px] overflow-hidden rounded-sm border border-central-orange/18 bg-[#171514] shadow-dark transition-[transform,border-color,box-shadow] duration-300 ease-out motion-reduce:transition-none',
+      disabled
+        ? 'opacity-70'
+        : 'hover:scale-[1.015] hover:border-central-orange/65 hover:shadow-[0_10px_28px_rgba(255,138,31,.16)]',
     )}>
       <button
         type="button"
