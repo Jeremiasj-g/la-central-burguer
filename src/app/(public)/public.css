@@ -1,0 +1,15 @@
+.public-site {
+  font-weight: 400;
+}
+
+.public-site :is(.font-thin, .font-extralight, .font-light) {
+  font-weight: 400 !important;
+}
+
+.public-site :is(.font-bold, .font-extrabold, .font-black):not(.font-display) {
+  font-weight: 600 !important;
+}
+
+.public-site .watermark-text {
+  font-weight: 600 !important;
+}
