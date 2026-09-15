@@ -36,7 +36,7 @@ export function BurgerHero() {
           <Flame size={15} /> {isOpen ? 'Abierto ahora' : 'Cerrado ahora'}
         </div>
 
-        <h1 className="menu-title-shadow mt-7 max-w-5xl font-display text-6xl uppercase leading-[.82] tracking-wide text-central-cream sm:text-8xl lg:text-[9.5rem]">
+        <h1 className="hero-brand-title menu-title-shadow mt-7 max-w-5xl font-display text-6xl uppercase leading-[.82] tracking-wide text-central-cream sm:text-8xl lg:text-[9.5rem]">
           {firstWords}<br />{lastWord ? <span className="text-central-orange">{lastWord}</span> : null}
         </h1>
         <div className="brush-line mx-auto mt-7" />
