@@ -1,7 +1,8 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { BadgePercent, Beef, CircleDot, CookingPot, CupSoda, Pizza, Sandwich, Utensils } from 'lucide-react';
+import { BadgePercent, Beef, ChevronLeft, ChevronRight, CircleDot, CookingPot, CupSoda, Pizza, Sandwich, Utensils } from 'lucide-react';
+import type { Swiper as SwiperInstance } from 'swiper';
 import { FreeMode, Mousewheel } from 'swiper/modules';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import type { Category } from '@/features/categorias/types/categoria.types';
@@ -134,6 +135,22 @@ function CategoryLabel({ children }: { children: React.ReactNode }) {
 }
 
 export function CategoryTabs({ categories, selectedCategoryId, onSelect }: CategoryTabsProps) {
+  const [swiper, setSwiper] = useState<SwiperInstance | null>(null);
+  const [canScrollPrev, setCanScrollPrev] = useState(false);
+  const [canScrollNext, setCanScrollNext] = useState(false);
+
+  const syncNavigationState = (instance: SwiperInstance) => {
+    setCanScrollPrev(!instance.isBeginning);
+    setCanScrollNext(!instance.isEnd);
+  };
+
+  useEffect(() => {
+    if (!swiper) return;
+
+    swiper.update();
+    syncNavigationState(swiper);
+  }, [swiper, categories.length]);
+
   return (
     <div className="category-tabs-swiper relative rounded-sm py-2 backdrop-blur-xl">
       <Swiper
@@ -144,6 +161,14 @@ export function CategoryTabs({ categories, selectedCategoryId, onSelect }: Categ
         slidesPerView="auto"
         spaceBetween={8}
         className="!overflow-hidden"
+        onSwiper={(instance) => {
+          setSwiper(instance);
+          syncNavigationState(instance);
+        }}
+        onProgress={syncNavigationState}
+        onResize={syncNavigationState}
+        onSlideChange={syncNavigationState}
+        onTransitionEnd={syncNavigationState}
       >
         <SwiperSlide className="!w-[96px] sm:!w-[132px]">
           <button type="button" onClick={() => onSelect('all')} className={tabClasses(selectedCategoryId === 'all')}>
@@ -165,6 +190,45 @@ export function CategoryTabs({ categories, selectedCategoryId, onSelect }: Categ
           );
         })}
       </Swiper>
+
+      <div
+        className={cn(
+          'pointer-events-none absolute inset-y-2 left-0 z-20 w-10 bg-gradient-to-r from-[#0d0d0d] via-[#0d0d0d]/80 to-transparent transition-opacity duration-200 sm:w-14',
+          canScrollPrev ? 'opacity-100' : 'opacity-0',
+        )}
+        aria-hidden="true"
+      />
+      <div
+        className={cn(
+          'pointer-events-none absolute inset-y-2 right-0 z-20 w-10 bg-gradient-to-l from-[#0d0d0d] via-[#0d0d0d]/80 to-transparent transition-opacity duration-200 sm:w-14',
+          canScrollNext ? 'opacity-100' : 'opacity-0',
+        )}
+        aria-hidden="true"
+      />
+
+      <button
+        type="button"
+        onClick={() => swiper?.slidePrev()}
+        className={cn(
+          'absolute left-2 top-1/2 z-30 hidden h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-central-orange/35 bg-black/85 text-central-cream backdrop-blur transition-all duration-200 hover:border-central-orange hover:bg-central-orange hover:text-black lg:flex',
+          canScrollPrev ? 'pointer-events-auto opacity-100' : 'pointer-events-none opacity-0',
+        )}
+        aria-label="Ver categorías anteriores"
+      >
+        <ChevronLeft size={20} strokeWidth={2.2} />
+      </button>
+
+      <button
+        type="button"
+        onClick={() => swiper?.slideNext()}
+        className={cn(
+          'absolute right-2 top-1/2 z-30 hidden h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-central-orange/35 bg-black/85 text-central-cream backdrop-blur transition-all duration-200 hover:border-central-orange hover:bg-central-orange hover:text-black lg:flex',
+          canScrollNext ? 'pointer-events-auto opacity-100' : 'pointer-events-none opacity-0',
+        )}
+        aria-label="Ver más categorías"
+      >
+        <ChevronRight size={20} strokeWidth={2.2} />
+      </button>
     </div>
   );
 }
