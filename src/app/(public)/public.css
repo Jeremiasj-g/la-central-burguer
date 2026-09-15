@@ -1,5 +1,31 @@
 .public-site {
+  /* Paleta pública con mayor contraste y mejor lectura a plena luz. */
+  --color-central-carbon: #171716;
+  --color-central-ink: #20201f;
+  --color-central-orange: #f59e0b;
+  --color-central-ember: #d97706;
+  --shadow-orange: 0 18px 40px rgba(245, 158, 11, .22);
+  min-height: 100dvh;
+  background:
+    radial-gradient(circle at 18% 0%, rgba(245, 158, 11, .12), transparent 30rem),
+    linear-gradient(180deg, #151514 0%, #1c1b1a 48%, #171716 100%);
   font-weight: 400;
+}
+
+/* Hero: negro carbón un poco más abierto y naranja más limpio/moderno. */
+.public-site .brick-wall {
+  background-color: #171716;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, .045) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, .035) 1px, transparent 1px),
+    radial-gradient(circle at 20% 18%, rgba(245, 158, 11, .17), transparent 26rem),
+    radial-gradient(circle at 84% 18%, rgba(255, 255, 255, .085), transparent 22rem),
+    linear-gradient(180deg, #1e1d1b, #121211 72%);
+}
+
+.public-site .brush-line {
+  background: linear-gradient(90deg, transparent, #f59e0b 18%, #fbbf24 50%, #d97706 82%, transparent);
+  box-shadow: 0 0 24px rgba(245, 158, 11, .25);
 }
 
 /*
@@ -9,8 +35,18 @@
  */
 body.lcb-public-typography [data-lcb-scroll-lock-overlay="true"],
 body.lcb-public-typography .Toastify__toast-container {
+  --color-central-carbon: #171716;
+  --color-central-ink: #20201f;
+  --color-central-orange: #f59e0b;
+  --color-central-ember: #d97706;
+  --shadow-orange: 0 18px 40px rgba(245, 158, 11, .22);
   font-family: var(--lcb-public-font-family, system-ui, sans-serif) !important;
   font-weight: 400;
+}
+
+body.lcb-public-typography [data-lcb-scroll-lock-overlay="true"] section[role="dialog"] {
+  background-color: #20201f;
+  border-color: rgba(255, 255, 255, .12);
 }
 
 .public-site :is(.font-thin, .font-extralight, .font-light),
