@@ -2,12 +2,42 @@
   font-weight: 400;
 }
 
-.public-site :is(.font-thin, .font-extralight, .font-light) {
+/*
+ * La experiencia pública usa Outfit entre 400 y 600.
+ * Los modales y otros overlays se renderizan con portals fuera de .public-site,
+ * por eso también se normalizan mientras la ruta pública está montada.
+ */
+body.lcb-public-typography [data-lcb-scroll-lock-overlay="true"],
+body.lcb-public-typography .Toastify__toast-container {
+  font-family: var(--lcb-public-font-family, system-ui, sans-serif) !important;
+  font-weight: 400;
+}
+
+.public-site :is(.font-thin, .font-extralight, .font-light),
+body.lcb-public-typography [data-lcb-scroll-lock-overlay="true"] :is(.font-thin, .font-extralight, .font-light),
+body.lcb-public-typography .Toastify__toast-container :is(.font-thin, .font-extralight, .font-light) {
   font-weight: 400 !important;
 }
 
-.public-site :is(.font-bold, .font-extrabold, .font-black):not(.font-display) {
+.public-site .font-medium,
+body.lcb-public-typography [data-lcb-scroll-lock-overlay="true"] .font-medium,
+body.lcb-public-typography .Toastify__toast-container .font-medium {
+  font-weight: 500 !important;
+}
+
+.public-site :is(.font-semibold, .font-bold, .font-extrabold, .font-black):not(.font-display),
+body.lcb-public-typography [data-lcb-scroll-lock-overlay="true"] :is(.font-semibold, .font-bold, .font-extrabold, .font-black):not(.font-display),
+body.lcb-public-typography .Toastify__toast-container :is(.font-semibold, .font-bold, .font-extrabold, .font-black):not(.font-display),
+.public-site :is(strong, b),
+body.lcb-public-typography [data-lcb-scroll-lock-overlay="true"] :is(strong, b),
+body.lcb-public-typography .Toastify__toast-container :is(strong, b) {
   font-weight: 600 !important;
+}
+
+/* El nombre principal del HERO conserva su tratamiento display original. */
+.public-site .font-display,
+.public-site .font-display * {
+  font-weight: 900 !important;
 }
 
 .public-site .watermark-text {
