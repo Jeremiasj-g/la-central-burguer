@@ -1,14 +1,14 @@
 .public-site {
-  /* Paleta pública: negro carbón más profundo y naranja vivo/moderno. */
+  /* Paleta pública: negro carbón profundo y amarillo cálido apenas anaranjado. */
   --lcb-public-bg: #111111;
   --lcb-public-surface: #171717;
   --lcb-public-surface-soft: #1d1d1d;
   --lcb-public-surface-deep: #0d0d0d;
-  --lcb-public-orange: #ff8a1f;
-  --lcb-public-orange-dark: #e9680f;
+  --lcb-public-orange: #ffc21c;
+  --lcb-public-orange-dark: #f59e0b;
   min-height: 100dvh;
   background:
-    radial-gradient(circle at 18% 0%, rgba(255, 138, 31, .12), transparent 30rem),
+    radial-gradient(circle at 18% 0%, rgba(255, 194, 28, .12), transparent 30rem),
     linear-gradient(180deg, #141414 0%, #181818 48%, #111111 100%);
   font-weight: 400;
 }
@@ -21,10 +21,10 @@ body.lcb-public-typography {
   --lcb-public-surface: #171717;
   --lcb-public-surface-soft: #1d1d1d;
   --lcb-public-surface-deep: #0d0d0d;
-  --lcb-public-orange: #ff8a1f;
-  --lcb-public-orange-dark: #e9680f;
+  --lcb-public-orange: #ffc21c;
+  --lcb-public-orange-dark: #f59e0b;
   background:
-    radial-gradient(circle at 18% 0%, rgba(255, 138, 31, .10), transparent 30rem),
+    radial-gradient(circle at 18% 0%, rgba(255, 194, 28, .10), transparent 30rem),
     linear-gradient(180deg, #141414 0%, #181818 48%, #111111 100%);
 }
 
@@ -34,29 +34,29 @@ body.lcb-public-typography {
   background-image:
     linear-gradient(rgba(255, 255, 255, .045) 1px, transparent 1px),
     linear-gradient(90deg, rgba(255, 255, 255, .035) 1px, transparent 1px),
-    radial-gradient(circle at 20% 18%, rgba(255, 138, 31, .18), transparent 26rem),
+    radial-gradient(circle at 20% 18%, rgba(255, 194, 28, .18), transparent 26rem),
     radial-gradient(circle at 84% 18%, rgba(255, 255, 255, .075), transparent 22rem),
     linear-gradient(180deg, #181818, #0d0d0d 72%);
 }
 
 .public-site .grunge-border::before {
-  border-color: rgba(255, 138, 31, .82);
+  border-color: rgba(255, 194, 28, .82);
 }
 
 .public-site .brush-line {
-  background: linear-gradient(90deg, transparent, #ff8a1f 18%, #ffb347 50%, #e9680f 82%, transparent);
-  box-shadow: 0 0 24px rgba(255, 138, 31, .28);
+  background: linear-gradient(90deg, transparent, #ffc21c 18%, #ffda67 50%, #f59e0b 82%, transparent);
+  box-shadow: 0 0 24px rgba(255, 194, 28, .28);
 }
 
 .public-site .menu-title-shadow {
   text-shadow:
     0 2px 0 rgba(0, 0, 0, .78),
-    0 0 18px rgba(255, 138, 31, .16);
+    0 0 18px rgba(255, 194, 28, .16);
 }
 
 .public-site .menu-card-texture {
   background:
-    radial-gradient(circle at 12% 10%, rgba(255, 138, 31, .12), transparent 18rem),
+    radial-gradient(circle at 12% 10%, rgba(255, 194, 28, .12), transparent 18rem),
     linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.012)),
     #171717;
 }
@@ -66,23 +66,23 @@ body.lcb-public-typography {
  * los sobreescribe explícitamente y no modifica Admin ni Delivery.
  */
 body.lcb-public-typography .text-central-orange {
-  color: #ff8a1f !important;
+  color: #ffc21c !important;
 }
 
 body.lcb-public-typography .bg-central-orange {
-  background-color: #ff8a1f !important;
+  background-color: #ffc21c !important;
 }
 
 body.lcb-public-typography .border-central-orange {
-  border-color: #ff8a1f !important;
+  border-color: #ffc21c !important;
 }
 
 body.lcb-public-typography .outline-central-orange {
-  outline-color: #ff8a1f !important;
+  outline-color: #ffc21c !important;
 }
 
 body.lcb-public-typography .accent-central-orange {
-  accent-color: #ff8a1f !important;
+  accent-color: #ffc21c !important;
 }
 
 body.lcb-public-typography .bg-central-ink {
@@ -98,17 +98,17 @@ body.lcb-public-typography .text-central-carbon {
 }
 
 body.lcb-public-typography .shadow-orange {
-  --tw-shadow-color: rgba(255, 138, 31, .24) !important;
-  box-shadow: 0 18px 40px rgba(255, 138, 31, .24) !important;
+  --tw-shadow-color: rgba(255, 194, 28, .24) !important;
+  box-shadow: 0 18px 40px rgba(255, 194, 28, .24) !important;
 }
 
-/* Variantes de naranja usadas actualmente en menú, carrito y checkout. */
+/* Variantes del acento usadas actualmente en menú, carrito y checkout. */
 body.lcb-public-typography :is(
   [class~="text-central-orange/70"],
   [class~="text-central-orange/75"],
   [class~="text-central-orange/80"]
 ) {
-  color: rgba(255, 138, 31, .80) !important;
+  color: rgba(255, 194, 28, .80) !important;
 }
 
 body.lcb-public-typography :is(
@@ -122,32 +122,32 @@ body.lcb-public-typography :is(
   [class~="border-central-orange/50"],
   [class~="border-central-orange/65"]
 ) {
-  border-color: rgba(255, 138, 31, .34) !important;
+  border-color: rgba(255, 194, 28, .34) !important;
 }
 
 body.lcb-public-typography :is(
   [class~="bg-central-orange/10"],
   [class~="bg-central-orange/12"]
 ) {
-  background-color: rgba(255, 138, 31, .12) !important;
+  background-color: rgba(255, 194, 28, .12) !important;
 }
 
 body.lcb-public-typography [class~="hover:bg-central-orange"]:hover,
 body.lcb-public-typography .group:hover [class~="group-hover:bg-central-orange"] {
-  background-color: #ff8a1f !important;
+  background-color: #ffc21c !important;
 }
 
 body.lcb-public-typography [class~="hover:border-central-orange"]:hover,
 body.lcb-public-typography .group:hover [class~="group-hover:border-central-orange"] {
-  border-color: #ff8a1f !important;
+  border-color: #ffc21c !important;
 }
 
 body.lcb-public-typography [class~="focus:border-central-orange"]:focus {
-  border-color: #ff8a1f !important;
+  border-color: #ffc21c !important;
 }
 
 body.lcb-public-typography [class~="focus-visible:outline-central-orange"]:focus-visible {
-  outline-color: #ff8a1f !important;
+  outline-color: #ffc21c !important;
 }
 
 /* Superficies que antes tenían negros/marrones hardcodeados. */
@@ -198,30 +198,30 @@ body.lcb-public-typography .Toastify__toast-container {
 
 body.lcb-public-typography .Toastify__toast {
   background: #171717 !important;
-  border-color: rgba(255, 138, 31, .30) !important;
+  border-color: rgba(255, 194, 28, .30) !important;
 }
 
 body.lcb-public-typography .Toastify__toast--warning {
-  border-color: rgba(255, 138, 31, .58) !important;
+  border-color: rgba(255, 194, 28, .58) !important;
 }
 
 body.lcb-public-typography .Toastify__progress-bar {
-  background: linear-gradient(90deg, #ff8a1f, #ffb347) !important;
+  background: linear-gradient(90deg, #ffc21c, #ffda67) !important;
 }
 
 /* Scrollbars de la experiencia pública. */
 body.lcb-public-typography .custom-scrollbar {
-  scrollbar-color: rgba(255, 138, 31, .62) rgba(255, 255, 255, .08);
+  scrollbar-color: rgba(255, 194, 28, .62) rgba(255, 255, 255, .08);
 }
 
 body.lcb-public-typography .custom-scrollbar::-webkit-scrollbar-thumb {
-  background: linear-gradient(180deg, rgba(255, 138, 31, .94), rgba(233, 104, 15, .9));
+  background: linear-gradient(180deg, rgba(255, 194, 28, .94), rgba(245, 158, 11, .9));
   border-color: #101010;
 }
 
 .public-site ::selection,
 body.lcb-public-typography [data-lcb-scroll-lock-overlay="true"] ::selection {
-  background: rgba(255, 138, 31, .34);
+  background: rgba(255, 194, 28, .34);
 }
 
 /*
