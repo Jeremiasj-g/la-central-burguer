@@ -1,31 +1,227 @@
 .public-site {
-  /* Paleta pública con mayor contraste y mejor lectura a plena luz. */
-  --color-central-carbon: #171716;
-  --color-central-ink: #20201f;
-  --color-central-orange: #f59e0b;
-  --color-central-ember: #d97706;
-  --shadow-orange: 0 18px 40px rgba(245, 158, 11, .22);
+  /* Paleta pública: carbón neutro y naranja más vivo/moderno. */
+  --lcb-public-bg: #181a1d;
+  --lcb-public-surface: #222529;
+  --lcb-public-surface-soft: #262a2e;
+  --lcb-public-surface-deep: #151719;
+  --lcb-public-orange: #ff8a1f;
+  --lcb-public-orange-dark: #e9680f;
   min-height: 100dvh;
   background:
-    radial-gradient(circle at 18% 0%, rgba(245, 158, 11, .12), transparent 30rem),
-    linear-gradient(180deg, #151514 0%, #1c1b1a 48%, #171716 100%);
+    radial-gradient(circle at 18% 0%, rgba(255, 138, 31, .12), transparent 30rem),
+    linear-gradient(180deg, #1d1f22 0%, #202327 48%, #181a1d 100%);
   font-weight: 400;
 }
 
-/* Hero: negro carbón un poco más abierto y naranja más limpio/moderno. */
+/* El body también recibe la paleta mientras una ruta pública está montada.
+ * Esto cubre modales, drawers, confirmaciones y toasts renderizados con portal.
+ */
+body.lcb-public-typography {
+  --lcb-public-bg: #181a1d;
+  --lcb-public-surface: #222529;
+  --lcb-public-surface-soft: #262a2e;
+  --lcb-public-surface-deep: #151719;
+  --lcb-public-orange: #ff8a1f;
+  --lcb-public-orange-dark: #e9680f;
+  background:
+    radial-gradient(circle at 18% 0%, rgba(255, 138, 31, .10), transparent 30rem),
+    linear-gradient(180deg, #1d1f22 0%, #202327 48%, #181a1d 100%);
+}
+
+/* Hero y fondos principales. */
 .public-site .brick-wall {
-  background-color: #171716;
+  background-color: #1a1c1f;
   background-image:
-    linear-gradient(rgba(255, 255, 255, .045) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, .035) 1px, transparent 1px),
-    radial-gradient(circle at 20% 18%, rgba(245, 158, 11, .17), transparent 26rem),
-    radial-gradient(circle at 84% 18%, rgba(255, 255, 255, .085), transparent 22rem),
-    linear-gradient(180deg, #1e1d1b, #121211 72%);
+    linear-gradient(rgba(255, 255, 255, .05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, .04) 1px, transparent 1px),
+    radial-gradient(circle at 20% 18%, rgba(255, 138, 31, .18), transparent 26rem),
+    radial-gradient(circle at 84% 18%, rgba(255, 255, 255, .09), transparent 22rem),
+    linear-gradient(180deg, #24272a, #151719 72%);
+}
+
+.public-site .grunge-border::before {
+  border-color: rgba(255, 138, 31, .82);
 }
 
 .public-site .brush-line {
-  background: linear-gradient(90deg, transparent, #f59e0b 18%, #fbbf24 50%, #d97706 82%, transparent);
-  box-shadow: 0 0 24px rgba(245, 158, 11, .25);
+  background: linear-gradient(90deg, transparent, #ff8a1f 18%, #ffb347 50%, #e9680f 82%, transparent);
+  box-shadow: 0 0 24px rgba(255, 138, 31, .28);
+}
+
+.public-site .menu-title-shadow {
+  text-shadow:
+    0 2px 0 rgba(0, 0, 0, .78),
+    0 0 18px rgba(255, 138, 31, .16);
+}
+
+.public-site .menu-card-texture {
+  background:
+    radial-gradient(circle at 12% 10%, rgba(255, 138, 31, .12), transparent 18rem),
+    linear-gradient(180deg, rgba(255,255,255,.045), rgba(255,255,255,.016)),
+    #222529;
+}
+
+/*
+ * Tailwind genera estos colores como valores resueltos; por eso la paleta pública
+ * los sobreescribe explícitamente y no modifica Admin ni Delivery.
+ */
+body.lcb-public-typography .text-central-orange {
+  color: #ff8a1f !important;
+}
+
+body.lcb-public-typography .bg-central-orange {
+  background-color: #ff8a1f !important;
+}
+
+body.lcb-public-typography .border-central-orange {
+  border-color: #ff8a1f !important;
+}
+
+body.lcb-public-typography .outline-central-orange {
+  outline-color: #ff8a1f !important;
+}
+
+body.lcb-public-typography .accent-central-orange {
+  accent-color: #ff8a1f !important;
+}
+
+body.lcb-public-typography .bg-central-ink {
+  background-color: #222529 !important;
+}
+
+body.lcb-public-typography .bg-central-carbon {
+  background-color: #181a1d !important;
+}
+
+body.lcb-public-typography .text-central-carbon {
+  color: #181a1d !important;
+}
+
+body.lcb-public-typography .shadow-orange {
+  --tw-shadow-color: rgba(255, 138, 31, .24) !important;
+  box-shadow: 0 18px 40px rgba(255, 138, 31, .24) !important;
+}
+
+/* Variantes de naranja usadas actualmente en menú, carrito y checkout. */
+body.lcb-public-typography :is(
+  [class~="text-central-orange/70"],
+  [class~="text-central-orange/75"],
+  [class~="text-central-orange/80"]
+) {
+  color: rgba(255, 138, 31, .80) !important;
+}
+
+body.lcb-public-typography :is(
+  [class~="border-central-orange/18"],
+  [class~="border-central-orange/20"],
+  [class~="border-central-orange/25"],
+  [class~="border-central-orange/30"],
+  [class~="border-central-orange/35"],
+  [class~="border-central-orange/40"],
+  [class~="border-central-orange/45"],
+  [class~="border-central-orange/50"],
+  [class~="border-central-orange/65"]
+) {
+  border-color: rgba(255, 138, 31, .34) !important;
+}
+
+body.lcb-public-typography :is(
+  [class~="bg-central-orange/10"],
+  [class~="bg-central-orange/12"]
+) {
+  background-color: rgba(255, 138, 31, .12) !important;
+}
+
+body.lcb-public-typography [class~="hover:bg-central-orange"]:hover,
+body.lcb-public-typography .group:hover [class~="group-hover:bg-central-orange"] {
+  background-color: #ff8a1f !important;
+}
+
+body.lcb-public-typography [class~="hover:border-central-orange"]:hover,
+body.lcb-public-typography .group:hover [class~="group-hover:border-central-orange"] {
+  border-color: #ff8a1f !important;
+}
+
+body.lcb-public-typography [class~="focus:border-central-orange"]:focus {
+  border-color: #ff8a1f !important;
+}
+
+body.lcb-public-typography [class~="focus-visible:outline-central-orange"]:focus-visible {
+  outline-color: #ff8a1f !important;
+}
+
+/* Superficies que antes tenían negros/marrones hardcodeados. */
+body.lcb-public-typography :is(
+  [class~="bg-[#171514]"],
+  [class~="bg-[#151311]"],
+  [class~="bg-[#191919]"]
+) {
+  background-color: #222529 !important;
+}
+
+body.lcb-public-typography :is(
+  [class~="bg-[#24211f]"],
+  [class~="bg-[#1b1b1b]"]
+) {
+  background-color: #262a2e !important;
+}
+
+body.lcb-public-typography [class~="bg-[#11100f]"] {
+  background-color: #191c1f !important;
+}
+
+body.lcb-public-typography [class~="bg-[#0d0c0b]/96"] {
+  background-color: rgba(25, 28, 31, .96) !important;
+}
+
+/* Modales, drawers y confirmaciones públicas. */
+body.lcb-public-typography [data-lcb-scroll-lock-overlay="true"] {
+  font-family: var(--lcb-public-font-family, system-ui, sans-serif) !important;
+  font-weight: 400;
+}
+
+body.lcb-public-typography [data-lcb-scroll-lock-overlay="true"] :is(section, aside)[role="dialog"] {
+  background-color: #222529 !important;
+  border-color: rgba(255, 255, 255, .13) !important;
+}
+
+body.lcb-public-typography [data-lcb-scroll-lock-overlay="true"] input:not([type="radio"]):not([type="checkbox"]),
+body.lcb-public-typography [data-lcb-scroll-lock-overlay="true"] textarea,
+body.lcb-public-typography [data-lcb-scroll-lock-overlay="true"] select {
+  background-color: #262a2e !important;
+}
+
+body.lcb-public-typography .Toastify__toast-container {
+  font-family: var(--lcb-public-font-family, system-ui, sans-serif) !important;
+  font-weight: 400;
+}
+
+body.lcb-public-typography .Toastify__toast {
+  background: #222529 !important;
+  border-color: rgba(255, 138, 31, .30) !important;
+}
+
+body.lcb-public-typography .Toastify__toast--warning {
+  border-color: rgba(255, 138, 31, .58) !important;
+}
+
+body.lcb-public-typography .Toastify__progress-bar {
+  background: linear-gradient(90deg, #ff8a1f, #ffb347) !important;
+}
+
+/* Scrollbars de la experiencia pública. */
+body.lcb-public-typography .custom-scrollbar {
+  scrollbar-color: rgba(255, 138, 31, .62) rgba(255, 255, 255, .09);
+}
+
+body.lcb-public-typography .custom-scrollbar::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, rgba(255, 138, 31, .94), rgba(233, 104, 15, .9));
+  border-color: #191c1f;
+}
+
+.public-site ::selection,
+body.lcb-public-typography [data-lcb-scroll-lock-overlay="true"] ::selection {
+  background: rgba(255, 138, 31, .34);
 }
 
 /*
@@ -33,22 +229,6 @@
  * Los modales y otros overlays se renderizan con portals fuera de .public-site,
  * por eso también se normalizan mientras la ruta pública está montada.
  */
-body.lcb-public-typography [data-lcb-scroll-lock-overlay="true"],
-body.lcb-public-typography .Toastify__toast-container {
-  --color-central-carbon: #171716;
-  --color-central-ink: #20201f;
-  --color-central-orange: #f59e0b;
-  --color-central-ember: #d97706;
-  --shadow-orange: 0 18px 40px rgba(245, 158, 11, .22);
-  font-family: var(--lcb-public-font-family, system-ui, sans-serif) !important;
-  font-weight: 400;
-}
-
-body.lcb-public-typography [data-lcb-scroll-lock-overlay="true"] section[role="dialog"] {
-  background-color: #20201f;
-  border-color: rgba(255, 255, 255, .12);
-}
-
 .public-site :is(.font-thin, .font-extralight, .font-light),
 body.lcb-public-typography [data-lcb-scroll-lock-overlay="true"] :is(.font-thin, .font-extralight, .font-light),
 body.lcb-public-typography .Toastify__toast-container :is(.font-thin, .font-extralight, .font-light) {
@@ -70,7 +250,7 @@ body.lcb-public-typography .Toastify__toast-container :is(strong, b) {
   font-weight: 600 !important;
 }
 
-/* El nombre principal del HERO conserva el display, pero baja de 900 a 800. */
+/* El nombre principal del HERO conserva el display en 800. */
 .public-site .hero-brand-title,
 .public-site .hero-brand-title * {
   font-weight: 800 !important;
