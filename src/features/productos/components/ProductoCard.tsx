@@ -16,7 +16,7 @@ interface ProductoCardProps {
 export function ProductoCard({ product, categoryName, disabled = false, onSelect, onPreviewImage }: ProductoCardProps) {
   return (
     <article className={cn(
-      'group relative min-h-[136px] overflow-hidden rounded-sm border border-central-orange/18 bg-[#171514] transition-all duration-300 ease-out motion-reduce:transition-none hover:scale-[1.025] hover:border-central-orange/65',
+      'group relative min-h-[136px] overflow-hidden rounded-sm border border-central-orange/18 bg-[#171514] transition-all duration-200 ease-out motion-reduce:transition-none hover:scale-[1.035] hover:border-central-orange/65',
       disabled && 'opacity-70',
     )}>
       <button
@@ -45,7 +45,7 @@ export function ProductoCard({ product, categoryName, disabled = false, onSelect
           productName={product.name}
           categoryName={categoryName}
           className="h-full w-full"
-          imageClassName="transition duration-500 group-hover:scale-105"
+          imageClassName=""
         />
         <div className="absolute inset-0 bg-gradient-to-r from-[#171514] via-[#171514]/70 to-transparent" />
         <div className="absolute inset-0 bg-gradient-to-t from-black/38 via-transparent to-transparent" />
