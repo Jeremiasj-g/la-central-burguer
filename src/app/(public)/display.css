@@ -1,11 +1,17 @@
 /*
- * Los títulos display deben conservar el mismo peso en desktop y mobile.
+ * Los títulos display deben conservar un peso consistente en desktop y mobile.
  * En Android no siempre existen Impact/Arial Black, por lo que el fallback podía
  * terminar renderizando estos títulos con un peso visual mucho más liviano.
  */
 .public-site .font-display,
 body.lcb-public-typography [data-lcb-scroll-lock-overlay="true"] .font-display,
 body.lcb-public-typography .Toastify__toast-container .font-display {
-  font-weight: 800 !important;
+  font-weight: 600 !important;
   font-synthesis: weight;
+}
+
+/* Única excepción acordada: el nombre principal del HERO queda en 800. */
+.public-site .hero-brand-title,
+.public-site .hero-brand-title * {
+  font-weight: 800 !important;
 }
