@@ -16,7 +16,7 @@ interface ProductoCardProps {
 export function ProductoCard({ product, categoryName, disabled = false, onSelect, onPreviewImage }: ProductoCardProps) {
   return (
     <article className={cn(
-      'group relative min-h-[136px] overflow-hidden rounded-sm border border-central-orange/18 bg-[#171514] transition-all duration-200 ease-out motion-reduce:transition-none hover:scale-[1.035] hover:border-central-orange/65',
+      'group relative min-h-[160px] overflow-hidden rounded-sm border border-central-orange/18 bg-[#171514] transition-all duration-200 ease-out motion-reduce:transition-none hover:scale-[1.035] hover:border-central-orange/65 sm:min-h-[170px]',
       disabled && 'opacity-70',
     )}>
       <button
@@ -63,7 +63,7 @@ export function ProductoCard({ product, categoryName, disabled = false, onSelect
         </button>
       ) : null}
 
-      <div className="relative z-10 flex min-h-[136px] max-w-[72%] flex-col justify-between p-4 pr-2 sm:max-w-[68%]">
+      <div className="relative z-10 flex min-h-[160px] max-w-[72%] flex-col justify-between p-4 pr-2 sm:min-h-[170px] sm:max-w-[68%]">
         <div>
           <div className="flex flex-wrap items-center gap-2">
             {categoryName ? <span className="text-[10px] font-black uppercase tracking-[.22em] text-central-orange/75">{categoryName}</span> : null}
