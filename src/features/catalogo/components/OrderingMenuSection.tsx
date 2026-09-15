@@ -63,18 +63,18 @@ export function OrderingMenuSection() {
 
         <div className="relative min-h-[calc(100dvh-72px)] lg:grid lg:min-h-[calc(100dvh+420px)] lg:grid-cols-[minmax(0,1fr)_390px] lg:gap-6 xl:grid-cols-[minmax(0,1fr)_430px]">
           <div className="min-w-0">
-            <div className="menu-ordering-tools sticky top-[72px] z-30 rounded-sm border border-central-orange/20 bg-[#0d0c0b]/96 p-3 shadow-dark backdrop-blur-xl sm:p-4 lg:px-4">
+            <div className="menu-ordering-tools sticky top-[72px] z-30 rounded-sm p-1 lg:py-6">
               <MenuSearchBar value={search} onChange={setSearch} />
-              <div className="mt-3 sm:mt-4">
+              <div className="">
                 {loadingCategories ? (
-                  <div className="skeleton-dark h-[92px] rounded-sm border border-central-orange/20 bg-black/35 sm:h-28" />
+                  <div className="skeleton-dark h-[92px] rounded-sm bg-black/35 sm:h-28" />
                 ) : (
                   <CategoryTabs categories={categorias} selectedCategoryId={selectedCategoryId} onSelect={setSelectedCategoryId} />
                 )}
               </div>
             </div>
 
-            <div className="mt-4 rounded-sm border border-central-orange/25 bg-black/28 p-3.5 shadow-dark backdrop-blur sm:mt-5 sm:p-6">
+            <div className="mt-4 rounded-sm p-1  backdrop-blur sm:mt-5">
               <div className="mb-4 flex flex-col gap-2 border-b border-dashed border-central-orange/40 pb-4 sm:flex-row sm:items-end sm:justify-between">
                 <div>
                   <p className="text-xs font-black uppercase tracking-[.32em] text-central-orange">Elegí y agregá al pedido</p>

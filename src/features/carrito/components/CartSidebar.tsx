@@ -40,7 +40,7 @@ export function CartSidebar({ items, total, checkoutDisabled = false, onUpdateQu
 
   return (
     <>
-      <aside className="sticky top-[84px] z-20 hidden h-[calc(100dvh-100px)] min-h-[520px] self-start rounded-sm border border-central-orange/25 bg-[#151311] p-6 text-central-cream shadow-dark lg:flex lg:flex-col">
+      <aside className="sticky top-[84px] z-20 hidden h-[calc(100dvh-100px)] min-h-[520px] self-start rounded-sm bg-[#20201f] p-6 text-central-cream shadow-dark lg:flex lg:flex-col">
         <div className="flex shrink-0 items-center justify-between gap-3 border-b border-dashed border-central-orange/45 pb-4">
           <div>
             <p className="text-xs font-black uppercase tracking-[.28em] text-central-orange">Resumen</p>
