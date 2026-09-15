@@ -11,7 +11,7 @@ const publicFont = Outfit({
 
 const publicDisplayFont = Oswald({
   subsets: ['latin'],
-  weight: ['600', '800'],
+  weight: ['600', '700'],
   display: 'swap',
   variable: '--font-public-display',
 });
