@@ -1,7 +1,7 @@
 /*
  * Los títulos display usan una fuente cargada por Next.js para evitar depender
  * de Impact/Arial Black instaladas localmente. Así Android y desktop renderizan
- * la misma familia y los mismos pesos reales.
+ * la misma familia de forma consistente.
  */
 .public-site .font-display,
 body.lcb-public-typography [data-lcb-scroll-lock-overlay="true"] .font-display,
@@ -11,10 +11,13 @@ body.lcb-public-typography .Toastify__toast-container .font-display {
   font-synthesis: none;
 }
 
-/* Única excepción acordada: el nombre principal del HERO queda en 800. */
+/*
+ * Oswald llega hasta 700. Para conservar el tratamiento visual acordado de 800
+ * en el HERO, cargamos 700 (peso soportado) y permitimos síntesis sólo aquí.
+ */
 .public-site .hero-brand-title,
 .public-site .hero-brand-title * {
   font-family: var(--font-public-display, Impact, "Arial Black", sans-serif) !important;
   font-weight: 800 !important;
-  font-synthesis: none;
+  font-synthesis: weight;
 }
