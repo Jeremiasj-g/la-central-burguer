@@ -1,5 +1,6 @@
 import { Outfit } from 'next/font/google';
 import './public.css';
+import './display.css';
 import { PublicTypographyPortalSync } from './PublicTypographyPortalSync';
 
 const publicFont = Outfit({
