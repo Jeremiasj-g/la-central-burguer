@@ -1,5 +1,6 @@
 import { Outfit } from 'next/font/google';
 import './public.css';
+import { PublicTypographyPortalSync } from './PublicTypographyPortalSync';
 
 const publicFont = Outfit({
   subsets: ['latin'],
@@ -8,5 +9,10 @@ const publicFont = Outfit({
 });
 
 export default function PublicLayout({ children }: { children: React.ReactNode }) {
-  return <div className={`${publicFont.className} public-site`}>{children}</div>;
+  return (
+    <div className={`${publicFont.className} public-site`}>
+      <PublicTypographyPortalSync />
+      {children}
+    </div>
+  );
 }
