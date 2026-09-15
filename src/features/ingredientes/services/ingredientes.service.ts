@@ -30,26 +30,29 @@ export async function getIngredientes(filters: IngredientFilters = {}): Promise<
   const { data, error } = await query;
   if (error) throw new Error(error.message);
 
-  return ((data ?? []) as IngredientRow[]).map(mapIngredientRowToIngredient);
+  return ((data ?? []) as unknown as IngredientRow[]).map(mapIngredientRowToIngredient);
 }
 
 export async function createIngrediente(input: CreateIngredientInput): Promise<Ingredient> {
   requireSupabaseConfigured('crear ingredientes');
 
+  const payload = {
+    name: input.name,
+    type: input.type,
+    unit: input.unit,
+    unit_cost: Math.max(0, input.unitCost),
+    supplier: input.supplier || null,
+    active: input.active ?? true,
+  };
+
   const { data, error } = await getSupabaseBrowserClient()
     .from('ingredients')
-    .insert({
-      name: input.name,
-      type: input.type,
-      unit: input.unit,
-      supplier: input.supplier || null,
-      active: input.active ?? true,
-    })
+    .insert(payload as never)
     .select('*')
     .single();
 
   if (error) throw new Error(error.message);
-  return mapIngredientRowToIngredient(data as IngredientRow);
+  return mapIngredientRowToIngredient(data as unknown as IngredientRow);
 }
 
 export async function updateIngrediente(input: UpdateIngredientInput): Promise<Ingredient> {
@@ -59,6 +62,7 @@ export async function updateIngrediente(input: UpdateIngredientInput): Promise<I
     ...(input.name !== undefined ? { name: input.name } : {}),
     ...(input.type !== undefined ? { type: input.type } : {}),
     ...(input.unit !== undefined ? { unit: input.unit } : {}),
+    ...(input.unitCost !== undefined ? { unit_cost: Math.max(0, input.unitCost) } : {}),
     ...(input.supplier !== undefined ? { supplier: input.supplier || null } : {}),
     ...(input.active !== undefined ? { active: input.active } : {}),
     last_updated_at: new Date().toISOString(),
@@ -66,13 +70,13 @@ export async function updateIngrediente(input: UpdateIngredientInput): Promise<I
 
   const { data, error } = await getSupabaseBrowserClient()
     .from('ingredients')
-    .update(payload)
+    .update(payload as never)
     .eq('id', input.id)
     .select('*')
     .single();
 
   if (error) throw new Error(error.message);
-  return mapIngredientRowToIngredient(data as IngredientRow);
+  return mapIngredientRowToIngredient(data as unknown as IngredientRow);
 }
 
 export async function deleteIngrediente(id: string): Promise<void> {
