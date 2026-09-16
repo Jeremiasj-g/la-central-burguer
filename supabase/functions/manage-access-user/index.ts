@@ -316,11 +316,22 @@ Deno.serve(async (req: Request) => {
       if (profileReadError) throw profileReadError;
       if (!profile) throw new Error('Usuario no encontrado.');
 
-      const { error: authError } = await admin.auth.admin.updateUserById(userId, {
-        email,
-        user_metadata: { full_name: fullName },
-        app_metadata: { app_roles: roleCodes },
-      });
+      const { data: authUserData, error: authReadError } = await admin.auth.admin.getUserById(userId);
+      if (authReadError || !authUserData.user) throw authReadError ?? new Error('Usuario de autenticación no encontrado.');
+
+      const currentEmail = (authUserData.user.email ?? '').trim().toLowerCase();
+      const isPendingInvitation = Boolean(authUserData.user.invited_at && !authUserData.user.email_confirmed_at);
+      if (isPendingInvitation && currentEmail !== email) {
+        throw new Error('Para cambiar el email de una invitación pendiente, eliminá la invitación y creala nuevamente.');
+      }
+
+      const authUpdate: any = {
+        user_metadata: { ...(authUserData.user.user_metadata ?? {}), full_name: fullName },
+        app_metadata: { ...(authUserData.user.app_metadata ?? {}), app_roles: roleCodes },
+      };
+      if (currentEmail !== email) authUpdate.email = email;
+
+      const { error: authError } = await admin.auth.admin.updateUserById(userId, authUpdate);
       if (authError) throw authError;
 
       const { error: profileError } = await admin.from('profiles').update({ full_name: fullName, phone, notes }).eq('id', userId);
