@@ -93,102 +93,110 @@ export function AdminNotifications() {
       </button>
 
       {open ? (
-        <div className="absolute right-0 top-12 z-50 w-[min(92vw,390px)] overflow-hidden rounded-sm border border-neutral-200 bg-white text-central-carbon shadow-dark">
-          <div className="flex items-start justify-between gap-3 border-b border-neutral-100 p-4">
-            <div>
-              <p className="text-xs font-black uppercase tracking-[.22em] text-central-orange">Pedidos</p>
-              <h3 className="mt-1 text-lg font-black">Notificaciones</h3>
-              <p className="mt-1 text-xs text-neutral-500">Pedidos recibidos desde el sitio.</p>
-            </div>
-            <button
-              type="button"
-              onClick={() => setOpen(false)}
-              className="rounded-sm p-1 text-neutral-400 transition hover:bg-neutral-100 hover:text-central-carbon"
-              aria-label="Cerrar notificaciones"
-            >
-              <X size={18} />
-            </button>
-          </div>
-
-          <div className="max-h-[430px] space-y-2 overflow-y-auto p-3 custom-scrollbar">
-            {error ? (
-              <div className="rounded-sm border border-red-200 bg-red-50 p-4 text-sm text-red-700">
-                {error}
+        <>
+          <button
+            type="button"
+            aria-label="Cerrar notificaciones"
+            onClick={() => setOpen(false)}
+            className="fixed inset-0 z-40 bg-black/20 backdrop-blur-[1px] sm:hidden"
+          />
+          <div className="fixed inset-x-3 top-20 z-50 flex max-h-[calc(100dvh-92px)] flex-col overflow-hidden rounded-sm border border-neutral-200 bg-white text-central-carbon shadow-dark sm:absolute sm:inset-x-auto sm:right-0 sm:top-12 sm:max-h-none sm:w-[390px]">
+            <div className="flex items-start justify-between gap-3 border-b border-neutral-100 p-4">
+              <div>
+                <p className="text-xs font-black uppercase tracking-[.22em] text-central-orange">Pedidos</p>
+                <h3 className="mt-1 text-lg font-black">Notificaciones</h3>
+                <p className="mt-1 text-xs text-neutral-500">Pedidos recibidos desde el sitio.</p>
               </div>
-            ) : orders.length === 0 ? (
-              <div className="rounded-sm border border-dashed border-neutral-200 p-6 text-center text-sm text-neutral-500">
-                Todavía no hay pedidos para mostrar.
-              </div>
-            ) : orders.map((order) => {
-              const unseen = isIncomingOrder(order) && !seenIds.includes(order.id);
-              return (
-                <Link
-                  key={order.id}
-                  href={ROUTES.adminPedidos}
-                  onClick={() => setOpen(false)}
-                  className={cn(
-                    'block rounded-sm border p-3 transition hover:border-central-orange hover:bg-central-orange/5',
-                    unseen
-                      ? 'border-central-orange/55 bg-central-orange/10'
-                      : 'border-neutral-200 bg-neutral-50 opacity-75',
-                  )}
-                >
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="min-w-0">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <p className="font-mono text-xs font-black text-central-orange">{order.orderCode}</p>
-                        <span className={cn(
-                          'rounded-full px-2 py-0.5 text-[10px] font-black uppercase',
-                          unseen
-                            ? 'bg-central-orange text-white'
-                            : 'bg-neutral-200 text-neutral-500',
-                        )}>
-                          {unseen ? 'Nuevo' : 'Visto'}
-                        </span>
-                      </div>
-                      <p className="mt-1 truncate text-sm font-black">{order.customerName}</p>
-                      <p className="mt-0.5 text-xs text-neutral-500">
-                        {order.deliveryMethod === 'delivery' ? 'Delivery' : 'Retiro local'} · {formatDateTime(order.createdAt)}
-                      </p>
-                    </div>
-                    <strong className="shrink-0 text-sm text-central-carbon">{formatCurrency(order.total)}</strong>
-                  </div>
-                  <p className="mt-2 line-clamp-2 text-xs leading-5 text-neutral-600">
-                    {order.items.map((item) => `${item.quantity}x ${item.productName}`).join(', ')}
-                  </p>
-                </Link>
-              );
-            })}
-          </div>
-
-          <div className="flex items-center justify-between gap-3 border-t border-neutral-100 bg-neutral-50 p-3">
-            <div className="flex items-center gap-2 text-xs font-bold text-neutral-500">
-              {unseenCount > 0 ? (
-                <Clock3 size={15} className="text-central-orange" />
-              ) : (
-                <PackageCheck size={15} className="text-green-600" />
-              )}
-              {unseenCount > 0 ? `${unseenCount} sin ver` : 'Todo visto'}
-            </div>
-            <div className="flex gap-2">
               <button
                 type="button"
-                onClick={markAllAsSeen}
-                disabled={Boolean(error) || orders.length === 0}
-                className="rounded-sm border border-neutral-200 bg-white px-3 py-2 text-xs font-black text-neutral-700 transition hover:border-central-orange hover:text-central-orange disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                <CheckCheck size={14} className="mr-1 inline" /> Vistos
-              </button>
-              <Link
-                href={ROUTES.adminPedidos}
                 onClick={() => setOpen(false)}
-                className="rounded-sm bg-central-orange px-3 py-2 text-xs font-black text-white transition hover:bg-central-ember"
+                className="rounded-sm p-1 text-neutral-400 transition hover:bg-neutral-100 hover:text-central-carbon"
+                aria-label="Cerrar notificaciones"
               >
-                Ver pedidos
-              </Link>
+                <X size={18} />
+              </button>
+            </div>
+
+            <div className="custom-scrollbar min-h-0 flex-1 space-y-2 overflow-y-auto p-3 sm:max-h-[430px] sm:flex-none">
+              {error ? (
+                <div className="rounded-sm border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+                  {error}
+                </div>
+              ) : orders.length === 0 ? (
+                <div className="rounded-sm border border-dashed border-neutral-200 p-6 text-center text-sm text-neutral-500">
+                  Todavía no hay pedidos para mostrar.
+                </div>
+              ) : orders.map((order) => {
+                const unseen = isIncomingOrder(order) && !seenIds.includes(order.id);
+                return (
+                  <Link
+                    key={order.id}
+                    href={ROUTES.adminPedidos}
+                    onClick={() => setOpen(false)}
+                    className={cn(
+                      'block rounded-sm border p-3 transition hover:border-central-orange hover:bg-central-orange/5',
+                      unseen
+                        ? 'border-central-orange/55 bg-central-orange/10'
+                        : 'border-neutral-200 bg-neutral-50 opacity-75',
+                    )}
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <p className="font-mono text-xs font-black text-central-orange">{order.orderCode}</p>
+                          <span className={cn(
+                            'rounded-full px-2 py-0.5 text-[10px] font-black uppercase',
+                            unseen
+                              ? 'bg-central-orange text-white'
+                              : 'bg-neutral-200 text-neutral-500',
+                          )}>
+                            {unseen ? 'Nuevo' : 'Visto'}
+                          </span>
+                        </div>
+                        <p className="mt-1 truncate text-sm font-black">{order.customerName}</p>
+                        <p className="mt-0.5 text-xs text-neutral-500">
+                          {order.deliveryMethod === 'delivery' ? 'Delivery' : 'Retiro local'} · {formatDateTime(order.createdAt)}
+                        </p>
+                      </div>
+                      <strong className="shrink-0 text-sm text-central-carbon">{formatCurrency(order.total)}</strong>
+                    </div>
+                    <p className="mt-2 line-clamp-2 text-xs leading-5 text-neutral-600">
+                      {order.items.map((item) => `${item.quantity}x ${item.productName}`).join(', ')}
+                    </p>
+                  </Link>
+                );
+              })}
+            </div>
+
+            <div className="flex flex-col items-stretch gap-3 border-t border-neutral-100 bg-neutral-50 p-3 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex items-center justify-center gap-2 text-xs font-bold text-neutral-500 sm:justify-start">
+                {unseenCount > 0 ? (
+                  <Clock3 size={15} className="text-central-orange" />
+                ) : (
+                  <PackageCheck size={15} className="text-green-600" />
+                )}
+                {unseenCount > 0 ? `${unseenCount} sin ver` : 'Todo visto'}
+              </div>
+              <div className="grid grid-cols-2 gap-2 sm:flex">
+                <button
+                  type="button"
+                  onClick={markAllAsSeen}
+                  disabled={Boolean(error) || orders.length === 0}
+                  className="inline-flex items-center justify-center whitespace-nowrap rounded-sm border border-neutral-200 bg-white px-3 py-2 text-xs font-black text-neutral-700 transition hover:border-central-orange hover:text-central-orange disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  <CheckCheck size={14} className="mr-1" /> Vistos
+                </button>
+                <Link
+                  href={ROUTES.adminPedidos}
+                  onClick={() => setOpen(false)}
+                  className="inline-flex items-center justify-center whitespace-nowrap rounded-sm bg-central-orange px-3 py-2 text-xs font-black text-white transition hover:bg-central-ember"
+                >
+                  Ver pedidos
+                </Link>
+              </div>
             </div>
           </div>
-        </div>
+        </>
       ) : null}
     </div>
   );
