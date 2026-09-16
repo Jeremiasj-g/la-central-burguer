@@ -12,7 +12,8 @@
   "dependencies": {
     "@radix-ui/react-popover": "^1.1.23",
     "@radix-ui/react-select": "^2.3.7",
-    "@supabase/supabase-js": "2.110.8",
+    "@supabase/ssr": "0.12.7",
+    "@supabase/supabase-js": "2.115.0",
     "cmdk": "^1.1.1",
     "lucide-react": "^1.21.0",
     "next": "16.2.10",

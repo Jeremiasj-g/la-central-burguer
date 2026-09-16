@@ -4,11 +4,11 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { LogOut, Menu, X } from 'lucide-react';
 import { AdminNotifications } from './AdminNotifications';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { ADMIN_NAVIGATION } from '@/shared/constants/navigation';
 import { ROUTES } from '@/shared/constants/routes';
 import { cn } from '@/shared/utils/cn';
-import { logoutAdmin, isAdminLoggedIn } from '@/features/auth/services/auth.service';
+import { logoutAdmin } from '@/features/auth/services/auth.service';
 import { useBusinessConfig } from '@/features/configuracion/hooks/useBusinessConfig';
 import { BusinessLogo } from '@/features/configuracion/components/BusinessLogo';
 
@@ -16,52 +16,14 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [checked, setChecked] = useState(false);
-  const [authError, setAuthError] = useState<string | null>(null);
   const { config } = useBusinessConfig();
   const businessWords = (config?.businessName?.trim() || 'La Central Burger').split(/\s+/);
   const businessLastWord = businessWords.pop() || '';
   const businessFirstWords = businessWords.join(' ') || businessLastWord;
 
-  useEffect(() => {
-    let active = true;
-
-    isAdminLoggedIn()
-      .then((loggedIn) => {
-        if (!active) return;
-        if (!loggedIn) {
-          router.replace(ROUTES.adminLogin);
-          return;
-        }
-        setChecked(true);
-      })
-      .catch((error: unknown) => {
-        if (!active) return;
-        setAuthError(error instanceof Error ? error.message : 'No se pudo validar la sesión.');
-      });
-
-    return () => {
-      active = false;
-    };
-  }, [router]);
-
   async function handleLogout() {
     await logoutAdmin();
     router.replace(ROUTES.adminLogin);
-  }
-
-  if (authError) {
-    return (
-      <div className="grid min-h-screen place-items-center bg-central-carbon px-5 text-white">
-        <div className="max-w-lg rounded-sm border border-red-400/30 bg-red-500/10 p-5 text-center text-sm text-red-100">
-          {authError}
-        </div>
-      </div>
-    );
-  }
-
-  if (!checked) {
-    return <div className="grid min-h-screen place-items-center bg-central-carbon text-white">Cargando panel...</div>;
   }
 
   const sidebar = (
