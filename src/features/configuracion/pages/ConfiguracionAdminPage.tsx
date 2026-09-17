@@ -323,9 +323,22 @@ export function ConfiguracionAdminPage() {
             </div>
 
             {typeof values.storeLatitude === 'number' && typeof values.storeLongitude === 'number' ? (
-              <a className="mt-4 inline-flex items-center gap-2 rounded-sm border border-neutral-200 bg-neutral-50 px-3 py-2 text-sm font-bold text-central-carbon hover:border-central-orange hover:text-central-orange" href={buildGoogleMapsUrl({ lat: values.storeLatitude, lng: values.storeLongitude })} target="_blank" rel="noreferrer">
-                <MapPin size={16} /> Ver ubicación del local en Google Maps
-              </a>
+              <div className="mt-4 space-y-3">
+                <a className="inline-flex items-center gap-2 rounded-sm border border-neutral-200 bg-neutral-50 px-3 py-2 text-sm font-bold text-central-carbon hover:border-central-orange hover:text-central-orange" href={buildGoogleMapsUrl({ lat: values.storeLatitude, lng: values.storeLongitude })} target="_blank" rel="noreferrer">
+                  <MapPin size={16} /> Ver ubicación del local en Google Maps
+                </a>
+
+                <div className="w-full overflow-hidden rounded-sm border border-neutral-200 bg-neutral-100 shadow-[inset_0_1px_2px_rgba(0,0,0,.04)]">
+                  <iframe
+                    title={`Ubicación de ${values.businessName} en Google Maps`}
+                    src={`https://www.google.com/maps?q=${values.storeLatitude},${values.storeLongitude}&z=16&output=embed`}
+                    className="block h-[320px] w-full border-0 sm:h-[380px] lg:h-[420px]"
+                    loading="lazy"
+                    referrerPolicy="no-referrer-when-downgrade"
+                    allowFullScreen
+                  />
+                </div>
+              </div>
             ) : null}
           </div>
         </section>
