@@ -1,7 +1,7 @@
 'use client';
 
 import { ShoppingBag } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useCategorias } from '@/features/categorias/hooks/useCategorias';
 import { useProductos } from '@/features/productos/hooks/useProductos';
 import type { Product } from '@/features/productos/types/producto.types';
@@ -14,7 +14,6 @@ import { ProductDetailModal } from '@/features/productos/components/ProductDetai
 import { ProductImageLightbox } from '@/features/productos/components/ProductImageLightbox';
 import { CartSidebar } from '@/features/carrito/components/CartSidebar';
 import { CartDrawer } from '@/features/carrito/components/CartDrawer';
-import { CartFloatingButton } from './CartFloatingButton';
 import { CheckoutModal } from '@/features/checkout/components/CheckoutModal';
 import { EmptyState } from '@/shared/components/ui/EmptyState';
 import { useBusinessConfig } from '@/features/configuracion/hooks/useBusinessConfig';
@@ -40,9 +39,17 @@ export function OrderingMenuSection() {
   const isBusinessOpen = config ? isBusinessOpenBySchedule(config) : false;
   const businessName = config?.businessName?.trim() || 'La Central Burger';
 
+  useEffect(() => {
+    function handleCartOpen() {
+      setCartOpen(true);
+    }
+
+    window.addEventListener('central-cart-open', handleCartOpen);
+    return () => window.removeEventListener('central-cart-open', handleCartOpen);
+  }, []);
+
   const categoryById = useMemo(() => Object.fromEntries(categorias.map((category) => [category.id, category.name])), [categorias]);
   const activeTitle = selectedCategoryId === 'all' ? 'Menú completo' : categoryById[selectedCategoryId];
-  const cartCount = cart.items.reduce((total, item) => total + item.quantity, 0);
 
   return (
     <section id="menu" className="brick-wall relative px-5 py-7 text-central-cream sm:px-6 sm:py-8 lg:px-8 lg:py-10">
@@ -133,7 +140,6 @@ export function OrderingMenuSection() {
       />
       <CartDrawer open={cartOpen} onClose={() => setCartOpen(false)} items={cart.items} total={cart.totals.total} checkoutDisabled={!isBusinessOpen} onUpdateQuantity={cart.updateQuantity} onUpdateNote={cart.updateNote} onRemove={cart.removeItem} onClear={cart.clear} onCheckout={() => isBusinessOpen && setCheckoutOpen(true)} />
       <CheckoutModal open={checkoutOpen} onClose={() => setCheckoutOpen(false)} items={cart.items} onOrderCreated={() => setCartOpen(false)} />
-      <CartFloatingButton count={cartCount} total={cart.totals.total} onClick={() => setCartOpen(true)} />
     </section>
   );
 }
