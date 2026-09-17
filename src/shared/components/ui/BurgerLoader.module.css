@@ -1,0 +1,108 @@
+.wrap {
+  display: grid;
+  place-items: center;
+}
+
+.loader {
+  overflow: visible;
+  filter: drop-shadow(0 14px 18px rgba(0, 0, 0, 0.42));
+}
+
+.impact,
+.layer {
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+.topBun {
+  animation: topBun 1.25s cubic-bezier(.4, 0, .15, 1) infinite;
+}
+
+.lettuce {
+  animation: lettuce 1.25s cubic-bezier(.4, 0, .15, 1) infinite;
+}
+
+.cheese {
+  animation: cheese 1.25s cubic-bezier(.4, 0, .15, 1) infinite;
+}
+
+.tomato {
+  animation: tomato 1.25s cubic-bezier(.4, 0, .15, 1) infinite;
+}
+
+.patty {
+  animation: patty 1.25s cubic-bezier(.4, 0, .15, 1) infinite;
+}
+
+.bottomBun {
+  animation: bottomBun 1.25s cubic-bezier(.4, 0, .15, 1) infinite;
+}
+
+.impact {
+  animation: burgerImpact 1.25s linear infinite;
+}
+
+@keyframes topBun {
+  0%, 12%, 78%, 100% { transform: translateY(0); }
+  30%, 48% { transform: translateY(-22px); }
+  60% { transform: translateY(0); }
+}
+
+@keyframes lettuce {
+  0%, 12%, 78%, 100% { transform: translateY(0); }
+  30%, 48% { transform: translateY(-12px); }
+  60% { transform: translateY(0); }
+}
+
+@keyframes cheese {
+  0%, 12%, 78%, 100% { transform: translateY(0); }
+  30%, 48% { transform: translateY(-5px); }
+  60% { transform: translateY(0); }
+}
+
+@keyframes tomato {
+  0%, 12%, 78%, 100% { transform: translateY(0); }
+  30%, 48% { transform: translateY(4px); }
+  60% { transform: translateY(0); }
+}
+
+@keyframes patty {
+  0%, 12%, 78%, 100% { transform: translateY(0); }
+  30%, 48% { transform: translateY(12px); }
+  60% { transform: translateY(0); }
+}
+
+@keyframes bottomBun {
+  0%, 12%, 78%, 100% { transform: translateY(0); }
+  30%, 48% { transform: translateY(22px); }
+  60% { transform: translateY(0); }
+}
+
+@keyframes burgerImpact {
+  0%, 58%, 100% {
+    transform: scaleX(1) scaleY(1) translateY(0);
+  }
+
+  63% {
+    transform: scaleX(1.08) scaleY(.84) translateY(5px);
+  }
+
+  69% {
+    transform: scaleX(.96) scaleY(1.08) translateY(-3px);
+  }
+
+  74% {
+    transform: scaleX(1.025) scaleY(.965) translateY(1px);
+  }
+
+  82% {
+    transform: scaleX(1) scaleY(1) translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .impact,
+  .layer {
+    animation: none !important;
+  }
+}

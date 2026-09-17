@@ -11,6 +11,7 @@ import { cn } from '@/shared/utils/cn';
 import { logoutAdmin, isAdminLoggedIn } from '@/features/auth/services/auth.service';
 import { useBusinessConfig } from '@/features/configuracion/hooks/useBusinessConfig';
 import { BusinessLogo } from '@/features/configuracion/components/BusinessLogo';
+import { BurgerLoader } from '@/shared/components/ui/BurgerLoader';
 
 export function AdminShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -61,7 +62,11 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
   }
 
   if (!checked) {
-    return <div className="grid min-h-screen place-items-center bg-central-carbon text-white">Cargando panel...</div>;
+    return (
+      <div className="grid min-h-screen place-items-center bg-central-carbon">
+        <BurgerLoader />
+      </div>
+    );
   }
 
   const sidebar = (
