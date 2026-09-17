@@ -1,22 +1,29 @@
 'use client';
 
 import Link from 'next/link';
-import { Menu, X } from 'lucide-react';
+import { Menu, ShoppingCart, X } from 'lucide-react';
 import { useState } from 'react';
+import { useCarrito } from '@/features/carrito/hooks/useCarrito';
 import { useBusinessConfig } from '@/features/configuracion/hooks/useBusinessConfig';
 import { ROUTES } from '@/shared/constants/routes';
 import { BusinessLogo } from '@/features/configuracion/components/BusinessLogo';
 
-
 export function PublicHeader() {
   const [open, setOpen] = useState(false);
   const { config } = useBusinessConfig();
+  const cart = useCarrito();
   const businessName = config?.businessName ?? 'La Central Burger';
+  const cartCount = cart.items.reduce((total, item) => total + item.quantity, 0);
 
   const nav = [
     { label: 'Inicio', href: ROUTES.home },
     { label: 'Menú', href: '#menu' },
   ];
+
+  function handleCartClick() {
+    setOpen(false);
+    window.dispatchEvent(new CustomEvent('central-cart-open'));
+  }
 
   return (
     <header className="sticky top-0 z-40 min-h-[68px] sm:min-h-[72px] border-b border-central-orange/25 bg-[#0d0c0b]/88 text-central-cream shadow-dark backdrop-blur-xl">
@@ -37,9 +44,31 @@ export function PublicHeader() {
           Pedir ahora
         </Link>
 
-        <button className="rounded-sm border border-central-orange/30 p-2 text-central-cream md:hidden" onClick={() => setOpen((value) => !value)} aria-label="Abrir menú">
-          {open ? <X /> : <Menu />}
-        </button>
+        <div className="flex items-center gap-2 md:hidden">
+          <button
+            type="button"
+            onClick={handleCartClick}
+            className="relative grid h-10 w-10 place-items-center rounded-sm border border-central-orange/30 text-central-cream transition hover:border-central-orange hover:text-central-orange"
+            aria-label={cartCount > 0 ? `Abrir carrito, ${cartCount} productos` : 'Abrir carrito'}
+            title="Carrito"
+          >
+            <ShoppingCart size={21} className={cartCount > 0 ? 'lcb-bell-vibrate' : undefined} />
+            {cartCount > 0 ? (
+              <span className="absolute -right-1.5 -top-1.5 grid min-h-5 min-w-5 place-items-center rounded-full bg-central-orange px-1 text-[10px] font-black leading-none text-black ring-2 ring-[#0d0c0b]">
+                {cartCount > 99 ? '99+' : cartCount}
+              </span>
+            ) : null}
+          </button>
+
+          <button
+            type="button"
+            className="grid h-10 w-10 place-items-center rounded-sm border border-central-orange/30 text-central-cream transition hover:border-central-orange hover:text-central-orange"
+            onClick={() => setOpen((value) => !value)}
+            aria-label={open ? 'Cerrar menú' : 'Abrir menú'}
+          >
+            {open ? <X size={22} /> : <Menu size={22} />}
+          </button>
+        </div>
       </div>
 
       {open ? (
