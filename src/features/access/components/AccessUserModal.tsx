@@ -1,10 +1,11 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { Bike, Check, MailCheck, ShieldCheck } from 'lucide-react';
+import { Bike, Check, KeyRound, MailCheck, ShieldCheck, UserPlus } from 'lucide-react';
 import { toast } from 'react-toastify';
 import { Button } from '@/shared/components/ui/Button';
 import { Modal } from '@/shared/components/ui/Modal';
+import { PasswordInput } from '@/shared/components/ui/PasswordInput';
 import { Select } from '@/shared/components/ui/Select';
 import { saveAccessUser } from '../services/access.service';
 import type {
@@ -45,11 +46,14 @@ export function AccessUserModal({ user, roles, onClose, onSaved, defaultRoleCode
     roleIds: initialRoleIds,
     vehicleType: user?.delivery?.vehicleType ?? 'moto',
     commissionPercent: user?.delivery?.commissionPercent ?? 30,
+    sendInvitation: user ? undefined : true,
+    password: '',
   });
   const [saving, setSaving] = useState(false);
 
   const deliveryRole = useMemo(() => roles.find((role) => role.code === 'delivery'), [roles]);
   const hasDeliveryRole = Boolean(deliveryRole && form.roleIds.includes(deliveryRole.id));
+  const sendInvitation = !user && form.sendInvitation !== false;
 
   function toggleRole(role: AccessRole) {
     if (!role.active && !form.roleIds.includes(role.id)) return;
@@ -64,6 +68,9 @@ export function AccessUserModal({ user, roles, onClose, onSaved, defaultRoleCode
   async function submit(event: React.FormEvent) {
     event.preventDefault();
     if (form.roleIds.length === 0) return toast.warning('Seleccioná al menos un rol.');
+    if (!user && !sendInvitation && (!form.password || form.password.length < 8)) {
+      return toast.warning('Definí una contraseña inicial de al menos 8 caracteres.');
+    }
     if (hasDeliveryRole && (form.commissionPercent == null || form.commissionPercent < 0 || form.commissionPercent > 100)) {
       return toast.warning('La comisión del repartidor debe estar entre 0% y 100%.');
     }
@@ -71,7 +78,13 @@ export function AccessUserModal({ user, roles, onClose, onSaved, defaultRoleCode
     setSaving(true);
     try {
       await saveAccessUser(form);
-      toast.success(user ? 'Usuario actualizado.' : 'Invitación enviada. El usuario deberá verificar su email y crear su contraseña.');
+      toast.success(
+        user
+          ? 'Usuario actualizado.'
+          : sendInvitation
+            ? 'Invitación enviada. El usuario deberá verificar su email y crear su contraseña.'
+            : 'Usuario creado y habilitado. Puede iniciar sesión inmediatamente con la contraseña definida.',
+      );
       onSaved();
       onClose();
     } catch (error) {
@@ -82,7 +95,7 @@ export function AccessUserModal({ user, roles, onClose, onSaved, defaultRoleCode
   }
 
   return (
-    <Modal open onClose={onClose} title={user ? 'Editar usuario' : 'Invitar usuario'} size="lg" theme="light">
+    <Modal open onClose={onClose} title={user ? 'Editar usuario' : 'Nuevo usuario'} size="lg" theme="light">
       <form onSubmit={submit}>
         <div className="mb-5 grid gap-3 rounded-sm border border-neutral-200 bg-neutral-50 p-4 sm:grid-cols-[auto_1fr]">
           <span className="grid h-10 w-10 place-items-center rounded-sm bg-central-orange/10 text-central-orange"><ShieldCheck size={18} /></span>
@@ -90,9 +103,39 @@ export function AccessUserModal({ user, roles, onClose, onSaved, defaultRoleCode
         </div>
 
         {!user ? (
-          <div className="mb-5 grid gap-3 rounded-sm border border-blue-100 bg-blue-50 p-4 sm:grid-cols-[auto_1fr]">
-            <span className="grid h-10 w-10 place-items-center rounded-sm bg-white text-blue-600"><MailCheck size={18} /></span>
-            <div><p className="text-sm font-black text-blue-950">Alta mediante invitación segura</p><p className="mt-1 text-xs leading-5 text-blue-700">No necesitás definir una contraseña. La Central enviará un correo para verificar el email; desde ese enlace el usuario creará su propia contraseña y activará la cuenta.</p></div>
+          <div className={`mb-5 rounded-sm border p-4 transition-colors ${sendInvitation ? 'border-blue-100 bg-blue-50' : 'border-orange-200 bg-[#fffaf2]'}`}>
+            <div className="flex items-start justify-between gap-4">
+              <div className="flex min-w-0 gap-3">
+                <span className={`grid h-10 w-10 shrink-0 place-items-center rounded-sm bg-white ${sendInvitation ? 'text-blue-600' : 'text-central-orange'}`}>
+                  {sendInvitation ? <MailCheck size={18} /> : <UserPlus size={18} />}
+                </span>
+                <div className="min-w-0">
+                  <p className={`text-sm font-black ${sendInvitation ? 'text-blue-950' : 'text-central-carbon'}`}>
+                    {sendInvitation ? 'Enviar invitación por correo' : 'Crear cuenta directamente'}
+                  </p>
+                  <p className={`mt-1 text-xs leading-5 ${sendInvitation ? 'text-blue-700' : 'text-neutral-600'}`}>
+                    {sendInvitation
+                      ? 'La Central enviará un correo para verificar el email. Desde ese enlace el usuario creará su propia contraseña y activará la cuenta.'
+                      : 'No se enviará ningún correo. El email quedará confirmado y la cuenta activa desde el alta; definí abajo una contraseña inicial para que pueda ingresar.'}
+                  </p>
+                </div>
+              </div>
+
+              <label className="inline-flex shrink-0 cursor-pointer items-center pt-1" title={sendInvitation ? 'Desactivar invitación por correo' : 'Activar invitación por correo'}>
+                <input
+                  type="checkbox"
+                  className="peer sr-only"
+                  checked={sendInvitation}
+                  onChange={(event) => setForm((current) => ({
+                    ...current,
+                    sendInvitation: event.target.checked,
+                    password: event.target.checked ? '' : current.password,
+                  }))}
+                />
+                <span className="relative h-6 w-11 rounded-full bg-neutral-300 transition-colors after:absolute after:left-0.5 after:top-0.5 after:h-5 after:w-5 after:rounded-full after:bg-white after:shadow-sm after:transition-transform peer-checked:bg-central-orange peer-checked:after:translate-x-5 peer-focus-visible:ring-2 peer-focus-visible:ring-central-orange/30" />
+                <span className="sr-only">Enviar invitación por correo</span>
+              </label>
+            </div>
           </div>
         ) : null}
 
@@ -100,6 +143,21 @@ export function AccessUserModal({ user, roles, onClose, onSaved, defaultRoleCode
           <label className="sm:col-span-2"><span className={labelClass}>Nombre y apellido</span><input className={fieldClass} value={form.fullName} onChange={(event) => setForm({ ...form, fullName: event.target.value })} required /></label>
           <label><span className={labelClass}>Email de acceso</span><input type="email" className={fieldClass} value={form.email} onChange={(event) => setForm({ ...form, email: event.target.value })} required /></label>
           <label><span className={labelClass}>Teléfono</span><input className={fieldClass} value={form.phone} onChange={(event) => setForm({ ...form, phone: event.target.value })} placeholder="Opcional" /></label>
+          {!user && !sendInvitation ? (
+            <label className="sm:col-span-2">
+              <span className={labelClass}>Contraseña inicial</span>
+              <PasswordInput
+                variant="light"
+                minLength={8}
+                value={form.password ?? ''}
+                onChange={(event) => setForm({ ...form, password: event.target.value })}
+                placeholder="Mínimo 8 caracteres"
+                autoComplete="new-password"
+                required
+              />
+              <span className="mt-1.5 flex items-center gap-1.5 text-[11px] text-neutral-500"><KeyRound size={12} /> El usuario podrá cambiarla después desde el flujo de administración.</span>
+            </label>
+          ) : null}
           <label className="sm:col-span-2"><span className={labelClass}>Notas internas</span><textarea className={textareaClass} value={form.notes} onChange={(event) => setForm({ ...form, notes: event.target.value })} placeholder="Observaciones administrativas opcionales" /></label>
         </div>
 
@@ -130,7 +188,7 @@ export function AccessUserModal({ user, roles, onClose, onSaved, defaultRoleCode
 
         <div className="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
           <Button type="button" variant="secondary" onClick={onClose}>Cancelar</Button>
-          <Button type="submit" disabled={saving}>{saving ? (user ? 'Guardando…' : 'Enviando…') : user ? 'Guardar cambios' : 'Enviar invitación'}</Button>
+          <Button type="submit" disabled={saving}>{saving ? (user ? 'Guardando…' : sendInvitation ? 'Enviando…' : 'Creando…') : user ? 'Guardar cambios' : sendInvitation ? 'Enviar invitación' : 'Crear usuario'}</Button>
         </div>
       </form>
     </Modal>

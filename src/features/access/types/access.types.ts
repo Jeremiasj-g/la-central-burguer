@@ -64,6 +64,8 @@ export interface AccessUserFormPayload {
   roleIds: string[];
   vehicleType?: AccessVehicleType;
   commissionPercent?: number;
+  sendInvitation?: boolean;
+  password?: string;
 }
 
 export interface AccessRoleFormPayload {

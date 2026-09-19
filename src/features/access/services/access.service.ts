@@ -126,6 +126,13 @@ export async function saveAccessUser(payload: AccessUserFormPayload) {
     return invokeUserAction({ action: 'update', ...payload });
   }
 
+  if (payload.sendInvitation === false) {
+    if (!payload.password || payload.password.length < 8) {
+      throw new Error('La contraseña inicial debe tener al menos 8 caracteres.');
+    }
+    return invokeUserAction({ action: 'create', ...payload });
+  }
+
   const dashboard = await accessRpc<Pick<AccessManagementDashboard, 'roles'>>('get_access_management_dashboard');
   if (!dashboard) throw new Error('No se pudieron validar los roles seleccionados.');
   const roleCodes = dashboard.roles

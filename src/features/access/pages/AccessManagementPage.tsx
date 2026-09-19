@@ -332,7 +332,7 @@ export function AccessManagementPage() {
         eyebrow="Seguridad"
         title="Usuarios y roles"
         description="Administrá identidades, invitaciones, roles y permisos con un modelo escalable de acceso basado en RBAC."
-        actions={<><Button variant="secondary" onClick={() => void load(true)} disabled={refreshing}><RefreshCw size={16} className={refreshing ? 'animate-spin' : ''} /> Actualizar</Button><Button onClick={() => tab === 'users' ? setUserModal('new') : setRoleModal('new')}><Plus size={16} /> {tab === 'users' ? 'Invitar usuario' : 'Nuevo rol'}</Button></>}
+        actions={<><Button variant="secondary" onClick={() => void load(true)} disabled={refreshing}><RefreshCw size={16} className={refreshing ? 'animate-spin' : ''} /> Actualizar</Button><Button onClick={() => tab === 'users' ? setUserModal('new') : setRoleModal('new')}><Plus size={16} /> {tab === 'users' ? 'Nuevo usuario' : 'Nuevo rol'}</Button></>}
       />
 
       {loading ? <AccessManagementSkeleton /> : (
@@ -354,7 +354,7 @@ export function AccessManagementPage() {
           {tab === 'users' ? (
             <section className="rounded-sm border border-neutral-200 bg-white p-5 shadow-sm">
               <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
-                <div><h2 className="font-black text-central-carbon">Cuentas de usuario</h2><p className="text-xs text-neutral-500">Las altas se realizan por invitación; el usuario verifica su email y define su propia contraseña.</p></div>
+                <div><h2 className="font-black text-central-carbon">Cuentas de usuario</h2><p className="text-xs text-neutral-500">Podés enviar una invitación por correo o crear la cuenta directamente con una contraseña inicial.</p></div>
                 <div className="flex flex-wrap items-center gap-2">
                   <div className="inline-flex rounded-sm border border-neutral-200 bg-neutral-50 p-1" role="group" aria-label="Cambiar vista de usuarios">
                     <button
@@ -374,7 +374,7 @@ export function AccessManagementPage() {
                       <List size={15} /> Tabla
                     </button>
                   </div>
-                  <Button onClick={() => setUserModal('new')}><MailCheck size={16} /> Invitar usuario</Button>
+                  <Button onClick={() => setUserModal('new')}><Plus size={16} /> Nuevo usuario</Button>
                 </div>
               </div>
 
