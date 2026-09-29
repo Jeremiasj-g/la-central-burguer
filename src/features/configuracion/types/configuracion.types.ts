@@ -11,6 +11,9 @@ export interface BusinessConfig {
   logoPath: string | null;
   heroDescription: string;
   whatsappNumber: string;
+  facebookUrl: string;
+  instagramUrl: string;
+  whatsappUrl: string;
   transferAlias: string;
   transferCvu: string;
   address: string;
