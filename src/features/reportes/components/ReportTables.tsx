@@ -5,7 +5,7 @@ import { Layers3, List } from 'lucide-react';
 import Skeleton from 'react-loading-skeleton';
 import { Select } from '@/shared/components/ui/Select';
 import { TablePagination } from '@/shared/components/ui/TablePagination';
-import type { ReportDataset, ReportGroupBy, ReportGroupRow } from '../types/reporte.types';
+import type { ReportGroupBy, ReportGroupRow, ReportOrder } from '../types/reporte.types';
 import {
   formatCurrency,
   formatNumber,
@@ -15,10 +15,14 @@ import {
 } from '../utils/reportes.utils';
 
 interface ReportTablesProps {
-  dataset: ReportDataset;
   groups: ReportGroupRow[];
   groupBy: ReportGroupBy;
   onGroupByChange: (groupBy: ReportGroupBy) => void;
+  detailOrders: ReportOrder[];
+  detailTotal: number;
+  detailPage: number;
+  detailLoading: boolean;
+  onDetailPageChange: (page: number) => void;
 }
 
 const VIEW_TRANSITION_MS = 220;
@@ -49,11 +53,19 @@ function ReportTableSkeleton({ view }: { view: 'consolidated' | 'detail' }) {
   );
 }
 
-export function ReportTables({ dataset, groups, groupBy, onGroupByChange }: ReportTablesProps) {
+export function ReportTables({
+  groups,
+  groupBy,
+  onGroupByChange,
+  detailOrders,
+  detailTotal,
+  detailPage,
+  detailLoading,
+  onDetailPageChange,
+}: ReportTablesProps) {
   const [view, setView] = useState<'consolidated' | 'detail'>('consolidated');
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [consolidatedPage, setConsolidatedPage] = useState(1);
-  const [detailPage, setDetailPage] = useState(1);
   const transitionTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const groupOptions = (Object.entries(REPORT_GROUP_LABELS) as [ReportGroupBy, string][]).map(([value, label]) => ({ value, label: `Agrupar por ${label.toLocaleLowerCase('es-AR')}` }));
 
@@ -62,11 +74,6 @@ export function ReportTables({ dataset, groups, groupBy, onGroupByChange }: Repo
     return groups.slice(start, start + ROWS_PER_PAGE);
   }, [groups, consolidatedPage]);
 
-  const paginatedOrders = useMemo(() => {
-    const start = (detailPage - 1) * ROWS_PER_PAGE;
-    return dataset.orders.slice(start, start + ROWS_PER_PAGE);
-  }, [dataset.orders, detailPage]);
-
   useEffect(() => () => {
     if (transitionTimerRef.current) clearTimeout(transitionTimerRef.current);
   }, []);
@@ -74,10 +81,6 @@ export function ReportTables({ dataset, groups, groupBy, onGroupByChange }: Repo
   useEffect(() => {
     setConsolidatedPage(1);
   }, [groups, groupBy]);
-
-  useEffect(() => {
-    setDetailPage(1);
-  }, [dataset.orders]);
 
   function beginContentTransition(update: () => void) {
     if (transitionTimerRef.current) clearTimeout(transitionTimerRef.current);
@@ -101,7 +104,7 @@ export function ReportTables({ dataset, groups, groupBy, onGroupByChange }: Repo
 
   const pagination = view === 'consolidated'
     ? { page: consolidatedPage, totalItems: groups.length, onPageChange: setConsolidatedPage }
-    : { page: detailPage, totalItems: dataset.orders.length, onPageChange: setDetailPage };
+    : { page: detailPage, totalItems: detailTotal, onPageChange: onDetailPageChange };
 
   return (
     <section className="min-w-0 overflow-hidden rounded-sm border border-neutral-200 bg-white shadow-sm">
@@ -131,7 +134,7 @@ export function ReportTables({ dataset, groups, groupBy, onGroupByChange }: Repo
       </div>
 
       <div className="min-h-[30rem] max-w-full overflow-x-auto overscroll-x-contain sm:min-h-[34rem] xl:min-h-[38rem]">
-        {isTransitioning ? (
+        {isTransitioning || (view === 'detail' && detailLoading) ? (
           <ReportTableSkeleton view={view} />
         ) : (
           <div className="report-table-enter">
@@ -179,7 +182,7 @@ export function ReportTables({ dataset, groups, groupBy, onGroupByChange }: Repo
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-neutral-100">
-                  {paginatedOrders.map((order) => (
+                  {detailOrders.map((order) => (
                     <tr key={order.id} className="transition hover:bg-neutral-50/70">
                       <td className="whitespace-nowrap px-5 py-3.5 text-neutral-600">{formatReportDateTime(order.createdAt)}</td>
                       <td className="px-4 py-3.5 font-extrabold text-central-orange">{order.orderCode}</td>
@@ -198,12 +201,12 @@ export function ReportTables({ dataset, groups, groupBy, onGroupByChange }: Repo
             )}
 
             {view === 'consolidated' && !groups.length ? <div className="border-t border-neutral-100 px-5 py-10 text-center text-sm text-neutral-500">No hay datos para el período y filtros seleccionados.</div> : null}
-            {view === 'detail' && !dataset.orders.length ? <div className="border-t border-neutral-100 px-5 py-10 text-center text-sm text-neutral-500">No hay datos para el período y filtros seleccionados.</div> : null}
+            {view === 'detail' && !detailOrders.length ? <div className="border-t border-neutral-100 px-5 py-10 text-center text-sm text-neutral-500">No hay datos para el período y filtros seleccionados.</div> : null}
           </div>
         )}
       </div>
 
-      {!isTransitioning ? (
+      {!isTransitioning && !(view === 'detail' && detailLoading) ? (
         <TablePagination
           page={pagination.page}
           pageSize={ROWS_PER_PAGE}
