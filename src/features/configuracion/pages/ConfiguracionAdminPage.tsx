@@ -44,6 +44,9 @@ type ConfigFormValues = Pick<
   | 'logoPath'
   | 'heroDescription'
   | 'whatsappNumber'
+  | 'facebookUrl'
+  | 'instagramUrl'
+  | 'whatsappUrl'
   | 'transferAlias'
   | 'transferCvu'
   | 'address'
@@ -77,6 +80,9 @@ export function ConfiguracionAdminPage() {
       logoPath: config.logoPath,
       heroDescription: config.heroDescription,
       whatsappNumber: config.whatsappNumber,
+      facebookUrl: config.facebookUrl,
+      instagramUrl: config.instagramUrl,
+      whatsappUrl: config.whatsappUrl,
       transferAlias: config.transferAlias,
       transferCvu: config.transferCvu,
       address: config.address,
@@ -269,6 +275,35 @@ export function ConfiguracionAdminPage() {
               <EditableControl multiline>
                 <Textarea className={`${adminInputClass} min-h-28 py-3`} value={values.heroDescription} onChange={(event) => setValues({ ...values, heroDescription: event.target.value })} />
               </EditableControl>
+            </div>
+          </div>
+
+          <div className="mt-7 border-t border-neutral-200 pt-5">
+            <div>
+              <h3 className="text-lg font-black text-central-carbon">Redes sociales del footer</h3>
+              <p className="mt-1 text-sm text-neutral-500">Configurá las URLs a las que redirigen los íconos del pie de página. Podés pegar la URL completa o escribirla sin https://.</p>
+            </div>
+
+            <div className="mt-4 grid gap-4 md:grid-cols-2">
+              <div>
+                <label className="mb-2 block text-sm font-bold text-neutral-700">Facebook</label>
+                <EditableControl>
+                  <Input className={adminInputClass} value={values.facebookUrl} onChange={(event) => setValues({ ...values, facebookUrl: event.target.value })} placeholder="facebook.com/tu-pagina" />
+                </EditableControl>
+              </div>
+              <div>
+                <label className="mb-2 block text-sm font-bold text-neutral-700">Instagram</label>
+                <EditableControl>
+                  <Input className={adminInputClass} value={values.instagramUrl} onChange={(event) => setValues({ ...values, instagramUrl: event.target.value })} placeholder="instagram.com/tu-cuenta" />
+                </EditableControl>
+              </div>
+              <div className="md:col-span-2">
+                <label className="mb-2 block text-sm font-bold text-neutral-700">WhatsApp</label>
+                <EditableControl>
+                  <Input className={adminInputClass} value={values.whatsappUrl} onChange={(event) => setValues({ ...values, whatsappUrl: event.target.value })} placeholder="wa.me/54379..." />
+                </EditableControl>
+                <p className="mt-1.5 text-xs text-neutral-500">Si lo dejás vacío, el footer utilizará automáticamente el número de WhatsApp configurado arriba.</p>
+              </div>
             </div>
           </div>
 
