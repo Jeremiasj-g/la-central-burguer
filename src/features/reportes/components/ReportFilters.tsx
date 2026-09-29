@@ -1,7 +1,8 @@
 'use client';
 
-import { CalendarDays, Filter, RotateCcw, Search } from 'lucide-react';
+import { Filter, RotateCcw, Search } from 'lucide-react';
 import { Button } from '@/shared/components/ui/Button';
+import { DatePickerField } from '@/shared/components/ui/DatePickerField';
 import { Input } from '@/shared/components/ui/Input';
 import { Select } from '@/shared/components/ui/Select';
 import type {
@@ -104,35 +105,27 @@ export function ReportFilters({
           />
         </label>
 
-        <label className="min-w-0 xl:col-span-2">
+        <div className="min-w-0 xl:col-span-2">
           <span className="mb-1.5 block text-xs font-bold uppercase tracking-wide text-neutral-500">Desde</span>
-          <div className="relative min-w-0">
-            <CalendarDays className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" size={16} />
-            <Input
-              type="date"
-              value={filters.from}
-              disabled={filters.allTime}
-              onChange={(event) => patch({ from: event.target.value, allTime: false })}
-              className={`min-w-0 pl-9 ${adminInputClass}`}
-            />
-          </div>
+          <DatePickerField
+            value={filters.from}
+            disabled={filters.allTime}
+            onChange={(value) => patch({ from: value, allTime: false })}
+            ariaLabel="Fecha desde del reporte"
+          />
           {filters.allTime ? <span className="mt-1 block text-[11px] text-neutral-400">Desde el primer pedido registrado.</span> : null}
-        </label>
+        </div>
 
-        <label className="min-w-0 xl:col-span-2">
+        <div className="min-w-0 xl:col-span-2">
           <span className="mb-1.5 block text-xs font-bold uppercase tracking-wide text-neutral-500">Hasta</span>
-          <div className="relative min-w-0">
-            <CalendarDays className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" size={16} />
-            <Input
-              type="date"
-              value={filters.to}
-              disabled={filters.allTime}
-              onChange={(event) => patch({ to: event.target.value, allTime: false })}
-              className={`min-w-0 pl-9 ${adminInputClass}`}
-            />
-          </div>
+          <DatePickerField
+            value={filters.to}
+            disabled={filters.allTime}
+            onChange={(value) => patch({ to: value, allTime: false })}
+            ariaLabel="Fecha hasta del reporte"
+          />
           {filters.allTime ? <span className="mt-1 block text-[11px] text-neutral-400">Incluye todo el historial disponible.</span> : null}
-        </label>
+        </div>
 
         <label className="min-w-0 xl:col-span-2">
           <span className="mb-1.5 block text-xs font-bold uppercase tracking-wide text-neutral-500">Estado</span>
