@@ -81,6 +81,57 @@ export interface DeliverySettlement {
   netBalance: number;
 }
 
+export interface DeliveryHistoryEvent {
+  status: DeliveryAssignmentStatus;
+  note: string | null;
+  actorId: string | null;
+  createdAt: string;
+}
+
+export interface DeliveryHistoryItem {
+  id: string;
+  orderId: string;
+  orderCode: string;
+  orderStatus: string;
+  orderCreatedAt: string;
+  customerName: string;
+  customerPhone: string;
+  address: string | null;
+  mapsUrl: string | null;
+  distanceKm: number | null;
+  subtotal: number;
+  orderTotal: number;
+  deliveryFee: number;
+  paymentMethod: 'efectivo' | 'transferencia';
+  driverId: string;
+  driverName: string;
+  vehicleType: DeliveryVehicleType;
+  status: DeliveryAssignmentStatus;
+  commissionPercent: number;
+  commissionAmount: number;
+  cashToCollect: number;
+  assignedAt: string;
+  acceptedAt: string | null;
+  pickedUpAt: string | null;
+  inTransitAt: string | null;
+  deliveredAt: string | null;
+  rejectedAt: string | null;
+  rejectionReason: string | null;
+  cancelledAt: string | null;
+  cancellationReason: string | null;
+  settlementId: string | null;
+  settlementStatus: DeliverySettlementStatus | null;
+  settlementPaidAt: string | null;
+  events: DeliveryHistoryEvent[];
+}
+
+export interface DeliveryHistoryPage {
+  rows: DeliveryHistoryItem[];
+  total: number;
+  page: number;
+  pageSize: number;
+}
+
 export interface DeliveryAdminDashboard {
   summary: DeliverySummary;
   drivers: DeliveryDriver[];
