@@ -183,7 +183,7 @@ function toGroupRows(groups: Map<string, MutableGroup>, totalRevenue: number): R
     }))
     .sort((a, b) => {
       const chronological = /^\d{4}-\d{2}/.test(a.key) && /^\d{4}-\d{2}/.test(b.key);
-      return chronological ? a.key.localeCompare(b.key) : b.revenue - a.revenue;
+      return chronological ? b.key.localeCompare(a.key) : b.revenue - a.revenue;
     });
 }
 
