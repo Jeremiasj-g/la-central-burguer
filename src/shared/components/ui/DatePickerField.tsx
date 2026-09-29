@@ -131,6 +131,7 @@ export function DatePickerField({
           left: Math.max(12, (viewportWidth - width) / 2),
           top: Math.max(12, (viewportHeight - measuredHeight) / 2),
         });
+        setPositionReady(true);
         return;
       }
 
