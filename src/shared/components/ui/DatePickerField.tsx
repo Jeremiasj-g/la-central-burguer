@@ -2,7 +2,7 @@
 
 import { ChevronDown, ChevronLeft, ChevronRight, CalendarDays } from 'lucide-react';
 import { createPortal } from 'react-dom';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { cn } from '@/shared/utils/cn';
 
 const MONTHS = [
@@ -99,6 +99,7 @@ export function DatePickerField({
   const [open, setOpen] = useState(false);
   const [calendarView, setCalendarView] = useState<'days' | 'months'>('days');
   const [position, setPosition] = useState({ top: 0, left: 0, width: 336 });
+  const [positionReady, setPositionReady] = useState(false);
 
   const selected = useMemo(() => parseIsoDate(value), [value]);
   const [visibleMonth, setVisibleMonth] = useState<Date>(selected ?? new Date());
@@ -108,8 +109,11 @@ export function DatePickerField({
     if (selected) setVisibleMonth(selected);
   }, [selected]);
 
-  useEffect(() => {
-    if (!open) return;
+  useLayoutEffect(() => {
+    if (!open) {
+      setPositionReady(false);
+      return;
+    }
 
     function updatePosition() {
       const trigger = triggerRef.current;
@@ -138,6 +142,7 @@ export function DatePickerField({
         : Math.max(12, rect.top - measuredHeight - 8);
 
       setPosition({ width, left, top });
+      setPositionReady(true);
     }
 
     updatePosition();
@@ -211,7 +216,10 @@ export function DatePickerField({
           ref={popoverRef}
           role="dialog"
           aria-label={`Calendario para ${ariaLabel}`}
-          className="lcb-calendar-popover fixed z-[140] rounded-[20px] border border-neutral-200 bg-white p-3.5 text-central-carbon shadow-[0_24px_70px_rgba(17,16,15,.18),0_4px_18px_rgba(17,16,15,.09)] backdrop-blur-xl"
+          className={cn(
+            'lcb-calendar-popover fixed z-[140] rounded-[20px] border border-neutral-200 bg-white p-3.5 text-central-carbon shadow-[0_24px_70px_rgba(17,16,15,.18),0_4px_18px_rgba(17,16,15,.09)] backdrop-blur-xl',
+            positionReady ? 'visible opacity-100' : 'invisible opacity-0',
+          )}
           style={{ top: position.top, left: position.left, width: position.width }}
         >
           <div className="grid grid-cols-[34px_minmax(0,1fr)_34px] items-center gap-2">
