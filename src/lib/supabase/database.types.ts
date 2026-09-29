@@ -53,7 +53,7 @@ export interface Database {
       >;
       business_config: TableDefinition<
         {
-          id: number; business_name: string; logo_url: string; logo_path: string | null; hero_description: string; whatsapp_number: string; transfer_alias: string;
+          id: number; business_name: string; logo_url: string; logo_path: string | null; hero_description: string; whatsapp_number: string; facebook_url: string; instagram_url: string; whatsapp_url: string; transfer_alias: string;
           transfer_cvu: string; address: string; specialty: string; timezone: string; is_open: boolean;
           auto_schedule_enabled: boolean; auto_open_time: string; auto_close_time: string;
           store_latitude: number | null; store_longitude: number | null; delivery_base_fee: number;
@@ -61,7 +61,7 @@ export interface Database {
           created_at: string; updated_at: string;
         },
         {
-          id?: number; business_name: string; logo_url?: string; logo_path?: string | null; hero_description?: string; whatsapp_number: string; transfer_alias?: string;
+          id?: number; business_name: string; logo_url?: string; logo_path?: string | null; hero_description?: string; whatsapp_number: string; facebook_url?: string; instagram_url?: string; whatsapp_url?: string; transfer_alias?: string;
           transfer_cvu?: string; address?: string; specialty?: string; timezone?: string; is_open?: boolean;
           auto_schedule_enabled?: boolean; auto_open_time?: string; auto_close_time?: string;
           store_latitude?: number | null; store_longitude?: number | null; delivery_base_fee?: number;
@@ -69,7 +69,7 @@ export interface Database {
           created_at?: string; updated_at?: string;
         },
         {
-          business_name?: string; logo_url?: string; logo_path?: string | null; hero_description?: string; whatsapp_number?: string; transfer_alias?: string;
+          business_name?: string; logo_url?: string; logo_path?: string | null; hero_description?: string; whatsapp_number?: string; facebook_url?: string; instagram_url?: string; whatsapp_url?: string; transfer_alias?: string;
           transfer_cvu?: string; address?: string; specialty?: string; timezone?: string; is_open?: boolean;
           auto_schedule_enabled?: boolean; auto_open_time?: string; auto_close_time?: string;
           store_latitude?: number | null; store_longitude?: number | null; delivery_base_fee?: number;
