@@ -426,10 +426,10 @@ export async function updateCounterSale(
   const existingProductIds = new Set(
     (currentItems ?? []).map((item) => item.product_id).filter((id): id is string => Boolean(id)),
   );
-  const existingPrices = new Map(
-    (currentItems ?? [])
-      .filter((item): item is typeof item & { product_id: string } => Boolean(item.product_id))
-      .map((item) => [item.product_id, Number(item.unit_price)]),
+  const existingPrices = new Map<string, number>(
+    (currentItems ?? []).flatMap((item) =>
+      item.product_id ? [[item.product_id, Number(item.unit_price)] as [string, number]] : [],
+    ),
   );
 
   const [{ subtotal, itemRows }, customer] = await Promise.all([
