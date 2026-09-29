@@ -88,6 +88,13 @@ export interface ReportDataset {
   settledDeliveryCommissions: ReportSettledDeliveryCommission[];
 }
 
+export interface ReportOrdersPage {
+  orders: ReportOrder[];
+  total: number;
+  page: number;
+  pageSize: number;
+}
+
 export interface ReportSummary {
   grossRevenue: number;
   netRevenue: number;
