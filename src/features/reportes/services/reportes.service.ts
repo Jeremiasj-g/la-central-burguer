@@ -6,6 +6,7 @@ import type {
   ReportFilters,
   ReportItem,
   ReportOrder,
+  ReportOrdersPage,
   ReportSettledDeliveryCommission,
 } from '../types/reporte.types';
 
@@ -76,14 +77,8 @@ function mapItem(row: OrderItemRow): ReportItem {
   };
 }
 
-function applySearch(rows: ReportOrder[], search: string) {
-  const term = search.trim().toLocaleLowerCase('es-AR');
-  if (!term) return rows;
-
-  return rows.filter((order) =>
-    [order.orderCode, order.customerName, order.customerPhone]
-      .some((value) => value.toLocaleLowerCase('es-AR').includes(term)),
-  );
+function sanitizeSearch(search: string) {
+  return search.trim().replace(/[,%()]/g, ' ').replace(/\s+/g, ' ');
 }
 
 async function fetchOrders(filters: ReportFilters): Promise<ReportOrder[]> {
@@ -95,7 +90,8 @@ async function fetchOrders(filters: ReportFilters): Promise<ReportOrder[]> {
     let query = supabase
       .from('orders')
       .select('*')
-      .order('created_at', { ascending: false });
+      .order('created_at', { ascending: false })
+      .order('id', { ascending: false });
 
     if (!filters.allTime) {
       query = query
@@ -108,6 +104,12 @@ async function fetchOrders(filters: ReportFilters): Promise<ReportOrder[]> {
     if (filters.status === 'cancelado') query = query.eq('status', 'cancelado');
     if (filters.paymentMethod !== 'all') query = query.eq('payment_method', filters.paymentMethod);
     if (filters.deliveryMethod !== 'all') query = query.eq('delivery_method', filters.deliveryMethod);
+    if (filters.source && filters.source !== 'all') query = query.eq('source', filters.source);
+
+    const search = sanitizeSearch(filters.search);
+    if (search) {
+      query = query.or(`order_code.ilike.%${search}%,customer_name.ilike.%${search}%,customer_phone.ilike.%${search}%`);
+    }
 
     const { data, error } = await query.range(offset, offset + PAGE_SIZE - 1);
     if (error) throw new Error(error.message);
@@ -118,7 +120,7 @@ async function fetchOrders(filters: ReportFilters): Promise<ReportOrder[]> {
     offset += PAGE_SIZE;
   }
 
-  return applySearch(rows.map(mapOrder), filters.search);
+  return rows.map(mapOrder);
 }
 
 async function fetchItems(orderIds: string[]): Promise<ReportItem[]> {
@@ -266,6 +268,62 @@ async function fetchSettledDeliveryCommissions(
       paidAt: settlement.paid_at,
     }];
   });
+}
+
+export async function getReportOrdersPage(
+  filters: ReportFilters,
+  page = 1,
+  pageSize = 10,
+): Promise<ReportOrdersPage> {
+  requireSupabaseConfigured('consultar el detalle paginado de reportes');
+
+  if (!filters.allTime && (!filters.from || !filters.to)) {
+    throw new Error('Seleccioná un período válido para generar el reporte.');
+  }
+
+  if (!filters.allTime && filters.from > filters.to) {
+    throw new Error('La fecha desde no puede ser posterior a la fecha hasta.');
+  }
+
+  const safePageSize = Math.max(1, Math.min(10, Math.trunc(pageSize)));
+  const safePage = Math.max(1, Math.trunc(page));
+  const from = (safePage - 1) * safePageSize;
+  const to = from + safePageSize - 1;
+  const supabase = getSupabaseBrowserClient();
+
+  let query = supabase
+    .from('orders')
+    .select('*', { count: 'exact' })
+    .order('created_at', { ascending: false })
+    .order('id', { ascending: false });
+
+  if (!filters.allTime) {
+    query = query
+      .gte('created_at', toStartIso(filters.from))
+      .lte('created_at', toEndIso(filters.to));
+  }
+
+  if (filters.status === 'valid') query = query.neq('status', 'cancelado');
+  if (filters.status === 'aceptado') query = query.eq('status', 'aceptado');
+  if (filters.status === 'cancelado') query = query.eq('status', 'cancelado');
+  if (filters.paymentMethod !== 'all') query = query.eq('payment_method', filters.paymentMethod);
+  if (filters.deliveryMethod !== 'all') query = query.eq('delivery_method', filters.deliveryMethod);
+  if (filters.source && filters.source !== 'all') query = query.eq('source', filters.source);
+
+  const search = sanitizeSearch(filters.search);
+  if (search) {
+    query = query.or(`order_code.ilike.%${search}%,customer_name.ilike.%${search}%,customer_phone.ilike.%${search}%`);
+  }
+
+  const { data, error, count } = await query.range(from, to);
+  if (error) throw new Error(error.message);
+
+  return {
+    orders: ((data ?? []) as OrderRow[]).map(mapOrder),
+    total: count ?? 0,
+    page: safePage,
+    pageSize: safePageSize,
+  };
 }
 
 export async function getReportData(filters: ReportFilters): Promise<ReportDataset> {
