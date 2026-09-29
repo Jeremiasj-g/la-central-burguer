@@ -5,7 +5,7 @@ import { MapPin } from 'lucide-react';
 import { useBusinessConfig } from '@/features/configuracion/hooks/useBusinessConfig';
 import { BusinessLogo } from '@/features/configuracion/components/BusinessLogo';
 
-const socialButtonBase = 'grid h-12 w-12 place-items-center overflow-hidden rounded-full border bg-[#11100f]/75 shadow-[inset_0_1px_0_rgba(255,255,255,.05)] backdrop-blur-sm transition-transform duration-200 ease-out hover:scale-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-[#11100f]';
+const socialButtonBase = 'grid h-12 w-12 place-items-center overflow-visible transition-transform duration-200 ease-out hover:scale-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-[#11100f]';
 
 function normalizeExternalUrl(value: string | undefined, fallback: string) {
   const trimmed = value?.trim();
@@ -37,7 +37,7 @@ export function PublicFooter() {
 
         <div className="mt-8 flex justify-center gap-4">
           <Link
-            className={`${socialButtonBase} border-[#1877F2]/55 hover:shadow-[0_0_24px_rgba(24,119,242,.65)] focus-visible:ring-[#1877F2]`}
+            className={`${socialButtonBase} hover:drop-shadow-[0_0_14px_rgba(24,119,242,.75)] focus-visible:ring-[#1877F2]`}
             href={facebookUrl}
             target={facebookUrl === '#' ? undefined : '_blank'}
             rel={facebookUrl === '#' ? undefined : 'noreferrer'}
@@ -62,7 +62,7 @@ export function PublicFooter() {
           </Link>
 
           <Link
-            className={`${socialButtonBase} border-[#E1306C]/55 hover:shadow-[0_0_24px_rgba(225,48,108,.65)] focus-visible:ring-[#E1306C]`}
+            className={`${socialButtonBase} hover:drop-shadow-[0_0_14px_rgba(225,48,108,.75)] focus-visible:ring-[#E1306C]`}
             href={instagramUrl}
             target={instagramUrl === '#' ? undefined : '_blank'}
             rel={instagramUrl === '#' ? undefined : 'noreferrer'}
@@ -87,7 +87,7 @@ export function PublicFooter() {
           </Link>
 
           <Link
-            className={`${socialButtonBase} border-[#25D366]/55 hover:shadow-[0_0_24px_rgba(37,211,102,.65)] focus-visible:ring-[#25D366]`}
+            className={`${socialButtonBase} hover:drop-shadow-[0_0_14px_rgba(37,211,102,.75)] focus-visible:ring-[#25D366]`}
             href={whatsappUrl}
             target="_blank"
             rel="noreferrer"
