@@ -7,6 +7,9 @@ import {
   CheckCircle2,
   CircleDollarSign,
   Edit3,
+  ExternalLink,
+  Eye,
+  History,
   MailCheck,
   PackageCheck,
   RefreshCw,
@@ -28,6 +31,7 @@ import { Modal } from '@/shared/components/ui/Modal';
 import { PasswordInput } from '@/shared/components/ui/PasswordInput';
 import { SearchableSelect } from '@/shared/components/ui/SearchableSelect';
 import { Select } from '@/shared/components/ui/Select';
+import { TablePagination } from '@/shared/components/ui/TablePagination';
 import { formatCurrency, formatDateTime } from '@/shared/utils/format.utils';
 import { DeliveryAdminSkeleton } from '../components/DeliveryAdminSkeleton';
 import { DeliveryMetricCard } from '../components/DeliveryMetricCard';
@@ -37,6 +41,7 @@ import {
   cancelDeliverySettlement,
   createDeliverySettlement,
   getDeliveryAdminDashboard,
+  getDeliveryHistoryPage,
   markDeliverySettlementPaid,
   resetDeliveryDriverPassword,
   saveDeliveryDriver,
@@ -48,11 +53,12 @@ import type {
   DeliveryAssignment,
   DeliveryAssignmentStatus,
   DeliveryDriver,
+  DeliveryHistoryItem,
   DeliveryVehicleType,
   DriverFormPayload,
 } from '../types/delivery-management.types';
 
-type Tab = 'operation' | 'drivers' | 'settlements';
+type Tab = 'operation' | 'history' | 'drivers' | 'settlements';
 type UnassignedScope = 'today' | 'all';
 type PendingConfirmation =
   | { type: 'cancel-assignment'; assignment: DeliveryAssignment }
@@ -98,6 +104,17 @@ function statusClass(status: DeliveryAssignmentStatus) {
   if (status === 'cancelled' || status === 'rejected_by_customer') return 'border-red-200 bg-red-50 text-red-700';
   if (status === 'in_transit' || status === 'picked_up') return 'border-blue-200 bg-blue-50 text-blue-700';
   return 'border-amber-200 bg-amber-50 text-amber-700';
+}
+
+function optionalDate(value: string | null) {
+  return value ? formatDateTime(value) : '—';
+}
+
+function settlementLabel(status: DeliveryHistoryItem['settlementStatus']) {
+  if (status === 'paid') return 'Pagada';
+  if (status === 'draft') return 'En borrador';
+  if (status === 'cancelled') return 'Cancelada';
+  return 'Sin liquidar';
 }
 
 function dateKey(value: string | Date, timeZone: string) {
@@ -230,6 +247,11 @@ export function DeliveryAdminPage() {
   const [settlementTo, setSettlementTo] = useState(() => new Date().toISOString().slice(0, 10));
   const [busyId, setBusyId] = useState<string | null>(null);
   const [pendingConfirmation, setPendingConfirmation] = useState<PendingConfirmation | null>(null);
+  const [historyRows, setHistoryRows] = useState<DeliveryHistoryItem[]>([]);
+  const [historyPage, setHistoryPage] = useState(1);
+  const [historyTotal, setHistoryTotal] = useState(0);
+  const [historyLoading, setHistoryLoading] = useState(false);
+  const [historyDetail, setHistoryDetail] = useState<DeliveryHistoryItem | null>(null);
 
   const activeDrivers = useMemo(() => data.drivers.filter((driver) => driver.active && driver.commissionPercent !== null), [data.drivers]);
   const activeAssignments = useMemo(() => data.assignments.filter((item) => ['assigned', 'accepted', 'picked_up', 'in_transit'].includes(item.status)), [data.assignments]);
@@ -270,6 +292,23 @@ export function DeliveryAdminPage() {
     }
   }, []);
 
+
+  const loadHistory = useCallback(async (targetPage: number, background = false) => {
+    if (!background) setHistoryLoading(true);
+    try {
+      const result = await getDeliveryHistoryPage({ page: targetPage, pageSize: 10 });
+      setHistoryRows(result.rows);
+      setHistoryTotal(result.total);
+
+      const maxPage = Math.max(1, Math.ceil(result.total / result.pageSize));
+      if (targetPage > maxPage) setHistoryPage(maxPage);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'No se pudo cargar el historial de delivery.');
+    } finally {
+      setHistoryLoading(false);
+    }
+  }, []);
+
   useEffect(() => {
     void load();
     let refreshTimer: ReturnType<typeof setTimeout> | null = null;
@@ -283,6 +322,11 @@ export function DeliveryAdminPage() {
       unsubscribe();
     };
   }, [load]);
+
+  useEffect(() => {
+    if (tab !== 'history') return;
+    void loadHistory(historyPage);
+  }, [historyPage, loadHistory, tab]);
 
   function handleOrderDriverChange(orderId: string, driverId: string) {
     setDriverByOrder((current) => ({ ...current, [orderId]: driverId }));
@@ -384,6 +428,7 @@ export function DeliveryAdminPage() {
 
   const tabs: Array<{ id: Tab; label: string; icon: React.ComponentType<{ size?: number }> }> = [
     { id: 'operation', label: 'Operación', icon: Route },
+    { id: 'history', label: 'Historial', icon: History },
     { id: 'drivers', label: 'Repartidores', icon: Users },
     { id: 'settlements', label: 'Liquidaciones', icon: WalletCards },
   ];
@@ -410,8 +455,15 @@ export function DeliveryAdminPage() {
         description="Asignación, seguimiento, comisiones y liquidaciones separadas del ciclo comercial del pedido."
         actions={(
           <>
-            <Button variant="secondary" onClick={() => void load(true)} disabled={refreshing}>
-              <RefreshCw size={16} className={refreshing ? 'animate-spin' : ''} /> Actualizar
+            <Button
+              variant="secondary"
+              onClick={() => {
+                void load(true);
+                if (tab === 'history') void loadHistory(historyPage, true);
+              }}
+              disabled={refreshing || (tab === 'history' && historyLoading)}
+            >
+              <RefreshCw size={16} className={refreshing || (tab === 'history' && historyLoading) ? 'animate-spin' : ''} /> Actualizar
             </Button>
             <Button onClick={() => setDriverModal('new')}><UserPlus size={16} /> Nuevo repartidor</Button>
           </>
@@ -443,7 +495,7 @@ export function DeliveryAdminPage() {
             ))}
           </div>
 
-          {tab !== 'settlements' ? (
+          {tab === 'operation' || tab === 'drivers' ? (
             <div className="mb-5 flex max-w-xl items-center gap-2 rounded-sm border border-neutral-200 bg-white px-3 shadow-sm focus-within:border-central-orange focus-within:ring-2 focus-within:ring-central-orange/10">
               <Search size={16} className="shrink-0 text-neutral-400" />
               <input
@@ -567,6 +619,95 @@ export function DeliveryAdminPage() {
             </div>
           ) : null}
 
+
+          {tab === 'history' ? (
+            <section className="overflow-hidden rounded-sm border border-neutral-200 bg-white shadow-sm">
+              <div className="flex flex-col gap-2 border-b border-neutral-100 p-5 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <h2 className="font-black text-central-carbon">Historial de repartos asignados</h2>
+                  <p className="mt-1 text-xs text-neutral-500">Cada página consulta solo 10 asignaciones en la base de datos, ordenadas desde la más reciente.</p>
+                </div>
+                <span className="text-xs font-bold text-neutral-500">{historyTotal} asignaciones registradas</span>
+              </div>
+
+              <div className="max-w-full overflow-x-auto">
+                <table className="w-full min-w-[1380px] text-left text-sm">
+                  <thead className="bg-neutral-50 text-[11px] font-extrabold uppercase tracking-wider text-neutral-500">
+                    <tr>
+                      <th className="px-5 py-3">Asignado</th>
+                      <th className="px-4 py-3">Pedido</th>
+                      <th className="px-4 py-3">Cliente</th>
+                      <th className="px-4 py-3">Repartidor</th>
+                      <th className="px-4 py-3">Estado reparto</th>
+                      <th className="px-4 py-3 text-right">Distancia</th>
+                      <th className="px-4 py-3">Pago</th>
+                      <th className="px-4 py-3 text-right">Pedido</th>
+                      <th className="px-4 py-3 text-right">Envío</th>
+                      <th className="px-4 py-3 text-right">Comisión</th>
+                      <th className="px-4 py-3">Liquidación</th>
+                      <th className="px-5 py-3 text-right">Detalle</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-neutral-100">
+                    {historyLoading ? (
+                      Array.from({ length: 5 }).map((_, index) => (
+                        <tr key={index}>
+                          <td colSpan={12} className="px-5 py-4"><div className="h-5 animate-pulse rounded bg-neutral-100" /></td>
+                        </tr>
+                      ))
+                    ) : historyRows.length ? historyRows.map((item) => (
+                      <tr key={item.id} className="transition hover:bg-neutral-50/70">
+                        <td className="whitespace-nowrap px-5 py-3.5 text-neutral-600">{formatDateTime(item.assignedAt)}</td>
+                        <td className="px-4 py-3.5">
+                          <p className="font-extrabold text-central-orange">{item.orderCode}</p>
+                          <p className="mt-0.5 text-xs text-neutral-400">Pedido {formatDateTime(item.orderCreatedAt)}</p>
+                        </td>
+                        <td className="px-4 py-3.5">
+                          <p className="font-bold text-central-carbon">{item.customerName}</p>
+                          <p className="mt-0.5 text-xs text-neutral-500">{item.customerPhone}</p>
+                        </td>
+                        <td className="px-4 py-3.5">
+                          <p className="font-bold text-central-carbon">{item.driverName}</p>
+                          <p className="mt-0.5 text-xs capitalize text-neutral-500">{item.vehicleType}</p>
+                        </td>
+                        <td className="px-4 py-3.5">
+                          <span className={`rounded-full border px-2.5 py-1 text-[11px] font-black ${statusClass(item.status)}`}>{STATUS_LABELS[item.status]}</span>
+                        </td>
+                        <td className="px-4 py-3.5 text-right text-neutral-600">{item.distanceKm === null ? '—' : `${item.distanceKm.toFixed(1)} km`}</td>
+                        <td className="px-4 py-3.5 text-neutral-600">{item.paymentMethod === 'transferencia' ? 'Transferencia' : 'Efectivo'}</td>
+                        <td className="px-4 py-3.5 text-right font-bold text-central-carbon">{formatCurrency(item.orderTotal)}</td>
+                        <td className="px-4 py-3.5 text-right text-neutral-600">{formatCurrency(item.deliveryFee)}</td>
+                        <td className="px-4 py-3.5 text-right">
+                          <p className="font-bold text-emerald-700">{formatCurrency(item.commissionAmount)}</p>
+                          <p className="text-[11px] text-neutral-400">{item.commissionPercent}%</p>
+                        </td>
+                        <td className="px-4 py-3.5 text-neutral-600">{settlementLabel(item.settlementStatus)}</td>
+                        <td className="px-5 py-3.5 text-right">
+                          <button
+                            type="button"
+                            onClick={() => setHistoryDetail(item)}
+                            className="inline-flex h-8 items-center gap-1.5 rounded-sm border border-neutral-200 bg-white px-2.5 text-xs font-bold text-neutral-600 transition hover:border-central-orange hover:text-central-orange"
+                          >
+                            <Eye size={14} /> Ver
+                          </button>
+                        </td>
+                      </tr>
+                    )) : (
+                      <tr><td colSpan={12} className="px-5 py-10 text-center text-sm text-neutral-500">Todavía no hay asignaciones de delivery registradas.</td></tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+
+              <TablePagination
+                page={historyPage}
+                pageSize={10}
+                totalItems={historyTotal}
+                onPageChange={setHistoryPage}
+              />
+            </section>
+          ) : null}
+
           {tab === 'drivers' ? (
             <section className="rounded-sm border border-neutral-200 bg-white p-5 shadow-sm">
               <div className="mb-5 flex flex-wrap items-center justify-between gap-3"><div><h2 className="font-black text-central-carbon">Equipo de reparto</h2><p className="text-xs text-neutral-500">La tarifa vigente se versiona; cada asignación referencia la tarifa histórica que le corresponde.</p></div><Button onClick={() => setDriverModal('new')}><UserPlus size={16} /> Alta</Button></div>
@@ -615,6 +756,91 @@ export function DeliveryAdminPage() {
           ) : null}
         </>
       )}
+
+
+      <Modal
+        open={Boolean(historyDetail)}
+        onClose={() => setHistoryDetail(null)}
+        title={historyDetail ? `Detalle de reparto · ${historyDetail.orderCode}` : 'Detalle de reparto'}
+        size="xl"
+        theme="light"
+      >
+        {historyDetail ? (
+          <div className="space-y-5">
+            <div className="grid gap-4 lg:grid-cols-3">
+              <section className="rounded-sm border border-neutral-200 bg-neutral-50/60 p-4 lg:col-span-2">
+                <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+                  <div>
+                    <p className="text-xs font-black uppercase tracking-wider text-central-orange">Pedido</p>
+                    <h3 className="mt-1 text-lg font-black text-central-carbon">{historyDetail.orderCode} · {historyDetail.customerName}</h3>
+                  </div>
+                  <span className={`rounded-full border px-2.5 py-1 text-xs font-black ${statusClass(historyDetail.status)}`}>{STATUS_LABELS[historyDetail.status]}</span>
+                </div>
+
+                <div className="grid gap-x-6 gap-y-3 text-sm sm:grid-cols-2">
+                  <div><p className="text-xs text-neutral-400">Teléfono</p><p className="font-semibold text-central-carbon">{historyDetail.customerPhone}</p></div>
+                  <div><p className="text-xs text-neutral-400">Estado comercial</p><p className="font-semibold capitalize text-central-carbon">{historyDetail.orderStatus.replaceAll('_', ' ')}</p></div>
+                  <div className="sm:col-span-2"><p className="text-xs text-neutral-400">Dirección</p><p className="font-semibold text-central-carbon">{historyDetail.address || 'Sin dirección textual'}</p></div>
+                  <div><p className="text-xs text-neutral-400">Distancia registrada</p><p className="font-semibold">{historyDetail.distanceKm === null ? '—' : `${historyDetail.distanceKm.toFixed(2)} km`}</p></div>
+                  <div><p className="text-xs text-neutral-400">Método de pago</p><p className="font-semibold">{historyDetail.paymentMethod === 'transferencia' ? 'Transferencia' : 'Efectivo'}</p></div>
+                  <div><p className="text-xs text-neutral-400">Subtotal</p><p className="font-semibold">{formatCurrency(historyDetail.subtotal)}</p></div>
+                  <div><p className="text-xs text-neutral-400">Costo de envío</p><p className="font-semibold">{formatCurrency(historyDetail.deliveryFee)}</p></div>
+                  <div><p className="text-xs text-neutral-400">Total del pedido</p><p className="font-black">{formatCurrency(historyDetail.orderTotal)}</p></div>
+                  <div><p className="text-xs text-neutral-400">Efectivo a cobrar</p><p className="font-black">{formatCurrency(historyDetail.cashToCollect)}</p></div>
+                </div>
+
+                {historyDetail.mapsUrl ? (
+                  <a href={historyDetail.mapsUrl} target="_blank" rel="noreferrer" className="mt-4 inline-flex items-center gap-1.5 text-xs font-bold text-central-orange hover:underline">
+                    <ExternalLink size={13} /> Abrir ubicación del cliente en Google Maps
+                  </a>
+                ) : null}
+              </section>
+
+              <section className="rounded-sm border border-neutral-200 p-4">
+                <p className="text-xs font-black uppercase tracking-wider text-central-orange">Repartidor y comisión</p>
+                <div className="mt-3 space-y-3 text-sm">
+                  <div><p className="text-xs text-neutral-400">Repartidor</p><p className="font-black text-central-carbon">{historyDetail.driverName}</p></div>
+                  <div><p className="text-xs text-neutral-400">Vehículo</p><p className="font-semibold capitalize">{historyDetail.vehicleType}</p></div>
+                  <div><p className="text-xs text-neutral-400">Comisión aplicada</p><p className="font-black text-emerald-700">{historyDetail.commissionPercent}% · {formatCurrency(historyDetail.commissionAmount)}</p></div>
+                  <div><p className="text-xs text-neutral-400">Liquidación</p><p className="font-semibold">{settlementLabel(historyDetail.settlementStatus)}</p></div>
+                  <div><p className="text-xs text-neutral-400">Fecha de pago</p><p className="font-semibold">{optionalDate(historyDetail.settlementPaidAt)}</p></div>
+                </div>
+              </section>
+            </div>
+
+            <section className="rounded-sm border border-neutral-200 p-4">
+              <p className="text-xs font-black uppercase tracking-wider text-central-orange">Tiempos del reparto</p>
+              <div className="mt-3 grid gap-3 text-sm sm:grid-cols-2 lg:grid-cols-4">
+                <div><p className="text-xs text-neutral-400">Asignado</p><p className="font-semibold">{optionalDate(historyDetail.assignedAt)}</p></div>
+                <div><p className="text-xs text-neutral-400">Aceptado</p><p className="font-semibold">{optionalDate(historyDetail.acceptedAt)}</p></div>
+                <div><p className="text-xs text-neutral-400">Retirado</p><p className="font-semibold">{optionalDate(historyDetail.pickedUpAt)}</p></div>
+                <div><p className="text-xs text-neutral-400">En camino</p><p className="font-semibold">{optionalDate(historyDetail.inTransitAt)}</p></div>
+                <div><p className="text-xs text-neutral-400">Entregado</p><p className="font-semibold">{optionalDate(historyDetail.deliveredAt)}</p></div>
+                <div><p className="text-xs text-neutral-400">Rechazado</p><p className="font-semibold">{optionalDate(historyDetail.rejectedAt)}</p></div>
+                <div><p className="text-xs text-neutral-400">Cancelado</p><p className="font-semibold">{optionalDate(historyDetail.cancelledAt)}</p></div>
+                <div><p className="text-xs text-neutral-400">Pedido creado</p><p className="font-semibold">{optionalDate(historyDetail.orderCreatedAt)}</p></div>
+              </div>
+              {historyDetail.rejectionReason ? <p className="mt-3 rounded-sm bg-red-50 p-3 text-xs text-red-700"><strong>Motivo de rechazo:</strong> {historyDetail.rejectionReason}</p> : null}
+              {historyDetail.cancellationReason ? <p className="mt-3 rounded-sm bg-red-50 p-3 text-xs text-red-700"><strong>Motivo de cancelación:</strong> {historyDetail.cancellationReason}</p> : null}
+            </section>
+
+            <section className="rounded-sm border border-neutral-200 p-4">
+              <p className="text-xs font-black uppercase tracking-wider text-central-orange">Cronología registrada</p>
+              <div className="mt-3 space-y-2">
+                {historyDetail.events.length ? historyDetail.events.map((event, index) => (
+                  <div key={`${event.createdAt}-${index}`} className="flex flex-col gap-1 rounded-sm bg-neutral-50 px-3 py-2.5 sm:flex-row sm:items-center sm:justify-between">
+                    <div>
+                      <p className="text-sm font-bold text-central-carbon">{STATUS_LABELS[event.status]}</p>
+                      {event.note ? <p className="mt-0.5 text-xs text-neutral-500">{event.note}</p> : null}
+                    </div>
+                    <p className="shrink-0 text-xs text-neutral-400">{formatDateTime(event.createdAt)}</p>
+                  </div>
+                )) : <p className="text-sm text-neutral-500">No hay eventos adicionales registrados para esta asignación.</p>}
+              </div>
+            </section>
+          </div>
+        ) : null}
+      </Modal>
 
       {driverModal ? <DriverModal driver={driverModal === 'new' ? undefined : driverModal} onClose={() => setDriverModal(null)} onSaved={() => void load(true)} /> : null}
 
