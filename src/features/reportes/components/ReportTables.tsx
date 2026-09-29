@@ -1,9 +1,10 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Layers3, List } from 'lucide-react';
 import Skeleton from 'react-loading-skeleton';
 import { Select } from '@/shared/components/ui/Select';
+import { TablePagination } from '@/shared/components/ui/TablePagination';
 import type { ReportDataset, ReportGroupBy, ReportGroupRow } from '../types/reporte.types';
 import {
   formatCurrency,
@@ -21,6 +22,7 @@ interface ReportTablesProps {
 }
 
 const VIEW_TRANSITION_MS = 220;
+const ROWS_PER_PAGE = 10;
 
 function ReportTableSkeleton({ view }: { view: 'consolidated' | 'detail' }) {
   const columnCount = view === 'consolidated' ? 7 : 10;
@@ -35,7 +37,7 @@ function ReportTableSkeleton({ view }: { view: 'consolidated' | 'detail' }) {
         ))}
       </div>
       <div className="divide-y divide-neutral-100 px-5">
-        {Array.from({ length: 7 }, (_, rowIndex) => (
+        {Array.from({ length: ROWS_PER_PAGE }, (_, rowIndex) => (
           <div key={`row-${rowIndex}`} className="grid items-center gap-6 py-3.5" style={{ gridTemplateColumns: `repeat(${columnCount}, minmax(0, 1fr))` }}>
             {Array.from({ length: columnCount }, (_, columnIndex) => (
               <Skeleton key={`cell-${rowIndex}-${columnIndex}`} height={12} width={columnIndex === 0 ? '82%' : `${54 + ((rowIndex + columnIndex) % 4) * 9}%`} duration={0.65} />
@@ -50,12 +52,32 @@ function ReportTableSkeleton({ view }: { view: 'consolidated' | 'detail' }) {
 export function ReportTables({ dataset, groups, groupBy, onGroupByChange }: ReportTablesProps) {
   const [view, setView] = useState<'consolidated' | 'detail'>('consolidated');
   const [isTransitioning, setIsTransitioning] = useState(false);
+  const [consolidatedPage, setConsolidatedPage] = useState(1);
+  const [detailPage, setDetailPage] = useState(1);
   const transitionTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const groupOptions = (Object.entries(REPORT_GROUP_LABELS) as [ReportGroupBy, string][]).map(([value, label]) => ({ value, label: `Agrupar por ${label.toLocaleLowerCase('es-AR')}` }));
+
+  const paginatedGroups = useMemo(() => {
+    const start = (consolidatedPage - 1) * ROWS_PER_PAGE;
+    return groups.slice(start, start + ROWS_PER_PAGE);
+  }, [groups, consolidatedPage]);
+
+  const paginatedOrders = useMemo(() => {
+    const start = (detailPage - 1) * ROWS_PER_PAGE;
+    return dataset.orders.slice(start, start + ROWS_PER_PAGE);
+  }, [dataset.orders, detailPage]);
 
   useEffect(() => () => {
     if (transitionTimerRef.current) clearTimeout(transitionTimerRef.current);
   }, []);
+
+  useEffect(() => {
+    setConsolidatedPage(1);
+  }, [groups, groupBy]);
+
+  useEffect(() => {
+    setDetailPage(1);
+  }, [dataset.orders]);
 
   function beginContentTransition(update: () => void) {
     if (transitionTimerRef.current) clearTimeout(transitionTimerRef.current);
@@ -77,12 +99,16 @@ export function ReportTables({ dataset, groups, groupBy, onGroupByChange }: Repo
     beginContentTransition(() => onGroupByChange(nextGroup));
   }
 
+  const pagination = view === 'consolidated'
+    ? { page: consolidatedPage, totalItems: groups.length, onPageChange: setConsolidatedPage }
+    : { page: detailPage, totalItems: dataset.orders.length, onPageChange: setDetailPage };
+
   return (
     <section className="min-w-0 overflow-hidden rounded-sm border border-neutral-200 bg-white shadow-sm">
       <div className="flex min-w-0 flex-col gap-4 border-b border-neutral-100 p-4 sm:p-5 lg:flex-row lg:items-center lg:justify-between">
         <div className="min-w-0">
           <h3 className="break-words text-base font-extrabold text-central-carbon">Detalle y consolidación</h3>
-          <p className="mt-1 break-words text-xs leading-5 text-neutral-500">Alterná entre una vista agrupada y el detalle transaccional de pedidos.</p>
+          <p className="mt-1 break-words text-xs leading-5 text-neutral-500">Alterná entre una vista agrupada y el detalle transaccional de pedidos. Cada página muestra hasta 10 filas.</p>
         </div>
         <div className="grid min-w-0 gap-2 sm:grid-cols-[12rem_auto] sm:items-center">
           <div className={view === 'consolidated' ? 'order-2 min-h-10 sm:order-1' : 'hidden sm:order-1 sm:block sm:min-h-10'}>
@@ -123,7 +149,7 @@ export function ReportTables({ dataset, groups, groupBy, onGroupByChange }: Repo
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-neutral-100">
-                  {groups.map((row) => (
+                  {paginatedGroups.map((row) => (
                     <tr key={row.key} className="transition hover:bg-neutral-50/70">
                       <td className="px-5 py-3.5 font-bold text-central-carbon">{row.label}</td>
                       <td className="px-4 py-3.5 text-right text-neutral-600">{formatNumber(row.orders)}</td>
@@ -153,7 +179,7 @@ export function ReportTables({ dataset, groups, groupBy, onGroupByChange }: Repo
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-neutral-100">
-                  {dataset.orders.map((order) => (
+                  {paginatedOrders.map((order) => (
                     <tr key={order.id} className="transition hover:bg-neutral-50/70">
                       <td className="whitespace-nowrap px-5 py-3.5 text-neutral-600">{formatReportDateTime(order.createdAt)}</td>
                       <td className="px-4 py-3.5 font-extrabold text-central-orange">{order.orderCode}</td>
@@ -171,10 +197,20 @@ export function ReportTables({ dataset, groups, groupBy, onGroupByChange }: Repo
               </table>
             )}
 
-            {!dataset.orders.length ? <div className="border-t border-neutral-100 px-5 py-10 text-center text-sm text-neutral-500">No hay datos para el período y filtros seleccionados.</div> : null}
+            {view === 'consolidated' && !groups.length ? <div className="border-t border-neutral-100 px-5 py-10 text-center text-sm text-neutral-500">No hay datos para el período y filtros seleccionados.</div> : null}
+            {view === 'detail' && !dataset.orders.length ? <div className="border-t border-neutral-100 px-5 py-10 text-center text-sm text-neutral-500">No hay datos para el período y filtros seleccionados.</div> : null}
           </div>
         )}
       </div>
+
+      {!isTransitioning ? (
+        <TablePagination
+          page={pagination.page}
+          pageSize={ROWS_PER_PAGE}
+          totalItems={pagination.totalItems}
+          onPageChange={pagination.onPageChange}
+        />
+      ) : null}
     </section>
   );
 }

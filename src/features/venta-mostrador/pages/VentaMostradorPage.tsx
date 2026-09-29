@@ -5,24 +5,35 @@ import {
   Banknote,
   CheckCircle2,
   CreditCard,
+  Edit3,
   Minus,
   Plus,
+  RefreshCw,
   Search,
   ShoppingBag,
   Store,
   Trash2,
   UtensilsCrossed,
+  XCircle,
 } from 'lucide-react';
 import { toast } from 'react-toastify';
 import { AdminPageHeader } from '@/shared/components/layout/AdminPageHeader';
-import { formatCurrency } from '@/shared/utils/format.utils';
+import { Button } from '@/shared/components/ui/Button';
+import { ConfirmDialog } from '@/shared/components/ui/ConfirmDialog';
+import { TablePagination } from '@/shared/components/ui/TablePagination';
+import { formatCurrency, formatDateTime } from '@/shared/utils/format.utils';
 import { getProductos, subscribeToProducts } from '@/features/productos/services/productos.service';
 import type { Product } from '@/features/productos/types/producto.types';
 import { getCategorias, subscribeToCategories } from '@/features/categorias/services/categorias.service';
 import type { Category } from '@/features/categorias/types/categoria.types';
 import {
+  cancelCounterSale,
   createCounterSale,
+  getCounterSaleForEdit,
+  getCounterSales,
+  updateCounterSale,
   type CounterPaymentMethod,
+  type CounterSaleListItem,
   type CounterServiceMode,
 } from '../services/venta-mostrador.service';
 
@@ -45,6 +56,13 @@ export function VentaMostradorPage() {
   const [customerPhone, setCustomerPhone] = useState('');
   const [notes, setNotes] = useState('');
   const [lastSale, setLastSale] = useState<{ orderCode: string; total: number } | null>(null);
+  const [editingSale, setEditingSale] = useState<{ id: string; orderCode: string } | null>(null);
+  const [sales, setSales] = useState<CounterSaleListItem[]>([]);
+  const [salesPage, setSalesPage] = useState(1);
+  const [salesTotal, setSalesTotal] = useState(0);
+  const [salesLoading, setSalesLoading] = useState(true);
+  const [cancelTarget, setCancelTarget] = useState<CounterSaleListItem | null>(null);
+  const [cancelling, setCancelling] = useState(false);
 
   async function loadProducts(background = false) {
     if (!background) setLoading(true);
@@ -65,9 +83,26 @@ export function VentaMostradorPage() {
     }
   }
 
+  async function loadSales(targetPage = salesPage, background = false) {
+    if (!background) setSalesLoading(true);
+    try {
+      const result = await getCounterSales({ page: targetPage, pageSize: 10 });
+      setSales(result.rows);
+      setSalesTotal(result.total);
+
+      const maxPage = Math.max(1, Math.ceil(result.total / result.pageSize));
+      if (targetPage > maxPage) setSalesPage(maxPage);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'No se pudieron cargar las ventas de mostrador.');
+    } finally {
+      setSalesLoading(false);
+    }
+  }
+
   useEffect(() => {
     void loadProducts();
     void loadCategories();
+    void loadSales(1);
 
     const unsubscribeProducts = subscribeToProducts(() => void loadProducts(true));
     const unsubscribeCategories = subscribeToCategories(() => void loadCategories());
@@ -77,6 +112,11 @@ export function VentaMostradorPage() {
       unsubscribeCategories();
     };
   }, []);
+
+  useEffect(() => {
+    if (salesPage === 1) return;
+    void loadSales(salesPage);
+  }, [salesPage]);
 
   const visibleCategories = useMemo(
     () => categories.filter((category) => products.some((product) => product.categoryId === category.id)),
@@ -145,7 +185,78 @@ export function VentaMostradorPage() {
     setCustomerName('');
     setCustomerPhone('');
     setNotes('');
+    setServiceMode('takeaway');
+    setPaymentMethod('efectivo');
     setLastSale(null);
+    setEditingSale(null);
+  }
+
+  async function startEditingSale(sale: CounterSaleListItem) {
+    if (sale.status === 'cancelado') return;
+
+    try {
+      const detail = await getCounterSaleForEdit(sale.id);
+      const editCart: CartLine[] = detail.items.map((item) => {
+        if (!item.productId) {
+          throw new Error(`La venta ${sale.orderCode} contiene un producto eliminado y no puede editarse de forma segura.`);
+        }
+
+        const currentProduct = products.find((product) => product.id === item.productId);
+        const product: Product = currentProduct
+          ? { ...currentProduct, currentPrice: item.unitPrice }
+          : {
+              id: item.productId,
+              name: item.productName,
+              slug: '',
+              description: 'Producto de la venta original',
+              imageUrl: item.imageUrl ?? '',
+              categoryId: item.categoryId ?? '',
+              currentPrice: item.unitPrice,
+              active: false,
+              available: false,
+              featured: false,
+              isPromotion: item.isPromotion,
+              createdAt: item.createdAt,
+              updatedAt: item.createdAt,
+            };
+
+        return { product, quantity: item.quantity };
+      });
+
+      setCart(editCart);
+      setCustomerName(detail.customerName === 'Venta mostrador' ? '' : detail.customerName);
+      setCustomerPhone(detail.customerPhone === 'Sin teléfono' ? '' : detail.customerPhone);
+      setServiceMode(detail.serviceMode);
+      setPaymentMethod(detail.paymentMethod);
+      setNotes(detail.notes);
+      setEditingSale({ id: detail.id, orderCode: detail.orderCode });
+      setLastSale(null);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'No se pudo abrir la venta para editar.');
+    }
+  }
+
+  async function confirmCancelSale() {
+    if (!cancelTarget) return;
+    setCancelling(true);
+    try {
+      await cancelCounterSale(cancelTarget.id);
+      toast.success(`Venta ${cancelTarget.orderCode} cancelada.`);
+      setCancelTarget(null);
+
+      if (sales.length === 1 && salesPage > 1) {
+        setSalesPage((current) => current - 1);
+      } else {
+        await loadSales(salesPage, true);
+      }
+
+      if (editingSale?.id === cancelTarget.id) clearSale();
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'No se pudo cancelar la venta.');
+    } finally {
+      setCancelling(false);
+    }
   }
 
   async function registerSale() {
@@ -156,21 +267,31 @@ export function VentaMostradorPage() {
 
     setSubmitting(true);
     try {
-      const result = await createCounterSale({
+      const payload = {
         customerName,
         customerPhone,
         serviceMode,
         paymentMethod,
         notes,
         items: cart.map((line) => ({ productId: line.product.id, quantity: line.quantity })),
-      });
+      };
 
+      const result = editingSale
+        ? await updateCounterSale(editingSale.id, payload)
+        : await createCounterSale(payload);
+
+      const wasEditing = Boolean(editingSale);
+      clearSale();
       setLastSale({ orderCode: result.orderCode, total: result.total });
-      setCart([]);
-      setCustomerName('');
-      setCustomerPhone('');
-      setNotes('');
-      toast.success(`Venta ${result.orderCode} registrada correctamente.`);
+
+      if (wasEditing) {
+        await loadSales(salesPage, true);
+        toast.success(`Venta ${result.orderCode} actualizada correctamente.`);
+      } else {
+        if (salesPage !== 1) setSalesPage(1);
+        else await loadSales(1, true);
+        toast.success(`Venta ${result.orderCode} registrada correctamente.`);
+      }
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'No se pudo registrar la venta.');
     } finally {
@@ -191,11 +312,24 @@ export function VentaMostradorPage() {
           <div className="flex items-center gap-3">
             <CheckCircle2 size={20} className="shrink-0" />
             <div>
-              <p className="text-sm font-black">Venta registrada · {lastSale.orderCode}</p>
+              <p className="text-sm font-black">Venta guardada · {lastSale.orderCode}</p>
               <p className="mt-0.5 text-xs text-emerald-700">Total {formatCurrency(lastSale.total)}</p>
             </div>
           </div>
           <button type="button" onClick={() => setLastSale(null)} className="text-xs font-bold underline underline-offset-2">Ocultar</button>
+        </div>
+      ) : null}
+
+      {editingSale ? (
+        <div className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-sm border border-central-orange/30 bg-central-orange/10 px-4 py-3 text-central-carbon">
+          <div className="flex items-center gap-3">
+            <Edit3 size={19} className="shrink-0 text-central-orange" />
+            <div>
+              <p className="text-sm font-black">Editando venta · {editingSale.orderCode}</p>
+              <p className="mt-0.5 text-xs text-neutral-600">Podés corregir productos, cantidades, cliente, modalidad, pago y observaciones.</p>
+            </div>
+          </div>
+          <Button type="button" size="sm" variant="secondary" onClick={clearSale}>Cancelar edición</Button>
         </div>
       ) : null}
 
@@ -391,7 +525,7 @@ export function VentaMostradorPage() {
                 <p className="text-xs font-bold uppercase tracking-wide text-neutral-400">Total</p>
                 <p className="mt-1 text-3xl font-black tracking-tight text-central-carbon">{formatCurrency(total)}</p>
               </div>
-              {cart.length ? <button type="button" onClick={clearSale} className="text-xs font-bold text-neutral-400 hover:text-red-600">Vaciar</button> : null}
+              {cart.length ? <button type="button" onClick={() => { setCart([]); setLastSale(null); }} className="text-xs font-bold text-neutral-400 hover:text-red-600">Vaciar</button> : null}
             </div>
 
             <button
@@ -400,13 +534,126 @@ export function VentaMostradorPage() {
               disabled={submitting || !cart.length}
               className="mt-4 flex h-12 w-full items-center justify-center gap-2 rounded-sm border border-central-orange bg-central-orange px-4 text-sm font-black text-white shadow-orange transition hover:brightness-95 disabled:cursor-not-allowed disabled:border-neutral-200 disabled:bg-neutral-200 disabled:text-neutral-400 disabled:shadow-none"
             >
-              <Store size={17} /> {submitting ? 'Registrando venta…' : 'Registrar venta mostrador'}
+              {editingSale ? <Edit3 size={17} /> : <Store size={17} />}
+              {submitting
+                ? (editingSale ? 'Guardando cambios…' : 'Registrando venta…')
+                : (editingSale ? 'Guardar cambios' : 'Registrar venta mostrador')}
             </button>
 
-            <p className="mt-2 text-center text-[11px] leading-4 text-neutral-400">La venta se guarda como realizada y se suma automáticamente a Pedidos, Dashboard y Reportes.</p>
+            <p className="mt-2 text-center text-[11px] leading-4 text-neutral-400">{editingSale ? 'Los cambios se reflejan automáticamente en Pedidos, Dashboard y Reportes.' : 'La venta se guarda como realizada y se suma automáticamente a Pedidos, Dashboard y Reportes.'}</p>
           </aside>
         </div>
       </section>
+
+      <section className="mt-6 overflow-hidden rounded-sm border border-neutral-200 bg-white shadow-soft">
+        <div className="flex flex-col gap-3 border-b border-neutral-100 p-4 sm:flex-row sm:items-center sm:justify-between sm:p-5">
+          <div>
+            <h2 className="font-black text-central-carbon">Ventas de mostrador registradas</h2>
+            <p className="mt-1 text-xs text-neutral-500">Consultá, corregí o cancelá ventas presenciales. Se muestran hasta 10 registros por página.</p>
+          </div>
+          <Button type="button" variant="secondary" size="sm" onClick={() => void loadSales(salesPage)} disabled={salesLoading}>
+            <RefreshCw size={15} className={salesLoading ? 'animate-spin' : ''} /> Actualizar
+          </Button>
+        </div>
+
+        <div className="max-w-full overflow-x-auto">
+          <table className="w-full min-w-[1040px] text-left text-sm">
+            <thead className="bg-neutral-50 text-[11px] font-extrabold uppercase tracking-wider text-neutral-500">
+              <tr>
+                <th className="px-5 py-3">Fecha</th>
+                <th className="px-4 py-3">Venta</th>
+                <th className="px-4 py-3">Cliente</th>
+                <th className="px-4 py-3">Modalidad</th>
+                <th className="px-4 py-3">Pago</th>
+                <th className="px-4 py-3 text-right">Unidades</th>
+                <th className="px-4 py-3 text-right">Total</th>
+                <th className="px-4 py-3">Estado</th>
+                <th className="px-5 py-3 text-right">Acciones</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-neutral-100">
+              {salesLoading ? (
+                Array.from({ length: 4 }).map((_, index) => (
+                  <tr key={index}>
+                    <td colSpan={9} className="px-5 py-4">
+                      <div className="h-5 animate-pulse rounded bg-neutral-100" />
+                    </td>
+                  </tr>
+                ))
+              ) : sales.length ? (
+                sales.map((sale) => {
+                  const cancelled = sale.status === 'cancelado';
+                  return (
+                    <tr key={sale.id} className={`transition ${cancelled ? 'bg-red-50/30' : 'hover:bg-neutral-50/70'}`}>
+                      <td className="whitespace-nowrap px-5 py-3.5 text-neutral-600">{formatDateTime(sale.createdAt)}</td>
+                      <td className="px-4 py-3.5 font-extrabold text-central-orange">{sale.orderCode}</td>
+                      <td className="px-4 py-3.5">
+                        <p className="font-bold text-central-carbon">{sale.customerName}</p>
+                        <p className="mt-0.5 text-xs text-neutral-500">{sale.customerPhone}</p>
+                      </td>
+                      <td className="px-4 py-3.5 text-neutral-600">{sale.serviceMode === 'dine_in' ? 'Comer ahí' : 'Para llevar'}</td>
+                      <td className="px-4 py-3.5 text-neutral-600">{sale.paymentMethod === 'transferencia' ? 'Transferencia' : 'Efectivo'}</td>
+                      <td className="px-4 py-3.5 text-right font-bold text-neutral-700">{sale.itemCount}</td>
+                      <td className="px-4 py-3.5 text-right font-extrabold text-central-carbon">{formatCurrency(sale.total)}</td>
+                      <td className="px-4 py-3.5">
+                        <span className={`rounded-sm px-2 py-1 text-xs font-bold ${cancelled ? 'bg-red-100 text-red-700' : 'bg-emerald-50 text-emerald-700'}`}>
+                          {cancelled ? 'Cancelada' : 'Realizada'}
+                        </span>
+                      </td>
+                      <td className="px-5 py-3.5">
+                        <div className="flex justify-end gap-1.5">
+                          <button
+                            type="button"
+                            onClick={() => void startEditingSale(sale)}
+                            disabled={cancelled || submitting}
+                            className="grid h-8 w-8 place-items-center rounded-sm border border-neutral-200 text-neutral-500 transition hover:border-central-orange hover:text-central-orange disabled:cursor-not-allowed disabled:opacity-35"
+                            title="Editar venta"
+                            aria-label={`Editar ${sale.orderCode}`}
+                          >
+                            <Edit3 size={14} />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setCancelTarget(sale)}
+                            disabled={cancelled || cancelling}
+                            className="grid h-8 w-8 place-items-center rounded-sm border border-red-200 text-red-500 transition hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-35"
+                            title="Cancelar venta"
+                            aria-label={`Cancelar ${sale.orderCode}`}
+                          >
+                            <XCircle size={15} />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })
+              ) : (
+                <tr>
+                  <td colSpan={9} className="px-5 py-10 text-center text-sm text-neutral-500">Todavía no hay ventas de mostrador registradas.</td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+
+        <TablePagination
+          page={salesPage}
+          pageSize={10}
+          totalItems={salesTotal}
+          onPageChange={setSalesPage}
+        />
+      </section>
+
+      <ConfirmDialog
+        open={Boolean(cancelTarget)}
+        title="Cancelar venta de mostrador"
+        description={cancelTarget ? `¿Seguro que querés cancelar ${cancelTarget.orderCode}? La venta quedará en el historial como cancelada y dejará de contabilizarse como venta válida.` : ''}
+        confirmLabel="Cancelar venta"
+        tone="danger"
+        isLoading={cancelling}
+        onConfirm={() => void confirmCancelSale()}
+        onCancel={() => setCancelTarget(null)}
+      />
     </div>
   );
 }
