@@ -113,23 +113,21 @@ export function ReportTables({
           <h3 className="break-words text-base font-extrabold text-central-carbon">Detalle y consolidación</h3>
           <p className="mt-1 break-words text-xs leading-5 text-neutral-500">Alterná entre una vista agrupada y el detalle transaccional de pedidos. Cada página muestra hasta 10 filas.</p>
         </div>
-        <div className="grid min-w-0 gap-2 sm:grid-cols-[12rem_auto] sm:items-center">
-          <div className={view === 'consolidated' ? 'order-2 min-h-10 sm:order-1' : 'hidden sm:order-1 sm:block sm:min-h-10'}>
-            {view === 'consolidated' ? (
-              <Select aria-label="Agrupar reporte" variant="light" value={groupBy} options={groupOptions} onValueChange={(nextGroup) => handleGroupChange(nextGroup as ReportGroupBy)} className="min-w-0 text-xs font-bold" />
-            ) : (
-              <div aria-hidden="true" className="hidden h-10 sm:block" />
-            )}
+        <div className="flex min-w-0 flex-col gap-2 sm:flex-row sm:items-center sm:justify-end">
+          <div className="grid w-full grid-cols-2 rounded-sm border border-neutral-200 bg-neutral-50 p-1 sm:inline-flex sm:w-auto sm:flex-none">
+            <button type="button" aria-pressed={view === 'consolidated'} onClick={() => handleViewChange('consolidated')} className={`inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-sm px-3.5 py-2 text-xs font-bold ${view === 'consolidated' ? 'bg-white text-central-orange shadow-sm' : 'text-neutral-500'}`}>
+              <Layers3 size={14} className="shrink-0" /> <span>Consolidado</span>
+            </button>
+            <button type="button" aria-pressed={view === 'detail'} onClick={() => handleViewChange('detail')} className={`inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-sm px-3.5 py-2 text-xs font-bold ${view === 'detail' ? 'bg-white text-central-orange shadow-sm' : 'text-neutral-500'}`}>
+              <List size={14} className="shrink-0" /> <span>Detalle</span>
+            </button>
           </div>
 
-          <div className="grid min-w-0 grid-cols-2 rounded-sm border border-neutral-200 bg-neutral-50 p-1 sm:flex">
-            <button type="button" aria-pressed={view === 'consolidated'} onClick={() => handleViewChange('consolidated')} className={`inline-flex min-w-0 items-center justify-center gap-2 rounded-sm px-3 py-2 text-xs font-bold ${view === 'consolidated' ? 'bg-white text-central-orange shadow-sm' : 'text-neutral-500'}`}>
-              <Layers3 size={14} className="shrink-0" /> <span className="truncate">Consolidado</span>
-            </button>
-            <button type="button" aria-pressed={view === 'detail'} onClick={() => handleViewChange('detail')} className={`inline-flex min-w-0 items-center justify-center gap-2 rounded-sm px-3 py-2 text-xs font-bold ${view === 'detail' ? 'bg-white text-central-orange shadow-sm' : 'text-neutral-500'}`}>
-              <List size={14} className="shrink-0" /> <span className="truncate">Detalle</span>
-            </button>
-          </div>
+          {view === 'consolidated' ? (
+            <div className="w-full sm:w-48 sm:flex-none">
+              <Select aria-label="Agrupar reporte" variant="light" value={groupBy} options={groupOptions} onValueChange={(nextGroup) => handleGroupChange(nextGroup as ReportGroupBy)} className="min-w-0 text-xs font-bold" />
+            </div>
+          ) : null}
         </div>
       </div>
 
