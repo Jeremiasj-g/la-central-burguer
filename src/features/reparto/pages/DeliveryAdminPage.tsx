@@ -27,6 +27,7 @@ import { useBusinessConfig } from '@/features/configuracion/hooks/useBusinessCon
 import { AdminPageHeader } from '@/shared/components/layout/AdminPageHeader';
 import { Button } from '@/shared/components/ui/Button';
 import { ConfirmDialog } from '@/shared/components/ui/ConfirmDialog';
+import { DatePickerField } from '@/shared/components/ui/DatePickerField';
 import { Modal } from '@/shared/components/ui/Modal';
 import { PasswordInput } from '@/shared/components/ui/PasswordInput';
 import { SearchableSelect } from '@/shared/components/ui/SearchableSelect';
@@ -733,8 +734,14 @@ export function DeliveryAdminPage() {
                 <div className="mb-5"><h2 className="font-black text-central-carbon">Nueva liquidación</h2><p className="text-xs text-neutral-500">Consolida únicamente entregas finalizadas todavía no incluidas en otra liquidación.</p></div>
                 <div className="space-y-4">
                   <div><span className={labelClass}>Repartidor</span><SearchableSelect value={settlementDriver} options={allDriverOptions} onValueChange={setSettlementDriver} placeholder="Seleccionar repartidor" searchPlaceholder="Buscar repartidor…" /></div>
-                  <label><span className={labelClass}>Desde</span><input type="date" className={fieldClass} value={settlementFrom} onChange={(event) => setSettlementFrom(event.target.value)} /></label>
-                  <label><span className={labelClass}>Hasta</span><input type="date" className={fieldClass} value={settlementTo} onChange={(event) => setSettlementTo(event.target.value)} /></label>
+                  <div>
+                    <span className={labelClass}>Desde</span>
+                    <DatePickerField value={settlementFrom} onChange={setSettlementFrom} ariaLabel="Fecha desde de la liquidación" />
+                  </div>
+                  <div>
+                    <span className={labelClass}>Hasta</span>
+                    <DatePickerField value={settlementTo} onChange={setSettlementTo} ariaLabel="Fecha hasta de la liquidación" />
+                  </div>
                   <Button className="w-full" onClick={() => void handleCreateSettlement()} disabled={busyId === 'settlement-create'}><WalletCards size={16} /> Generar borrador</Button>
                 </div>
                 <div className="mt-5 rounded-sm border border-blue-100 bg-blue-50 p-3 text-xs leading-5 text-blue-700"><strong>Saldo neto:</strong> comisión ganada menos efectivo cobrado. Un saldo negativo indica efectivo a rendir al negocio; uno positivo, importe a favor del repartidor.</div>
