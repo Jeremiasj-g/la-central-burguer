@@ -1,12 +1,11 @@
 'use client';
 
-import Image from 'next/image';
 import Link from 'next/link';
 import { MapPin } from 'lucide-react';
 import { useBusinessConfig } from '@/features/configuracion/hooks/useBusinessConfig';
 import { BusinessLogo } from '@/features/configuracion/components/BusinessLogo';
 
-const socialButtonBase = 'group relative grid h-12 w-12 place-items-center rounded-full border bg-[#11100f]/70 shadow-[inset_0_1px_0_rgba(255,255,255,.05)] backdrop-blur-sm transition-all duration-300 ease-out hover:-translate-y-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-[#11100f]';
+const socialButtonBase = 'grid h-12 w-12 place-items-center rounded-full border bg-[#11100f]/75 shadow-[inset_0_1px_0_rgba(255,255,255,.05)] backdrop-blur-sm transition-transform duration-200 ease-out hover:scale-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-[#11100f]';
 
 export function PublicFooter() {
   const { config } = useBusinessConfig();
@@ -29,52 +28,73 @@ export function PublicFooter() {
 
         <div className="mt-8 flex justify-center gap-4">
           <Link
-            className={`${socialButtonBase} border-[#1877F2]/30 hover:border-[#1877F2] hover:bg-[#1877F2]/10 hover:shadow-[0_0_30px_rgba(24,119,242,.5)] focus-visible:ring-[#1877F2]`}
+            className={`${socialButtonBase} border-[#1877F2]/55 focus-visible:ring-[#1877F2]`}
             href="#"
             aria-label="Facebook"
             title="Facebook"
           >
-            <span className="absolute inset-1 rounded-full bg-[#1877F2]/0 blur-md transition duration-300 group-hover:bg-[#1877F2]/10" />
-            <Image
-              src="/social/facebook.svg"
-              alt=""
-              width={22}
-              height={22}
-              className="relative z-10 h-[22px] w-[22px] transition-transform duration-300 group-hover:scale-110"
+            <span
+              aria-hidden="true"
+              className="h-6 w-6"
+              style={{
+                backgroundColor: '#1877F2',
+                WebkitMaskImage: 'url("/social/facebook.svg")',
+                maskImage: 'url("/social/facebook.svg")',
+                WebkitMaskRepeat: 'no-repeat',
+                maskRepeat: 'no-repeat',
+                WebkitMaskPosition: 'center',
+                maskPosition: 'center',
+                WebkitMaskSize: 'contain',
+                maskSize: 'contain',
+              }}
             />
           </Link>
 
           <Link
-            className={`${socialButtonBase} border-[#E1306C]/30 hover:border-[#E1306C] hover:bg-[#E1306C]/10 hover:shadow-[0_0_30px_rgba(225,48,108,.5)] focus-visible:ring-[#E1306C]`}
+            className={`${socialButtonBase} border-[#E1306C]/55 focus-visible:ring-[#E1306C]`}
             href="#"
             aria-label="Instagram"
             title="Instagram"
           >
-            <span className="absolute inset-1 rounded-full bg-[#E1306C]/0 blur-md transition duration-300 group-hover:bg-[#E1306C]/10" />
-            <Image
-              src="/social/instagram.svg"
-              alt=""
-              width={23}
-              height={23}
-              className="relative z-10 h-[23px] w-[23px] transition-transform duration-300 group-hover:scale-110"
+            <span
+              aria-hidden="true"
+              className="h-6 w-6"
+              style={{
+                backgroundColor: '#E1306C',
+                WebkitMaskImage: 'url("/social/instagram.svg")',
+                maskImage: 'url("/social/instagram.svg")',
+                WebkitMaskRepeat: 'no-repeat',
+                maskRepeat: 'no-repeat',
+                WebkitMaskPosition: 'center',
+                maskPosition: 'center',
+                WebkitMaskSize: 'contain',
+                maskSize: 'contain',
+              }}
             />
           </Link>
 
           <Link
-            className={`${socialButtonBase} border-[#25D366]/30 hover:border-[#25D366] hover:bg-[#25D366]/10 hover:shadow-[0_0_30px_rgba(37,211,102,.48)] focus-visible:ring-[#25D366]`}
+            className={`${socialButtonBase} border-[#25D366]/55 focus-visible:ring-[#25D366]`}
             href={`https://wa.me/${whatsapp}`}
             target="_blank"
             rel="noreferrer"
             aria-label="WhatsApp"
             title="WhatsApp"
           >
-            <span className="absolute inset-1 rounded-full bg-[#25D366]/0 blur-md transition duration-300 group-hover:bg-[#25D366]/10" />
-            <Image
-              src="/social/whatsapp.svg"
-              alt=""
-              width={23}
-              height={23}
-              className="relative z-10 h-[23px] w-[23px] transition-transform duration-300 group-hover:scale-110"
+            <span
+              aria-hidden="true"
+              className="h-6 w-6"
+              style={{
+                backgroundColor: '#25D366',
+                WebkitMaskImage: 'url("/social/whatsapp.svg")',
+                maskImage: 'url("/social/whatsapp.svg")',
+                WebkitMaskRepeat: 'no-repeat',
+                maskRepeat: 'no-repeat',
+                WebkitMaskPosition: 'center',
+                maskPosition: 'center',
+                WebkitMaskSize: 'contain',
+                maskSize: 'contain',
+              }}
             />
           </Link>
         </div>
