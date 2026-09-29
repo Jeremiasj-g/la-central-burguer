@@ -309,6 +309,7 @@ export async function getCounterSales({
     .eq('source', 'admin')
     .like('notes', `${COUNTER_NOTE_PREFIX}%`)
     .order('created_at', { ascending: false })
+    .order('id', { ascending: false })
     .range(from, to);
 
   if (error) throw new Error(error.message);
