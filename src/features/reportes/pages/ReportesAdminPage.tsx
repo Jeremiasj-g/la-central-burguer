@@ -3,12 +3,14 @@
 import { useEffect, useMemo, useState } from 'react';
 import {
   Ban,
+  BarChart3,
   DollarSign,
   Download,
   PackageCheck,
   ReceiptText,
   RefreshCw,
   ShoppingBag,
+  Table2,
   Truck,
   WalletCards,
 } from 'lucide-react';
@@ -17,6 +19,7 @@ import { AdminPageHeader } from '@/shared/components/layout/AdminPageHeader';
 import { AnimatedValue } from '@/shared/components/ui/AnimatedValue';
 import { Button } from '@/shared/components/ui/Button';
 import { useBusinessConfig } from '@/features/configuracion/hooks/useBusinessConfig';
+import { ReportCharts } from '../components/ReportCharts';
 import { ReportExportDialog, type ReportExportMode } from '../components/ReportExportDialog';
 import { ReportFilters } from '../components/ReportFilters';
 import { ReportTables } from '../components/ReportTables';
@@ -97,6 +100,7 @@ export function ReportesAdminPage() {
   const [draftFilters, setDraftFilters] = useState<ReportFilterState>(initial);
   const [appliedFilters, setAppliedFilters] = useState<ReportFilterState>(initial);
   const [groupBy, setGroupBy] = useState<ReportGroupBy>('day');
+  const [analysisView, setAnalysisView] = useState<'tables' | 'charts'>('tables');
   const [exportDialogOpen, setExportDialogOpen] = useState(false);
   const [exportingMode, setExportingMode] = useState<ReportExportMode | null>(null);
   const [detailOrders, setDetailOrders] = useState<ReportOrder[]>([]);
@@ -228,7 +232,41 @@ export function ReportesAdminPage() {
         <MetricCard label="Comisiones liquidadas" value={summary.settledDeliveryCommission} detail="Sólo liquidaciones marcadas como pagadas" icon={WalletCards} formatter={formatCurrency} />
         <MetricCard label="Cancelaciones" value={summary.cancelledOrders} detail={`${(summary.cancellationRate * 100).toFixed(1)}% del total seleccionado`} icon={Ban} formatter={formatNumber} />
       </section>
-      {isLoading ? <div className="mb-6 rounded-sm border border-neutral-200 bg-white p-12 text-center text-sm font-semibold text-neutral-500 shadow-sm">Procesando el reporte…</div> : <ReportTables groups={groups} groupBy={groupBy} onGroupByChange={setGroupBy} detailOrders={detailOrders} detailTotal={detailTotal} detailPage={detailPage} detailLoading={detailLoading} onDetailPageChange={setDetailPage} />}
+      <section className="mb-6 overflow-hidden rounded-sm border border-neutral-200 bg-white shadow-sm">
+        <div className="flex flex-col gap-3 border-b border-neutral-100 p-4 sm:flex-row sm:items-center sm:justify-between sm:p-5">
+          <div>
+            <h2 className="font-black text-central-carbon">Visualización del reporte</h2>
+            <p className="mt-1 text-xs leading-5 text-neutral-500">Separá el análisis tabular del gráfico para mantener el panel limpio.</p>
+          </div>
+          <div className="grid grid-cols-2 rounded-sm border border-neutral-200 bg-neutral-50 p-1">
+            <button
+              type="button"
+              aria-pressed={analysisView === 'tables'}
+              onClick={() => setAnalysisView('tables')}
+              className={`inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-sm px-4 py-2 text-xs font-bold transition ${analysisView === 'tables' ? 'bg-white text-central-orange shadow-sm' : 'text-neutral-500 hover:text-central-carbon'}`}
+            >
+              <Table2 size={15} /> Tablas
+            </button>
+            <button
+              type="button"
+              aria-pressed={analysisView === 'charts'}
+              onClick={() => setAnalysisView('charts')}
+              className={`inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-sm px-4 py-2 text-xs font-bold transition ${analysisView === 'charts' ? 'bg-white text-central-orange shadow-sm' : 'text-neutral-500 hover:text-central-carbon'}`}
+            >
+              <BarChart3 size={15} /> Gráficos
+            </button>
+          </div>
+        </div>
+      </section>
+
+      {analysisView === 'tables' ? (
+        isLoading
+          ? <div className="mb-6 rounded-sm border border-neutral-200 bg-white p-12 text-center text-sm font-semibold text-neutral-500 shadow-sm">Procesando el reporte…</div>
+          : <ReportTables groups={groups} groupBy={groupBy} onGroupByChange={setGroupBy} detailOrders={detailOrders} detailTotal={detailTotal} detailPage={detailPage} detailLoading={detailLoading} onDetailPageChange={setDetailPage} />
+      ) : (
+        <ReportCharts dataset={filteredData} filters={appliedFilters} periodLabel={periodDescription} isLoading={isLoading} />
+      )}
+
       <ReportExportDialog open={exportDialogOpen} hasFilteredData={Boolean(filteredData.orders.length)} exportingMode={exportingMode} onClose={() => { if (!exportingMode) setExportDialogOpen(false); }} onExport={(mode) => void handleExport(mode)} />
     </div>
   );
