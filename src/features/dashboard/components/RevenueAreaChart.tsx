@@ -10,10 +10,10 @@ const orange = '#E45712';
 const ember = '#C7440B';
 const carbon = '#151515';
 
-export function RevenueAreaChart({ data, periodLabel }: { data: ChartPoint[]; periodLabel: string }) {
+export function RevenueAreaChart({ data, periodLabel, title = 'Ingresos por día' }: { data: ChartPoint[]; periodLabel: string; title?: string }) {
   return (
     <div className="rounded-sm border border-neutral-200 bg-white p-6 shadow-soft">
-      <h3 className="text-lg font-black text-central-carbon">Ingresos por día</h3>
+      <h3 className="text-lg font-black text-central-carbon">{title}</h3>
       <div className="mt-5 h-72">
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart data={data} margin={chartMargins}>
