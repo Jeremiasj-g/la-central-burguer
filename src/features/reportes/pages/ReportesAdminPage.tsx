@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   Ban,
   DollarSign,
@@ -21,11 +21,12 @@ import { ReportExportDialog, type ReportExportMode } from '../components/ReportE
 import { ReportFilters } from '../components/ReportFilters';
 import { ReportTables } from '../components/ReportTables';
 import { useReportes } from '../hooks/useReportes';
-import { getCompleteReportData } from '../services/reportes.service';
+import { getCompleteReportData, getReportOrdersPage } from '../services/reportes.service';
 import type {
   ReportDatePreset,
   ReportFilters as ReportFilterState,
   ReportGroupBy,
+  ReportOrder,
 } from '../types/reporte.types';
 import {
   formatCurrency,
@@ -98,6 +99,11 @@ export function ReportesAdminPage() {
   const [groupBy, setGroupBy] = useState<ReportGroupBy>('day');
   const [exportDialogOpen, setExportDialogOpen] = useState(false);
   const [exportingMode, setExportingMode] = useState<ReportExportMode | null>(null);
+  const [detailOrders, setDetailOrders] = useState<ReportOrder[]>([]);
+  const [detailPage, setDetailPage] = useState(1);
+  const [detailTotal, setDetailTotal] = useState(0);
+  const [detailLoading, setDetailLoading] = useState(true);
+  const [detailRevision, setDetailRevision] = useState(0);
   const { config } = useBusinessConfig();
   const { data, isLoading, error, lastLoadedAt, refresh } = useReportes(appliedFilters);
   const filteredData = useMemo(() => {
@@ -115,6 +121,34 @@ export function ReportesAdminPage() {
   const groups = useMemo(() => groupReport(filteredData, groupBy), [filteredData, groupBy]);
   const earliestOrderDate = useMemo(() => getEarliestOrderDate(filteredData.orders), [filteredData.orders]);
 
+  useEffect(() => {
+    let active = true;
+    setDetailLoading(true);
+
+    getReportOrdersPage(appliedFilters, detailPage, 10)
+      .then((result) => {
+        if (!active) return;
+        setDetailOrders(result.orders);
+        setDetailTotal(result.total);
+
+        const maxPage = Math.max(1, Math.ceil(result.total / result.pageSize));
+        if (detailPage > maxPage) setDetailPage(maxPage);
+      })
+      .catch((caught: unknown) => {
+        if (!active) return;
+        setDetailOrders([]);
+        setDetailTotal(0);
+        toast.error(caught instanceof Error ? caught.message : 'No se pudo cargar el detalle paginado del reporte.');
+      })
+      .finally(() => {
+        if (active) setDetailLoading(false);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [appliedFilters, detailPage, detailRevision]);
+
   function handlePresetChange(nextPreset: ReportDatePreset) {
     setPreset(nextPreset);
     if (nextPreset === 'allTime') { setDraftFilters((current) => ({ ...current, allTime: true })); return; }
@@ -130,6 +164,7 @@ export function ReportesAdminPage() {
   function applyFilters() {
     if (!draftFilters.allTime && (!draftFilters.from || !draftFilters.to)) return void toast.warning('Seleccioná las fechas del reporte.');
     if (!draftFilters.allTime && draftFilters.from > draftFilters.to) return void toast.warning('La fecha desde no puede ser posterior a la fecha hasta.');
+    setDetailPage(1);
     setAppliedFilters({ ...draftFilters });
   }
 
@@ -139,6 +174,12 @@ export function ReportesAdminPage() {
     setDraftFilters(next);
     setAppliedFilters(next);
     setGroupBy('day');
+    setDetailPage(1);
+  }
+
+  function refreshAll() {
+    refresh();
+    setDetailRevision((value) => value + 1);
   }
 
   async function handleExport(mode: ReportExportMode) {
@@ -173,7 +214,7 @@ export function ReportesAdminPage() {
 
   return (
     <div className="min-w-0">
-      <AdminPageHeader eyebrow="Reportes" title="Centro de análisis comercial" description="Filtrá, consolidá y exportá la información comercial por períodos, productos, categorías, medios de pago, entregas y origen de venta." actions={<><Button type="button" variant="secondary" onClick={refresh} disabled={isLoading}><RefreshCw size={16} className={isLoading ? 'animate-spin' : ''} /> Actualizar</Button><Button type="button" onClick={() => setExportDialogOpen(true)} disabled={isLoading || exportingMode !== null}><Download size={16} /> {exportingMode ? 'Generando…' : 'Exportar Excel'}</Button></>} />
+      <AdminPageHeader eyebrow="Reportes" title="Centro de análisis comercial" description="Filtrá, consolidá y exportá la información comercial por períodos, productos, categorías, medios de pago, entregas y origen de venta." actions={<><Button type="button" variant="secondary" onClick={refreshAll} disabled={isLoading || detailLoading}><RefreshCw size={16} className={isLoading || detailLoading ? 'animate-spin' : ''} /> Actualizar</Button><Button type="button" onClick={() => setExportDialogOpen(true)} disabled={isLoading || exportingMode !== null}><Download size={16} /> {exportingMode ? 'Generando…' : 'Exportar Excel'}</Button></>} />
       <ReportFilters filters={draftFilters} preset={preset} isLoading={isLoading} onPresetChange={handlePresetChange} onChange={handleDraftChange} onApply={applyFilters} onReset={resetFilters} />
       {error ? <div className="mb-6 rounded-sm border border-red-200 bg-red-50 p-4 text-sm font-semibold text-red-700">{error}</div> : null}
       <div className="mb-4 flex min-w-0 flex-col gap-1 text-xs leading-5 text-neutral-500 sm:flex-row sm:items-center sm:justify-between"><p className="min-w-0 break-words">{periodDescription}</p><p className="shrink-0">{lastLoadedAt ? `Actualizado ${lastLoadedAt.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' })}` : 'Preparando información…'}</p></div>
@@ -187,7 +228,7 @@ export function ReportesAdminPage() {
         <MetricCard label="Comisiones liquidadas" value={summary.settledDeliveryCommission} detail="Sólo liquidaciones marcadas como pagadas" icon={WalletCards} formatter={formatCurrency} />
         <MetricCard label="Cancelaciones" value={summary.cancelledOrders} detail={`${(summary.cancellationRate * 100).toFixed(1)}% del total seleccionado`} icon={Ban} formatter={formatNumber} />
       </section>
-      {isLoading ? <div className="mb-6 rounded-sm border border-neutral-200 bg-white p-12 text-center text-sm font-semibold text-neutral-500 shadow-sm">Procesando el reporte…</div> : <ReportTables dataset={filteredData} groups={groups} groupBy={groupBy} onGroupByChange={setGroupBy} />}
+      {isLoading ? <div className="mb-6 rounded-sm border border-neutral-200 bg-white p-12 text-center text-sm font-semibold text-neutral-500 shadow-sm">Procesando el reporte…</div> : <ReportTables dataset={filteredData} groups={groups} groupBy={groupBy} onGroupByChange={setGroupBy} detailOrders={detailOrders} detailTotal={detailTotal} detailPage={detailPage} detailLoading={detailLoading} onDetailPageChange={setDetailPage} />}
       <ReportExportDialog open={exportDialogOpen} hasFilteredData={Boolean(filteredData.orders.length)} exportingMode={exportingMode} onClose={() => { if (!exportingMode) setExportDialogOpen(false); }} onExport={(mode) => void handleExport(mode)} />
     </div>
   );
