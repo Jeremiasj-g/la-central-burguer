@@ -242,12 +242,29 @@ export async function assignDelivery(
   commissionPercentOverride: number | null = null,
   note?: string,
 ) {
-  await deliveryRpc<string>('admin_assign_delivery', {
+  const assignmentId = await deliveryRpc<string>('admin_assign_delivery', {
     order_uuid: orderId,
     driver_uuid: driverId,
     note: note?.trim() || null,
     commission_percent_override: commissionPercentOverride,
   });
+
+  if (!assignmentId) return;
+
+  try {
+    const { error } = await client().functions.invoke('delivery-push', {
+      body: {
+        action: 'notifyAssignment',
+        assignmentId,
+      },
+    });
+
+    if (error) {
+      console.warn('El pedido se asignó, pero no se pudo enviar la notificación push:', error.message);
+    }
+  } catch (error) {
+    console.warn('El pedido se asignó, pero no se pudo enviar la notificación push:', error);
+  }
 }
 
 export async function cancelDeliveryAssignment(assignmentId: string, reason?: string) {
