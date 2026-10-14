@@ -1,4 +1,4 @@
-import type { DeliveryQuote, GeoPoint } from '../types/delivery.types';
+import type { GeoPoint } from '../types/delivery.types';
 
 const EARTH_RADIUS_KM = 6371;
 
@@ -61,7 +61,7 @@ export function createDeliveryQuote(params: {
   pricePerKm: number;
   maxDistanceKm: number;
   roundingValue: number;
-}): DeliveryQuote {
+}) {
   const distanceKm = calculateDistanceKm(params.storeLocation, params.customerLocation);
   const deliveryCost = calculateDeliveryCost({
     distanceKm,
