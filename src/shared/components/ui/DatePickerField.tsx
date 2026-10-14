@@ -251,7 +251,14 @@ export function DatePickerField({
               aria-label={calendarView === 'days' ? 'Elegir mes y año' : 'Volver al calendario'}
               aria-expanded={calendarView === 'months'}
             >
-              <span className="truncate">
+              <span
+                key={`${calendarView}-${visibleYear}-${visibleMonthIndex}-${monthTransitionKey}`}
+                className={cn(
+                  'truncate',
+                  calendarView === 'days' && monthTransitionDirection === 'next' && 'lcb-calendar-month-next',
+                  calendarView === 'days' && monthTransitionDirection === 'previous' && 'lcb-calendar-month-previous',
+                )}
+              >
                 {calendarView === 'days' ? `${MONTHS[visibleMonthIndex]} de ${visibleYear}` : visibleYear}
               </span>
               <ChevronDown size={13} className={cn('shrink-0 transition-transform', calendarView === 'months' && 'rotate-180')} />
