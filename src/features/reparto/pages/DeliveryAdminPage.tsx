@@ -354,13 +354,23 @@ export function DeliveryAdminPage() {
 
     setBusyId(assignmentId ?? orderId);
     try {
-      await assignDelivery(
+      const result = await assignDelivery(
         orderId,
         driverId,
         override,
         assignmentId ? 'Reasignación desde panel de delivery' : undefined,
       );
-      toast.success(assignmentId ? 'Pedido reasignado.' : 'Pedido asignado.');
+
+      if (result.pushSent > 0) {
+        toast.success(assignmentId ? 'Pedido reasignado y repartidor notificado.' : 'Pedido asignado y repartidor notificado.');
+      } else if (result.pushSubscriptionCount === 0 && result.pushFailed === 0) {
+        toast.info(assignmentId
+          ? 'Pedido reasignado. El repartidor todavía no tiene notificaciones activadas.'
+          : 'Pedido asignado. El repartidor todavía no tiene notificaciones activadas.');
+      } else {
+        toast.warning(`${assignmentId ? 'Pedido reasignado' : 'Pedido asignado'}, pero el aviso push falló${result.pushError ? `: ${result.pushError}` : '.'}`);
+      }
+
       await load(true);
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'No se pudo asignar el pedido.');
