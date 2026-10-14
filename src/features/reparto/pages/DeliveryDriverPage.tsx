@@ -22,6 +22,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'react-toastify';
 import { AnimatedFormattedValue } from '@/shared/components/ui/AnimatedValue';
+import { DeliveryPwaControls } from '../components/DeliveryPwaControls';
 import { ROUTES } from '@/shared/constants/routes';
 import { formatRouteDuration } from '@/features/delivery/utils/delivery.utils';
 import { formatCurrency, formatDateTime } from '@/shared/utils/format.utils';
@@ -578,6 +579,8 @@ export function DeliveryDriverPage() {
           <h1 className="mt-0.5 text-[28px] font-semibold tracking-[-0.045em] text-[#1C1C1E]">Tus entregas</h1>
           <p className="mt-1 max-w-xl text-[14px] leading-5 text-[#8E8E93]">Los pedidos asignados aparecen automáticamente y cambian de estado en tiempo real.</p>
         </section>
+
+        <DeliveryPwaControls />
 
         <section className="grid grid-cols-3 gap-2.5 sm:grid-cols-6 sm:gap-3">
           <SummaryCard icon={Route} label="Activos" value={String(data.summary.activeAssignments)} helper="Pedidos en curso" />
