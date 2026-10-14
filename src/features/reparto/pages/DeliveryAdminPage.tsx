@@ -24,6 +24,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'react-toastify';
 import { useBusinessConfig } from '@/features/configuracion/hooks/useBusinessConfig';
+import { formatRouteDuration } from '@/features/delivery/utils/delivery.utils';
 import { AdminPageHeader } from '@/shared/components/layout/AdminPageHeader';
 import { Button } from '@/shared/components/ui/Button';
 import { ConfirmDialog } from '@/shared/components/ui/ConfirmDialog';
@@ -674,7 +675,10 @@ export function DeliveryAdminPage() {
                         <td className="px-4 py-3.5">
                           <span className={`rounded-full border px-2.5 py-1 text-[11px] font-black ${statusClass(item.status)}`}>{STATUS_LABELS[item.status]}</span>
                         </td>
-                        <td className="px-4 py-3.5 text-right text-neutral-600">{item.distanceKm === null ? '—' : `${item.distanceKm.toFixed(1)} km`}</td>
+                        <td className="px-4 py-3.5 text-right">
+                          <p className="font-bold text-central-carbon">{(item.routeDistanceKm ?? item.distanceKm) === null ? '—' : `${(item.routeDistanceKm ?? item.distanceKm)?.toFixed(1)} km`}</p>
+                          {typeof item.routeDurationSeconds === 'number' ? <p className="mt-0.5 text-[11px] text-neutral-400">{formatRouteDuration(item.routeDurationSeconds)}</p> : null}
+                        </td>
                         <td className="px-4 py-3.5 text-neutral-600">{item.paymentMethod === 'transferencia' ? 'Transferencia' : 'Efectivo'}</td>
                         <td className="px-4 py-3.5 text-right font-bold text-central-carbon">{formatCurrency(item.orderTotal)}</td>
                         <td className="px-4 py-3.5 text-right text-neutral-600">{formatCurrency(item.deliveryFee)}</td>
@@ -788,7 +792,12 @@ export function DeliveryAdminPage() {
                   <div><p className="text-xs text-neutral-400">Teléfono</p><p className="font-semibold text-central-carbon">{historyDetail.customerPhone}</p></div>
                   <div><p className="text-xs text-neutral-400">Estado comercial</p><p className="font-semibold capitalize text-central-carbon">{historyDetail.orderStatus.replaceAll('_', ' ')}</p></div>
                   <div className="sm:col-span-2"><p className="text-xs text-neutral-400">Dirección</p><p className="font-semibold text-central-carbon">{historyDetail.address || 'Sin dirección textual'}</p></div>
-                  <div><p className="text-xs text-neutral-400">Distancia registrada</p><p className="font-semibold">{historyDetail.distanceKm === null ? '—' : `${historyDetail.distanceKm.toFixed(2)} km`}</p></div>
+                  <div><p className="text-xs text-neutral-400">Distancia por ruta</p><p className="font-semibold">{(historyDetail.routeDistanceKm ?? historyDetail.distanceKm) === null ? '—' : `${(historyDetail.routeDistanceKm ?? historyDetail.distanceKm)?.toFixed(2)} km`}</p></div>
+                  <div><p className="text-xs text-neutral-400">Tiempo estimado</p><p className="font-semibold">{formatRouteDuration(historyDetail.routeDurationSeconds)}</p></div>
+                  {typeof historyDetail.straightDistanceKm === 'number' ? <div><p className="text-xs text-neutral-400">Línea recta</p><p className="font-semibold">{historyDetail.straightDistanceKm.toFixed(2)} km</p></div> : null}
+                  {historyDetail.routeVia ? <div><p className="text-xs text-neutral-400">Ruta sugerida</p><p className="font-semibold">{historyDetail.routeVia}</p></div> : null}
+                  {historyDetail.routeProvider ? <div><p className="text-xs text-neutral-400">Fuente de cálculo</p><p className="font-semibold">{historyDetail.routeProvider === 'serpapi_google_maps' ? 'Google Maps · SerpApi' : historyDetail.routeProvider}</p></div> : null}
+                  {historyDetail.travelMode ? <div><p className="text-xs text-neutral-400">Modo</p><p className="font-semibold">{historyDetail.travelMode === 'two_wheeler' ? 'Moto' : historyDetail.travelMode}</p></div> : null}
                   <div><p className="text-xs text-neutral-400">Método de pago</p><p className="font-semibold">{historyDetail.paymentMethod === 'transferencia' ? 'Transferencia' : 'Efectivo'}</p></div>
                   <div><p className="text-xs text-neutral-400">Subtotal</p><p className="font-semibold">{formatCurrency(historyDetail.subtotal)}</p></div>
                   <div><p className="text-xs text-neutral-400">Costo de envío</p><p className="font-semibold">{formatCurrency(historyDetail.deliveryFee)}</p></div>
