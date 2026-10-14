@@ -221,9 +221,6 @@ function AssignmentCard({
                 Ruta: {(item.routeDistanceKm ?? item.distanceKm)?.toFixed(1) ?? '—'} km
                 {typeof item.routeDurationSeconds === 'number' ? ` · ${formatRouteDuration(item.routeDurationSeconds)}` : ''}
               </p>
-              {typeof item.straightDistanceKm === 'number' ? (
-                <p className="mt-0.5 text-[11px] text-[#8E8E93]">Línea recta: {item.straightDistanceKm.toFixed(1)} km</p>
-              ) : null}
               {item.routeVia ? <p className="mt-0.5 truncate text-[11px] text-[#8E8E93]">Vía {item.routeVia}</p> : null}
             </div>
           </div>
@@ -371,7 +368,6 @@ function DeliveryDetailSheet({ detail, loading, open, onClose }: { detail: Deliv
             <DetailRow label="Dirección" value={detail.address || 'Ubicación enviada por GPS'} />
             <DetailRow label="Distancia por ruta" value={`${(detail.routeDistanceKm ?? detail.distanceKm)?.toFixed(1) ?? '—'} km`} />
             {typeof detail.routeDurationSeconds === 'number' ? <DetailRow label="Tiempo estimado" value={formatRouteDuration(detail.routeDurationSeconds)} /> : null}
-            {typeof detail.straightDistanceKm === 'number' ? <DetailRow label="Distancia en línea recta" value={`${detail.straightDistanceKm.toFixed(1)} km`} /> : null}
             {detail.routeVia ? <DetailRow label="Ruta sugerida" value={detail.routeVia} /> : null}
             {detail.travelMode ? <DetailRow label="Modo de cálculo" value={detail.travelMode === 'two_wheeler' ? 'Moto' : detail.travelMode} /> : null}
             {detail.routeProvider ? <DetailRow label="Fuente de ruta" value={detail.routeProvider === 'serpapi_google_maps' ? 'Google Maps · SerpApi' : detail.routeProvider} /> : null}
