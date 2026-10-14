@@ -8,6 +8,7 @@ import {
   getDeliveryPushStatus,
   registerDeliveryServiceWorker,
   supportsDeliveryPush,
+  testDeliveryPushNotification,
 } from '../services/delivery-driver.service';
 
 type PushStatus = 'checking' | 'unsupported' | 'denied' | 'disabled' | 'enabled';
@@ -81,11 +82,42 @@ export function DeliveryPwaControls() {
     try {
       await enableDeliveryPushNotifications();
       setPushStatus('enabled');
-      toast.success('Notificaciones activadas. Te avisaremos cuando te asignen un pedido.');
+
+      const test = await testDeliveryPushNotification();
+      if (test.sent > 0) {
+        toast.success('Notificaciones activadas y prueba enviada al teléfono.');
+      } else if (test.subscriptionCount === 0) {
+        toast.warning('Se activó el permiso, pero el dispositivo no quedó suscripto. Probá nuevamente.');
+      } else {
+        toast.warning(test.firstError
+          ? `Se activaron, pero el envío de prueba falló: ${test.firstError}`
+          : 'Se activaron, pero el servidor no pudo enviar la prueba.');
+      }
     } catch (error) {
       const message = error instanceof Error ? error.message : 'No se pudieron activar las notificaciones.';
       toast.error(message);
       setPushStatus(await getDeliveryPushStatus().catch(() => 'disabled'));
+    } finally {
+      setPushBusy(false);
+    }
+  }
+
+  async function handleTestPush() {
+    setPushBusy(true);
+    try {
+      const result = await testDeliveryPushNotification();
+      if (result.sent > 0) {
+        toast.success('Prueba enviada. Debería aparecer como notificación del sistema.');
+      } else if (result.subscriptionCount === 0) {
+        setPushStatus('disabled');
+        toast.warning('Este dispositivo ya no tiene una suscripción push activa. Activala nuevamente.');
+      } else {
+        toast.error(result.firstError
+          ? `El proveedor rechazó la notificación: ${result.firstError}`
+          : 'No se pudo enviar la notificación de prueba.');
+      }
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'No se pudo probar la notificación.');
     } finally {
       setPushBusy(false);
     }
@@ -144,8 +176,8 @@ export function DeliveryPwaControls() {
 
         <button
           type="button"
-          onClick={() => void handleEnablePush()}
-          disabled={pushBusy || pushStatus === 'enabled' || pushStatus === 'unsupported'}
+          onClick={() => void (pushStatus === 'enabled' ? handleTestPush() : handleEnablePush())}
+          disabled={pushBusy || pushStatus === 'unsupported'}
           className="flex min-h-14 cursor-pointer items-center justify-between gap-3 px-5 text-left transition active:bg-[#F2F2F7] disabled:cursor-default"
         >
           <span className="flex items-center gap-2.5">
@@ -155,13 +187,13 @@ export function DeliveryPwaControls() {
             <span>
               <span className="block text-[13px] font-medium text-[#1C1C1E]">
                 {pushStatus === 'checking' && 'Comprobando avisos…'}
-                {pushStatus === 'enabled' && 'Notificaciones activas'}
+                {pushStatus === 'enabled' && (pushBusy ? 'Enviando prueba…' : 'Probar notificación')}
                 {pushStatus === 'disabled' && (pushBusy ? 'Activando…' : 'Activar notificaciones')}
                 {pushStatus === 'denied' && 'Notificaciones bloqueadas'}
                 {pushStatus === 'unsupported' && 'No disponible en este navegador'}
               </span>
               <span className="mt-0.5 block text-[10px] text-[#8E8E93]">
-                {pushStatus === 'enabled' ? 'Aviso instantáneo al asignarte' : 'Preview del pedido en el teléfono'}
+                {pushStatus === 'enabled' ? 'Envía un aviso de prueba a este teléfono' : 'Preview del pedido en el teléfono'}
               </span>
             </span>
           </span>
