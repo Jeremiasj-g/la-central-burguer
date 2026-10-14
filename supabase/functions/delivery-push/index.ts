@@ -64,6 +64,85 @@ async function getPushConfig(admin: any) {
   return data;
 }
 
+type PushSendResult = {
+  sent: number;
+  failed: number;
+  subscriptionCount: number;
+  firstError: string | null;
+};
+
+async function sendPushToUser(
+  admin: any,
+  userId: string,
+  payload: Record<string, unknown>,
+): Promise<PushSendResult> {
+  const { data: subscriptions, error: subscriptionsError } = await admin
+    .from('delivery_push_subscriptions')
+    .select('id,endpoint,p256dh,auth_key')
+    .eq('user_id', userId);
+
+  if (subscriptionsError) throw subscriptionsError;
+  if (!subscriptions?.length) {
+    return { sent: 0, failed: 0, subscriptionCount: 0, firstError: null };
+  }
+
+  const pushConfig = await getPushConfig(admin);
+  webpush.setVapidDetails(
+    pushConfig.subject,
+    pushConfig.vapid_public_key,
+    pushConfig.vapid_private_key,
+  );
+
+  let sent = 0;
+  let failed = 0;
+  let firstError: string | null = null;
+
+  await Promise.all(subscriptions.map(async (subscription: any) => {
+    try {
+      const result = await webpush.sendNotification(
+        {
+          endpoint: subscription.endpoint,
+          keys: {
+            p256dh: subscription.p256dh,
+            auth: subscription.auth_key,
+          },
+        },
+        JSON.stringify(payload),
+        { TTL: 300, urgency: 'high' },
+      );
+
+      sent += 1;
+      console.log('delivery-push accepted', JSON.stringify({
+        statusCode: result?.statusCode ?? null,
+        userId,
+      }));
+    } catch (error: any) {
+      failed += 1;
+      const statusCode = Number(error?.statusCode ?? 0);
+      const providerBody = text(error?.body);
+      const message = providerBody || text(error?.message) || 'El proveedor rechazó la notificación.';
+      firstError ??= statusCode ? `HTTP ${statusCode}: ${message}` : message;
+
+      console.error('delivery-push send failed', JSON.stringify({
+        statusCode,
+        message,
+        userId,
+      }));
+
+      if (statusCode === 404 || statusCode === 410) {
+        await admin.from('delivery_push_subscriptions').delete().eq('id', subscription.id);
+      }
+    }
+  }));
+
+  return {
+    sent,
+    failed,
+    subscriptionCount: subscriptions.length,
+    firstError,
+  };
+}
+
 async function notifyAssignment(admin: any, assignmentId: string) {
   const { data: assignment, error: assignmentError } = await admin
     .from('delivery_assignments')
@@ -91,21 +170,6 @@ async function notifyAssignment(admin: any, assignmentId: string) {
   if (orderError) throw orderError;
   if (!rate?.driver_id || !order) throw new Error('No se pudo resolver el repartidor o el pedido.');
 
-  const { data: subscriptions, error: subscriptionsError } = await admin
-    .from('delivery_push_subscriptions')
-    .select('id,endpoint,p256dh,auth_key')
-    .eq('user_id', rate.driver_id);
-
-  if (subscriptionsError) throw subscriptionsError;
-  if (!subscriptions?.length) return { sent: 0, failed: 0 };
-
-  const pushConfig = await getPushConfig(admin);
-  webpush.setVapidDetails(
-    pushConfig.subject,
-    pushConfig.vapid_public_key,
-    pushConfig.vapid_private_key,
-  );
-
   const distance = Number(order.delivery_route_distance_km ?? order.delivery_distance_km ?? 0);
   const payment = order.payment_method === 'efectivo' ? 'Efectivo' : 'Transferencia';
   const amount = Number(order.total ?? 0).toLocaleString('es-AR', {
@@ -114,43 +178,13 @@ async function notifyAssignment(admin: any, assignmentId: string) {
     maximumFractionDigits: 0,
   });
 
-  const payload = JSON.stringify({
+  return sendPushToUser(admin, rate.driver_id, {
     title: '🍔 Nuevo pedido asignado',
     body: `${order.order_code} · ${order.customer_name} · ${distance > 0 ? `${distance.toFixed(1)} km · ` : ''}${payment} ${amount}`,
     tag: `delivery-${assignment.id}`,
     url: '/delivery',
     assignmentId: assignment.id,
   });
-
-  let sent = 0;
-  let failed = 0;
-
-  await Promise.all(subscriptions.map(async (subscription: any) => {
-    try {
-      await webpush.sendNotification(
-        {
-          endpoint: subscription.endpoint,
-          keys: {
-            p256dh: subscription.p256dh,
-            auth: subscription.auth_key,
-          },
-        },
-        payload,
-        { TTL: 300, urgency: 'high' },
-      );
-      sent += 1;
-    } catch (error: any) {
-      failed += 1;
-      const statusCode = Number(error?.statusCode ?? 0);
-      if (statusCode === 404 || statusCode === 410) {
-        await admin.from('delivery_push_subscriptions').delete().eq('id', subscription.id);
-      } else {
-        console.error('delivery-push send:', error);
-      }
-    }
-  }));
-
-  return { sent, failed };
 }
 
 Deno.serve(async (req: Request) => {
@@ -229,6 +263,17 @@ Deno.serve(async (req: Request) => {
         if (error) throw error;
       }
       return json({ ok: true });
+    }
+
+    if (action === 'testSelf') {
+      await assertRole(admin, userId, 'delivery');
+      const result = await sendPushToUser(admin, userId, {
+        title: '🍔 Notificaciones funcionando',
+        body: 'La Central Delivery puede enviarte avisos de nuevos pedidos.',
+        tag: `delivery-push-test-${Date.now()}`,
+        url: '/delivery',
+      });
+      return json({ ok: true, ...result });
     }
 
     if (action === 'notifyAssignment') {
