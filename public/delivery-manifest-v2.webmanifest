@@ -1,0 +1,20 @@
+{
+  "name": "La Central Burger Delivery",
+  "short_name": "Central Delivery",
+  "description": "Panel de reparto de La Central Burger",
+  "id": "/delivery-app-v2",
+  "start_url": "/delivery",
+  "scope": "/delivery",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#F2F2F7",
+  "theme_color": "#F2F2F7",
+  "icons": [
+    {
+      "src": "/icons/app-icon.png?v=20261014-2",
+      "sizes": "1254x1254",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}
