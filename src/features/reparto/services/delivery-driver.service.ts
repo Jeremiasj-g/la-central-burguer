@@ -33,7 +33,18 @@ type DeliveryRouteMetadata = {
 type DeliveryPushResponse = {
   publicKey?: string;
   ok?: boolean;
+  sent?: number;
+  failed?: number;
+  subscriptionCount?: number;
+  firstError?: string | null;
   error?: string;
+};
+
+export type DeliveryPushTestResult = {
+  sent: number;
+  failed: number;
+  subscriptionCount: number;
+  firstError: string | null;
 };
 
 function urlBase64ToUint8Array(value: string) {
@@ -119,6 +130,16 @@ export async function disableDeliveryPushNotifications() {
   });
 
   await subscription.unsubscribe();
+}
+
+export async function testDeliveryPushNotification(): Promise<DeliveryPushTestResult> {
+  const data = await invokeDeliveryPush({ action: 'testSelf' });
+  return {
+    sent: data?.sent ?? 0,
+    failed: data?.failed ?? 0,
+    subscriptionCount: data?.subscriptionCount ?? 0,
+    firstError: data?.firstError ?? null,
+  };
 }
 
 function client() {
