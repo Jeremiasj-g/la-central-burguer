@@ -4,9 +4,13 @@ import type { CartItem } from '@/features/carrito/types/carrito.types';
 import { getBusinessConfig } from '@/features/configuracion/services/configuracion.service';
 import { createPublicPedido } from '@/features/pedidos/services/pedidos.service';
 import { formatCurrency } from '@/shared/utils/format.utils';
-import { formatDistanceKm } from '@/features/delivery/utils/delivery.utils';
+import { formatDistanceKm, formatRouteDuration } from '@/features/delivery/utils/delivery.utils';
 
 function hasValidDeliveryQuote(values: CheckoutFormValues) {
+  const expiresAt = values.deliveryQuoteExpiresAt
+    ? new Date(values.deliveryQuoteExpiresAt).getTime()
+    : 0;
+
   return Boolean(
     values.customerLocation
       && typeof values.deliveryDistanceKm === 'number'
@@ -15,7 +19,10 @@ function hasValidDeliveryQuote(values: CheckoutFormValues) {
       && typeof values.deliveryCost === 'number'
       && Number.isFinite(values.deliveryCost)
       && values.deliveryCost >= 0
-      && values.deliveryMapsUrl,
+      && values.deliveryMapsUrl
+      && values.deliveryQuoteToken
+      && Number.isFinite(expiresAt)
+      && expiresAt > Date.now(),
   );
 }
 
@@ -48,6 +55,7 @@ export async function createCheckoutOrder(
     customerLat: values.customerLocation?.lat ?? null,
     customerLng: values.customerLocation?.lng ?? null,
     expectedDeliveryCost: values.deliveryMethod === 'delivery' ? values.deliveryCost ?? null : null,
+    deliveryQuoteToken: values.deliveryMethod === 'delivery' ? values.deliveryQuoteToken ?? null : null,
     paymentMethod: values.paymentMethod,
     notes: values.notes ?? '',
     items: items.map((item) => ({
@@ -73,8 +81,12 @@ export async function buildWhatsappUrl(order: Order) {
     `*Entrega:* ${deliveryLabel}`,
     order.deliveryMapsUrl ? `*Ubicación adjunta:* ${order.deliveryMapsUrl}` : '',
     typeof order.deliveryDistanceKm === 'number'
-      ? `*Distancia aprox.:* ${formatDistanceKm(order.deliveryDistanceKm)}`
+      ? `*Distancia por ruta:* ${formatDistanceKm(order.deliveryDistanceKm)}`
       : '',
+    typeof order.deliveryRouteDurationSeconds === 'number'
+      ? `*Tiempo estimado de ruta:* ${formatRouteDuration(order.deliveryRouteDurationSeconds)}`
+      : '',
+    order.deliveryRouteVia ? `*Ruta sugerida:* ${order.deliveryRouteVia}` : '',
     `*Método de pago:* ${paymentLabel}`,
     '------------------------------',
     '*Pedido:*',
