@@ -6,6 +6,10 @@ import { DashboardPeriodNote } from './DashboardPeriodNote';
 
 const colors = ['#D88918', '#11100F'];
 
+function formatOrderCount(count: number) {
+  return `${count} ${count === 1 ? 'pedido' : 'pedidos'}`;
+}
+
 export function DeliveryMethodChart({ data, periodLabel }: { data: ChartPoint[]; periodLabel: string }) {
   return (
     <div className="rounded-sm border border-neutral-200 bg-white p-6 shadow-soft">
@@ -24,7 +28,7 @@ export function DeliveryMethodChart({ data, periodLabel }: { data: ChartPoint[];
         {data.map((item, index) => (
           <span key={item.name} className="inline-flex items-center gap-2">
             <span className="h-3 w-3 rounded-sm" style={{ backgroundColor: colors[index % colors.length] }} />
-            {item.name}: {item.value}%
+            {item.name}: {item.value}%{typeof item.orders === 'number' ? ` · ${formatOrderCount(item.orders)}` : ''}
           </span>
         ))}
       </div>
