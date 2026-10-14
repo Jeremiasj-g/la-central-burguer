@@ -43,6 +43,17 @@ export function formatDistanceKm(distanceKm: number) {
   return `${distanceKm.toFixed(1)} km`;
 }
 
+export function formatRouteDuration(seconds: number | null | undefined) {
+  if (typeof seconds !== 'number' || !Number.isFinite(seconds) || seconds < 0) return '—';
+
+  const totalMinutes = Math.max(1, Math.round(seconds / 60));
+  if (totalMinutes < 60) return `${totalMinutes} min`;
+
+  const hours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
+  return minutes ? `${hours} h ${minutes} min` : `${hours} h`;
+}
+
 export function createDeliveryQuote(params: {
   storeLocation: GeoPoint;
   customerLocation: GeoPoint;
