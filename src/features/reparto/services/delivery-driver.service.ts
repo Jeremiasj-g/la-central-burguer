@@ -153,16 +153,15 @@ export async function showLocalDeliveryAssignmentNotification({
 }) {
   if (!supportsDeliveryPush() || Notification.permission !== 'granted') return;
 
-  const registration = await registerDeliveryServiceWorker();
-  if (!registration) return;
-
-  await registration.showNotification('🍔 Nuevo pedido asignado', {
+  await registerDeliveryServiceWorker();
+  const registration = await navigator.serviceWorker.ready;
+  registration.active?.postMessage({
+    type: 'SHOW_DELIVERY_NOTIFICATION',
+    title: '🍔 Nuevo pedido asignado',
     body: `${orderCode} · ${customerName}`,
     tag: `delivery-${assignmentId}`,
-    data: {
-      url: '/delivery',
-      assignmentId,
-    },
+    url: '/delivery',
+    assignmentId,
   });
 }
 
