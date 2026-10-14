@@ -4,10 +4,11 @@ import { Manrope } from 'next/font/google';
 export const metadata: Metadata = {
   title: 'La Central Burger Delivery',
   description: 'Panel de reparto de La Central Burger',
-  manifest: '/delivery-manifest.webmanifest',
+  manifest: '/delivery-manifest-v2.webmanifest',
   icons: {
-    icon: [{ url: '/icons/app-icon.png', type: 'image/png' }],
-    apple: [{ url: '/icons/app-icon.png', type: 'image/png' }],
+    icon: [{ url: '/icons/app-icon.png?v=20261014-2', type: 'image/png' }],
+    shortcut: [{ url: '/icons/app-icon.png?v=20261014-2', type: 'image/png' }],
+    apple: [{ url: '/icons/app-icon.png?v=20261014-2', type: 'image/png' }],
   },
 };
 
