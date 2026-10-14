@@ -10,6 +10,8 @@ type PaymentRow = Database['public']['Tables']['payment_methods']['Row'];
 
 const BUSINESS_ASSETS_BUCKET = 'business-assets';
 
+let pendingBusinessConfigRequest: Promise<BusinessConfig> | null = null;
+
 function dataUrlToBlob(dataUrl: string): Blob {
   const [header, base64] = dataUrl.split(',');
   const mime = header.match(/data:(.*?);base64/)?.[1] ?? 'image/png';
@@ -111,22 +113,32 @@ function mapConfig(row: ConfigRow, paymentMethods: PaymentMethod[]): BusinessCon
 export async function getBusinessConfig(): Promise<BusinessConfig> {
   requireSupabaseConfigured('consultar la configuración del negocio');
 
-  const supabase = getSupabaseBrowserClient();
-  const [
-    { data: config, error: configError },
-    { data: methods, error: methodsError },
-  ] = await Promise.all([
-    supabase.from('business_config').select('*').eq('id', 1).single(),
-    supabase.from('payment_methods').select('*').order('display_order'),
-  ]);
+  if (pendingBusinessConfigRequest) return pendingBusinessConfigRequest;
 
-  const error = configError ?? methodsError;
-  if (error) throw new Error(error.message);
+  pendingBusinessConfigRequest = (async () => {
+    const supabase = getSupabaseBrowserClient();
+    const [
+      { data: config, error: configError },
+      { data: methods, error: methodsError },
+    ] = await Promise.all([
+      supabase.from('business_config').select('*').eq('id', 1).single(),
+      supabase.from('payment_methods').select('*').order('display_order'),
+    ]);
 
-  return mapConfig(
-    config as ConfigRow,
-    ((methods ?? []) as PaymentRow[]).map(mapPayment),
-  );
+    const error = configError ?? methodsError;
+    if (error) throw new Error(error.message);
+
+    return mapConfig(
+      config as ConfigRow,
+      ((methods ?? []) as PaymentRow[]).map(mapPayment),
+    );
+  })();
+
+  try {
+    return await pendingBusinessConfigRequest;
+  } finally {
+    pendingBusinessConfigRequest = null;
+  }
 }
 
 export async function updateBusinessConfig(input: Partial<BusinessConfig>): Promise<BusinessConfig> {
