@@ -89,12 +89,22 @@ export async function getPedidoByCode(code: string): Promise<Order | null> {
 }
 
 export async function createPublicPedido(payload: Json): Promise<Order> {
-  requireSupabaseConfigured('confirmar el pedido');
+  const response = await fetch('/api/orders', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    cache: 'no-store',
+    body: JSON.stringify({ payload }),
+  });
 
-  const { data, error } = await getSupabaseBrowserClient().rpc('create_public_order', { payload });
-  if (error) throw new Error(error.message);
+  const result = await response.json() as { order?: Order; error?: string };
 
-  return data as unknown as Order;
+  if (!response.ok || !result.order) {
+    throw new Error(result.error || 'No se pudo confirmar el pedido.');
+  }
+
+  return result.order;
 }
 
 export async function updatePedidoStatus(id: string, status: OrderStatus): Promise<Order> {
