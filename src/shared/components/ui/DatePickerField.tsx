@@ -326,10 +326,12 @@ export function DatePickerField({
                         type="button"
                         onClick={() => chooseDate(date)}
                         className={cn(
-                          'mx-auto grid h-9 w-9 place-items-center rounded-[11px] text-xs font-semibold text-neutral-700 transition-[background-color,color,transform,opacity] duration-150 hover:bg-neutral-100 active:scale-90',
-                          outside && 'text-neutral-300/55 hover:bg-neutral-50 hover:text-neutral-400',
+                          'mx-auto grid h-9 w-9 place-items-center rounded-[11px] text-xs font-semibold transition-[background-color,color,transform,opacity] duration-150 active:scale-90',
+                          outside
+                            ? 'text-neutral-300 opacity-55 hover:bg-neutral-50 hover:text-neutral-400 hover:opacity-80'
+                            : 'text-neutral-700 hover:bg-neutral-100',
                           isToday && !outside && !isSelected && 'bg-central-orange/10 font-black text-central-orange',
-                          isSelected && 'bg-central-orange font-black text-central-carbon shadow-[0_5px_12px_rgba(216,137,24,.24)] hover:bg-central-orange',
+                          isSelected && 'bg-central-orange font-black text-central-carbon opacity-100 shadow-[0_5px_12px_rgba(216,137,24,.24)] hover:bg-central-orange',
                         )}
                         aria-label={new Intl.DateTimeFormat('es-AR', { dateStyle: 'full' }).format(date)}
                         aria-pressed={isSelected}
