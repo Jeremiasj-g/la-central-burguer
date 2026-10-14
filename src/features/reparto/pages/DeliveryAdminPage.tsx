@@ -261,12 +261,16 @@ export function DeliveryAdminPage() {
   const allDriverOptions = useMemo(() => data.drivers.map((driver) => ({ value: driver.id, label: `${driver.fullName}${driver.active ? '' : ' · inactivo'}`, disabled: !driver.active })), [data.drivers]);
 
   const businessTimeZone = config?.timezone ?? 'America/Argentina/Buenos_Aires';
+  const deliveryUnassignedOrders = useMemo(
+    () => data.unassignedOrders.filter((order) => order.deliveryMethod === 'delivery'),
+    [data.unassignedOrders],
+  );
   const todayKey = dateKey(new Date(), businessTimeZone);
   const todayUnassignedOrders = useMemo(
-    () => data.unassignedOrders.filter((order) => dateKey(order.createdAt, businessTimeZone) === todayKey),
-    [businessTimeZone, data.unassignedOrders, todayKey],
+    () => deliveryUnassignedOrders.filter((order) => dateKey(order.createdAt, businessTimeZone) === todayKey),
+    [businessTimeZone, deliveryUnassignedOrders, todayKey],
   );
-  const scopedOrders = unassignedScope === 'today' ? todayUnassignedOrders : data.unassignedOrders;
+  const scopedOrders = unassignedScope === 'today' ? todayUnassignedOrders : deliveryUnassignedOrders;
 
   const normalizedQuery = query.trim().toLocaleLowerCase('es');
   const filteredOrders = useMemo(() => {
@@ -344,7 +348,7 @@ export function DeliveryAdminPage() {
     const baseCommission = driver?.commissionPercent ?? null;
     const effectiveCommission = commissionPercent ?? baseCommission;
 
-    if (effectiveCommission === null || effectiveCommission < 0 || effectiveCommission > 100) {
+    if (!driver || effectiveCommission === null || effectiveCommission < 0 || effectiveCommission > 100) {
       return toast.warning('La comisión debe estar entre 0% y 100%.');
     }
 
@@ -352,28 +356,118 @@ export function DeliveryAdminPage() {
       ? null
       : effectiveCommission;
 
+    const snapshot = data;
+    const optimisticId = assignmentId ?? `optimistic:${orderId}`;
+
+    setData((current) => {
+      if (assignmentId) {
+        const previousAssignment = current.assignments.find((item) => item.id === assignmentId);
+        if (!previousAssignment) return current;
+
+        const driverChanged = previousAssignment.driverId !== driverId;
+        return {
+          ...current,
+          assignments: current.assignments.map((item) => item.id === assignmentId
+            ? {
+                ...item,
+                driverId,
+                driverName: driver.fullName,
+                commissionPercent: effectiveCommission,
+                commissionAmount: item.deliveryFee * effectiveCommission / 100,
+              }
+            : item),
+          drivers: driverChanged
+            ? current.drivers.map((item) => {
+                if (item.id === previousAssignment.driverId) {
+                  return { ...item, activeAssignments: Math.max(0, item.activeAssignments - 1) };
+                }
+                if (item.id === driverId) {
+                  return { ...item, activeAssignments: item.activeAssignments + 1 };
+                }
+                return item;
+              })
+            : current.drivers,
+        };
+      }
+
+      const order = current.unassignedOrders.find((item) => item.id === orderId);
+      if (!order || order.deliveryMethod !== 'delivery') return current;
+
+      const optimisticAssignment: DeliveryAssignment = {
+        id: optimisticId,
+        orderId: order.id,
+        orderCode: order.orderCode,
+        customerName: order.customerName,
+        customerPhone: order.customerPhone,
+        address: order.address,
+        mapsUrl: order.mapsUrl,
+        distanceKm: order.distanceKm,
+        routeDistanceKm: order.routeDistanceKm,
+        straightDistanceKm: order.straightDistanceKm,
+        routeDurationSeconds: order.routeDurationSeconds,
+        routeProvider: order.routeProvider,
+        travelMode: order.travelMode,
+        routeVia: order.routeVia,
+        orderTotal: order.total,
+        paymentMethod: order.paymentMethod,
+        driverId,
+        driverName: driver.fullName,
+        status: 'assigned',
+        deliveryFee: order.deliveryCost,
+        commissionPercent: effectiveCommission,
+        commissionAmount: order.deliveryCost * effectiveCommission / 100,
+        cashToCollect: order.paymentMethod === 'efectivo' ? order.total : 0,
+        assignedAt: new Date().toISOString(),
+        acceptedAt: null,
+        pickedUpAt: null,
+        inTransitAt: null,
+        deliveredAt: null,
+      };
+
+      return {
+        ...current,
+        unassignedOrders: current.unassignedOrders.filter((item) => item.id !== orderId),
+        assignments: [optimisticAssignment, ...current.assignments],
+        drivers: current.drivers.map((item) => item.id === driverId
+          ? { ...item, activeAssignments: item.activeAssignments + 1 }
+          : item),
+        summary: {
+          ...current.summary,
+          unassignedOrders: Math.max(0, current.summary.unassignedOrders - 1),
+          activeAssignments: current.summary.activeAssignments + 1,
+        },
+      };
+    });
+
     setBusyId(assignmentId ?? orderId);
+
     try {
-      const result = await assignDelivery(
+      const savedAssignmentId = await assignDelivery(
         orderId,
         driverId,
         override,
         assignmentId ? 'Reasignación desde panel de delivery' : undefined,
       );
 
-      if (result.pushSent > 0) {
-        toast.success(assignmentId ? 'Pedido reasignado y repartidor notificado.' : 'Pedido asignado y repartidor notificado.');
-      } else if (result.pushSubscriptionCount === 0 && result.pushFailed === 0) {
-        toast.info(assignmentId
-          ? 'Pedido reasignado. El repartidor todavía no tiene notificaciones activadas.'
-          : 'Pedido asignado. El repartidor todavía no tiene notificaciones activadas.');
-      } else {
-        toast.warning(`${assignmentId ? 'Pedido reasignado' : 'Pedido asignado'}, pero el aviso push falló${result.pushError ? `: ${result.pushError}` : '.'}`);
-      }
+      if (!savedAssignmentId) throw new Error('La base de datos no confirmó la asignación.');
 
-      await load(true);
+      toast.success(assignmentId ? 'Pedido reasignado.' : 'Pedido asignado.');
+      setDriverByOrder((current) => {
+        const next = { ...current };
+        delete next[orderId];
+        return next;
+      });
+      setCommissionByOrder((current) => {
+        const next = { ...current };
+        delete next[orderId];
+        return next;
+      });
+
+      void load(true);
     } catch (error) {
+      setData(snapshot);
       toast.error(error instanceof Error ? error.message : 'No se pudo asignar el pedido.');
+      void load(true);
     } finally {
       setBusyId(null);
     }
