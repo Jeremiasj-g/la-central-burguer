@@ -1,3 +1,4 @@
+import Skeleton from 'react-loading-skeleton';
 import { ShoppingBag } from 'lucide-react';
 import { cn } from '@/shared/utils/cn';
 
@@ -6,6 +7,7 @@ interface BusinessLogoProps {
   businessName?: string;
   mode?: 'stamp' | 'navbar' | 'admin';
   className?: string;
+  loading?: boolean;
 }
 
 function splitBusinessName(name?: string) {
@@ -23,8 +25,39 @@ export function BusinessLogo({
   businessName,
   mode = 'stamp',
   className,
+  loading = false,
 }: BusinessLogoProps) {
   const name = splitBusinessName(businessName);
+
+  if (loading) {
+    if (mode === 'navbar') {
+      return (
+        <>
+          <span className="skeleton-dark grid h-11 w-11 shrink-0 place-items-center overflow-hidden rounded-sm sm:h-12 sm:w-12">
+            <Skeleton width="100%" height="100%" borderRadius={2} />
+          </span>
+          <span className="skeleton-dark min-w-0">
+            <span className="block"><Skeleton width={138} height={15} /></span>
+            <span className="mt-1 block"><Skeleton width={82} height={9} /></span>
+          </span>
+        </>
+      );
+    }
+
+    if (mode === 'admin') {
+      return (
+        <span className="skeleton-dark block h-full w-full overflow-hidden rounded-sm">
+          <Skeleton width="100%" height="100%" borderRadius={2} />
+        </span>
+      );
+    }
+
+    return (
+      <span className="skeleton-dark block h-full w-full overflow-hidden rounded-full">
+        <Skeleton width="100%" height="100%" borderRadius="50%" />
+      </span>
+    );
+  }
 
   if (logoUrl?.trim() && mode === 'navbar') {
     return (
