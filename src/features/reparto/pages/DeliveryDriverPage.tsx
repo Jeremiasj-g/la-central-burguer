@@ -33,6 +33,7 @@ import {
   isDeliveryDriverLoggedIn,
   logoutDeliveryDriver,
   rejectDeliveryAssignment,
+  showLocalDeliveryAssignmentNotification,
   subscribeToDriverDeliveries,
 } from '../services/delivery-driver.service';
 import type {
@@ -418,32 +419,77 @@ export function DeliveryDriverPage() {
   const [deliveryDetail, setDeliveryDetail] = useState<DeliveryDriverDeliveryDetail | null>(null);
   const [detailLoading, setDetailLoading] = useState(false);
   const knownAssignmentIds = useRef<Set<string>>(new Set());
+  const assignmentsInitialized = useRef(false);
+  const quietSyncInFlight = useRef(false);
 
-  const load = useCallback(async (background = false, fromRealtime = false) => {
-    background ? setRefreshing(true) : setLoading(true);
+  const load = useCallback(async (
+    background = false,
+    detectNewAssignments = false,
+    quiet = false,
+  ) => {
+    if (quiet && quietSyncInFlight.current) return;
+    if (quiet) quietSyncInFlight.current = true;
+
+    if (background && !quiet) setRefreshing(true);
+    if (!background) setLoading(true);
+
     try {
       const next = await getDeliveryDriverDashboard();
       const nextIds = new Set(next.activeAssignments.map((item) => item.id));
-      const newAssignments = next.activeAssignments.filter((item) => !knownAssignmentIds.current.has(item.id));
+      const newAssignments = assignmentsInitialized.current
+        ? next.activeAssignments.filter((item) => !knownAssignmentIds.current.has(item.id))
+        : [];
 
-      if (fromRealtime && knownAssignmentIds.current.size > 0 && newAssignments.length > 0) {
+      if (detectNewAssignments && newAssignments.length > 0) {
         toast.success(`Nuevo pedido asignado: ${newAssignments[0].orderCode}`);
+
+        void Promise.allSettled(
+          newAssignments.map((item) =>
+            showLocalDeliveryAssignmentNotification({
+              assignmentId: item.id,
+              orderCode: item.orderCode,
+              customerName: item.customerName,
+            }),
+          ),
+        );
       }
 
       knownAssignmentIds.current = nextIds;
+      assignmentsInitialized.current = true;
       setData(next);
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'No se pudo cargar el panel.');
+      if (!quiet) {
+        toast.error(error instanceof Error ? error.message : 'No se pudo cargar el panel.');
+      }
     } finally {
+      if (quiet) quietSyncInFlight.current = false;
       setLoading(false);
-      setRefreshing(false);
+      if (!quiet) setRefreshing(false);
     }
   }, []);
 
   useEffect(() => {
     let active = true;
     let refreshTimer: ReturnType<typeof setTimeout> | null = null;
+    let pollTimer: ReturnType<typeof setInterval> | null = null;
     let unsubscribe = () => undefined;
+
+    const scheduleRealtimeRefresh = () => {
+      if (refreshTimer) clearTimeout(refreshTimer);
+      refreshTimer = setTimeout(() => void load(true, true, true), 180);
+    };
+
+    const syncOnResume = () => {
+      if (document.visibilityState === 'visible') {
+        void load(true, true, true);
+      }
+    };
+
+    const syncFromServiceWorker = (event: MessageEvent) => {
+      if (event.data?.type === 'DELIVERY_PUSH_RECEIVED') {
+        void load(true, true, true);
+      }
+    };
 
     async function initialize() {
       try {
@@ -457,10 +503,15 @@ export function DeliveryDriverPage() {
         await load();
         if (!active) return;
 
-        unsubscribe = subscribeToDriverDeliveries(() => {
-          if (refreshTimer) clearTimeout(refreshTimer);
-          refreshTimer = setTimeout(() => void load(true, true), 180);
-        });
+        unsubscribe = subscribeToDriverDeliveries(scheduleRealtimeRefresh);
+
+        pollTimer = setInterval(() => {
+          void load(true, true, true);
+        }, 5000);
+
+        window.addEventListener('focus', syncOnResume);
+        document.addEventListener('visibilitychange', syncOnResume);
+        navigator.serviceWorker?.addEventListener('message', syncFromServiceWorker);
       } catch {
         if (active) router.replace(ROUTES.deliveryLogin);
       }
@@ -471,6 +522,10 @@ export function DeliveryDriverPage() {
     return () => {
       active = false;
       if (refreshTimer) clearTimeout(refreshTimer);
+      if (pollTimer) clearInterval(pollTimer);
+      window.removeEventListener('focus', syncOnResume);
+      document.removeEventListener('visibilitychange', syncOnResume);
+      navigator.serviceWorker?.removeEventListener('message', syncFromServiceWorker);
       unsubscribe();
     };
   }, [load, router]);
