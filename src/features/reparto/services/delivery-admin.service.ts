@@ -249,10 +249,24 @@ export async function assignDelivery(
     commission_percent_override: commissionPercentOverride,
   });
 
-  if (!assignmentId) return;
+  if (!assignmentId) {
+    return {
+      assignmentId: null,
+      pushSent: 0,
+      pushFailed: 0,
+      pushSubscriptionCount: 0,
+      pushError: null as string | null,
+    };
+  }
 
   try {
-    const { error } = await client().functions.invoke('delivery-push', {
+    const { data, error } = await client().functions.invoke<{
+      sent?: number;
+      failed?: number;
+      subscriptionCount?: number;
+      firstError?: string | null;
+      error?: string;
+    }>('delivery-push', {
       body: {
         action: 'notifyAssignment',
         assignmentId,
@@ -260,10 +274,30 @@ export async function assignDelivery(
     });
 
     if (error) {
-      console.warn('El pedido se asignó, pero no se pudo enviar la notificación push:', error.message);
+      return {
+        assignmentId,
+        pushSent: 0,
+        pushFailed: 1,
+        pushSubscriptionCount: 0,
+        pushError: error.message,
+      };
     }
+
+    return {
+      assignmentId,
+      pushSent: data?.sent ?? 0,
+      pushFailed: data?.failed ?? 0,
+      pushSubscriptionCount: data?.subscriptionCount ?? 0,
+      pushError: data?.firstError ?? data?.error ?? null,
+    };
   } catch (error) {
-    console.warn('El pedido se asignó, pero no se pudo enviar la notificación push:', error);
+    return {
+      assignmentId,
+      pushSent: 0,
+      pushFailed: 1,
+      pushSubscriptionCount: 0,
+      pushError: error instanceof Error ? error.message : 'Error desconocido de Web Push.',
+    };
   }
 }
 
