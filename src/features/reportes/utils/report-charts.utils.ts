@@ -191,8 +191,9 @@ export function buildReportChartData(
   );
   const deliveryTotal = deliveryCounts.reduce((total, item) => total + item.value, 0);
   const deliveryMethods = deliveryCounts.map((item) => ({
-    ...item,
+    name: item.name,
     value: deliveryTotal ? Math.round((item.value / deliveryTotal) * 1000) / 10 : 0,
+    orders: item.value,
   }));
 
   const paymentMethods = aggregateOrders(
