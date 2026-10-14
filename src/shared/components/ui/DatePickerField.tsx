@@ -100,6 +100,8 @@ export function DatePickerField({
   const [calendarView, setCalendarView] = useState<'days' | 'months'>('days');
   const [position, setPosition] = useState({ top: 0, left: 0, width: 336 });
   const [positionReady, setPositionReady] = useState(false);
+  const [monthTransitionDirection, setMonthTransitionDirection] = useState<'previous' | 'next' | null>(null);
+  const [monthTransitionKey, setMonthTransitionKey] = useState(0);
 
   const selected = useMemo(() => parseIsoDate(value), [value]);
   const [visibleMonth, setVisibleMonth] = useState<Date>(selected ?? new Date());
@@ -195,6 +197,8 @@ export function DatePickerField({
   }
 
   function changeMonth(offset: number) {
+    setMonthTransitionDirection(offset > 0 ? 'next' : 'previous');
+    setMonthTransitionKey((current) => current + 1);
     setVisibleMonth((current) => new Date(current.getFullYear(), current.getMonth() + offset, 1));
   }
 
@@ -203,6 +207,8 @@ export function DatePickerField({
   }
 
   function chooseMonth(monthIndex: number) {
+    setMonthTransitionDirection(monthIndex >= visibleMonth.getMonth() ? 'next' : 'previous');
+    setMonthTransitionKey((current) => current + 1);
     setVisibleMonth((current) => new Date(current.getFullYear(), monthIndex, 1));
     setCalendarView('days');
   }
@@ -293,30 +299,39 @@ export function DatePickerField({
                 ))}
               </div>
 
-              <div className="grid grid-cols-7 gap-y-0.5">
-                {calendarDays.map((date) => {
-                  const outside = date.getMonth() !== visibleMonthIndex;
-                  const isSelected = sameDay(selected, date);
-                  const isToday = sameDay(today, date);
+              <div className="overflow-hidden">
+                <div
+                  key={`${visibleYear}-${visibleMonthIndex}-${monthTransitionKey}`}
+                  className={cn(
+                    'grid grid-cols-7 gap-y-0.5',
+                    monthTransitionDirection === 'next' && 'lcb-calendar-month-next',
+                    monthTransitionDirection === 'previous' && 'lcb-calendar-month-previous',
+                  )}
+                >
+                  {calendarDays.map((date) => {
+                    const outside = date.getMonth() !== visibleMonthIndex;
+                    const isSelected = sameDay(selected, date);
+                    const isToday = sameDay(today, date);
 
-                  return (
-                    <button
-                      key={formatIsoDate(date)}
-                      type="button"
-                      onClick={() => chooseDate(date)}
-                      className={cn(
-                        'mx-auto grid h-9 w-9 place-items-center rounded-[11px] text-xs font-semibold text-neutral-700 transition hover:bg-neutral-100 active:scale-90',
-                        outside && 'text-neutral-300',
-                        isToday && !isSelected && 'bg-central-orange/10 font-black text-central-orange',
-                        isSelected && 'bg-central-orange font-black text-central-carbon shadow-[0_5px_12px_rgba(216,137,24,.24)] hover:bg-central-orange',
-                      )}
-                      aria-label={new Intl.DateTimeFormat('es-AR', { dateStyle: 'full' }).format(date)}
-                      aria-pressed={isSelected}
-                    >
-                      {date.getDate()}
-                    </button>
-                  );
-                })}
+                    return (
+                      <button
+                        key={formatIsoDate(date)}
+                        type="button"
+                        onClick={() => chooseDate(date)}
+                        className={cn(
+                          'mx-auto grid h-9 w-9 place-items-center rounded-[11px] text-xs font-semibold text-neutral-700 transition-[background-color,color,transform,opacity] duration-150 hover:bg-neutral-100 active:scale-90',
+                          outside && 'text-neutral-300/55 hover:bg-neutral-50 hover:text-neutral-400',
+                          isToday && !outside && !isSelected && 'bg-central-orange/10 font-black text-central-orange',
+                          isSelected && 'bg-central-orange font-black text-central-carbon shadow-[0_5px_12px_rgba(216,137,24,.24)] hover:bg-central-orange',
+                        )}
+                        aria-label={new Intl.DateTimeFormat('es-AR', { dateStyle: 'full' }).format(date)}
+                        aria-pressed={isSelected}
+                      >
+                        {date.getDate()}
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
             </div>
           )}
