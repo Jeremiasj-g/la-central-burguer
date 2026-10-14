@@ -30,6 +30,13 @@ export interface Order {
   customerLat?: number;
   customerLng?: number;
   deliveryDistanceKm?: number;
+  deliveryRouteDistanceKm?: number;
+  deliveryStraightDistanceKm?: number;
+  deliveryRouteDurationSeconds?: number;
+  deliveryRouteProvider?: string;
+  deliveryTravelMode?: string;
+  deliveryRouteVia?: string;
+  deliveryRouteQuotedAt?: string;
   deliveryMapsUrl?: string;
   paymentMethod: PaymentMethodType;
   items: OrderItem[];
