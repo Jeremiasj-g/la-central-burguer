@@ -4,6 +4,7 @@ import { ChevronDown, ChevronLeft, ChevronRight, CalendarDays } from 'lucide-rea
 import { createPortal } from 'react-dom';
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { cn } from '@/shared/utils/cn';
+import { BurgerMark } from './BurgerMark';
 
 const MONTHS = [
   'enero',
@@ -330,13 +331,14 @@ export function DatePickerField({
                           outside
                             ? 'text-neutral-400 opacity-70 hover:bg-neutral-50 hover:text-neutral-500 hover:opacity-90'
                             : 'text-neutral-700 hover:bg-neutral-100',
-                          isToday && !outside && !isSelected && 'bg-central-orange/10 font-black text-central-orange',
-                          isSelected && 'bg-central-orange font-black text-central-carbon opacity-100 shadow-[0_5px_12px_rgba(216,137,24,.24)] hover:bg-central-orange',
+                          isToday && !isSelected && 'bg-central-orange/10 opacity-100 ring-1 ring-central-orange/20',
+                          isSelected && !isToday && 'bg-central-orange font-black text-central-carbon opacity-100 shadow-[0_5px_12px_rgba(216,137,24,.24)] hover:bg-central-orange',
+                          isSelected && isToday && 'bg-central-orange/12 opacity-100 ring-1 ring-central-orange/35 shadow-[0_5px_12px_rgba(216,137,24,.14)]',
                         )}
                         aria-label={new Intl.DateTimeFormat('es-AR', { dateStyle: 'full' }).format(date)}
                         aria-pressed={isSelected}
                       >
-                        {date.getDate()}
+                        {isToday ? <BurgerMark className="h-8 w-8" /> : date.getDate()}
                       </button>
                     );
                   })}
