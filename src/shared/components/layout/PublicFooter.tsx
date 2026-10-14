@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Skeleton from 'react-loading-skeleton';
 import { MapPin } from 'lucide-react';
 import { useBusinessConfig } from '@/features/configuracion/hooks/useBusinessConfig';
 import { BusinessLogo } from '@/features/configuracion/components/BusinessLogo';
@@ -14,7 +15,7 @@ function normalizeExternalUrl(value: string | undefined, fallback: string) {
 }
 
 export function PublicFooter() {
-  const { config } = useBusinessConfig();
+  const { config, isLoading } = useBusinessConfig();
   const businessName = config?.businessName?.trim() || 'La Central Burger';
   const whatsapp = (config?.whatsappNumber || '543794752707').replace(/\D/g, '');
   const address = config?.address?.trim() || 'Madariaga 246';
@@ -29,93 +30,114 @@ export function PublicFooter() {
 
       <div className="mx-auto max-w-7xl text-center">
         <div className="brand-stamp mx-auto mb-8 h-28 w-28 overflow-hidden">
-          <BusinessLogo logoUrl={config?.logoUrl} businessName={businessName} mode="stamp" />
+          <BusinessLogo logoUrl={config?.logoUrl} businessName={businessName} mode="stamp" loading={isLoading} />
         </div>
 
-        <h2 className="menu-title-shadow font-display text-5xl uppercase tracking-wide text-central-orange sm:text-6xl">{businessName}</h2>
+        {isLoading ? (
+          <div className="skeleton-dark mx-auto max-w-sm"><Skeleton height={48} borderRadius={2} /></div>
+        ) : (
+          <h2 className="menu-title-shadow font-display text-5xl uppercase tracking-wide text-central-orange sm:text-6xl">{businessName}</h2>
+        )}
         <div className="brush-line mx-auto mt-5" />
 
-        <div className="mt-8 flex justify-center gap-4">
-          <Link
-            className={`${socialButtonBase} hover:drop-shadow-[0_0_14px_rgba(24,119,242,.75)] focus-visible:ring-[#1877F2]`}
-            href={facebookUrl}
-            target={facebookUrl === '#' ? undefined : '_blank'}
-            rel={facebookUrl === '#' ? undefined : 'noreferrer'}
-            aria-label="Facebook"
-            title="Facebook"
-          >
-            <span
-              aria-hidden="true"
-              className="h-full w-full"
-              style={{
-                backgroundColor: '#1877F2',
-                WebkitMaskImage: 'url("/social/facebook.svg")',
-                maskImage: 'url("/social/facebook.svg")',
-                WebkitMaskRepeat: 'no-repeat',
-                maskRepeat: 'no-repeat',
-                WebkitMaskPosition: 'center',
-                maskPosition: 'center',
-                WebkitMaskSize: 'contain',
-                maskSize: 'contain',
-              }}
-            />
-          </Link>
+        {isLoading ? (
+          <div className="skeleton-dark mt-8 flex justify-center gap-4">
+            <Skeleton width={48} height={48} borderRadius={2} />
+            <Skeleton width={48} height={48} borderRadius={2} />
+            <Skeleton width={48} height={48} borderRadius={2} />
+          </div>
+        ) : (
+          <div className="mt-8 flex justify-center gap-4">
+            <Link
+              className={`${socialButtonBase} hover:drop-shadow-[0_0_14px_rgba(24,119,242,.75)] focus-visible:ring-[#1877F2]`}
+              href={facebookUrl}
+              target={facebookUrl === '#' ? undefined : '_blank'}
+              rel={facebookUrl === '#' ? undefined : 'noreferrer'}
+              aria-label="Facebook"
+              title="Facebook"
+            >
+              <span
+                aria-hidden="true"
+                className="h-full w-full"
+                style={{
+                  backgroundColor: '#1877F2',
+                  WebkitMaskImage: 'url("/social/facebook.svg")',
+                  maskImage: 'url("/social/facebook.svg")',
+                  WebkitMaskRepeat: 'no-repeat',
+                  maskRepeat: 'no-repeat',
+                  WebkitMaskPosition: 'center',
+                  maskPosition: 'center',
+                  WebkitMaskSize: 'contain',
+                  maskSize: 'contain',
+                }}
+              />
+            </Link>
+  
+            <Link
+              className={`${socialButtonBase} hover:drop-shadow-[0_0_14px_rgba(225,48,108,.75)] focus-visible:ring-[#E1306C]`}
+              href={instagramUrl}
+              target={instagramUrl === '#' ? undefined : '_blank'}
+              rel={instagramUrl === '#' ? undefined : 'noreferrer'}
+              aria-label="Instagram"
+              title="Instagram"
+            >
+              <span
+                aria-hidden="true"
+                className="h-full w-full"
+                style={{
+                  backgroundColor: '#E1306C',
+                  WebkitMaskImage: 'url("/social/instagram.svg")',
+                  maskImage: 'url("/social/instagram.svg")',
+                  WebkitMaskRepeat: 'no-repeat',
+                  maskRepeat: 'no-repeat',
+                  WebkitMaskPosition: 'center',
+                  maskPosition: 'center',
+                  WebkitMaskSize: 'contain',
+                  maskSize: 'contain',
+                }}
+              />
+            </Link>
+  
+            <Link
+              className={`${socialButtonBase} hover:drop-shadow-[0_0_14px_rgba(37,211,102,.75)] focus-visible:ring-[#25D366]`}
+              href={whatsappUrl}
+              target="_blank"
+              rel="noreferrer"
+              aria-label="WhatsApp"
+              title="WhatsApp"
+            >
+              <span
+                aria-hidden="true"
+                className="h-full w-full"
+                style={{
+                  backgroundColor: '#25D366',
+                  WebkitMaskImage: 'url("/social/whatsapp.svg")',
+                  maskImage: 'url("/social/whatsapp.svg")',
+                  WebkitMaskRepeat: 'no-repeat',
+                  maskRepeat: 'no-repeat',
+                  WebkitMaskPosition: 'center',
+                  maskPosition: 'center',
+                  WebkitMaskSize: 'contain',
+                  maskSize: 'contain',
+                }}
+              />
+            </Link>
+          </div>
+        )}
 
-          <Link
-            className={`${socialButtonBase} hover:drop-shadow-[0_0_14px_rgba(225,48,108,.75)] focus-visible:ring-[#E1306C]`}
-            href={instagramUrl}
-            target={instagramUrl === '#' ? undefined : '_blank'}
-            rel={instagramUrl === '#' ? undefined : 'noreferrer'}
-            aria-label="Instagram"
-            title="Instagram"
-          >
-            <span
-              aria-hidden="true"
-              className="h-full w-full"
-              style={{
-                backgroundColor: '#E1306C',
-                WebkitMaskImage: 'url("/social/instagram.svg")',
-                maskImage: 'url("/social/instagram.svg")',
-                WebkitMaskRepeat: 'no-repeat',
-                maskRepeat: 'no-repeat',
-                WebkitMaskPosition: 'center',
-                maskPosition: 'center',
-                WebkitMaskSize: 'contain',
-                maskSize: 'contain',
-              }}
-            />
-          </Link>
-
-          <Link
-            className={`${socialButtonBase} hover:drop-shadow-[0_0_14px_rgba(37,211,102,.75)] focus-visible:ring-[#25D366]`}
-            href={whatsappUrl}
-            target="_blank"
-            rel="noreferrer"
-            aria-label="WhatsApp"
-            title="WhatsApp"
-          >
-            <span
-              aria-hidden="true"
-              className="h-full w-full"
-              style={{
-                backgroundColor: '#25D366',
-                WebkitMaskImage: 'url("/social/whatsapp.svg")',
-                maskImage: 'url("/social/whatsapp.svg")',
-                WebkitMaskRepeat: 'no-repeat',
-                maskRepeat: 'no-repeat',
-                WebkitMaskPosition: 'center',
-                maskPosition: 'center',
-                WebkitMaskSize: 'contain',
-                maskSize: 'contain',
-              }}
-            />
-          </Link>
-        </div>
-
-        <p className="mt-8 flex items-center justify-center gap-2 text-sm font-bold text-central-cream/65">
-          <MapPin size={16} /> {address} · Corrientes, Argentina
-        </p>
-        <p className="mt-2 text-sm text-central-cream/45">Copyright © 2026 {businessName}. Todos los derechos reservados.</p>
+        {isLoading ? (
+          <div className="skeleton-dark mx-auto mt-8 max-w-xs">
+            <Skeleton height={16} />
+            <Skeleton className="mt-2" width="82%" height={14} />
+          </div>
+        ) : (
+          <>
+            <p className="mt-8 flex items-center justify-center gap-2 text-sm font-bold text-central-cream/65">
+              <MapPin size={16} /> {address} · Corrientes, Argentina
+            </p>
+            <p className="mt-2 text-sm text-central-cream/45">Copyright © 2026 {businessName}. Todos los derechos reservados.</p>
+          </>
+        )}
         <p className="mt-2 text-sm text-central-cream/45">Desarrollado por <span className="font-bold text-central-orange">@Devcor</span></p>
       </div>
     </footer>
