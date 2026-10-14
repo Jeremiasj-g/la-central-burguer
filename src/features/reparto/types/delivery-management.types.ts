@@ -25,6 +25,7 @@ export interface DeliveryDriver {
 
 export interface DeliveryOrder {
   id: string;
+  deliveryMethod: 'delivery' | 'retiro_local';
   orderCode: string;
   customerName: string;
   customerPhone: string;
