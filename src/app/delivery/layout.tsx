@@ -1,4 +1,11 @@
+import type { Metadata } from 'next';
 import { Manrope } from 'next/font/google';
+
+export const metadata: Metadata = {
+  title: 'La Central Burger Delivery',
+  description: 'Panel de reparto de La Central Burger',
+  manifest: '/delivery-manifest.webmanifest',
+};
 
 const manrope = Manrope({
   subsets: ['latin'],
