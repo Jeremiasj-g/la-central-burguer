@@ -80,7 +80,7 @@ export async function getDeliveryHistoryPage({
 
   const { data: orders, error: ordersError } = await supabase
     .from('orders')
-    .select('id,order_code,status,created_at,customer_name,customer_phone,address,delivery_maps_url,delivery_distance_km,subtotal,total,delivery_cost,payment_method')
+    .select('id,order_code,status,created_at,customer_name,customer_phone,address,delivery_maps_url,delivery_distance_km,delivery_route_distance_km,delivery_straight_distance_km,delivery_route_duration_seconds,delivery_route_provider,delivery_travel_mode,delivery_route_via,subtotal,total,delivery_cost,payment_method')
     .in('id', orderIds);
 
   if (ordersError) throw new Error(ordersError.message);
@@ -194,6 +194,16 @@ export async function getDeliveryHistoryPage({
         distanceKm: order?.delivery_distance_km === null || order?.delivery_distance_km === undefined
           ? null
           : Number(order.delivery_distance_km),
+        routeDistanceKm: order?.delivery_route_distance_km === null || order?.delivery_route_distance_km === undefined
+          ? null
+          : Number(order.delivery_route_distance_km),
+        straightDistanceKm: order?.delivery_straight_distance_km === null || order?.delivery_straight_distance_km === undefined
+          ? null
+          : Number(order.delivery_straight_distance_km),
+        routeDurationSeconds: order?.delivery_route_duration_seconds ?? null,
+        routeProvider: order?.delivery_route_provider ?? null,
+        travelMode: order?.delivery_travel_mode ?? null,
+        routeVia: order?.delivery_route_via ?? null,
         subtotal: Number(order?.subtotal ?? 0),
         orderTotal: Number(order?.total ?? 0),
         deliveryFee,
