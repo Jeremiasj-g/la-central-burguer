@@ -5,6 +5,10 @@ export const metadata: Metadata = {
   title: 'La Central Burger Delivery',
   description: 'Panel de reparto de La Central Burger',
   manifest: '/delivery-manifest.webmanifest',
+  icons: {
+    icon: [{ url: '/icons/app-icon.png', type: 'image/png' }],
+    apple: [{ url: '/icons/app-icon.png', type: 'image/png' }],
+  },
 };
 
 const manrope = Manrope({
