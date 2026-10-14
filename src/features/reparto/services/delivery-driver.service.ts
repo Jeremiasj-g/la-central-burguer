@@ -159,7 +159,6 @@ export async function showLocalDeliveryAssignmentNotification({
   await registration.showNotification('🍔 Nuevo pedido asignado', {
     body: `${orderCode} · ${customerName}`,
     tag: `delivery-${assignmentId}`,
-    renotify: true,
     data: {
       url: '/delivery',
       assignmentId,
