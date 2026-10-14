@@ -33,11 +33,15 @@ export async function getDeliveryAdminDashboard(): Promise<DeliveryAdminDashboar
     active: driver.active && activeUserIds.has(driver.id),
   }));
 
+  const unassignedOrders = delivery.unassignedOrders.filter((order) => order.deliveryMethod === 'delivery');
+
   return {
     ...delivery,
     drivers,
+    unassignedOrders,
     summary: {
       ...delivery.summary,
+      unassignedOrders: unassignedOrders.length,
       activeDrivers: drivers.filter((driver) => driver.active).length,
     },
   };
@@ -249,56 +253,22 @@ export async function assignDelivery(
     commission_percent_override: commissionPercentOverride,
   });
 
-  if (!assignmentId) {
-    return {
-      assignmentId: null,
-      pushSent: 0,
-      pushFailed: 0,
-      pushSubscriptionCount: 0,
-      pushError: null as string | null,
-    };
-  }
+  if (!assignmentId) return null;
 
-  try {
-    const { data, error } = await client().functions.invoke<{
-      sent?: number;
-      failed?: number;
-      subscriptionCount?: number;
-      firstError?: string | null;
-      error?: string;
-    }>('delivery-push', {
-      body: {
-        action: 'notifyAssignment',
-        assignmentId,
-      },
-    });
-
+  void client().functions.invoke('delivery-push', {
+    body: {
+      action: 'notifyAssignment',
+      assignmentId,
+    },
+  }).then(({ error }) => {
     if (error) {
-      return {
-        assignmentId,
-        pushSent: 0,
-        pushFailed: 1,
-        pushSubscriptionCount: 0,
-        pushError: error.message,
-      };
+      console.warn('El pedido se asignó, pero no se pudo enviar la notificación push:', error.message);
     }
+  }).catch((error) => {
+    console.warn('El pedido se asignó, pero no se pudo enviar la notificación push:', error);
+  });
 
-    return {
-      assignmentId,
-      pushSent: data?.sent ?? 0,
-      pushFailed: data?.failed ?? 0,
-      pushSubscriptionCount: data?.subscriptionCount ?? 0,
-      pushError: data?.firstError ?? data?.error ?? null,
-    };
-  } catch (error) {
-    return {
-      assignmentId,
-      pushSent: 0,
-      pushFailed: 1,
-      pushSubscriptionCount: 0,
-      pushError: error instanceof Error ? error.message : 'Error desconocido de Web Push.',
-    };
-  }
+  return assignmentId;
 }
 
 export async function cancelDeliveryAssignment(assignmentId: string, reason?: string) {
