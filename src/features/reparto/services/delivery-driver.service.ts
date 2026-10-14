@@ -142,6 +142,31 @@ export async function testDeliveryPushNotification(): Promise<DeliveryPushTestRe
   };
 }
 
+export async function showLocalDeliveryAssignmentNotification({
+  assignmentId,
+  orderCode,
+  customerName,
+}: {
+  assignmentId: string;
+  orderCode: string;
+  customerName: string;
+}) {
+  if (!supportsDeliveryPush() || Notification.permission !== 'granted') return;
+
+  const registration = await registerDeliveryServiceWorker();
+  if (!registration) return;
+
+  await registration.showNotification('🍔 Nuevo pedido asignado', {
+    body: `${orderCode} · ${customerName}`,
+    tag: `delivery-${assignmentId}`,
+    renotify: true,
+    data: {
+      url: '/delivery',
+      assignmentId,
+    },
+  });
+}
+
 function client() {
   requireSupabaseConfigured('usar el panel de repartidor');
   return getSupabaseBrowserClient();
