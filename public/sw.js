@@ -25,6 +25,9 @@ self.addEventListener('push', (event) => {
     badge: '/icons/burger-delivery.svg',
     tag: data.tag || 'central-delivery',
     renotify: true,
+    silent: false,
+    vibrate: [180, 80, 180],
+    timestamp: Date.now(),
     data: {
       url: data.url || '/delivery',
       assignmentId: data.assignmentId || null,
