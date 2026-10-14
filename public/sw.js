@@ -1,3 +1,27 @@
+const DELIVERY_ICON = '/icons/app-icon.png?v=20261014-2';
+
+function deliveryNotificationOptions(data = {}) {
+  return {
+    body: data.body || 'Tenés una nueva actualización.',
+    icon: DELIVERY_ICON,
+    badge: DELIVERY_ICON,
+    tag: data.tag || 'central-delivery',
+    renotify: true,
+    silent: false,
+    vibrate: [220, 90, 220],
+    timestamp: Date.now(),
+    data: {
+      url: data.url || '/delivery',
+      assignmentId: data.assignmentId || null,
+    },
+  };
+}
+
+async function showDeliveryNotification(data = {}) {
+  const title = data.title || 'La Central Burger';
+  await self.registration.showNotification(title, deliveryNotificationOptions(data));
+}
+
 self.addEventListener('install', () => {
   self.skipWaiting();
 });
@@ -18,20 +42,9 @@ self.addEventListener('push', (event) => {
     data = { body: event.data ? event.data.text() : '' };
   }
 
-  const title = data.title || 'La Central Burger';
-  const options = {
-    body: data.body || 'Tenés una nueva actualización.',
-    tag: data.tag || 'central-delivery',
-    renotify: true,
-    data: {
-      url: data.url || '/delivery',
-      assignmentId: data.assignmentId || null,
-    },
-  };
-
   event.waitUntil(
     Promise.all([
-      self.registration.showNotification(title, options),
+      showDeliveryNotification(data),
       self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clients) => {
         clients.forEach((client) => {
           client.postMessage({
@@ -41,6 +54,20 @@ self.addEventListener('push', (event) => {
         });
       }),
     ]),
+  );
+});
+
+self.addEventListener('message', (event) => {
+  if (event.data?.type !== 'SHOW_DELIVERY_NOTIFICATION') return;
+
+  event.waitUntil(
+    showDeliveryNotification({
+      title: event.data.title,
+      body: event.data.body,
+      tag: event.data.tag,
+      url: event.data.url,
+      assignmentId: event.data.assignmentId,
+    }),
   );
 });
 
