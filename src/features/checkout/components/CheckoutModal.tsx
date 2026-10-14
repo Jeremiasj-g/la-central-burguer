@@ -8,7 +8,7 @@ import type { CheckoutFormValues } from '../types/checkout.types';
 import { useCheckout } from '../hooks/useCheckout';
 import { getDeliveryQuote } from '@/features/delivery/services/delivery.service';
 import type { DeliveryQuote } from '@/features/delivery/types/delivery.types';
-import { formatDistanceKm } from '@/features/delivery/utils/delivery.utils';
+import { formatDistanceKm, formatRouteDuration } from '@/features/delivery/utils/delivery.utils';
 import { useCurrentLocation } from '@/features/delivery/hooks/useCurrentLocation';
 import { Button } from '@/shared/components/ui/Button';
 import { ConfirmDialog } from '@/shared/components/ui/ConfirmDialog';
@@ -40,6 +40,31 @@ function hasFiniteNonNegativeValue(value: unknown): value is number {
   return typeof value === 'number' && Number.isFinite(value) && value >= 0;
 }
 
+function clearDeliveryQuoteValues(current: CheckoutFormValues): CheckoutFormValues {
+  return {
+    ...current,
+    address: '',
+    customerLocation: null,
+    deliveryDistanceKm: undefined,
+    deliveryStraightDistanceKm: undefined,
+    deliveryRouteDurationSeconds: undefined,
+    deliveryRouteDurationText: undefined,
+    deliveryRouteVia: undefined,
+    deliveryRouteProvider: undefined,
+    deliveryTravelMode: undefined,
+    deliveryCost: undefined,
+    deliveryMapsUrl: undefined,
+    deliveryQuoteToken: undefined,
+    deliveryQuoteExpiresAt: undefined,
+  };
+}
+
+function isFreshQuote(expiresAt: string | undefined) {
+  if (!expiresAt) return false;
+  const expiresAtMs = new Date(expiresAt).getTime();
+  return Number.isFinite(expiresAtMs) && expiresAtMs > Date.now();
+}
+
 export function CheckoutModal({ open, onClose, items, onOrderCreated }: CheckoutModalProps) {
   const [confirmSendOpen, setConfirmSendOpen] = useState(false);
   const [deliveryQuote, setDeliveryQuote] = useState<DeliveryQuote | null>(null);
@@ -57,6 +82,8 @@ export function CheckoutModal({ open, onClose, items, onOrderCreated }: Checkout
   const hasValidDeliveryQuote = !isDelivery || Boolean(
     values.customerLocation
       && values.deliveryMapsUrl
+      && values.deliveryQuoteToken
+      && isFreshQuote(values.deliveryQuoteExpiresAt)
       && hasFiniteNonNegativeValue(values.deliveryDistanceKm)
       && hasFiniteNonNegativeValue(values.deliveryCost)
       && deliveryQuote?.isWithinRange !== false,
@@ -70,18 +97,35 @@ export function CheckoutModal({ open, onClose, items, onOrderCreated }: Checkout
     if (!open || isDraftHydrated) return;
 
     const draft = getCheckoutDraft();
-    setValues(draft);
-    if (
+    const canRestoreQuote = Boolean(
       draft.customerLocation
-      && typeof draft.deliveryDistanceKm === 'number'
-      && draft.deliveryMapsUrl
-    ) {
+        && typeof draft.deliveryDistanceKm === 'number'
+        && typeof draft.deliveryStraightDistanceKm === 'number'
+        && draft.deliveryMapsUrl
+        && draft.deliveryQuoteToken
+        && isFreshQuote(draft.deliveryQuoteExpiresAt),
+    );
+
+    if (canRestoreQuote) {
+      setValues(draft);
       setDeliveryQuote({
-        distanceKm: draft.deliveryDistanceKm,
+        distanceKm: draft.deliveryDistanceKm!,
+        routeDistanceKm: draft.deliveryDistanceKm!,
+        straightDistanceKm: draft.deliveryStraightDistanceKm!,
+        routeDurationSeconds: draft.deliveryRouteDurationSeconds ?? null,
+        routeDurationText: draft.deliveryRouteDurationText ?? null,
+        routeVia: draft.deliveryRouteVia ?? null,
+        routeProvider: draft.deliveryRouteProvider ?? 'serpapi_google_maps',
+        travelMode: draft.deliveryTravelMode ?? 'two_wheeler',
         deliveryCost: draft.deliveryCost ?? 0,
         isWithinRange: typeof draft.deliveryCost === 'number',
-        mapsUrl: draft.deliveryMapsUrl,
+        mapsUrl: draft.deliveryMapsUrl!,
+        quoteToken: draft.deliveryQuoteToken!,
+        quoteExpiresAt: draft.deliveryQuoteExpiresAt!,
       });
+    } else {
+      setValues(clearDeliveryQuoteValues(draft));
+      setDeliveryQuote(null);
     }
     setIsDraftHydrated(true);
   }, [isDraftHydrated, open]);
@@ -116,13 +160,8 @@ export function CheckoutModal({ open, onClose, items, onOrderCreated }: Checkout
       clearLocation();
       setDeliveryQuote(null);
       setValues((current) => ({
-        ...current,
+        ...clearDeliveryQuoteValues(current),
         deliveryMethod: method,
-        address: '',
-        customerLocation: null,
-        deliveryDistanceKm: undefined,
-        deliveryCost: undefined,
-        deliveryMapsUrl: undefined,
       }));
       return;
     }
@@ -141,14 +180,7 @@ export function CheckoutModal({ open, onClose, items, onOrderCreated }: Checkout
       if (!quote) {
         clearLocation();
         setDeliveryQuote(null);
-        setValues((current) => ({
-          ...current,
-          address: '',
-          customerLocation: null,
-          deliveryDistanceKm: undefined,
-          deliveryCost: undefined,
-          deliveryMapsUrl: undefined,
-        }));
+        setValues((current) => clearDeliveryQuoteValues(current));
         toast.error('No pudimos calcular el envío. Verificá la ubicación del local e intentá nuevamente.');
         return;
       }
@@ -158,9 +190,17 @@ export function CheckoutModal({ open, onClose, items, onOrderCreated }: Checkout
         ...current,
         address: '',
         customerLocation: location,
-        deliveryDistanceKm: quote.distanceKm,
+        deliveryDistanceKm: quote.routeDistanceKm,
+        deliveryStraightDistanceKm: quote.straightDistanceKm,
+        deliveryRouteDurationSeconds: quote.routeDurationSeconds,
+        deliveryRouteDurationText: quote.routeDurationText,
+        deliveryRouteVia: quote.routeVia,
+        deliveryRouteProvider: quote.routeProvider,
+        deliveryTravelMode: quote.travelMode,
         deliveryCost: quote.isWithinRange ? quote.deliveryCost : undefined,
         deliveryMapsUrl: quote.mapsUrl,
+        deliveryQuoteToken: quote.quoteToken,
+        deliveryQuoteExpiresAt: quote.quoteExpiresAt,
       }));
 
       if (!quote.isWithinRange) {
@@ -169,14 +209,7 @@ export function CheckoutModal({ open, onClose, items, onOrderCreated }: Checkout
     } catch (error) {
       clearLocation();
       setDeliveryQuote(null);
-      setValues((current) => ({
-        ...current,
-        address: '',
-        customerLocation: null,
-        deliveryDistanceKm: undefined,
-        deliveryCost: undefined,
-        deliveryMapsUrl: undefined,
-      }));
+      setValues((current) => clearDeliveryQuoteValues(current));
       const message = error instanceof Error ? error.message : 'No pudimos calcular el envío.';
       toast.error(message);
     } finally {
@@ -188,14 +221,7 @@ export function CheckoutModal({ open, onClose, items, onOrderCreated }: Checkout
     clearError('customerLocation');
     clearLocation();
     setDeliveryQuote(null);
-    setValues((current) => ({
-      ...current,
-      address: '',
-      customerLocation: null,
-      deliveryDistanceKm: undefined,
-      deliveryCost: undefined,
-      deliveryMapsUrl: undefined,
-    }));
+    setValues((current) => clearDeliveryQuoteValues(current));
   }
 
   async function handleSubmit() {
@@ -211,8 +237,8 @@ export function CheckoutModal({ open, onClose, items, onOrderCreated }: Checkout
 
   const deliveryHelperText = deliveryQuote
     ? deliveryQuote.isWithinRange
-      ? `Distancia aproximada: ${formatDistanceKm(deliveryQuote.distanceKm)} · Envío: ${formatCurrency(deliveryQuote.deliveryCost)}`
-      : `Distancia aproximada: ${formatDistanceKm(deliveryQuote.distanceKm)} · Fuera del radio de entrega.`
+      ? `Ruta en moto: ${formatDistanceKm(deliveryQuote.routeDistanceKm)} · ${formatRouteDuration(deliveryQuote.routeDurationSeconds)} · Envío: ${formatCurrency(deliveryQuote.deliveryCost)}`
+      : `Ruta en moto: ${formatDistanceKm(deliveryQuote.routeDistanceKm)} · Fuera del radio de entrega.`
     : 'Para solicitar delivery, activá el GPS y compartí tu ubicación actual. La utilizaremos para calcular el envío y localizar la entrega.';
 
   const canSendOrder = !isSubmitting
