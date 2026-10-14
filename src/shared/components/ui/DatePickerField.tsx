@@ -331,14 +331,13 @@ export function DatePickerField({
                           outside
                             ? 'text-neutral-400 opacity-70 hover:bg-neutral-50 hover:text-neutral-500 hover:opacity-90'
                             : 'text-neutral-700 hover:bg-neutral-100',
-                          isToday && !isSelected && 'bg-central-orange/10 opacity-100 ring-1 ring-central-orange/20',
-                          isSelected && !isToday && 'bg-central-orange font-black text-central-carbon opacity-100 shadow-[0_5px_12px_rgba(216,137,24,.24)] hover:bg-central-orange',
-                          isSelected && isToday && 'bg-central-orange/12 opacity-100 ring-1 ring-central-orange/35 shadow-[0_5px_12px_rgba(216,137,24,.14)]',
+                          isToday && !isSelected && 'bg-central-orange/10 font-black text-central-orange ring-1 ring-central-orange/20',
+                          isSelected && 'bg-central-orange/12 opacity-100 ring-1 ring-central-orange/35 shadow-[0_5px_12px_rgba(216,137,24,.14)]',
                         )}
                         aria-label={new Intl.DateTimeFormat('es-AR', { dateStyle: 'full' }).format(date)}
                         aria-pressed={isSelected}
                       >
-                        {isToday ? <BurgerMark className="h-8 w-8" /> : date.getDate()}
+                        {isSelected ? <BurgerMark className="h-8 w-8" /> : date.getDate()}
                       </button>
                     );
                   })}
