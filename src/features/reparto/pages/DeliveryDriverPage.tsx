@@ -506,7 +506,9 @@ export function DeliveryDriverPage() {
         unsubscribe = subscribeToDriverDeliveries(scheduleRealtimeRefresh);
 
         pollTimer = setInterval(() => {
-          void load(true, true, true);
+          if (document.visibilityState === 'visible') {
+            void load(true, true, true);
+          }
         }, 5000);
 
         window.addEventListener('focus', syncOnResume);
