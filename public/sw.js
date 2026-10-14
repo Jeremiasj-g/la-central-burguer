@@ -6,6 +6,10 @@ self.addEventListener('activate', (event) => {
   event.waitUntil(self.clients.claim());
 });
 
+self.addEventListener('fetch', () => {
+  // La navegación sigue usando la red; este worker se ocupa del ciclo PWA y Web Push.
+});
+
 self.addEventListener('push', (event) => {
   let data = {};
   try {
