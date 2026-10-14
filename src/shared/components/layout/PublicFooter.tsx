@@ -26,7 +26,9 @@ export function PublicFooter() {
   return (
     <footer className="brick-wall relative overflow-hidden border-t border-central-orange/25 px-4 py-16 text-central-cream sm:px-6 lg:px-8">
       <div className="absolute right-0 top-8 h-[75%] w-1 rounded-l-full bg-central-orange" />
-      <div className="pointer-events-none absolute left-8 top-10 hidden text-[70px] watermark-text lg:block">{businessName}</div>
+      {!isLoading ? (
+        <div className="pointer-events-none absolute left-8 top-10 hidden text-[70px] watermark-text lg:block">{businessName}</div>
+      ) : null}
 
       <div className="mx-auto max-w-7xl text-center">
         <div className="brand-stamp mx-auto mb-8 h-28 w-28 overflow-hidden">
