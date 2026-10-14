@@ -77,6 +77,11 @@ export interface Database {
           updated_at?: string;
         }
       >;
+      delivery_route_cache: TableDefinition<
+        { id: string; cache_key: string; provider: string; travel_mode: string; store_latitude: number; store_longitude: number; customer_latitude: number; customer_longitude: number; route_distance_km: number; route_duration_seconds: number | null; route_via: string | null; formatted_duration: string | null; expires_at: string; hit_count: number; last_used_at: string; created_at: string; updated_at: string },
+        { id?: string; cache_key: string; provider: string; travel_mode: string; store_latitude: number; store_longitude: number; customer_latitude: number; customer_longitude: number; route_distance_km: number; route_duration_seconds?: number | null; route_via?: string | null; formatted_duration?: string | null; expires_at: string; hit_count?: number; last_used_at?: string; created_at?: string; updated_at?: string },
+        { cache_key?: string; provider?: string; travel_mode?: string; store_latitude?: number; store_longitude?: number; customer_latitude?: number; customer_longitude?: number; route_distance_km?: number; route_duration_seconds?: number | null; route_via?: string | null; formatted_duration?: string | null; expires_at?: string; hit_count?: number; last_used_at?: string; updated_at?: string }
+      >;
       payment_methods: TableDefinition<
         { id: string; name: string; code: PaymentMethodCode; active: boolean; display_order: number; created_at: string; updated_at: string },
         { id?: string; name: string; code: PaymentMethodCode; active?: boolean; display_order?: number; created_at?: string; updated_at?: string },
