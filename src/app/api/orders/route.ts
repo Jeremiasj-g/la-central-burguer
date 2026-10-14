@@ -79,7 +79,7 @@ export async function POST(request: Request) {
 
     const supabase = getSupabaseAdminClient();
     const { data, error } = await supabase.rpc('create_public_order_from_route', {
-      payload: serverPayload as Json,
+      payload: serverPayload as unknown as Json,
     });
 
     if (error) throw new Error(error.message);
