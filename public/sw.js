@@ -21,20 +21,27 @@ self.addEventListener('push', (event) => {
   const title = data.title || 'La Central Burger';
   const options = {
     body: data.body || 'Tenés una nueva actualización.',
-    icon: '/icons/burger-delivery.svg',
-    badge: '/icons/burger-delivery.svg',
     tag: data.tag || 'central-delivery',
     renotify: true,
-    silent: false,
-    vibrate: [180, 80, 180],
-    timestamp: Date.now(),
     data: {
       url: data.url || '/delivery',
       assignmentId: data.assignmentId || null,
     },
   };
 
-  event.waitUntil(self.registration.showNotification(title, options));
+  event.waitUntil(
+    Promise.all([
+      self.registration.showNotification(title, options),
+      self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clients) => {
+        clients.forEach((client) => {
+          client.postMessage({
+            type: 'DELIVERY_PUSH_RECEIVED',
+            assignmentId: data.assignmentId || null,
+          });
+        });
+      }),
+    ]),
+  );
 });
 
 self.addEventListener('notificationclick', (event) => {
