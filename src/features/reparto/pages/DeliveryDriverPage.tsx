@@ -23,6 +23,7 @@ import {
 import { toast } from 'react-toastify';
 import { AnimatedFormattedValue } from '@/shared/components/ui/AnimatedValue';
 import { ROUTES } from '@/shared/constants/routes';
+import { formatRouteDuration } from '@/features/delivery/utils/delivery.utils';
 import { formatCurrency, formatDateTime } from '@/shared/utils/format.utils';
 import {
   advanceDeliveryAssignment,
@@ -216,7 +217,14 @@ function AssignmentCard({
             <div className="min-w-0 flex-1">
               <p className="text-[11px] text-[#8E8E93]">Destino</p>
               <p className="mt-0.5 break-words text-[14px] font-medium leading-5 text-[#1C1C1E]">{item.address || 'Ubicación enviada por GPS'}</p>
-              <p className="mt-1 text-[12px] text-[#8E8E93]">{item.distanceKm?.toFixed(1) ?? '—'} km desde el local</p>
+              <p className="mt-1 text-[12px] font-medium text-[#1C1C1E]">
+                Ruta: {(item.routeDistanceKm ?? item.distanceKm)?.toFixed(1) ?? '—'} km
+                {typeof item.routeDurationSeconds === 'number' ? ` · ${formatRouteDuration(item.routeDurationSeconds)}` : ''}
+              </p>
+              {typeof item.straightDistanceKm === 'number' ? (
+                <p className="mt-0.5 text-[11px] text-[#8E8E93]">Línea recta: {item.straightDistanceKm.toFixed(1)} km</p>
+              ) : null}
+              {item.routeVia ? <p className="mt-0.5 truncate text-[11px] text-[#8E8E93]">Vía {item.routeVia}</p> : null}
             </div>
           </div>
         </div>
@@ -361,7 +369,12 @@ function DeliveryDetailSheet({ detail, loading, open, onClose }: { detail: Deliv
           <div className="overflow-hidden rounded-[22px] bg-white shadow-[0_1px_2px_rgba(0,0,0,0.025)]">
             <div className="px-4 pb-2 pt-4"><p className="text-[11px] font-medium uppercase tracking-[0.08em] text-[#8E8E93]">Destino</p></div>
             <DetailRow label="Dirección" value={detail.address || 'Ubicación enviada por GPS'} />
-            <DetailRow label="Distancia" value={`${detail.distanceKm?.toFixed(1) ?? '—'} km`} />
+            <DetailRow label="Distancia por ruta" value={`${(detail.routeDistanceKm ?? detail.distanceKm)?.toFixed(1) ?? '—'} km`} />
+            {typeof detail.routeDurationSeconds === 'number' ? <DetailRow label="Tiempo estimado" value={formatRouteDuration(detail.routeDurationSeconds)} /> : null}
+            {typeof detail.straightDistanceKm === 'number' ? <DetailRow label="Distancia en línea recta" value={`${detail.straightDistanceKm.toFixed(1)} km`} /> : null}
+            {detail.routeVia ? <DetailRow label="Ruta sugerida" value={detail.routeVia} /> : null}
+            {detail.travelMode ? <DetailRow label="Modo de cálculo" value={detail.travelMode === 'two_wheeler' ? 'Moto' : detail.travelMode} /> : null}
+            {detail.routeProvider ? <DetailRow label="Fuente de ruta" value={detail.routeProvider === 'serpapi_google_maps' ? 'Google Maps · SerpApi' : detail.routeProvider} /> : null}
           </div>
 
           <div className="overflow-hidden rounded-[22px] bg-white shadow-[0_1px_2px_rgba(0,0,0,0.025)]">
