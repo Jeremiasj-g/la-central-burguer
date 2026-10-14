@@ -19,6 +19,17 @@ type AccessContext = {
   permissions: string[];
 };
 
+type DeliveryRouteMetadata = {
+  orderId: string;
+  routeDistanceKm: number | null;
+  straightDistanceKm: number | null;
+  routeDurationSeconds: number | null;
+  routeProvider: string | null;
+  travelMode: string | null;
+  routeVia: string | null;
+  routeQuotedAt: string | null;
+};
+
 function client() {
   requireSupabaseConfigured('usar el panel de repartidor');
   return getSupabaseBrowserClient();
@@ -34,6 +45,40 @@ async function deliveryRpc<T>(name: string, args?: Record<string, unknown>) {
 
 async function getAccessContext() {
   return deliveryRpc<AccessContext>('get_current_access_context');
+}
+
+async function getRouteMetadata(orderIds: string[]) {
+  if (!orderIds.length) return new Map<string, DeliveryRouteMetadata>();
+
+  const rows = await deliveryRpc<DeliveryRouteMetadata[]>(
+    'get_delivery_driver_route_metadata',
+    { order_ids: orderIds },
+  );
+
+  return new Map((rows ?? []).map((row) => [row.orderId, row]));
+}
+
+function mergeRouteMetadata<T extends {
+  orderId: string;
+  distanceKm: number | null;
+}>(item: T, metadata: DeliveryRouteMetadata | undefined): T & DeliveryRouteMetadata {
+  const fallback: DeliveryRouteMetadata = {
+    orderId: item.orderId,
+    routeDistanceKm: item.distanceKm,
+    straightDistanceKm: null,
+    routeDurationSeconds: null,
+    routeProvider: null,
+    travelMode: null,
+    routeVia: null,
+    routeQuotedAt: null,
+  };
+
+  const route = metadata ?? fallback;
+  return {
+    ...item,
+    ...route,
+    distanceKm: route.routeDistanceKm ?? item.distanceKm,
+  };
 }
 
 export async function loginDeliveryDriver(email: string, password: string) {
@@ -74,7 +119,14 @@ export async function logoutDeliveryDriver() {
 export async function getDeliveryDriverDashboard(): Promise<DeliveryDriverDashboard> {
   const data = await deliveryRpc<DeliveryDriverDashboard>('get_delivery_driver_dashboard');
   if (!data) throw new Error('El panel de reparto no devolvió información.');
-  return data;
+
+  const metadata = await getRouteMetadata(data.activeAssignments.map((item) => item.orderId));
+
+  return {
+    ...data,
+    activeAssignments: data.activeAssignments.map((item) =>
+      mergeRouteMetadata(item, metadata.get(item.orderId))),
+  };
 }
 
 export async function getDeliveryDriverDeliveryDetail(assignmentId: string): Promise<DeliveryDriverDeliveryDetail> {
@@ -82,7 +134,9 @@ export async function getDeliveryDriverDeliveryDetail(assignmentId: string): Pro
     assignment_uuid: assignmentId,
   });
   if (!data) throw new Error('No se pudo obtener el detalle de la entrega.');
-  return data;
+
+  const metadata = await getRouteMetadata([data.orderId]);
+  return mergeRouteMetadata(data, metadata.get(data.orderId));
 }
 
 export async function advanceDeliveryAssignment(
