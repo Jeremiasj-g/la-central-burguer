@@ -10,7 +10,7 @@ import { BusinessLogo } from '@/features/configuracion/components/BusinessLogo';
 
 export function PublicHeader() {
   const [open, setOpen] = useState(false);
-  const { config } = useBusinessConfig();
+  const { config, isLoading } = useBusinessConfig();
   const cart = useCarrito();
   const businessName = config?.businessName ?? 'La Central Burger';
   const cartCount = cart.items.reduce((total, item) => total + item.quantity, 0);
@@ -29,7 +29,7 @@ export function PublicHeader() {
     <header className="sticky top-0 z-40 min-h-[68px] sm:min-h-[72px] border-b border-central-orange/25 bg-[#0d0c0b]/88 text-central-cream shadow-dark backdrop-blur-xl">
       <div className="mx-auto flex max-w-7xl items-center justify-between px-5 py-2.5 sm:px-6 sm:py-3 lg:px-8">
         <Link href="/" className="flex min-w-0 items-center gap-3" aria-label={`Ir al inicio de ${businessName}`}>
-          <BusinessLogo logoUrl={config?.logoUrl} businessName={businessName} mode="navbar" />
+          <BusinessLogo logoUrl={config?.logoUrl} businessName={businessName} mode="navbar" loading={isLoading} />
         </Link>
 
         <nav className="hidden items-center gap-2 md:flex">
