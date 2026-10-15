@@ -10,6 +10,7 @@ import { ROUTES } from '@/shared/constants/routes';
 import { cn } from '@/shared/utils/cn';
 import { getAdminSession, logoutAdmin, type AdminSession } from '@/features/auth/services/auth.service';
 import { BurgerLoader } from '@/shared/components/ui/BurgerLoader';
+import { useAnimatedPresence } from '@/shared/hooks/useAnimatedPresence';
 
 const ADMIN_NAV_GROUPS = [
   { label: 'Resumen', items: ADMIN_NAVIGATION.slice(0, 1) },
@@ -22,6 +23,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const mobileMounted = useAnimatedPresence(mobileOpen);
   const [checked, setChecked] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
   const [session, setSession] = useState<AdminSession | null>(null);
@@ -172,9 +174,9 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
     <div className="admin-scope min-h-screen bg-[#f5f5f5] text-central-carbon">
       <div className="fixed inset-y-0 left-0 z-40 hidden w-[250px] lg:block">{sidebar}</div>
 
-      {mobileOpen ? (
-        <div className="fixed inset-0 z-50 bg-black/60 lg:hidden" onClick={() => setMobileOpen(false)}>
-          <div className="h-full w-[min(290px,86vw)]" onClick={(event) => event.stopPropagation()}>{sidebar}</div>
+      {mobileMounted ? (
+        <div data-state={mobileOpen ? 'open' : 'closed'} aria-hidden={!mobileOpen} className={cn("lcb-admin-mobile-overlay fixed inset-0 z-50 bg-black/60 lg:hidden", !mobileOpen && "pointer-events-none")} onClick={() => setMobileOpen(false)}>
+          <div className="lcb-admin-mobile-panel h-full w-[min(290px,86vw)]" onClick={(event) => event.stopPropagation()}>{sidebar}</div>
         </div>
       ) : null}
 
