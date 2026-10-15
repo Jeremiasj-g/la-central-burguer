@@ -806,3 +806,42 @@ body.config-wallet-active [role="dialog"] :is(input, textarea) {
     animation-duration: 0.01ms !important;
   }
 }
+
+/* Pedidos: tipografía wallet y componentes de 200 ms, sin afectar otros módulos. */
+.pedidos-wallet {
+  font-weight: 400;
+  font-variant-numeric: tabular-nums;
+}
+
+.pedidos-wallet :is(button, strong, b, th) {
+  font-weight: 600;
+}
+
+.pedidos-wallet :is(input, [role="combobox"]) {
+  font-weight: 400;
+}
+
+.pedidos-wallet :is(button, input, a) {
+  transition-duration: 200ms;
+}
+
+body.pedidos-wallet-active [role="dialog"] {
+  border-radius: 20px;
+}
+
+body.pedidos-wallet-active [role="dialog"] :is(h1, h2, h3, strong, b, button) {
+  font-weight: 600;
+}
+
+body.pedidos-wallet-active [role="dialog"] h2 {
+  font-size: 18px;
+  letter-spacing: -.035em;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pedidos-wallet *,
+  body.pedidos-wallet-active [role="dialog"] * {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
+}
