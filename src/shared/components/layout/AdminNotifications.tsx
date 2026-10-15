@@ -78,15 +78,15 @@ export function AdminNotifications() {
         type="button"
         onClick={() => setOpen((value) => !value)}
         className={cn(
-          'relative grid h-10 w-10 place-items-center rounded-sm border border-neutral-200 bg-white text-central-carbon shadow-sm transition hover:border-central-orange hover:text-central-orange',
-          unseenCount > 0 && 'border-central-orange/50 bg-central-orange/10 text-central-orange',
+          'relative grid h-9 w-9 place-items-center rounded-[11px] border border-black/[.06] bg-white text-[#515154] shadow-[0_1px_3px_rgba(0,0,0,.06)] transition hover:text-[#0071e3]',
+          unseenCount > 0 && 'border-[#0071e3]/20 bg-[#eaf3ff] text-[#0071e3]',
         )}
         aria-label={unseenCount > 0 ? `${unseenCount} pedidos nuevos` : 'Notificaciones de pedidos'}
         title="Notificaciones de pedidos"
       >
         <Bell size={18} className={cn(unseenCount > 0 && 'lcb-bell-vibrate')} />
         {unseenCount > 0 ? (
-          <span className="absolute -right-2 -top-2 grid min-h-5 min-w-5 place-items-center rounded-full bg-red-600 px-1.5 text-[10px] font-black leading-none text-white ring-2 ring-white">
+          <span className="absolute -right-1.5 -top-1.5 grid min-h-[18px] min-w-[18px] place-items-center rounded-full bg-[#ff3b30] px-1 text-[9px] font-semibold leading-none text-white ring-2 ring-[#f5f5f7]">
             {unseenCount > 9 ? '9+' : unseenCount}
           </span>
         ) : null}
@@ -100,11 +100,11 @@ export function AdminNotifications() {
             onClick={() => setOpen(false)}
             className="fixed inset-0 z-40 bg-black/20 backdrop-blur-[1px] sm:hidden"
           />
-          <div className="fixed inset-x-3 top-20 z-50 flex max-h-[calc(100dvh-92px)] flex-col overflow-hidden rounded-sm border border-neutral-200 bg-white text-central-carbon shadow-dark sm:absolute sm:inset-x-auto sm:right-0 sm:top-12 sm:max-h-none sm:w-[390px]">
+          <div className="fixed inset-x-3 top-20 z-50 flex max-h-[calc(100dvh-92px)] flex-col overflow-hidden rounded-[20px] border border-black/[.08] bg-white/95 text-[#1d1d1f] shadow-[0_24px_70px_rgba(0,0,0,.16)] backdrop-blur-2xl sm:absolute sm:inset-x-auto sm:right-0 sm:top-12 sm:max-h-none sm:w-[390px]">
             <div className="flex items-start justify-between gap-3 border-b border-neutral-100 p-4">
               <div>
-                <p className="text-xs font-black uppercase tracking-[.22em] text-central-orange">Pedidos</p>
-                <h3 className="mt-1 text-lg font-black">Notificaciones</h3>
+                <p className="text-[10px] font-semibold uppercase tracking-[.14em] text-[#0071e3]">Pedidos</p>
+                <h3 className="mt-1 text-lg font-semibold tracking-[-.025em]">Notificaciones</h3>
                 <p className="mt-1 text-xs text-neutral-500">Pedidos recibidos desde el sitio.</p>
               </div>
               <button
@@ -134,20 +134,20 @@ export function AdminNotifications() {
                     href={ROUTES.adminPedidos}
                     onClick={() => setOpen(false)}
                     className={cn(
-                      'block rounded-sm border p-3 transition hover:border-central-orange hover:bg-central-orange/5',
+                      'block rounded-[14px] border p-3 transition hover:border-[#0071e3]/25 hover:bg-[#f7fbff]',
                       unseen
-                        ? 'border-central-orange/55 bg-central-orange/10'
-                        : 'border-neutral-200 bg-neutral-50 opacity-75',
+                        ? 'border-[#0071e3]/20 bg-[#eaf3ff]'
+                        : 'border-black/[.055] bg-[#f7f7f9] opacity-80',
                     )}
                   >
                     <div className="flex items-start justify-between gap-3">
                       <div className="min-w-0">
                         <div className="flex flex-wrap items-center gap-2">
-                          <p className="font-mono text-xs font-black text-central-orange">{order.orderCode}</p>
+                          <p className="font-mono text-xs font-black text-[#0071e3]">{order.orderCode}</p>
                           <span className={cn(
                             'rounded-full px-2 py-0.5 text-[10px] font-black uppercase',
                             unseen
-                              ? 'bg-central-orange text-white'
+                              ? 'bg-[#0071e3] text-white'
                               : 'bg-neutral-200 text-neutral-500',
                           )}>
                             {unseen ? 'Nuevo' : 'Visto'}
@@ -171,7 +171,7 @@ export function AdminNotifications() {
             <div className="flex flex-col items-stretch gap-3 border-t border-neutral-100 bg-neutral-50 p-3 sm:flex-row sm:items-center sm:justify-between">
               <div className="flex items-center justify-center gap-2 text-xs font-bold text-neutral-500 sm:justify-start">
                 {unseenCount > 0 ? (
-                  <Clock3 size={15} className="text-central-orange" />
+                  <Clock3 size={15} className="text-[#0071e3]" />
                 ) : (
                   <PackageCheck size={15} className="text-green-600" />
                 )}
@@ -182,14 +182,14 @@ export function AdminNotifications() {
                   type="button"
                   onClick={markAllAsSeen}
                   disabled={Boolean(error) || orders.length === 0}
-                  className="inline-flex items-center justify-center whitespace-nowrap rounded-sm border border-neutral-200 bg-white px-3 py-2 text-xs font-black text-neutral-700 transition hover:border-central-orange hover:text-central-orange disabled:cursor-not-allowed disabled:opacity-50"
+                  className="inline-flex items-center justify-center whitespace-nowrap rounded-sm border border-neutral-200 bg-white px-3 py-2 text-xs font-black text-neutral-700 transition hover:border-[#0071e3]/30 hover:text-[#0071e3] disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   <CheckCheck size={14} className="mr-1" /> Vistos
                 </button>
                 <Link
                   href={ROUTES.adminPedidos}
                   onClick={() => setOpen(false)}
-                  className="inline-flex items-center justify-center whitespace-nowrap rounded-sm bg-central-orange px-3 py-2 text-xs font-black text-white transition hover:bg-central-ember"
+                  className="inline-flex items-center justify-center whitespace-nowrap rounded-sm bg-[#0071e3] px-3 py-2 text-xs font-black text-white transition hover:bg-central-ember"
                 >
                   Ver pedidos
                 </Link>
