@@ -73,6 +73,10 @@ export function ProductoForm({ product, categories, ingredients, isSaving, onSub
 
   function handleImageFile(file?: File) {
     if (!file) return;
+    if (!['image/png', 'image/jpeg', 'image/webp', 'image/gif'].includes(file.type)) {
+      setImageError('Seleccioná una imagen PNG, JPG, WEBP o GIF.');
+      return;
+    }
     if (file.size > 450_000) {
       setImageError('La imagen es muy pesada para esta versión frontend. Usá una imagen menor a 450 KB.');
       return;
