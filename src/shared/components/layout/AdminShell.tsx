@@ -181,13 +181,13 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
       ) : null}
 
       <div className="lg:pl-[250px]">
-        <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-neutral-200 bg-white/85 px-4 backdrop-blur-xl sm:px-6">
-          <button className="rounded-sm border border-neutral-200 p-2 lg:hidden" onClick={() => setMobileOpen((value) => !value)} aria-label="Abrir navegación">
+        <header className="sticky top-0 z-30 flex h-[72px] items-center justify-between border-b border-neutral-200/55 bg-[#f5f5f5]/65 px-4 backdrop-blur-[5px] sm:h-[76px] sm:px-6">
+          <button className="grid h-10 w-10 shrink-0 place-items-center rounded-[11px] border border-neutral-200/80 bg-white/45 text-neutral-700 transition-[background-color,border-color] duration-200 hover:border-central-orange/30 hover:bg-white/70 lg:hidden" onClick={() => setMobileOpen((value) => !value)} aria-label="Abrir navegación">
             {mobileOpen ? <X /> : <Menu />}
           </button>
           <div className="ml-auto flex items-center gap-3">
             <AdminNotifications />
-            <Link href={ROUTES.menu} className="rounded-sm bg-central-orange/10 px-4 py-2 text-sm font-bold text-central-orange hover:bg-central-orange hover:text-white">Ver sitio</Link>
+            <Link href={ROUTES.menu} className="inline-flex min-h-10 items-center justify-center whitespace-nowrap rounded-[11px] bg-central-orange/10 px-4 py-2 text-[12px] font-semibold text-central-ember transition-[background-color,color,transform] duration-200 hover:bg-central-orange hover:text-white active:scale-[.98]">Ver sitio</Link>
           </div>
         </header>
         <main className="p-4 sm:p-6 lg:p-8">{children}</main>

@@ -127,7 +127,7 @@ export function AdminNotifications() {
             inert={!open}
             data-state={open ? 'open' : 'closed'}
             className={cn(
-              'lcb-notifications-panel fixed inset-x-3 top-[76px] z-50 flex max-h-[calc(100dvh-88px)] flex-col overflow-hidden rounded-[21px] border border-neutral-200/80 bg-white text-neutral-900 shadow-[0_26px_70px_-20px_rgba(17,16,15,.32)] sm:absolute sm:inset-x-auto sm:right-0 sm:top-[52px] sm:max-h-[min(540px,calc(100dvh-90px))] sm:w-[410px]',
+              'lcb-notifications-panel fixed inset-x-3 top-[82px] z-50 flex max-h-[calc(100dvh-94px)] flex-col overflow-hidden rounded-[21px] border border-neutral-200/80 bg-white text-neutral-900 shadow-[0_26px_70px_-20px_rgba(17,16,15,.32)] sm:absolute sm:inset-x-auto sm:right-0 sm:top-[52px] sm:max-h-[min(540px,calc(100dvh-90px))] sm:w-[410px]',
               !open && 'pointer-events-none',
             )}
           >
