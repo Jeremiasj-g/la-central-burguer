@@ -68,6 +68,8 @@ export function Select({
       required={required}
     >
       <SelectPrimitive.Trigger
+        data-ui="select-trigger"
+        data-variant={variant}
         type="button"
         aria-label={ariaLabel}
         aria-labelledby={ariaLabelledBy}
@@ -89,6 +91,8 @@ export function Select({
 
       <SelectPrimitive.Portal>
         <SelectPrimitive.Content
+          data-ui="select-content"
+          data-variant={variant}
           position="popper"
           sideOffset={6}
           collisionPadding={12}
