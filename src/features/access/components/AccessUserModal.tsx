@@ -23,9 +23,9 @@ interface AccessUserModalProps {
   defaultRoleCode?: string;
 }
 
-const fieldClass = 'h-10 w-full rounded-sm border border-neutral-200 bg-white px-3 text-sm text-central-carbon outline-none transition focus:border-central-orange focus:ring-2 focus:ring-central-orange/15';
-const textareaClass = 'min-h-24 w-full resize-y rounded-sm border border-neutral-200 bg-white px-3 py-2.5 text-sm text-central-carbon outline-none transition focus:border-central-orange focus:ring-2 focus:ring-central-orange/15';
-const labelClass = 'mb-1.5 block text-xs font-bold uppercase tracking-wide text-neutral-500';
+const fieldClass = 'h-10 w-full rounded-[11px] border border-neutral-200/70 bg-[#f7f7f9] px-3 text-[13px] font-normal text-neutral-900 outline-none transition-colors duration-200 focus:border-central-orange/40 focus:bg-white focus:ring-2 focus:ring-central-orange/10';
+const textareaClass = 'min-h-24 w-full resize-y rounded-[11px] border border-neutral-200/70 bg-[#f7f7f9] px-3 py-2.5 text-[13px] font-normal text-neutral-900 outline-none transition-colors duration-200 focus:border-central-orange/40 focus:bg-white focus:ring-2 focus:ring-central-orange/10';
+const labelClass = 'mb-1.5 block text-[11px] font-medium text-neutral-500';
 const vehicleOptions = [
   { value: 'moto', label: 'Moto' },
   { value: 'auto', label: 'Auto' },
@@ -97,9 +97,9 @@ export function AccessUserModal({ user, roles, onClose, onSaved, defaultRoleCode
   return (
     <Modal open onClose={onClose} title={user ? 'Editar usuario' : 'Nuevo usuario'} size="lg" theme="light">
       <form onSubmit={submit}>
-        <div className="mb-5 grid gap-3 rounded-sm border border-neutral-200 bg-neutral-50 p-4 sm:grid-cols-[auto_1fr]">
+        <div className="mb-5 grid gap-3 rounded-[15px] border border-neutral-200/70 bg-[#f8f8f9] p-4 sm:grid-cols-[auto_1fr]">
           <span className="grid h-10 w-10 place-items-center rounded-sm bg-central-orange/10 text-central-orange"><ShieldCheck size={18} /></span>
-          <div><p className="text-sm font-black text-central-carbon">Cuenta y autorización separadas</p><p className="mt-1 text-xs leading-5 text-neutral-500">La identidad pertenece al usuario; los permisos se heredan de uno o más roles. Así un mismo usuario puede evolucionar sin duplicar información.</p></div>
+          <div><p className="text-sm font-semibold text-central-carbon">Cuenta y autorización separadas</p><p className="mt-1 text-xs leading-5 text-neutral-500">La identidad pertenece al usuario; los permisos se heredan de uno o más roles. Así un mismo usuario puede evolucionar sin duplicar información.</p></div>
         </div>
 
         {!user ? (
@@ -110,7 +110,7 @@ export function AccessUserModal({ user, roles, onClose, onSaved, defaultRoleCode
                   {sendInvitation ? <MailCheck size={18} /> : <UserPlus size={18} />}
                 </span>
                 <div className="min-w-0">
-                  <p className={`text-sm font-black ${sendInvitation ? 'text-blue-950' : 'text-central-carbon'}`}>
+                  <p className={`text-sm font-semibold ${sendInvitation ? 'text-blue-950' : 'text-central-carbon'}`}>
                     {sendInvitation ? 'Enviar invitación por correo' : 'Crear cuenta directamente'}
                   </p>
                   <p className={`mt-1 text-xs leading-5 ${sendInvitation ? 'text-blue-700' : 'text-neutral-600'}`}>
@@ -169,7 +169,7 @@ export function AccessUserModal({ user, roles, onClose, onSaved, defaultRoleCode
               return (
                 <button key={role.id} type="button" onClick={() => toggleRole(role)} disabled={!role.active && !selected} className={`flex min-w-0 cursor-pointer items-start gap-3 rounded-sm border p-3 text-left transition disabled:cursor-not-allowed disabled:opacity-45 ${selected ? 'border-central-orange bg-central-orange/[.06]' : 'border-neutral-200 bg-white hover:border-central-orange/40'}`}>
                   <span className={`mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded border ${selected ? 'border-central-orange bg-central-orange text-white' : 'border-neutral-300 bg-white'}`}>{selected ? <Check size={13} /> : null}</span>
-                  <span className="min-w-0"><span className="block truncate text-sm font-black text-central-carbon">{role.name}</span><span className="mt-1 block text-[11px] font-bold uppercase tracking-wide text-neutral-400">{role.code}</span></span>
+                  <span className="min-w-0"><span className="block truncate text-sm font-semibold text-central-carbon">{role.name}</span><span className="mt-1 block text-[11px] font-medium uppercase tracking-wide text-neutral-400">{role.code}</span></span>
                 </button>
               );
             })}
@@ -178,7 +178,7 @@ export function AccessUserModal({ user, roles, onClose, onSaved, defaultRoleCode
 
         {hasDeliveryRole ? (
           <div className="mt-6 rounded-sm border border-central-orange/20 bg-[#fffaf2] p-4">
-            <div className="mb-4 flex items-center gap-3"><span className="grid h-9 w-9 place-items-center rounded-sm bg-central-orange/10 text-central-orange"><Bike size={17} /></span><div><p className="text-sm font-black text-central-carbon">Configuración de repartidor</p><p className="text-xs text-neutral-500">Estos datos sólo aplican mientras el usuario tenga el rol Delivery.</p></div></div>
+            <div className="mb-4 flex items-center gap-3"><span className="grid h-9 w-9 place-items-center rounded-sm bg-central-orange/10 text-central-orange"><Bike size={17} /></span><div><p className="text-sm font-semibold text-central-carbon">Configuración de repartidor</p><p className="text-xs text-neutral-500">Estos datos sólo aplican mientras el usuario tenga el rol Delivery.</p></div></div>
             <div className="grid gap-4 sm:grid-cols-2">
               <div><span className={labelClass}>Vehículo</span><Select variant="light" value={form.vehicleType ?? 'moto'} options={vehicleOptions} onValueChange={(value) => setForm({ ...form, vehicleType: value as AccessVehicleType })} aria-label="Vehículo del repartidor" /></div>
               <label><span className={labelClass}>Comisión sobre el envío (%)</span><input type="number" min="0" max="100" step="0.01" className={fieldClass} value={form.commissionPercent ?? 0} onChange={(event) => setForm({ ...form, commissionPercent: Number(event.target.value) })} required /></label>
