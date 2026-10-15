@@ -143,9 +143,9 @@ export function AdminNotifications() {
                     <div className="flex items-start justify-between gap-3">
                       <div className="min-w-0">
                         <div className="flex flex-wrap items-center gap-2">
-                          <p className="font-mono text-xs font-black text-[#0071e3]">{order.orderCode}</p>
+                          <p className="font-mono text-xs font-semibold text-[#0071e3]">{order.orderCode}</p>
                           <span className={cn(
-                            'rounded-full px-2 py-0.5 text-[10px] font-black uppercase',
+                            'rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase',
                             unseen
                               ? 'bg-[#0071e3] text-white'
                               : 'bg-neutral-200 text-neutral-500',
@@ -153,7 +153,7 @@ export function AdminNotifications() {
                             {unseen ? 'Nuevo' : 'Visto'}
                           </span>
                         </div>
-                        <p className="mt-1 truncate text-sm font-black">{order.customerName}</p>
+                        <p className="mt-1 truncate text-sm font-semibold">{order.customerName}</p>
                         <p className="mt-0.5 text-xs text-neutral-500">
                           {order.deliveryMethod === 'delivery' ? 'Delivery' : 'Retiro local'} · {formatDateTime(order.createdAt)}
                         </p>
@@ -182,14 +182,14 @@ export function AdminNotifications() {
                   type="button"
                   onClick={markAllAsSeen}
                   disabled={Boolean(error) || orders.length === 0}
-                  className="inline-flex items-center justify-center whitespace-nowrap rounded-sm border border-neutral-200 bg-white px-3 py-2 text-xs font-black text-neutral-700 transition hover:border-[#0071e3]/30 hover:text-[#0071e3] disabled:cursor-not-allowed disabled:opacity-50"
+                  className="inline-flex items-center justify-center whitespace-nowrap rounded-sm border border-neutral-200 bg-white px-3 py-2 text-xs font-semibold text-neutral-700 transition hover:border-[#0071e3]/30 hover:text-[#0071e3] disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   <CheckCheck size={14} className="mr-1" /> Vistos
                 </button>
                 <Link
                   href={ROUTES.adminPedidos}
                   onClick={() => setOpen(false)}
-                  className="inline-flex items-center justify-center whitespace-nowrap rounded-sm bg-[#0071e3] px-3 py-2 text-xs font-black text-white transition hover:bg-central-ember"
+                  className="inline-flex items-center justify-center whitespace-nowrap rounded-sm bg-[#0071e3] px-3 py-2 text-xs font-semibold text-white transition hover:bg-[#0066cc]"
                 >
                   Ver pedidos
                 </Link>
