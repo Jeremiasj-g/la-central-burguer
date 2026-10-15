@@ -5,6 +5,7 @@ import { createPortal } from 'react-dom';
 import { cn } from '@/shared/utils/cn';
 import { useSmartModalViewport } from '@/shared/hooks/useSmartModalViewport';
 import { useBodyScrollLock } from '@/shared/hooks/useBodyScrollLock';
+import { useAnimatedPresence } from '@/shared/hooks/useAnimatedPresence';
 
 interface DrawerProps {
   open: boolean;
@@ -17,23 +18,27 @@ interface DrawerProps {
 
 export function Drawer({ open, onClose, title, children, footer, className }: DrawerProps) {
   const viewport = useSmartModalViewport(0);
+  const mounted = useAnimatedPresence(open);
 
   useBodyScrollLock(open);
 
-  if (!open || typeof document === 'undefined') return null;
+  if (!mounted || typeof document === 'undefined') return null;
 
   return createPortal(
     <div
       data-lcb-scroll-lock-overlay="true"
-      className="fixed z-[90] bg-black/60 backdrop-blur-sm"
+      data-state={open ? 'open' : 'closed'}
+      aria-hidden={!open}
+      className={cn('lcb-drawer-overlay fixed z-[90] bg-black/60 backdrop-blur-sm', !open && 'pointer-events-none')}
       style={{ top: viewport.offsetTop, left: viewport.offsetLeft, width: viewport.width, height: viewport.height }}
-      onMouseDown={onClose}
+      onMouseDown={open ? onClose : undefined}
     >
       <aside
         role="dialog"
+        data-state={open ? 'open' : 'closed'}
         aria-modal="true"
         aria-label={title}
-        className={cn('my-2 mr-2 ml-auto flex h-[calc(100%-1rem)] max-h-[calc(100dvh-1rem)] w-[calc(100%-1rem)] max-w-md flex-col overflow-hidden rounded-sm border border-white/10 bg-central-ink text-white shadow-dark skeleton-dark sm:my-0 sm:mr-0 sm:h-full sm:max-h-dvh sm:w-full sm:rounded-none sm:border-0', className)}
+        className={cn('lcb-drawer-panel my-2 mr-2 ml-auto flex h-[calc(100%-1rem)] max-h-[calc(100dvh-1rem)] w-[calc(100%-1rem)] max-w-md flex-col overflow-hidden rounded-sm border border-white/10 bg-central-ink text-white shadow-dark skeleton-dark sm:my-0 sm:mr-0 sm:h-full sm:max-h-dvh sm:w-full sm:rounded-none sm:border-0', className)}
         onMouseDown={(event) => event.stopPropagation()}
       >
         <header className="flex shrink-0 items-center justify-between px-4 py-3.5 sm:px-6 sm:py-5">
