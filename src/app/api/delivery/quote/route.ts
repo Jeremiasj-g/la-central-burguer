@@ -169,6 +169,65 @@ async function saveCachedRoute(
     );
 }
 
+export async function GET() {
+  try {
+    const supabase = getSupabaseAdminClient();
+    const { data: config, error: configError } = await supabase
+      .from('business_config')
+      .select('store_latitude,store_longitude')
+      .eq('id', 1)
+      .single();
+
+    if (configError) {
+      return NextResponse.json({ ok: false, code: 'CONFIG_ERROR' }, { status: 500 });
+    }
+
+    if (config.store_latitude === null || config.store_longitude === null) {
+      return NextResponse.json({ ok: false, code: 'STORE_LOCATION_MISSING' }, { status: 500 });
+    }
+
+    const serpApiKey = process.env.SERPAPI_API_KEY?.trim() ?? '';
+    if (!serpApiKey) {
+      return NextResponse.json({ ok: false, code: 'SERPAPI_KEY_MISSING' }, { status: 500 });
+    }
+
+    const storeLocation = {
+      lat: Number(config.store_latitude),
+      lng: Number(config.store_longitude),
+    };
+
+    const customerLocation = {
+      lat: storeLocation.lat + 0.008,
+      lng: storeLocation.lng + 0.008,
+    };
+
+    await fetchSerpApiRoute(storeLocation, customerLocation);
+
+    return NextResponse.json({ ok: true, code: 'OK' }, { status: 200 });
+  } catch (error) {
+    const message = error instanceof Error ? error.message.toLocaleLowerCase('en') : '';
+
+    const code = message.includes('invalid api key')
+      ? 'SERPAPI_INVALID_KEY'
+      : message.includes('serpapi respondió con estado 401')
+        ? 'SERPAPI_UNAUTHORIZED'
+        : message.includes('serpapi respondió con estado 403')
+          ? 'SERPAPI_FORBIDDEN'
+          : message.includes('serpapi respondió con estado 429')
+            ? 'SERPAPI_RATE_LIMIT'
+            : message.includes('no devolvió una ruta válida')
+              ? 'ROUTE_NOT_FOUND'
+              : 'PROVIDER_ERROR';
+
+    console.error('[delivery-quote-health]', {
+      code,
+      message: error instanceof Error ? error.message : String(error),
+    });
+
+    return NextResponse.json({ ok: false, code }, { status: 502 });
+  }
+}
+
 async function fetchSerpApiRoute(
   storeLocation: { lat: number; lng: number },
   customerLocation: { lat: number; lng: number },
