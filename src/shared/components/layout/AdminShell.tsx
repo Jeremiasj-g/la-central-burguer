@@ -166,7 +166,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
   );
 
   return (
-    <div className="admin-scope min-h-screen bg-[#f6f4ef] text-central-carbon">
+    <div className="admin-scope min-h-screen bg-[#f5f5f5] text-central-carbon">
       <div className="fixed inset-y-0 left-0 z-40 hidden w-[250px] lg:block">{sidebar}</div>
 
       {mobileOpen ? (
