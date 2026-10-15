@@ -2,7 +2,7 @@
 // Validación temporal de CI del rediseño de configuración.
 
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
-import { Clock3, ImageUp, MapPin, Navigation, Pencil, Save, Trash2, Store, Truck, MessageCircle, CreditCard, Instagram } from 'lucide-react';
+import { Clock3, ImageUp, MapPin, Navigation, Pencil, Save, Trash2, Store, Truck, MessageCircle, CreditCard, Share2 } from 'lucide-react';
 import { useBusinessConfig } from '../hooks/useBusinessConfig';
 import type { BusinessConfig } from '../types/configuracion.types';
 import { getBusinessStatusLabel, isBusinessOpenBySchedule } from '../utils/businessStatus.utils';
@@ -313,7 +313,7 @@ export function ConfiguracionAdminPage() {
 
           <div className="mt-7 border-t border-neutral-100 pt-6">
             <div>
-              <h3 className="flex items-center gap-2 text-[15px] font-semibold tracking-tight text-neutral-900"><Instagram size={16} className="text-central-orange" /> Redes sociales</h3>
+              <h3 className="flex items-center gap-2 text-[15px] font-semibold tracking-tight text-neutral-900"><Share2 size={16} className="text-central-orange" /> Redes sociales</h3>
               <p className="mt-1 text-[12px] leading-5 text-neutral-500">Configurá las URLs a las que redirigen los íconos del pie de página. Podés pegar la URL completa o escribirla sin https://.</p>
             </div>
 
