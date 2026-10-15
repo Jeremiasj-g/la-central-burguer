@@ -109,29 +109,30 @@ export function ReportFilters({
         </div>
       </div>
 
-      {preset === 'custom' ? (
-        <div className="mt-3 grid min-w-0 grid-cols-2 gap-2">
-          <div className="min-w-0">
-            <span className={labelClass}>Desde</span>
-            <DatePickerField
-              value={filters.from}
-              onChange={(from) => patch({ from, allTime: false })}
-              ariaLabel="Fecha desde del reporte"
-              className={compactDate}
-            />
-          </div>
-          <div className="min-w-0">
-            <span className={labelClass}>Hasta</span>
-            <DatePickerField
-              value={filters.to}
-              onChange={(to) => patch({ to, allTime: false })}
-              ariaLabel="Fecha hasta del reporte"
-              className={compactDate}
-            />
-          </div>
+      <div className="mt-3 grid min-w-0 grid-cols-2 gap-2">
+        <div className="min-w-0">
+          <span className={labelClass}>Desde</span>
+          <DatePickerField
+            value={filters.from}
+            onChange={(from) => patch({ from, allTime: false })}
+            ariaLabel="Fecha desde del reporte"
+            className={compactDate}
+          />
         </div>
-      ) : preset === 'allTime' ? (
-        <p className="mt-2 text-[11px] text-neutral-500">Incluye todo el historial registrado.</p>
+        <div className="min-w-0">
+          <span className={labelClass}>Hasta</span>
+          <DatePickerField
+            value={filters.to}
+            onChange={(to) => patch({ to, allTime: false })}
+            ariaLabel="Fecha hasta del reporte"
+            className={compactDate}
+          />
+        </div>
+      </div>
+      {preset === 'allTime' ? (
+        <p className="mt-2 text-[11px] leading-4 text-neutral-500">
+          Se incluye todo el historial. Al cambiar una fecha, pasás al período personalizado.
+        </p>
       ) : null}
 
       <div className="mt-4 border-t border-neutral-100 pt-3">
@@ -140,7 +141,7 @@ export function ReportFilters({
           aria-expanded={advancedOpen}
           aria-controls="report-advanced-filters"
           onClick={() => setAdvancedOpen((open) => !open)}
-          className="flex w-full cursor-pointer items-center justify-between rounded-lg px-0.5 py-1.5 text-left text-[12px] font-semibold text-neutral-600 transition-colors hover:text-central-orange"
+          className="flex w-full cursor-pointer items-center justify-between rounded-lg px-0.5 py-1.5 text-left text-[12px] font-semibold text-neutral-600 transition-colors duration-200 hover:text-central-orange"
         >
           <span className="flex items-center gap-2">
             Más criterios
@@ -153,7 +154,8 @@ export function ReportFilters({
           <ChevronDown size={15} className={`transition-transform duration-200 ${advancedOpen ? 'rotate-180' : ''}`} />
         </button>
 
-        <div id="report-advanced-filters" className={`mt-3 min-w-0 grid-cols-2 gap-3 ${advancedOpen ? 'grid' : 'hidden'}`}>
+        <div id="report-advanced-filters" aria-hidden={!advancedOpen} inert={!advancedOpen} className={`grid min-w-0 transition-[grid-template-rows,opacity,margin] duration-200 ease-out ${advancedOpen ? 'mt-3 grid-rows-[1fr] opacity-100' : 'mt-0 grid-rows-[0fr] opacity-0 pointer-events-none'}`}>
+          <div className="grid min-h-0 min-w-0 grid-cols-2 gap-3 overflow-hidden">
           <div className="min-w-0">
             <span className={labelClass}>Estado</span>
             <Select
@@ -210,6 +212,7 @@ export function ReportFilters({
               />
             </span>
           </label>
+          </div>
         </div>
       </div>
 
