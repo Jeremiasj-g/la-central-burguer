@@ -2,15 +2,13 @@
 
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { ChevronRight, ExternalLink, LogOut, Menu, X } from 'lucide-react';
+import { ChevronRight, LogOut, Menu, X } from 'lucide-react';
 import { AdminNotifications } from './AdminNotifications';
 import { useEffect, useState } from 'react';
 import { ADMIN_NAVIGATION } from '@/shared/constants/navigation';
 import { ROUTES } from '@/shared/constants/routes';
 import { cn } from '@/shared/utils/cn';
-import { logoutAdmin, isAdminLoggedIn } from '@/features/auth/services/auth.service';
-import { useBusinessConfig } from '@/features/configuracion/hooks/useBusinessConfig';
-import { BusinessLogo } from '@/features/configuracion/components/BusinessLogo';
+import { getAdminSession, logoutAdmin, type AdminSession } from '@/features/auth/services/auth.service';
 import { BurgerLoader } from '@/shared/components/ui/BurgerLoader';
 
 const ADMIN_NAV_GROUPS = [
@@ -26,21 +24,19 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [checked, setChecked] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
-  const { config } = useBusinessConfig();
-  const businessWords = (config?.businessName?.trim() || 'La Central Burger').split(/\s+/);
-  const businessLastWord = businessWords.pop() || '';
-  const businessFirstWords = businessWords.join(' ') || businessLastWord;
+  const [session, setSession] = useState<AdminSession | null>(null);
 
   useEffect(() => {
     let active = true;
 
-    isAdminLoggedIn()
-      .then((loggedIn) => {
+    getAdminSession()
+      .then((currentSession) => {
         if (!active) return;
-        if (!loggedIn) {
+        if (!currentSession) {
           router.replace(ROUTES.adminLogin);
           return;
         }
+        setSession(currentSession);
         setChecked(true);
       })
       .catch((error: unknown) => {
@@ -76,15 +72,32 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
     );
   }
 
+  const displayName = session?.name?.trim() || session?.email?.split('@')[0] || 'Administrador';
+  const displayEmail = session?.email || 'Sin email';
+  const avatarInitials = displayName
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase())
+    .join('') || 'AD';
+
   const sidebar = (
     <aside className="flex h-full flex-col overflow-hidden bg-central-carbon text-white">
-      <div className="flex items-center gap-3 px-5 pb-4 pt-5">
-        <span className="grid h-11 w-11 shrink-0 place-items-center overflow-hidden rounded-sm bg-central-orange text-white">
-          <BusinessLogo logoUrl={config?.logoUrl} businessName={config?.businessName} mode="admin" />
-        </span>
-        <div className="min-w-0">
-          <p className="truncate text-sm font-black leading-tight">{businessFirstWords} {businessLastWord}</p>
-          <p className="mt-0.5 text-[11px] font-bold uppercase tracking-[.16em] text-central-orange">Administración</p>
+      <div className="px-4 pb-5 pt-5">
+        <div className="flex min-w-0 items-center gap-3 rounded-sm px-2 py-1.5">
+          <div className="relative shrink-0">
+            <span className="grid h-11 w-11 place-items-center rounded-full border border-white/10 bg-gradient-to-br from-central-orange to-central-ember text-sm font-black text-white shadow-[0_8px_22px_rgba(228,87,18,.18)]">
+              {avatarInitials}
+            </span>
+            <span className="absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-central-carbon bg-emerald-500" aria-hidden="true" />
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-[13px] font-black leading-tight text-white">{displayName}</p>
+            <p className="mt-0.5 truncate text-[11px] text-white/45">{displayEmail}</p>
+          </div>
+          <span className="shrink-0 rounded-full bg-white/[.07] px-2 py-1 text-[8px] font-black uppercase tracking-[.12em] text-white/45">
+            Admin
+          </span>
         </div>
       </div>
 
@@ -142,16 +155,6 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
       </nav>
 
       <div className="border-t border-white/10 p-3">
-        <Link
-          href={ROUTES.menu}
-          onClick={() => setMobileOpen(false)}
-          className="mb-1 flex min-h-10 items-center gap-3 rounded-sm px-3 py-2 text-[13px] font-bold text-white/55 transition hover:bg-white/10 hover:text-white"
-        >
-          <span className="grid h-7 w-7 place-items-center rounded-sm bg-white/[.06]">
-            <ExternalLink size={15} />
-          </span>
-          Ver sitio público
-        </Link>
         <button
           onClick={handleLogout}
           className="flex min-h-10 w-full items-center gap-3 rounded-sm px-3 py-2 text-left text-[13px] font-bold text-white/55 transition hover:bg-white/10 hover:text-white"
