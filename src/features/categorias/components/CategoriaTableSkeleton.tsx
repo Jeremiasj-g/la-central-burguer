@@ -1,3 +1,4 @@
+// Validación temporal CI del rediseño de catálogo.
 export function CategoriaTableSkeleton() {
   return (
     <div role="status" aria-label="Cargando categorías" className="min-w-0 animate-pulse motion-reduce:animate-none">
