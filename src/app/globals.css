@@ -315,26 +315,26 @@ select {
 }
 
 .lcb-calendar-month-next {
-  animation: lcb-calendar-month-next 180ms cubic-bezier(.16, 1, .3, 1);
+  animation: lcb-calendar-month-next 200ms cubic-bezier(.16, 1, .3, 1);
   will-change: transform, opacity;
 }
 
 .lcb-calendar-month-previous {
-  animation: lcb-calendar-month-previous 180ms cubic-bezier(.16, 1, .3, 1);
+  animation: lcb-calendar-month-previous 200ms cubic-bezier(.16, 1, .3, 1);
   will-change: transform, opacity;
 }
 
 .lcb-dropdown-content[data-state="open"] {
-  animation: lcb-dropdown-in 140ms cubic-bezier(.16, 1, .3, 1);
+  animation: lcb-dropdown-in 200ms cubic-bezier(.16, 1, .3, 1) both;
   transform-origin: var(--radix-select-content-transform-origin, var(--radix-popover-content-transform-origin));
 }
 
 .lcb-dropdown-content[data-state="closed"] {
-  animation: lcb-dropdown-out 90ms ease-in;
+  animation: lcb-dropdown-out 200ms ease-in both;
 }
 
 .report-table-enter {
-  animation: report-table-enter 180ms ease-out;
+  animation: report-table-enter 200ms ease-out;
 }
 
 .lcb-bell-vibrate {
@@ -349,6 +349,99 @@ select {
   .lcb-calendar-month-next,
   .lcb-calendar-month-previous {
     animation: none;
+  }
+}
+
+
+/* Transiciones compartidas de 200 ms para diálogos, drawers y calendarios. */
+@keyframes lcb-overlay-enter {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes lcb-overlay-exit {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+@keyframes lcb-modal-enter {
+  from { opacity: 0; transform: translateY(9px) scale(.985); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes lcb-modal-exit {
+  from { opacity: 1; transform: translateY(0) scale(1); }
+  to { opacity: 0; transform: translateY(6px) scale(.99); }
+}
+
+@keyframes lcb-drawer-enter {
+  from { opacity: .65; transform: translateX(22px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes lcb-drawer-exit {
+  from { opacity: 1; transform: translateX(0); }
+  to { opacity: .65; transform: translateX(22px); }
+}
+
+@keyframes lcb-calendar-enter {
+  from { opacity: 0; transform: translateY(-6px) scale(.985); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes lcb-calendar-exit {
+  from { opacity: 1; transform: translateY(0) scale(1); }
+  to { opacity: 0; transform: translateY(-4px) scale(.99); }
+}
+
+.lcb-modal-overlay[data-state="open"],
+.lcb-drawer-overlay[data-state="open"] {
+  animation: lcb-overlay-enter 200ms ease-out both;
+}
+
+.lcb-modal-overlay[data-state="closed"],
+.lcb-drawer-overlay[data-state="closed"] {
+  animation: lcb-overlay-exit 200ms ease-in both;
+}
+
+.lcb-modal-panel[data-state="open"] {
+  animation: lcb-modal-enter 200ms cubic-bezier(.16, 1, .3, 1) both;
+}
+
+.lcb-modal-panel[data-state="closed"] {
+  animation: lcb-modal-exit 200ms ease-in both;
+}
+
+.lcb-drawer-panel[data-state="open"] {
+  animation: lcb-drawer-enter 200ms cubic-bezier(.16, 1, .3, 1) both;
+}
+
+.lcb-drawer-panel[data-state="closed"] {
+  animation: lcb-drawer-exit 200ms ease-in both;
+}
+
+.lcb-calendar-popover[data-state="open"] {
+  animation: lcb-calendar-enter 200ms cubic-bezier(.16, 1, .3, 1) both;
+  transform-origin: top center;
+}
+
+.lcb-calendar-popover[data-state="closed"] {
+  animation: lcb-calendar-exit 200ms ease-in both;
+  transform-origin: top center;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lcb-modal-overlay,
+  .lcb-modal-panel,
+  .lcb-drawer-overlay,
+  .lcb-drawer-panel,
+  .lcb-calendar-popover {
+    animation: none !important;
+  }
+
+  .report-advanced-panel,
+  .lcb-dropdown-content {
+    transition-duration: 0.01ms !important;
   }
 }
 
