@@ -20,7 +20,6 @@ import {
   Users,
 } from 'lucide-react';
 import { toast } from 'react-toastify';
-import { AdminPageHeader } from '@/shared/components/layout/AdminPageHeader';
 import { Button } from '@/shared/components/ui/Button';
 import { ConfirmDialog } from '@/shared/components/ui/ConfirmDialog';
 import { Modal } from '@/shared/components/ui/Modal';
@@ -48,24 +47,63 @@ type ConfirmState =
   | { type: 'delete-role'; role: AccessRole };
 
 const EMPTY: AccessManagementDashboard = { users: [], roles: [], permissions: [] };
-const labelClass = 'mb-1.5 block text-xs font-bold uppercase tracking-wide text-neutral-500';
+const labelClass = 'mb-1.5 block text-[11px] font-medium text-neutral-500';
 
-function Metric({ icon: Icon, label, value, helper }: { icon: React.ComponentType<{ size?: number }>; label: string; value: string; helper: string }) {
+function AccessOverview({
+  totalUsers,
+  activeUsers,
+  pendingUsers,
+  deliveryUsers,
+  totalRoles,
+  customRoles,
+}: {
+  totalUsers: number;
+  activeUsers: number;
+  pendingUsers: number;
+  deliveryUsers: number;
+  totalRoles: number;
+  customRoles: number;
+}) {
   return (
-    <article className="rounded-sm border border-neutral-200 bg-white p-5 shadow-sm">
-      <div className="flex items-start justify-between gap-3">
-        <div><p className="text-xs font-bold uppercase tracking-wide text-neutral-500">{label}</p><p className="mt-2 text-2xl font-black text-central-carbon">{value}</p><p className="mt-1 text-xs leading-5 text-neutral-500">{helper}</p></div>
-        <span className="grid h-10 w-10 shrink-0 place-items-center rounded-sm bg-central-orange/10 text-central-orange"><Icon size={18} /></span>
+    <section aria-label="Resumen de accesos" className="relative flex min-w-0 flex-col justify-between overflow-hidden rounded-[23px] bg-[#191b20] px-5 py-6 text-white shadow-soft sm:px-7 sm:py-7">
+      <div className="pointer-events-none absolute -right-12 -top-20 h-56 w-56 rounded-full bg-central-orange/10 blur-[60px]" aria-hidden="true" />
+      <div className="relative flex items-start justify-between gap-3">
+        <div>
+          <p className="text-[11px] font-medium uppercase tracking-[.12em] text-white/45">Tu equipo</p>
+          <p className="mt-1 text-[12px] text-white/55">Usuarios habilitados para trabajar</p>
+        </div>
+        <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl border border-white/10 bg-white/[.08] text-white/80">
+          <Users size={20} strokeWidth={1.7} />
+        </span>
       </div>
-    </article>
+      <div className="relative mt-5 flex flex-wrap items-end gap-x-3 gap-y-1">
+        <p className="text-[clamp(2.65rem,4vw,3.8rem)] font-semibold leading-none tracking-[-.06em] [font-variant-numeric:tabular-nums]">{activeUsers}</p>
+        <p className="pb-1 text-[12px] text-white/55">de {totalUsers} usuarios registrados</p>
+      </div>
+      <div className="relative mt-7 grid grid-cols-3 gap-2 border-t border-white/10 pt-4">
+        <div>
+          <p className="text-[11px] text-white/50">Por activar</p>
+          <p className="mt-1 text-[21px] font-semibold tracking-[-.04em] text-[#ffd2a9]">{pendingUsers}</p>
+        </div>
+        <div>
+          <p className="text-[11px] text-white/50">Delivery</p>
+          <p className="mt-1 text-[21px] font-semibold tracking-[-.04em]">{deliveryUsers}</p>
+        </div>
+        <div>
+          <p className="text-[11px] text-white/50">Roles</p>
+          <p className="mt-1 text-[21px] font-semibold tracking-[-.04em]">{totalRoles}</p>
+          <p className="mt-0.5 text-[10px] text-white/40">{customRoles} personalizados</p>
+        </div>
+      </div>
+    </section>
   );
 }
 
 function StatusBadge({ user }: { user: AccessUser }) {
-  if (user.accessStatus === 'archived') return <span className="rounded-full bg-neutral-200 px-2.5 py-1 text-[10px] font-black uppercase text-neutral-600">Archivado</span>;
-  if (user.accessStatus === 'pending_activation') return <span className="rounded-full bg-orange-50 px-2.5 py-1 text-[10px] font-black uppercase text-orange-700">Pendiente de activación</span>;
-  if (user.accessStatus === 'inactive') return <span className="rounded-full bg-amber-50 px-2.5 py-1 text-[10px] font-black uppercase text-amber-700">Inactivo</span>;
-  return <span className="rounded-full bg-emerald-50 px-2.5 py-1 text-[10px] font-black uppercase text-emerald-700">Activo</span>;
+  if (user.accessStatus === 'archived') return <span className="rounded-full bg-neutral-200 px-2.5 py-1 text-[10px] font-semibold uppercase text-neutral-600">Archivado</span>;
+  if (user.accessStatus === 'pending_activation') return <span className="rounded-full bg-orange-50 px-2.5 py-1 text-[10px] font-semibold uppercase text-orange-700">Pendiente de activación</span>;
+  if (user.accessStatus === 'inactive') return <span className="rounded-full bg-amber-50 px-2.5 py-1 text-[10px] font-semibold uppercase text-amber-700">Inactivo</span>;
+  return <span className="rounded-full bg-emerald-50 px-2.5 py-1 text-[10px] font-semibold uppercase text-emerald-700">Activo</span>;
 }
 
 function UserCard({ user, onEdit, onPassword, onConfirm }: {
@@ -78,10 +116,10 @@ function UserCard({ user, onEdit, onPassword, onConfirm }: {
   const active = user.accessStatus === 'active';
 
   return (
-    <article className={`min-w-0 rounded-sm border bg-white p-4 shadow-sm ${user.accessStatus === 'archived' ? 'border-neutral-200 opacity-70' : 'border-neutral-200'}`}>
+    <article className={`min-w-0 rounded-[17px] border bg-[#fafafa] p-4 transition-colors duration-200 hover:bg-white ${user.accessStatus === 'archived' ? 'border-neutral-200/70 opacity-70' : 'border-neutral-200/70'}`}>
       <div className="flex min-w-0 items-start justify-between gap-3">
         <div className="min-w-0">
-          <div className="flex flex-wrap items-center gap-2"><h3 className="truncate font-black text-central-carbon">{user.fullName}</h3><StatusBadge user={user} /></div>
+          <div className="flex flex-wrap items-center gap-2"><h3 className="truncate font-semibold text-central-carbon">{user.fullName}</h3><StatusBadge user={user} /></div>
           <p className="mt-1 truncate text-sm text-neutral-500">{user.email || 'Sin email'}</p>
           {user.phone ? <p className="mt-1 text-xs text-neutral-400">{user.phone}</p> : null}
         </div>
@@ -89,26 +127,26 @@ function UserCard({ user, onEdit, onPassword, onConfirm }: {
       </div>
 
       <div className="mt-4 flex flex-wrap gap-1.5">
-        {user.roles.map((role) => <span key={role.id} className={`rounded-full border px-2.5 py-1 text-[11px] font-bold ${role.code === 'admin' ? 'border-violet-200 bg-violet-50 text-violet-700' : role.code === 'delivery' ? 'border-orange-200 bg-orange-50 text-orange-700' : 'border-neutral-200 bg-neutral-50 text-neutral-600'}`}>{role.name}</span>)}
+        {user.roles.map((role) => <span key={role.id} className={`rounded-full border px-2.5 py-1 text-[11px] font-medium ${role.code === 'admin' ? 'border-violet-200 bg-violet-50 text-violet-700' : role.code === 'delivery' ? 'border-orange-200 bg-orange-50 text-orange-700' : 'border-neutral-200 bg-neutral-50 text-neutral-600'}`}>{role.name}</span>)}
         {user.roles.length === 0 ? <span className="text-xs text-red-500">Sin roles asignados</span> : null}
       </div>
 
       {pending ? (
-        <div className="mt-4 rounded-sm border border-orange-100 bg-orange-50 p-3 text-xs leading-5 text-orange-800">
+        <div className="mt-3 rounded-[12px] bg-orange-50 px-3 py-2.5 text-[11px] leading-5 text-orange-800">
           <strong>Esperando verificación.</strong> El usuario todavía debe abrir el correo de invitación, verificar su email y crear su contraseña.
         </div>
       ) : null}
 
       {user.delivery ? (
-        <div className="mt-4 flex items-center justify-between gap-3 rounded-sm border border-central-orange/15 bg-[#fffaf2] p-3">
-          <div className="flex items-center gap-2"><Bike size={15} className="text-central-orange" /><div><p className="text-xs font-black text-central-carbon">Repartidor · {user.delivery.vehicleType}</p><p className="mt-0.5 text-[11px] text-neutral-500">Comisión vigente {user.delivery.commissionPercent ?? 0}%</p></div></div>
+        <div className="mt-3 flex items-center justify-between gap-3 rounded-[12px] bg-[#fff5e9] p-3">
+          <div className="flex items-center gap-2"><Bike size={15} className="text-central-orange" /><div><p className="text-xs font-semibold text-central-carbon">Repartidor · {user.delivery.vehicleType}</p><p className="mt-0.5 text-[11px] text-neutral-500">Comisión vigente {user.delivery.commissionPercent ?? 0}%</p></div></div>
           <span className={`h-2.5 w-2.5 rounded-full ${user.delivery.active ? 'bg-emerald-500' : 'bg-neutral-300'}`} />
         </div>
       ) : null}
 
-      <div className="mt-4 grid grid-cols-2 gap-2 rounded-sm bg-neutral-50 p-3 text-xs">
-        <div><p className="text-neutral-400">{pending ? 'Invitación enviada' : 'Creado'}</p><p className="mt-1 font-bold text-neutral-700">{pending && user.confirmationSentAt ? formatDateTime(user.confirmationSentAt) : formatDateTime(user.createdAt)}</p></div>
-        <div><p className="text-neutral-400">{pending ? 'Email verificado' : 'Último ingreso'}</p><p className="mt-1 font-bold text-neutral-700">{pending ? 'Pendiente' : user.lastSignInAt ? formatDateTime(user.lastSignInAt) : 'Nunca'}</p></div>
+      <div className="mt-4 grid grid-cols-2 gap-2 border-t border-neutral-200/70 pt-3 text-[11px]">
+        <div><p className="text-neutral-400">{pending ? 'Invitación enviada' : 'Creado'}</p><p className="mt-1 font-medium text-neutral-700">{pending && user.confirmationSentAt ? formatDateTime(user.confirmationSentAt) : formatDateTime(user.createdAt)}</p></div>
+        <div><p className="text-neutral-400">{pending ? 'Email verificado' : 'Último ingreso'}</p><p className="mt-1 font-medium text-neutral-700">{pending ? 'Pendiente' : user.lastSignInAt ? formatDateTime(user.lastSignInAt) : 'Nunca'}</p></div>
       </div>
 
       <div className="mt-4 flex flex-wrap gap-2">
@@ -160,10 +198,10 @@ function UserTableRow({ user, onEdit, onPassword, onConfirm }: {
   const lastValue = pending ? 'Pendiente' : user.lastSignInAt ? formatDateTime(user.lastSignInAt) : 'Nunca';
 
   return (
-    <div className={`grid min-w-0 grid-cols-1 gap-3 border-t border-neutral-200 px-4 py-3 sm:grid-cols-2 xl:grid-cols-[minmax(0,1.55fr)_minmax(0,.8fr)_minmax(0,1.05fr)_minmax(0,.9fr)_minmax(0,.9fr)_minmax(0,1.35fr)] xl:items-center ${user.accessStatus === 'archived' ? 'opacity-65' : ''}`}>
+    <div className={`grid min-w-0 grid-cols-1 gap-3 border-t border-neutral-100 px-4 py-4 transition-colors duration-200 hover:bg-[#fafafa] sm:grid-cols-2 xl:grid-cols-[minmax(0,1.55fr)_minmax(0,.8fr)_minmax(0,1.05fr)_minmax(0,.9fr)_minmax(0,.9fr)_minmax(0,1.35fr)] xl:items-center ${user.accessStatus === 'archived' ? 'opacity-65' : ''}`}>
       <div className="min-w-0">
         <div className="flex min-w-0 flex-wrap items-center gap-1.5">
-          <p className="min-w-0 break-words text-[13px] font-black text-central-carbon">{user.fullName}</p>
+          <p className="min-w-0 break-words text-[13px] font-semibold text-central-carbon">{user.fullName}</p>
           <StatusBadge user={user} />
         </div>
         <p className="mt-1 break-all text-[11px] leading-4 text-neutral-500">{user.email || 'Sin email'}</p>
@@ -171,22 +209,22 @@ function UserTableRow({ user, onEdit, onPassword, onConfirm }: {
       </div>
 
       <div className="min-w-0">
-        <p className="mb-1 text-[10px] font-bold uppercase tracking-wide text-neutral-400 xl:hidden">Roles</p>
+        <p className="mb-1 text-[10px] font-medium uppercase tracking-wide text-neutral-400 xl:hidden">Roles</p>
         <div className="flex min-w-0 flex-wrap gap-1">
           {user.roles.map((role) => (
-            <span key={role.id} className={`rounded-full border px-2 py-0.5 text-[10px] font-bold ${role.code === 'admin' ? 'border-violet-200 bg-violet-50 text-violet-700' : role.code === 'delivery' ? 'border-orange-200 bg-orange-50 text-orange-700' : 'border-neutral-200 bg-neutral-50 text-neutral-600'}`}>{role.name}</span>
+            <span key={role.id} className={`rounded-full border px-2 py-0.5 text-[10px] font-medium ${role.code === 'admin' ? 'border-violet-200 bg-violet-50 text-violet-700' : role.code === 'delivery' ? 'border-orange-200 bg-orange-50 text-orange-700' : 'border-neutral-200 bg-neutral-50 text-neutral-600'}`}>{role.name}</span>
           ))}
           {user.roles.length === 0 ? <span className="text-[10px] text-red-500">Sin roles</span> : null}
         </div>
       </div>
 
       <div className="min-w-0">
-        <p className="mb-1 text-[10px] font-bold uppercase tracking-wide text-neutral-400 xl:hidden">Delivery</p>
+        <p className="mb-1 text-[10px] font-medium uppercase tracking-wide text-neutral-400 xl:hidden">Delivery</p>
         {user.delivery ? (
           <div className="flex min-w-0 items-center gap-2">
             <span className="grid h-7 w-7 shrink-0 place-items-center rounded-sm bg-central-orange/10 text-central-orange"><Bike size={13} /></span>
             <div className="min-w-0">
-              <div className="flex items-center gap-1.5"><p className="truncate text-[11px] font-black capitalize text-central-carbon">{user.delivery.vehicleType}</p><span className={`h-2 w-2 shrink-0 rounded-full ${user.delivery.active ? 'bg-emerald-500' : 'bg-neutral-300'}`} /></div>
+              <div className="flex items-center gap-1.5"><p className="truncate text-[11px] font-semibold capitalize text-central-carbon">{user.delivery.vehicleType}</p><span className={`h-2 w-2 shrink-0 rounded-full ${user.delivery.active ? 'bg-emerald-500' : 'bg-neutral-300'}`} /></div>
               <p className="mt-0.5 text-[10px] text-neutral-500">Comisión {user.delivery.commissionPercent ?? 0}%</p>
             </div>
           </div>
@@ -195,16 +233,16 @@ function UserTableRow({ user, onEdit, onPassword, onConfirm }: {
 
       <div className="min-w-0">
         <p className="text-[10px] text-neutral-400">{createdLabel}</p>
-        <p className="mt-1 break-words text-[11px] font-bold leading-4 text-neutral-700">{createdValue}</p>
+        <p className="mt-1 break-words text-[11px] font-medium leading-4 text-neutral-700">{createdValue}</p>
       </div>
 
       <div className="min-w-0">
         <p className="text-[10px] text-neutral-400">{lastLabel}</p>
-        <p className="mt-1 break-words text-[11px] font-bold leading-4 text-neutral-700">{lastValue}</p>
+        <p className="mt-1 break-words text-[11px] font-medium leading-4 text-neutral-700">{lastValue}</p>
       </div>
 
       <div className="min-w-0">
-        <p className="mb-1.5 text-[10px] font-bold uppercase tracking-wide text-neutral-400 xl:hidden">Acciones</p>
+        <p className="mb-1.5 text-[10px] font-medium uppercase tracking-wide text-neutral-400 xl:hidden">Acciones</p>
         <div className="flex min-w-0 flex-wrap items-center gap-1.5 xl:justify-end">
           <TableActionButton label="Editar" onClick={onEdit}><Edit3 size={14} /></TableActionButton>
           {!pending && user.accessStatus !== 'archived' ? <TableActionButton label="Cambiar clave" onClick={onPassword}><KeyRound size={14} /></TableActionButton> : null}
@@ -226,13 +264,13 @@ function UserTableRow({ user, onEdit, onPassword, onConfirm }: {
 
 function RoleCard({ role, onEdit, onDelete }: { role: AccessRole; onEdit: () => void; onDelete: () => void }) {
   return (
-    <article className={`rounded-sm border bg-white p-4 shadow-sm ${role.active ? 'border-neutral-200' : 'border-neutral-200 opacity-65'}`}>
+    <article className={`rounded-[17px] border bg-[#fafafa] p-4 transition-colors duration-200 hover:bg-white ${role.active ? 'border-neutral-200/70' : 'border-neutral-200/70 opacity-65'}`}>
       <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0"><div className="flex flex-wrap items-center gap-2"><h3 className="font-black text-central-carbon">{role.name}</h3>{role.isSystem ? <span className="rounded-full bg-violet-50 px-2 py-1 text-[10px] font-black uppercase text-violet-700">Sistema</span> : null}{!role.active ? <span className="rounded-full bg-neutral-100 px-2 py-1 text-[10px] font-black uppercase text-neutral-500">Inactivo</span> : null}</div><p className="mt-1 font-mono text-xs text-neutral-400">{role.code}</p></div>
+        <div className="min-w-0"><div className="flex flex-wrap items-center gap-2"><h3 className="font-semibold text-central-carbon">{role.name}</h3>{role.isSystem ? <span className="rounded-full bg-violet-50 px-2 py-1 text-[10px] font-semibold uppercase text-violet-700">Sistema</span> : null}{!role.active ? <span className="rounded-full bg-neutral-100 px-2 py-1 text-[10px] font-semibold uppercase text-neutral-500">Inactivo</span> : null}</div><p className="mt-1 font-mono text-xs text-neutral-400">{role.code}</p></div>
         <span className="grid h-9 w-9 shrink-0 place-items-center rounded-sm bg-central-orange/10 text-central-orange"><Shield size={16} /></span>
       </div>
       <p className="mt-3 min-h-10 text-sm leading-5 text-neutral-500">{role.description || 'Sin descripción.'}</p>
-      <div className="mt-4 grid grid-cols-2 gap-2 rounded-sm bg-neutral-50 p-3 text-center"><div><p className="text-[11px] text-neutral-400">Usuarios</p><p className="mt-1 text-lg font-black text-central-carbon">{role.usersCount}</p></div><div><p className="text-[11px] text-neutral-400">Permisos</p><p className="mt-1 text-lg font-black text-central-carbon">{role.permissionCodes.length}</p></div></div>
+      <div className="mt-4 grid grid-cols-2 gap-2 rounded-[12px] bg-white p-3 text-center"><div><p className="text-[11px] text-neutral-400">Usuarios</p><p className="mt-1 text-lg font-semibold text-central-carbon">{role.usersCount}</p></div><div><p className="text-[11px] text-neutral-400">Permisos</p><p className="mt-1 text-lg font-semibold text-central-carbon">{role.permissionCodes.length}</p></div></div>
       <div className="mt-4 flex gap-2"><Button size="sm" variant="secondary" onClick={onEdit}><Edit3 size={14} /> Editar</Button>{!role.isSystem ? <Button size="sm" variant="danger" onClick={onDelete}>Eliminar</Button> : null}</div>
     </article>
   );
@@ -345,8 +383,8 @@ export function AccessManagementPage() {
           </section>
 
           <div className="mb-5 flex min-w-0 gap-2 overflow-x-auto rounded-sm border border-neutral-200 bg-white p-2 shadow-sm">
-            <button onClick={() => { setTab('users'); setQuery(''); }} className={`inline-flex cursor-pointer items-center gap-2 rounded-sm px-4 py-2.5 text-sm font-bold transition ${tab === 'users' ? 'bg-central-carbon text-white' : 'text-neutral-500 hover:bg-neutral-100'}`}><Users size={16} /> Usuarios</button>
-            <button onClick={() => { setTab('roles'); setQuery(''); }} className={`inline-flex cursor-pointer items-center gap-2 rounded-sm px-4 py-2.5 text-sm font-bold transition ${tab === 'roles' ? 'bg-central-carbon text-white' : 'text-neutral-500 hover:bg-neutral-100'}`}><Shield size={16} /> Roles y permisos</button>
+            <button onClick={() => { setTab('users'); setQuery(''); }} className={`inline-flex cursor-pointer items-center gap-2 rounded-sm px-4 py-2.5 text-sm font-medium transition ${tab === 'users' ? 'bg-central-carbon text-white' : 'text-neutral-500 hover:bg-neutral-100'}`}><Users size={16} /> Usuarios</button>
+            <button onClick={() => { setTab('roles'); setQuery(''); }} className={`inline-flex cursor-pointer items-center gap-2 rounded-sm px-4 py-2.5 text-sm font-medium transition ${tab === 'roles' ? 'bg-central-carbon text-white' : 'text-neutral-500 hover:bg-neutral-100'}`}><Shield size={16} /> Roles y permisos</button>
           </div>
 
           <div className="mb-5 flex max-w-xl items-center gap-2 rounded-sm border border-neutral-200 bg-white px-3 shadow-sm focus-within:border-central-orange focus-within:ring-2 focus-within:ring-central-orange/10"><Search size={16} className="text-neutral-400" /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder={tab === 'users' ? 'Buscar usuario, email, teléfono, estado o rol…' : 'Buscar rol por nombre, código o descripción…'} className="h-11 min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-neutral-400" /></div>
@@ -354,13 +392,13 @@ export function AccessManagementPage() {
           {tab === 'users' ? (
             <section className="rounded-sm border border-neutral-200 bg-white p-5 shadow-sm">
               <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
-                <div><h2 className="font-black text-central-carbon">Cuentas de usuario</h2><p className="text-xs text-neutral-500">Podés enviar una invitación por correo o crear la cuenta directamente con una contraseña inicial.</p></div>
+                <div><h2 className="font-semibold text-central-carbon">Cuentas de usuario</h2><p className="text-xs text-neutral-500">Podés enviar una invitación por correo o crear la cuenta directamente con una contraseña inicial.</p></div>
                 <div className="flex flex-wrap items-center gap-2">
                   <div className="inline-flex rounded-sm border border-neutral-200 bg-neutral-50 p-1" role="group" aria-label="Cambiar vista de usuarios">
                     <button
                       type="button"
                       onClick={() => setUserViewMode('grid')}
-                      className={`inline-flex h-8 items-center gap-1.5 rounded-sm px-3 text-xs font-bold transition ${userViewMode === 'grid' ? 'bg-white text-central-carbon shadow-sm' : 'text-neutral-500 hover:text-central-carbon'}`}
+                      className={`inline-flex h-8 items-center gap-1.5 rounded-sm px-3 text-xs font-medium transition ${userViewMode === 'grid' ? 'bg-white text-central-carbon shadow-sm' : 'text-neutral-500 hover:text-central-carbon'}`}
                       aria-pressed={userViewMode === 'grid'}
                     >
                       <LayoutGrid size={14} /> Cuadros
@@ -368,7 +406,7 @@ export function AccessManagementPage() {
                     <button
                       type="button"
                       onClick={() => setUserViewMode('table')}
-                      className={`inline-flex h-8 items-center gap-1.5 rounded-sm px-3 text-xs font-bold transition ${userViewMode === 'table' ? 'bg-white text-central-carbon shadow-sm' : 'text-neutral-500 hover:text-central-carbon'}`}
+                      className={`inline-flex h-8 items-center gap-1.5 rounded-sm px-3 text-xs font-medium transition ${userViewMode === 'table' ? 'bg-white text-central-carbon shadow-sm' : 'text-neutral-500 hover:text-central-carbon'}`}
                       aria-pressed={userViewMode === 'table'}
                     >
                       <List size={15} /> Tabla
@@ -385,7 +423,7 @@ export function AccessManagementPage() {
                 </div>
               ) : (
                 <div className="min-w-0 overflow-hidden rounded-sm border border-neutral-200 bg-white">
-                  <div className="hidden grid-cols-[minmax(0,1.55fr)_minmax(0,.8fr)_minmax(0,1.05fr)_minmax(0,.9fr)_minmax(0,.9fr)_minmax(0,1.35fr)] items-center gap-3 bg-neutral-50 px-4 py-2.5 text-[10px] font-black uppercase tracking-wide text-neutral-500 xl:grid">
+                  <div className="hidden grid-cols-[minmax(0,1.55fr)_minmax(0,.8fr)_minmax(0,1.05fr)_minmax(0,.9fr)_minmax(0,.9fr)_minmax(0,1.35fr)] items-center gap-3 bg-neutral-50 px-4 py-2.5 text-[10px] font-semibold uppercase tracking-wide text-neutral-500 xl:grid">
                     <span>Usuario</span><span>Roles</span><span>Delivery</span><span>Creado</span><span>Último ingreso</span><span className="text-right">Acciones</span>
                   </div>
                   {users.map((user) => <UserTableRow key={user.id} user={user} onEdit={() => setUserModal(user)} onPassword={() => { setPasswordUser(user); setNewPassword(''); }} onConfirm={setConfirmState} />)}
@@ -395,7 +433,7 @@ export function AccessManagementPage() {
             </section>
           ) : (
             <section className="rounded-sm border border-neutral-200 bg-white p-5 shadow-sm">
-              <div className="mb-5 flex flex-wrap items-center justify-between gap-3"><div><h2 className="font-black text-central-carbon">Roles y permisos</h2><p className="text-xs text-neutral-500">Los roles del sistema protegen las funciones esenciales; podés crear roles adicionales para futuras áreas.</p></div><Button onClick={() => setRoleModal('new')}><Plus size={16} /> Nuevo rol</Button></div>
+              <div className="mb-5 flex flex-wrap items-center justify-between gap-3"><div><h2 className="font-semibold text-central-carbon">Roles y permisos</h2><p className="text-xs text-neutral-500">Los roles del sistema protegen las funciones esenciales; podés crear roles adicionales para futuras áreas.</p></div><Button onClick={() => setRoleModal('new')}><Plus size={16} /> Nuevo rol</Button></div>
               <div className="grid gap-4 md:grid-cols-2 2xl:grid-cols-3">
                 {roles.map((role) => <RoleCard key={role.id} role={role} onEdit={() => setRoleModal(role)} onDelete={() => setConfirmState({ type: 'delete-role', role })} />)}
                 {roles.length === 0 ? <div className="md:col-span-2 2xl:col-span-3 rounded-sm border border-dashed border-neutral-200 p-10 text-center text-sm text-neutral-500">No hay roles que coincidan con la búsqueda.</div> : null}
