@@ -1,3 +1,4 @@
+// Validación temporal del pulido del dashboard.
 import Skeleton from 'react-loading-skeleton';
 
 export function DashboardMetricCardSkeleton() {
