@@ -1,3 +1,4 @@
+// Validación temporal de TypeScript y build del módulo Pedidos.
 function SkeletonLine({ className = '' }: { className?: string }) {
   return <span className={`block rounded-lg bg-neutral-100 ${className}`} aria-hidden="true" />;
 }
