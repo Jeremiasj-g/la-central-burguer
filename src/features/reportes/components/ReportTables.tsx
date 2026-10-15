@@ -107,7 +107,7 @@ export function ReportTables({
     : { page: detailPage, totalItems: detailTotal, onPageChange: onDetailPageChange };
 
   return (
-    <section className="min-w-0 overflow-hidden rounded-sm border border-neutral-200 bg-white shadow-sm">
+    <section className="min-w-0 overflow-hidden rounded-sm border border-neutral-200 bg-white shadow-soft">
       <div className="flex min-w-0 flex-col gap-4 border-b border-neutral-100 p-4 sm:p-5 lg:flex-row lg:items-center lg:justify-between">
         <div className="min-w-0">
           <h3 className="break-words text-base font-extrabold text-central-carbon">Detalle y consolidación</h3>
