@@ -1,4 +1,5 @@
 'use client';
+// Validación CI temporal del navbar translúcido.
 
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
