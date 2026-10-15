@@ -36,8 +36,8 @@ export function Button({ className, variant = 'primary', size = 'md', asChild, h
   );
 
   if (asChild && href) {
-    return <Link className={classes} href={href}>{children}</Link>;
+    return <Link data-ui="button" data-variant={variant} className={classes} href={href}>{children}</Link>;
   }
 
-  return <button className={classes} {...props}>{children}</button>;
+  return <button data-ui="button" data-variant={variant} className={classes} {...props}>{children}</button>;
 }
