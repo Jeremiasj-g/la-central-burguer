@@ -222,7 +222,7 @@ export function ProductosAdminPage() {
         title={editing ? 'Editar producto' : 'Nuevo producto'}
         size="xl"
         theme="light"
-        panelClassName="!rounded-[20px] !border-neutral-200/80 !bg-white"
+        panelClassName="product-create-modal !max-w-[1480px] !rounded-[18px] !border-neutral-200/70 !bg-white"
       >
         <ProductoForm
           key={editing?.id ?? 'new'}
