@@ -6,6 +6,7 @@ import { createPortal } from 'react-dom';
 import { cn } from '@/shared/utils/cn';
 import { useSmartModalViewport } from '@/shared/hooks/useSmartModalViewport';
 import { useBodyScrollLock } from '@/shared/hooks/useBodyScrollLock';
+import { useAnimatedPresence } from '@/shared/hooks/useAnimatedPresence';
 
 interface ModalProps {
   open: boolean;
@@ -31,6 +32,7 @@ function isFormControl(element: Element | null): element is HTMLElement {
 
 export function Modal({ open, title, children, onClose, className, panelClassName, size = 'md', theme = 'light' }: ModalProps) {
   const viewport = useSmartModalViewport(16);
+  const mounted = useAnimatedPresence(open);
   const panelRef = useRef<HTMLElement>(null);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
 
@@ -97,29 +99,32 @@ export function Modal({ open, title, children, onClose, className, panelClassNam
     };
   }, [open]);
 
-  if (!open || typeof document === 'undefined') return null;
+  if (!mounted || typeof document === 'undefined') return null;
 
   const isDark = theme === 'dark';
 
   return createPortal(
     <div
       data-lcb-scroll-lock-overlay="true"
-      className={cn('fixed z-[100] flex items-start justify-center overflow-hidden bg-black/70 p-3 backdrop-blur-sm sm:items-center sm:p-4', className)}
+      data-state={open ? 'open' : 'closed'}
+      aria-hidden={!open}
+      className={cn('lcb-modal-overlay fixed z-[100] flex items-start justify-center overflow-hidden bg-black/70 p-3 backdrop-blur-sm sm:items-center sm:p-4', !open && 'pointer-events-none', className)}
       style={{
         top: viewport.offsetTop,
         left: viewport.offsetLeft,
         width: viewport.width,
         height: viewport.height,
       }}
-      onMouseDown={onClose}
+      onMouseDown={open ? onClose : undefined}
     >
       <section
         ref={panelRef}
+        data-state={open ? 'open' : 'closed'}
         role="dialog"
         aria-modal="true"
         aria-label={title ?? 'Ventana de diálogo'}
         className={cn(
-          'my-auto flex w-full min-w-0 flex-col overflow-hidden rounded-sm border shadow-dark',
+          'lcb-modal-panel my-auto flex w-full min-w-0 flex-col overflow-hidden rounded-sm border shadow-dark',
           sizes[size],
           isDark ? 'border-white/10 bg-[#191919] text-white skeleton-dark' : 'border-neutral-200 bg-white text-central-carbon',
           panelClassName,
