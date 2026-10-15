@@ -181,7 +181,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
       ) : null}
 
       <div className="lg:pl-[250px]">
-        <header className="sticky top-0 z-30 flex h-[72px] items-center justify-between border-b border-neutral-200/55 bg-[#f5f5f5]/65 px-4 backdrop-blur-[5px] sm:h-[76px] sm:px-6">
+        <header className="sticky top-0 z-30 flex h-[72px] items-center justify-between border-b border-neutral-200/55 bg-[#f5f5f5]/65 px-4 backdrop-blur-[10px] sm:h-[76px] sm:px-6">
           <button className="grid h-10 w-10 shrink-0 place-items-center rounded-[11px] border border-neutral-200/80 bg-white/45 text-neutral-700 transition-[background-color,border-color] duration-200 hover:border-central-orange/30 hover:bg-white/70 lg:hidden" onClick={() => setMobileOpen((value) => !value)} aria-label="Abrir navegación">
             {mobileOpen ? <X /> : <Menu />}
           </button>
