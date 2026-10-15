@@ -675,6 +675,7 @@ export function DeliveryAdminPage() {
                         options={UNASSIGNED_SCOPE_OPTIONS}
                         onValueChange={(value) => setUnassignedScope(value as UnassignedScope)}
                         aria-label="Período de pedidos sin asignar"
+                        className="!h-9 !rounded-[10px] !border-neutral-200/70 !bg-[#f7f7f9] !text-[12px] !shadow-none"
                       />
                     </div>
                     <span className="rounded-full bg-central-orange/10 px-2.5 py-1 text-[11px] font-medium text-central-orange">{filteredOrders.length}</span>
@@ -708,6 +709,7 @@ export function DeliveryAdminPage() {
                             searchPlaceholder="Buscar repartidor…"
                             emptyMessage="No hay repartidores activos."
                             aria-label={`Repartidor para ${order.orderCode}`}
+                            className="!rounded-[11px] !border-neutral-200/70 !bg-[#f7f7f9] !text-[12px] !shadow-none"
                           />
                           <label className="relative block">
                             <span className="sr-only">Comisión para este pedido</span>
@@ -760,6 +762,7 @@ export function DeliveryAdminPage() {
                           onValueChange={(value) => setDriverByAssignment((current) => ({ ...current, [item.id]: value }))}
                           searchPlaceholder="Buscar repartidor…"
                           aria-label={`Reasignar ${item.orderCode}`}
+                          className="!rounded-[11px] !border-neutral-200/70 !bg-[#f7f7f9] !text-[12px] !shadow-none"
                         />
                         <Button size="sm" variant="secondary" onClick={() => void handleAssign(item.orderId, driverByAssignment[item.id] ?? item.driverId, undefined, item.id)} disabled={busyId === item.id}><RotateCcw size={14} /> Reasignar</Button>
                         <Button size="sm" variant="danger" onClick={() => setPendingConfirmation({ type: 'cancel-assignment', assignment: item })} disabled={busyId === item.id}>Quitar</Button>
@@ -887,14 +890,14 @@ export function DeliveryAdminPage() {
               <section className="rounded-[20px] border border-neutral-200/70 bg-white p-4 shadow-soft sm:p-5">
                 <div className="mb-5"><h2 className="font-semibold text-central-carbon">Nueva liquidación</h2><p className="text-xs text-neutral-500">Consolida únicamente entregas finalizadas todavía no incluidas en otra liquidación.</p></div>
                 <div className="space-y-4">
-                  <div><span className={labelClass}>Repartidor</span><SearchableSelect value={settlementDriver} options={allDriverOptions} onValueChange={setSettlementDriver} placeholder="Seleccionar repartidor" searchPlaceholder="Buscar repartidor…" /></div>
+                  <div><span className={labelClass}>Repartidor</span><SearchableSelect value={settlementDriver} options={allDriverOptions} onValueChange={setSettlementDriver} placeholder="Seleccionar repartidor" searchPlaceholder="Buscar repartidor…" className="!rounded-[11px] !border-neutral-200/70 !bg-[#f7f7f9] !text-[12px] !shadow-none" /></div>
                   <div>
                     <span className={labelClass}>Desde</span>
-                    <DatePickerField value={settlementFrom} onChange={setSettlementFrom} ariaLabel="Fecha desde de la liquidación" />
+                    <DatePickerField value={settlementFrom} onChange={setSettlementFrom} ariaLabel="Fecha desde de la liquidación" className="!rounded-[11px] !border-neutral-200/70 !bg-[#f7f7f9] !text-[12px]" />
                   </div>
                   <div>
                     <span className={labelClass}>Hasta</span>
-                    <DatePickerField value={settlementTo} onChange={setSettlementTo} ariaLabel="Fecha hasta de la liquidación" />
+                    <DatePickerField value={settlementTo} onChange={setSettlementTo} ariaLabel="Fecha hasta de la liquidación" className="!rounded-[11px] !border-neutral-200/70 !bg-[#f7f7f9] !text-[12px]" />
                   </div>
                   <Button className="w-full" onClick={() => void handleCreateSettlement()} disabled={busyId === 'settlement-create'}><WalletCards size={16} /> Generar borrador</Button>
                 </div>
