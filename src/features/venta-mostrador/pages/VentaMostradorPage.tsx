@@ -447,26 +447,39 @@ export function VentaMostradorPage() {
           </div>
 
           <aside className="min-w-0 self-start rounded-[20px] border border-neutral-200/70 bg-white p-4 shadow-soft sm:p-5 xl:sticky xl:top-20 xl:max-h-[calc(100vh-6rem)] xl:overflow-y-auto">
-            <div className="flex items-start justify-between gap-3">
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-[.12em] text-central-orange">Venta rápida</p>
-                <h2 className="mt-1 text-xl font-semibold text-central-carbon">Resumen</h2>
+            <div className="relative overflow-hidden rounded-[18px] bg-[#191b20] px-5 py-5 text-white">
+              <div className="pointer-events-none absolute -right-12 -top-16 h-40 w-40 rounded-full bg-central-orange/10 blur-[42px]" aria-hidden="true" />
+              <div className="relative flex items-center justify-between gap-2">
+                <p className="text-[11px] font-medium uppercase tracking-[.12em] text-white/50">{editingSale ? 'Actualizar venta' : 'Cobro en mostrador'}</p>
+                <span className="grid h-8 w-8 place-items-center rounded-[10px] border border-white/10 bg-white/[.07] text-white/75"><ShoppingBag size={16} /></span>
               </div>
-              <span className="rounded-sm border border-central-orange/20 bg-central-orange/10 px-2.5 py-1 text-xs font-semibold text-central-orange">{itemCount} ítems</span>
+              <p className="relative mt-1 text-[12px] text-white/55">Total a cobrar</p>
+              <p className="relative mt-3 break-words text-[clamp(2.35rem,3.5vw,3.1rem)] font-semibold leading-none tracking-[-.055em] [font-variant-numeric:tabular-nums]">{formatCurrency(total)}</p>
+              <div className="relative mt-5 flex items-center justify-between gap-2 border-t border-white/10 pt-3">
+                <span className="text-[11px] text-white/55">{itemCount} {itemCount === 1 ? 'unidad' : 'unidades'} en esta venta</span>
+                {cart.length ? <button type="button" onClick={() => { setCart([]); setLastSale(null); }} className="cursor-pointer text-[11px] font-medium text-white/65 transition hover:text-white">Vaciar venta</button> : null}
+              </div>
             </div>
 
-            <div className="mt-5 grid grid-cols-2 gap-2">
+            <div className="mt-5 flex items-center justify-between gap-3">
+              <div>
+                <h2 className="text-[16px] font-semibold tracking-tight text-neutral-900">Datos del cobro</h2>
+                <p className="mt-0.5 text-[11px] text-neutral-500">Modalidad y medio de pago</p>
+              </div>
+            </div>
+
+            <div className="mt-4 grid grid-cols-2 gap-2">
               <button
                 type="button"
                 onClick={() => setServiceMode('takeaway')}
-                className={`flex items-center justify-center gap-2 rounded-sm border px-3 py-3 text-sm font-medium transition ${serviceMode === 'takeaway' ? 'border-central-orange bg-central-orange/10 text-central-orange' : 'border-neutral-200 bg-white text-neutral-500 hover:border-neutral-300'}`}
+                className={`flex cursor-pointer items-center justify-center gap-2 rounded-[11px] border px-2 py-2.5 text-[12px] font-medium transition-colors duration-200 ${serviceMode === 'takeaway' ? 'border-central-orange/25 bg-central-orange/10 text-central-orange' : 'border-transparent bg-[#f7f7f9] text-neutral-500 hover:bg-neutral-100'}`}
               >
                 <ShoppingBag size={16} /> Para llevar
               </button>
               <button
                 type="button"
                 onClick={() => setServiceMode('dine_in')}
-                className={`flex items-center justify-center gap-2 rounded-sm border px-3 py-3 text-sm font-medium transition ${serviceMode === 'dine_in' ? 'border-central-orange bg-central-orange/10 text-central-orange' : 'border-neutral-200 bg-white text-neutral-500 hover:border-neutral-300'}`}
+                className={`flex cursor-pointer items-center justify-center gap-2 rounded-[11px] border px-2 py-2.5 text-[12px] font-medium transition-colors duration-200 ${serviceMode === 'dine_in' ? 'border-central-orange/25 bg-central-orange/10 text-central-orange' : 'border-transparent bg-[#f7f7f9] text-neutral-500 hover:bg-neutral-100'}`}
               >
                 <UtensilsCrossed size={16} /> Comer ahí
               </button>
@@ -475,23 +488,23 @@ export function VentaMostradorPage() {
             <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-1 2xl:grid-cols-2">
               <label className="min-w-0">
                 <span className="mb-1.5 block text-xs font-medium text-neutral-500">Cliente <span className="font-normal">(opcional)</span></span>
-                <input value={customerName} onChange={(event) => setCustomerName(event.target.value)} placeholder="Ej. Juan" className="h-10 w-full rounded-sm border border-neutral-200 bg-white px-3 text-sm outline-none focus:border-central-orange focus:ring-2 focus:ring-orange-100" />
+                <input value={customerName} onChange={(event) => setCustomerName(event.target.value)} placeholder="Ej. Juan" className="h-9 w-full rounded-[11px] border border-neutral-200/70 bg-[#f7f7f9] px-3 text-[12px] font-normal outline-none transition-colors duration-200 focus:border-central-orange/40 focus:bg-white focus:ring-2 focus:ring-central-orange/10" />
               </label>
               <label className="min-w-0">
                 <span className="mb-1.5 block text-xs font-medium text-neutral-500">Teléfono <span className="font-normal">(opcional)</span></span>
-                <input value={customerPhone} onChange={(event) => setCustomerPhone(event.target.value)} placeholder="Ej. 3794…" inputMode="tel" className="h-10 w-full rounded-sm border border-neutral-200 bg-white px-3 text-sm outline-none focus:border-central-orange focus:ring-2 focus:ring-orange-100" />
+                <input value={customerPhone} onChange={(event) => setCustomerPhone(event.target.value)} placeholder="Ej. 3794…" inputMode="tel" className="h-9 w-full rounded-[11px] border border-neutral-200/70 bg-[#f7f7f9] px-3 text-[12px] font-normal outline-none transition-colors duration-200 focus:border-central-orange/40 focus:bg-white focus:ring-2 focus:ring-central-orange/10" />
               </label>
             </div>
 
             <div className="mt-4">
               <p className="mb-1.5 text-xs font-medium text-neutral-500">Medio de pago</p>
               <div className="grid grid-cols-2 gap-2">
-                <button type="button" onClick={() => setPaymentMethod('efectivo')} className={`flex items-center justify-center gap-2 rounded-sm border px-3 py-2.5 text-xs font-medium transition ${paymentMethod === 'efectivo' ? 'border-central-orange bg-central-orange/10 text-central-orange' : 'border-neutral-200 text-neutral-500'}`}><Banknote size={15} /> Efectivo</button>
-                <button type="button" onClick={() => setPaymentMethod('transferencia')} className={`flex items-center justify-center gap-2 rounded-sm border px-3 py-2.5 text-xs font-medium transition ${paymentMethod === 'transferencia' ? 'border-central-orange bg-central-orange/10 text-central-orange' : 'border-neutral-200 text-neutral-500'}`}><CreditCard size={15} /> Transferencia</button>
+                <button type="button" onClick={() => setPaymentMethod('efectivo')} className={`flex cursor-pointer items-center justify-center gap-2 rounded-[11px] border px-2 py-2.5 text-[12px] font-medium transition-colors duration-200 ${paymentMethod === 'efectivo' ? 'border-central-orange/25 bg-central-orange/10 text-central-orange' : 'border-transparent bg-[#f7f7f9] text-neutral-500 hover:bg-neutral-100'}`}><Banknote size={15} /> Efectivo</button>
+                <button type="button" onClick={() => setPaymentMethod('transferencia')} className={`flex cursor-pointer items-center justify-center gap-2 rounded-[11px] border px-2 py-2.5 text-[12px] font-medium transition-colors duration-200 ${paymentMethod === 'transferencia' ? 'border-central-orange/25 bg-central-orange/10 text-central-orange' : 'border-transparent bg-[#f7f7f9] text-neutral-500 hover:bg-neutral-100'}`}><CreditCard size={15} /> Transferencia</button>
               </div>
             </div>
 
-            <div className="mt-5 border-y border-neutral-100 py-4">
+            <div className="mt-5 border-t border-neutral-100 pt-4">
               {cart.length ? (
                 <div className="space-y-3">
                   {cart.map((line) => (
@@ -500,7 +513,7 @@ export function VentaMostradorPage() {
                         <p className="truncate text-sm font-semibold text-central-carbon">{line.product.name}</p>
                         <p className="mt-0.5 text-xs text-neutral-500">{formatCurrency(line.product.currentPrice)} c/u</p>
                       </div>
-                      <div className="flex shrink-0 items-center gap-1 rounded-sm border border-neutral-200 bg-neutral-50 p-1">
+                      <div className="flex shrink-0 items-center gap-1 rounded-[10px] bg-[#f1f1f3] p-1">
                         <button type="button" onClick={() => changeQuantity(line.product.id, -1)} className="grid h-7 w-7 place-items-center rounded-sm text-neutral-500 hover:bg-white hover:text-central-carbon" aria-label={`Quitar una unidad de ${line.product.name}`}><Minus size={13} /></button>
                         <span className="w-7 text-center text-xs font-semibold">{line.quantity}</span>
                         <button type="button" onClick={() => changeQuantity(line.product.id, 1)} className="grid h-7 w-7 place-items-center rounded-sm text-neutral-500 hover:bg-white hover:text-central-carbon" aria-label={`Agregar una unidad de ${line.product.name}`}><Plus size={13} /></button>
@@ -521,22 +534,14 @@ export function VentaMostradorPage() {
 
             <label className="mt-4 block">
               <span className="mb-1.5 block text-xs font-medium text-neutral-500">Observaciones <span className="font-normal">(opcional)</span></span>
-              <textarea value={notes} onChange={(event) => setNotes(event.target.value)} rows={3} placeholder="Ej. sin cebolla, mesa del patio…" className="w-full resize-none rounded-sm border border-neutral-200 bg-white px-3 py-2.5 text-sm outline-none focus:border-central-orange focus:ring-2 focus:ring-orange-100" />
+              <textarea value={notes} onChange={(event) => setNotes(event.target.value)} rows={3} placeholder="Ej. sin cebolla, mesa del patio…" className="w-full resize-none rounded-[11px] border border-neutral-200/70 bg-[#f7f7f9] px-3 py-2.5 text-[12px] font-normal outline-none transition-colors duration-200 focus:border-central-orange/40 focus:bg-white focus:ring-2 focus:ring-central-orange/10" />
             </label>
-
-            <div className="mt-5 flex items-end justify-between gap-4 border-t border-neutral-200 pt-4">
-              <div>
-                <p className="text-xs font-medium uppercase tracking-wide text-neutral-400">Total</p>
-                <p className="mt-1 text-3xl font-semibold tracking-tight text-central-carbon">{formatCurrency(total)}</p>
-              </div>
-              {cart.length ? <button type="button" onClick={() => { setCart([]); setLastSale(null); }} className="text-xs font-medium text-neutral-400 hover:text-red-600">Vaciar</button> : null}
-            </div>
 
             <button
               type="button"
               onClick={() => void registerSale()}
               disabled={submitting || !cart.length}
-              className="mt-4 flex h-12 w-full items-center justify-center gap-2 rounded-sm border border-central-orange bg-central-orange px-4 text-sm font-semibold text-white shadow-orange transition hover:brightness-95 disabled:cursor-not-allowed disabled:border-neutral-200 disabled:bg-neutral-200 disabled:text-neutral-400 disabled:shadow-none"
+              className="mt-5 flex h-11 w-full cursor-pointer items-center justify-center gap-2 rounded-[12px] bg-central-orange px-4 text-[13px] font-semibold text-white transition duration-200 hover:bg-central-ember active:scale-[.99] disabled:cursor-not-allowed disabled:bg-neutral-200 disabled:text-neutral-400"
             >
               {editingSale ? <Edit3 size={17} /> : <Store size={17} />}
               {submitting
