@@ -494,3 +494,23 @@ main[style*="SF Pro Display"] section.grid.grid-cols-3 > article:not([class*="or
 .delivery-wallet :is(button, input, textarea):focus-visible {
   outline-offset: 2px;
 }
+
+
+/* Los modales y popovers de Delivery se renderizan en un portal fuera de .delivery-wallet. */
+body.delivery-wallet-active [role="dialog"] h2,
+body.delivery-wallet-active [role="dialog"] h3,
+body.delivery-wallet-active [role="dialog"] button,
+body.delivery-wallet-active [role="dialog"] strong,
+body.delivery-wallet-active .lcb-dropdown-content [cmdk-item],
+body.delivery-wallet-active .lcb-dropdown-content [role="option"] {
+  font-weight: 600;
+}
+
+body.delivery-wallet-active [role="dialog"] input,
+body.delivery-wallet-active [role="dialog"] textarea {
+  font-weight: 400;
+}
+
+body.delivery-wallet-active [role="dialog"] {
+  border-radius: 20px;
+}
