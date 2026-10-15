@@ -84,14 +84,14 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
     .join('') || 'AD';
 
   const sidebar = (
-    <aside className="flex h-full flex-col overflow-hidden bg-central-carbon text-white">
+    <aside className="flex h-full flex-col overflow-hidden bg-[#191b20] text-white">
       <div className="px-4 pb-5 pt-5">
         <div className="flex min-w-0 items-center gap-3 rounded-sm px-2 py-1.5">
           <div className="relative shrink-0">
             <span className="grid h-11 w-11 place-items-center rounded-full border border-white/10 bg-gradient-to-br from-central-orange to-central-ember text-sm font-black text-white shadow-[0_8px_22px_rgba(228,87,18,.18)]">
               {avatarInitials}
             </span>
-            <span className="absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-central-carbon bg-emerald-500" aria-hidden="true" />
+            <span className="absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-[#191b20] bg-emerald-500" aria-hidden="true" />
           </div>
           <div className="min-w-0 flex-1">
             <p className="truncate text-[13px] font-black leading-tight text-white">{displayName}</p>
