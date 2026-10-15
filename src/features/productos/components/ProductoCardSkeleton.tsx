@@ -1,3 +1,4 @@
+// Verificación temporal CI de disponibilidad del catálogo público.
 import Skeleton from 'react-loading-skeleton';
 
 export function ProductoCardSkeleton() {
