@@ -25,7 +25,6 @@ import {
 import { toast } from 'react-toastify';
 import { useBusinessConfig } from '@/features/configuracion/hooks/useBusinessConfig';
 import { formatRouteDuration } from '@/features/delivery/utils/delivery.utils';
-import { AdminPageHeader } from '@/shared/components/layout/AdminPageHeader';
 import { Button } from '@/shared/components/ui/Button';
 import { ConfirmDialog } from '@/shared/components/ui/ConfirmDialog';
 import { DatePickerField } from '@/shared/components/ui/DatePickerField';
@@ -76,8 +75,8 @@ const EMPTY: DeliveryAdminDashboard = {
   settlements: [],
 };
 
-const fieldClass = 'h-10 w-full rounded-sm border border-neutral-200 bg-white px-3 text-sm text-central-carbon outline-none transition focus:border-central-orange focus:ring-2 focus:ring-central-orange/15';
-const labelClass = 'mb-1.5 block text-xs font-bold uppercase tracking-wide text-neutral-500';
+const fieldClass = 'h-10 w-full rounded-[11px] border border-neutral-200/70 bg-[#f7f7f9] px-3 text-[13px] font-normal text-neutral-900 outline-none transition duration-200 focus:border-central-orange/40 focus:bg-white focus:ring-2 focus:ring-central-orange/10';
+const labelClass = 'mb-1.5 block text-[11px] font-medium text-neutral-500';
 
 const STATUS_LABELS: Record<DeliveryAssignmentStatus, string> = {
   assigned: 'Asignado',
@@ -227,6 +226,34 @@ function DriverModal({ driver, onClose, onSaved }: { driver?: DeliveryDriver; on
         </div>
       </form>
     </Modal>
+  );
+}
+
+function DeliveryWalletOverview({ cashPending, pendingCommission }: { cashPending: number; pendingCommission: number }) {
+  return (
+    <section aria-label="Resumen financiero de reparto" className="relative flex min-w-0 flex-col overflow-hidden rounded-[23px] bg-[#191b20] px-5 py-6 text-white shadow-soft sm:px-7 sm:py-7 lg:min-h-[235px]">
+      <div className="pointer-events-none absolute -right-12 -top-16 h-56 w-56 rounded-full bg-central-orange/10 blur-[55px]" aria-hidden="true" />
+      <div className="relative flex items-start justify-between gap-3">
+        <div>
+          <p className="text-[11px] font-medium uppercase tracking-[.12em] text-white/45">Balance de reparto</p>
+          <p className="mt-1 text-[12px] text-white/55">Efectivo a rendir al negocio</p>
+        </div>
+        <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl border border-white/10 bg-white/[.08] text-white/80">
+          <CircleDollarSign size={20} strokeWidth={1.7} />
+        </span>
+      </div>
+      <p className="relative mt-5 break-words text-[clamp(2.5rem,4vw,3.65rem)] font-semibold leading-none tracking-[-.055em] [font-variant-numeric:tabular-nums]">
+        {formatCurrency(cashPending)}
+      </p>
+      <div className="relative mt-6 flex flex-wrap items-center justify-between gap-2 border-t border-white/10 pt-4">
+        <span className="inline-flex items-center gap-2 text-[12px] text-white/60">
+          <BadgeDollarSign size={15} className="text-central-orange" /> Comisiones pendientes
+        </span>
+        <span className="text-[19px] font-semibold tracking-[-.035em] text-[#c7f0d7] [font-variant-numeric:tabular-nums]">
+          {formatCurrency(pendingCommission)}
+        </span>
+      </div>
+    </section>
   );
 }
 
@@ -554,52 +581,71 @@ export function DeliveryAdminPage() {
         : { title: 'Cancelar liquidación', description: 'El borrador se cancelará y sus entregas volverán a quedar disponibles para una liquidación posterior.', label: 'Cancelar liquidación', tone: 'danger' as const };
 
   return (
-    <div className="min-w-0">
-      <AdminPageHeader
-        eyebrow="Delivery"
-        title="Centro de operaciones de reparto"
-        description="Asignación, seguimiento, comisiones y liquidaciones separadas del ciclo comercial del pedido."
-        actions={(
-          <>
-            <Button
-              variant="secondary"
-              onClick={() => {
-                void load(true);
-                if (tab === 'history') void loadHistory(historyPage, true);
-              }}
-              disabled={refreshing || (tab === 'history' && historyLoading)}
-            >
-              <RefreshCw size={16} className={refreshing || (tab === 'history' && historyLoading) ? 'animate-spin' : ''} /> Actualizar
-            </Button>
-            <Button onClick={() => setDriverModal('new')}><UserPlus size={16} /> Nuevo repartidor</Button>
-          </>
-        )}
-      />
+    <div className="delivery-wallet min-w-0 pb-8">
+      <div className="mb-5 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <div className="min-w-0">
+          <h1 className="text-[28px] font-semibold leading-tight tracking-[-.045em] text-neutral-950 sm:text-[34px]">Repartos y movimientos</h1>
+          <p className="mt-1 text-[13px] leading-5 text-neutral-500">Pedidos, equipo y saldos bajo control.</p>
+        </div>
+        <div className="flex shrink-0 flex-wrap items-center gap-2">
+          <Button
+            variant="secondary"
+            size="sm"
+            className="!h-9 !rounded-[11px] !border-neutral-200 !px-3 !text-[12px] !font-medium !shadow-none"
+            onClick={() => {
+              void load(true);
+              if (tab === 'history') void loadHistory(historyPage, true);
+            }}
+            disabled={refreshing || (tab === 'history' && historyLoading)}
+          >
+            <RefreshCw size={14} className={refreshing || (tab === 'history' && historyLoading) ? 'animate-spin' : ''} />
+            Actualizar
+          </Button>
+          <Button size="sm" className="!h-9 !rounded-[11px] !px-3 !text-[12px] !font-semibold !shadow-none" onClick={() => setDriverModal('new')}>
+            <UserPlus size={14} /> Nuevo repartidor
+          </Button>
+        </div>
+      </div>
 
       {loading ? <DeliveryAdminSkeleton /> : (
         <>
-          <section className="mb-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
+          <DeliveryWalletOverview
+            cashPending={data.summary.cashPending}
+            pendingCommission={data.summary.pendingCommission}
+          />
+
+          <section aria-label="Estado operativo" className="mt-4 grid min-w-0 overflow-hidden rounded-[20px] border border-neutral-200/70 bg-white shadow-soft sm:grid-cols-3">
             <DeliveryMetricCard
               icon={PackageCheck}
-              label="Sin asignar hoy"
+              label="Pendientes hoy"
               value={String(todayUnassignedOrders.length)}
               detail={data.summary.unassignedOrders > todayUnassignedOrders.length
-                ? `${data.summary.unassignedOrders} pendientes sin asignar en total`
-                : 'Pedidos delivery de hoy esperando repartidor'}
+                ? `${data.summary.unassignedOrders} pendientes en total`
+                : 'Esperando repartidor'}
             />
-            <DeliveryMetricCard icon={Truck} label="En operación" value={String(data.summary.activeAssignments)} detail="Asignaciones abiertas ahora" />
-            <DeliveryMetricCard icon={Users} label="Repartidores activos" value={String(data.summary.activeDrivers)} detail="Habilitados para recibir pedidos" />
-            <DeliveryMetricCard icon={BadgeDollarSign} label="Comisión pendiente" value={formatCurrency(data.summary.pendingCommission)} detail="Ganancias aún no conciliadas" />
-            <DeliveryMetricCard icon={CircleDollarSign} label="Efectivo pendiente" value={formatCurrency(data.summary.cashPending)} detail="Cobrado por repartidores a rendir" />
+            <DeliveryMetricCard icon={Truck} label="En camino y asignados" value={String(data.summary.activeAssignments)} detail="Repartos abiertos" />
+            <DeliveryMetricCard icon={Users} label="Repartidores activos" value={String(data.summary.activeDrivers)} detail="Disponibles para recibir pedidos" />
           </section>
 
-          <div className="mb-6 flex min-w-0 gap-2 overflow-x-auto rounded-sm border border-neutral-200 bg-white p-2 shadow-sm">
-            {tabs.map(({ id, label, icon: Icon }) => (
-              <button key={id} onClick={() => { setTab(id); setQuery(''); }} className={`inline-flex cursor-pointer items-center gap-2 whitespace-nowrap rounded-sm px-4 py-2.5 text-sm font-bold transition ${tab === id ? 'bg-central-carbon text-white' : 'text-neutral-500 hover:bg-neutral-100 hover:text-central-carbon'}`}>
-                <Icon size={16} /> {label}
-              </button>
-            ))}
-          </div>
+          <section aria-label="Navegación de delivery" className="mb-5 mt-8 flex min-w-0 flex-col justify-between gap-3 border-b border-neutral-200 pb-4 sm:flex-row sm:items-center">
+            <div>
+              <h2 className="text-[21px] font-semibold tracking-[-.035em] text-neutral-950">Actividad de delivery</h2>
+              <p className="mt-0.5 text-[12px] text-neutral-500">Administrá pedidos y operaciones en un solo lugar.</p>
+            </div>
+            <div className="flex min-w-0 max-w-full gap-1 overflow-x-auto rounded-[12px] bg-[#eaeaec] p-1">
+              {tabs.map(({ id, label, icon: Icon }) => (
+                <button
+                  key={id}
+                  type="button"
+                  aria-pressed={tab === id}
+                  onClick={() => { setTab(id); setQuery(''); }}
+                  className={`inline-flex h-9 shrink-0 cursor-pointer items-center gap-1.5 whitespace-nowrap rounded-[9px] px-3 text-[12px] font-medium transition-all duration-200 ${tab === id ? 'bg-white text-neutral-950 shadow-[0_1px_4px_rgba(0,0,0,.1)]' : 'text-neutral-500 hover:text-neutral-900'}`}
+                >
+                  <Icon size={14} /> {label}
+                </button>
+              ))}
+            </div>
+          </section>
 
           {tab === 'operation' || tab === 'drivers' ? (
             <div className="mb-5 flex max-w-xl items-center gap-2 rounded-sm border border-neutral-200 bg-white px-3 shadow-sm focus-within:border-central-orange focus-within:ring-2 focus-within:ring-central-orange/10">
@@ -618,7 +664,7 @@ export function DeliveryAdminPage() {
               <section className="min-w-0 rounded-sm border border-neutral-200 bg-white p-5 shadow-sm">
                 <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
                   <div>
-                    <h2 className="font-black text-central-carbon">Pedidos sin asignar</h2>
+                    <h2 className="font-semibold text-central-carbon">Pedidos sin asignar</h2>
                     <p className="text-xs text-neutral-500">Por defecto se muestran solo los pedidos delivery de hoy.</p>
                   </div>
                   <div className="flex min-w-0 items-center gap-2">
@@ -631,7 +677,7 @@ export function DeliveryAdminPage() {
                         aria-label="Período de pedidos sin asignar"
                       />
                     </div>
-                    <span className="rounded-full bg-central-orange/10 px-3 py-1 text-xs font-black text-central-orange">{filteredOrders.length}</span>
+                    <span className="rounded-full bg-central-orange/10 px-3 py-1 text-xs font-semibold text-central-orange">{filteredOrders.length}</span>
                   </div>
                 </div>
                 <div className="custom-scrollbar max-h-[68vh] space-y-3 overflow-y-auto pr-1">
@@ -646,11 +692,11 @@ export function DeliveryAdminPage() {
                       <article key={order.id} className="rounded-sm border border-neutral-200 p-4">
                         <div className="flex flex-wrap items-start justify-between gap-3">
                           <div className="min-w-0">
-                            <p className="break-words font-black text-central-carbon">{order.orderCode} · {order.customerName}</p>
+                            <p className="break-words font-semibold text-central-carbon">{order.orderCode} · {order.customerName}</p>
                             <p className="mt-1 break-words text-xs leading-5 text-neutral-500">{order.address || 'Dirección sin texto'} · {order.distanceKm?.toFixed(1) ?? '—'} km</p>
                             {unassignedScope === 'all' ? <p className="mt-1 text-[11px] text-neutral-400">Creado {formatDateTime(order.createdAt)}</p> : null}
                           </div>
-                          <div className="text-right"><p className="font-black">{formatCurrency(order.total)}</p><p className="text-xs text-neutral-500">Envío {formatCurrency(order.deliveryCost)}</p></div>
+                          <div className="text-right"><p className="font-semibold">{formatCurrency(order.total)}</p><p className="text-xs text-neutral-500">Envío {formatCurrency(order.deliveryCost)}</p></div>
                         </div>
 
                         <div className="mt-4 grid gap-2 sm:grid-cols-[minmax(0,1fr)_118px_auto]">
@@ -676,7 +722,7 @@ export function DeliveryAdminPage() {
                               className="h-10 w-full rounded-sm border border-neutral-200 bg-white px-3 pr-8 text-sm font-semibold text-central-carbon outline-none transition focus:border-central-orange focus:ring-2 focus:ring-central-orange/15 disabled:bg-neutral-50 disabled:text-neutral-300"
                               placeholder="%"
                             />
-                            <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold text-neutral-400">%</span>
+                            <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-neutral-400">%</span>
                           </label>
                           <Button size="sm" onClick={() => void handleAssign(order.id, selectedDriverId, commissionPercent)} disabled={busyId === order.id || !selectedDriver}>Asignar</Button>
                         </div>
@@ -696,16 +742,16 @@ export function DeliveryAdminPage() {
               </section>
 
               <section className="min-w-0 rounded-sm border border-neutral-200 bg-white p-5 shadow-sm">
-                <div className="mb-4"><h2 className="font-black text-central-carbon">Repartos en curso</h2><p className="text-xs text-neutral-500">Los estados logísticos se registran sin mezclar el historial comercial del pedido.</p></div>
+                <div className="mb-4"><h2 className="font-semibold text-central-carbon">Repartos en curso</h2><p className="text-xs text-neutral-500">Los estados logísticos se registran sin mezclar el historial comercial del pedido.</p></div>
                 <div className="custom-scrollbar max-h-[68vh] space-y-3 overflow-y-auto pr-1">
                   {filteredAssignments.length === 0 ? <div className="rounded-sm border border-dashed border-neutral-200 p-8 text-center text-sm text-neutral-500">No hay repartos activos que coincidan con la búsqueda.</div> : filteredAssignments.map((item) => (
                     <article key={item.id} className="rounded-sm border border-neutral-200 p-4">
                       <div className="flex flex-wrap items-start justify-between gap-3">
                         <div className="min-w-0">
-                          <div className="flex flex-wrap items-center gap-2"><p className="break-words font-black text-central-carbon">{item.orderCode} · {item.customerName}</p><span className={`rounded-full border px-2.5 py-1 text-[11px] font-black ${statusClass(item.status)}`}>{STATUS_LABELS[item.status]}</span></div>
+                          <div className="flex flex-wrap items-center gap-2"><p className="break-words font-semibold text-central-carbon">{item.orderCode} · {item.customerName}</p><span className={`rounded-full border px-2.5 py-1 text-[11px] font-semibold ${statusClass(item.status)}`}>{STATUS_LABELS[item.status]}</span></div>
                           <p className="mt-1 text-xs text-neutral-500">{item.driverName} · comisión {formatCurrency(item.commissionAmount)} ({item.commissionPercent}%)</p>
                         </div>
-                        <div className="text-right"><p className="text-sm font-bold">{item.paymentMethod === 'efectivo' ? `Cobrar ${formatCurrency(item.cashToCollect)}` : 'Transferencia'}</p><p className="text-xs text-neutral-500">Asignado {formatDateTime(item.assignedAt)}</p></div>
+                        <div className="text-right"><p className="text-sm font-semibold">{item.paymentMethod === 'efectivo' ? `Cobrar ${formatCurrency(item.cashToCollect)}` : 'Transferencia'}</p><p className="text-xs text-neutral-500">Asignado {formatDateTime(item.assignedAt)}</p></div>
                       </div>
                       <div className="mt-4 grid gap-2 sm:grid-cols-[minmax(0,1fr)_auto_auto]">
                         <SearchableSelect
@@ -730,15 +776,15 @@ export function DeliveryAdminPage() {
             <section className="overflow-hidden rounded-sm border border-neutral-200 bg-white shadow-sm">
               <div className="flex flex-col gap-2 border-b border-neutral-100 p-5 sm:flex-row sm:items-center sm:justify-between">
                 <div>
-                  <h2 className="font-black text-central-carbon">Historial de repartos asignados</h2>
+                  <h2 className="font-semibold text-central-carbon">Historial de repartos asignados</h2>
                   <p className="mt-1 text-xs text-neutral-500">Cada página consulta solo 10 asignaciones en la base de datos, ordenadas desde la más reciente.</p>
                 </div>
-                <span className="text-xs font-bold text-neutral-500">{historyTotal} asignaciones registradas</span>
+                <span className="text-xs font-semibold text-neutral-500">{historyTotal} asignaciones registradas</span>
               </div>
 
               <div className="max-w-full overflow-x-auto">
                 <table className="w-full min-w-[1380px] text-left text-sm">
-                  <thead className="bg-neutral-50 text-[11px] font-extrabold uppercase tracking-wider text-neutral-500">
+                  <thead className="bg-neutral-50 text-[11px] font-semibold uppercase tracking-wider text-neutral-500">
                     <tr>
                       <th className="px-5 py-3">Asignado</th>
                       <th className="px-4 py-3">Pedido</th>
@@ -765,29 +811,29 @@ export function DeliveryAdminPage() {
                       <tr key={item.id} className="transition hover:bg-neutral-50/70">
                         <td className="whitespace-nowrap px-5 py-3.5 text-neutral-600">{formatDateTime(item.assignedAt)}</td>
                         <td className="px-4 py-3.5">
-                          <p className="font-extrabold text-central-orange">{item.orderCode}</p>
+                          <p className="font-semibold text-central-orange">{item.orderCode}</p>
                           <p className="mt-0.5 text-xs text-neutral-400">Pedido {formatDateTime(item.orderCreatedAt)}</p>
                         </td>
                         <td className="px-4 py-3.5">
-                          <p className="font-bold text-central-carbon">{item.customerName}</p>
+                          <p className="font-semibold text-central-carbon">{item.customerName}</p>
                           <p className="mt-0.5 text-xs text-neutral-500">{item.customerPhone}</p>
                         </td>
                         <td className="px-4 py-3.5">
-                          <p className="font-bold text-central-carbon">{item.driverName}</p>
+                          <p className="font-semibold text-central-carbon">{item.driverName}</p>
                           <p className="mt-0.5 text-xs capitalize text-neutral-500">{item.vehicleType}</p>
                         </td>
                         <td className="px-4 py-3.5">
-                          <span className={`rounded-full border px-2.5 py-1 text-[11px] font-black ${statusClass(item.status)}`}>{STATUS_LABELS[item.status]}</span>
+                          <span className={`rounded-full border px-2.5 py-1 text-[11px] font-semibold ${statusClass(item.status)}`}>{STATUS_LABELS[item.status]}</span>
                         </td>
                         <td className="px-4 py-3.5 text-right">
-                          <p className="font-bold text-central-carbon">{(item.routeDistanceKm ?? item.distanceKm) === null ? '—' : `${(item.routeDistanceKm ?? item.distanceKm)?.toFixed(1)} km`}</p>
+                          <p className="font-semibold text-central-carbon">{(item.routeDistanceKm ?? item.distanceKm) === null ? '—' : `${(item.routeDistanceKm ?? item.distanceKm)?.toFixed(1)} km`}</p>
                           {typeof item.routeDurationSeconds === 'number' ? <p className="mt-0.5 text-[11px] text-neutral-400">{formatRouteDuration(item.routeDurationSeconds)}</p> : null}
                         </td>
                         <td className="px-4 py-3.5 text-neutral-600">{item.paymentMethod === 'transferencia' ? 'Transferencia' : 'Efectivo'}</td>
-                        <td className="px-4 py-3.5 text-right font-bold text-central-carbon">{formatCurrency(item.orderTotal)}</td>
+                        <td className="px-4 py-3.5 text-right font-semibold text-central-carbon">{formatCurrency(item.orderTotal)}</td>
                         <td className="px-4 py-3.5 text-right text-neutral-600">{formatCurrency(item.deliveryFee)}</td>
                         <td className="px-4 py-3.5 text-right">
-                          <p className="font-bold text-emerald-700">{formatCurrency(item.commissionAmount)}</p>
+                          <p className="font-semibold text-emerald-700">{formatCurrency(item.commissionAmount)}</p>
                           <p className="text-[11px] text-neutral-400">{item.commissionPercent}%</p>
                         </td>
                         <td className="px-4 py-3.5 text-neutral-600">{settlementLabel(item.settlementStatus)}</td>
@@ -795,7 +841,7 @@ export function DeliveryAdminPage() {
                           <button
                             type="button"
                             onClick={() => setHistoryDetail(item)}
-                            className="inline-flex h-8 items-center gap-1.5 rounded-sm border border-neutral-200 bg-white px-2.5 text-xs font-bold text-neutral-600 transition hover:border-central-orange hover:text-central-orange"
+                            className="inline-flex h-8 items-center gap-1.5 rounded-sm border border-neutral-200 bg-white px-2.5 text-xs font-semibold text-neutral-600 transition hover:border-central-orange hover:text-central-orange"
                           >
                             <Eye size={14} /> Ver
                           </button>
@@ -819,15 +865,15 @@ export function DeliveryAdminPage() {
 
           {tab === 'drivers' ? (
             <section className="rounded-sm border border-neutral-200 bg-white p-5 shadow-sm">
-              <div className="mb-5 flex flex-wrap items-center justify-between gap-3"><div><h2 className="font-black text-central-carbon">Equipo de reparto</h2><p className="text-xs text-neutral-500">La tarifa vigente se versiona; cada asignación referencia la tarifa histórica que le corresponde.</p></div><Button onClick={() => setDriverModal('new')}><UserPlus size={16} /> Alta</Button></div>
+              <div className="mb-5 flex flex-wrap items-center justify-between gap-3"><div><h2 className="font-semibold text-central-carbon">Equipo de reparto</h2><p className="text-xs text-neutral-500">La tarifa vigente se versiona; cada asignación referencia la tarifa histórica que le corresponde.</p></div><Button onClick={() => setDriverModal('new')}><UserPlus size={16} /> Alta</Button></div>
               <div className="grid gap-4 md:grid-cols-2 2xl:grid-cols-3">
                 {filteredDrivers.map((driver) => (
                   <article key={driver.id} className={`rounded-sm border p-4 ${driver.active ? 'border-neutral-200' : 'border-neutral-200 bg-neutral-50 opacity-75'}`}>
                     <div className="flex items-start justify-between gap-3">
-                      <div className="min-w-0"><div className="flex items-center gap-2"><span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-central-orange/10 text-central-orange"><Bike size={17} /></span><div className="min-w-0"><p className="truncate font-black text-central-carbon">{driver.fullName}</p><p className="truncate text-xs text-neutral-500">{driver.email || 'Sin email'}</p></div></div></div>
-                      <span className={`rounded-full px-2.5 py-1 text-[11px] font-black ${driver.active ? 'bg-emerald-50 text-emerald-700' : 'bg-neutral-200 text-neutral-600'}`}>{driver.active ? 'Activo' : 'Inactivo / pendiente'}</span>
+                      <div className="min-w-0"><div className="flex items-center gap-2"><span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-central-orange/10 text-central-orange"><Bike size={17} /></span><div className="min-w-0"><p className="truncate font-semibold text-central-carbon">{driver.fullName}</p><p className="truncate text-xs text-neutral-500">{driver.email || 'Sin email'}</p></div></div></div>
+                      <span className={`rounded-full px-2.5 py-1 text-[11px] font-semibold ${driver.active ? 'bg-emerald-50 text-emerald-700' : 'bg-neutral-200 text-neutral-600'}`}>{driver.active ? 'Activo' : 'Inactivo / pendiente'}</span>
                     </div>
-                    <div className="mt-4 grid grid-cols-3 gap-2 rounded-sm bg-neutral-50 p-3 text-center"><div><p className="text-[11px] text-neutral-500">Comisión</p><p className="mt-1 text-sm font-black">{driver.commissionPercent ?? 0}%</p></div><div><p className="text-[11px] text-neutral-500">Activos</p><p className="mt-1 text-sm font-black">{driver.activeAssignments}</p></div><div><p className="text-[11px] text-neutral-500">Pendiente</p><p className="mt-1 text-sm font-black">{formatCurrency(driver.pendingCommission)}</p></div></div>
+                    <div className="mt-4 grid grid-cols-3 gap-2 rounded-sm bg-neutral-50 p-3 text-center"><div><p className="text-[11px] text-neutral-500">Comisión</p><p className="mt-1 text-sm font-semibold">{driver.commissionPercent ?? 0}%</p></div><div><p className="text-[11px] text-neutral-500">Activos</p><p className="mt-1 text-sm font-semibold">{driver.activeAssignments}</p></div><div><p className="text-[11px] text-neutral-500">Pendiente</p><p className="mt-1 text-sm font-semibold">{formatCurrency(driver.pendingCommission)}</p></div></div>
                     <div className="mt-4 flex flex-wrap gap-2"><Button size="sm" variant="secondary" onClick={() => setDriverModal(driver)}><Edit3 size={14} /> Editar</Button>{driver.active ? <Button size="sm" variant="secondary" onClick={() => { setResetDriver(driver); setNewPassword(''); }} disabled={busyId === driver.id}><ShieldCheck size={14} /> Clave</Button> : null}<Button size="sm" variant={driver.active ? 'danger' : 'dark'} onClick={() => setPendingConfirmation({ type: 'toggle-driver', driver })} disabled={busyId === driver.id}>{driver.active ? 'Desactivar' : 'Activar'}</Button></div>
                   </article>
                 ))}
@@ -839,7 +885,7 @@ export function DeliveryAdminPage() {
           {tab === 'settlements' ? (
             <div className="grid gap-6 xl:grid-cols-[360px_minmax(0,1fr)]">
               <section className="rounded-sm border border-neutral-200 bg-white p-5 shadow-sm">
-                <div className="mb-5"><h2 className="font-black text-central-carbon">Nueva liquidación</h2><p className="text-xs text-neutral-500">Consolida únicamente entregas finalizadas todavía no incluidas en otra liquidación.</p></div>
+                <div className="mb-5"><h2 className="font-semibold text-central-carbon">Nueva liquidación</h2><p className="text-xs text-neutral-500">Consolida únicamente entregas finalizadas todavía no incluidas en otra liquidación.</p></div>
                 <div className="space-y-4">
                   <div><span className={labelClass}>Repartidor</span><SearchableSelect value={settlementDriver} options={allDriverOptions} onValueChange={setSettlementDriver} placeholder="Seleccionar repartidor" searchPlaceholder="Buscar repartidor…" /></div>
                   <div>
@@ -856,12 +902,12 @@ export function DeliveryAdminPage() {
               </section>
 
               <section className="min-w-0 rounded-sm border border-neutral-200 bg-white p-5 shadow-sm">
-                <div className="mb-4"><h2 className="font-black text-central-carbon">Historial de liquidaciones</h2><p className="text-xs text-neutral-500">Borradores, cierres pagados y conciliación de efectivo.</p></div>
+                <div className="mb-4"><h2 className="font-semibold text-central-carbon">Historial de liquidaciones</h2><p className="text-xs text-neutral-500">Borradores, cierres pagados y conciliación de efectivo.</p></div>
                 <div className="custom-scrollbar max-h-[70vh] space-y-3 overflow-y-auto pr-1">
                   {data.settlements.map((item) => (
                     <article key={item.id} className="rounded-sm border border-neutral-200 p-4">
-                      <div className="flex flex-wrap items-start justify-between gap-3"><div><div className="flex flex-wrap items-center gap-2"><p className="font-black text-central-carbon">{item.driverName}</p><span className={`rounded-full px-2.5 py-1 text-[11px] font-black ${item.status === 'paid' ? 'bg-emerald-50 text-emerald-700' : item.status === 'cancelled' ? 'bg-red-50 text-red-700' : 'bg-amber-50 text-amber-700'}`}>{item.status === 'paid' ? 'Pagada' : item.status === 'cancelled' ? 'Cancelada' : 'Borrador'}</span></div><p className="mt-1 text-xs text-neutral-500">{new Date(item.periodFrom).toLocaleDateString('es-AR')} — {new Date(item.periodTo).toLocaleDateString('es-AR')} · {item.deliveries} entregas</p></div><div className="text-right"><p className="font-black">{formatCurrency(item.commissionTotal)} comisión</p><p className="text-xs text-neutral-500">Efectivo {formatCurrency(item.cashCollected)}</p></div></div>
-                      <div className="mt-3 flex flex-wrap items-center justify-between gap-3 rounded-sm bg-neutral-50 px-3 py-2"><p className="text-sm font-bold">Saldo neto: <span className={item.netBalance < 0 ? 'text-red-600' : 'text-emerald-700'}>{formatCurrency(item.netBalance)}</span></p>{item.status === 'draft' ? <div className="flex gap-2"><Button size="sm" variant="secondary" onClick={() => setPendingConfirmation({ type: 'cancel-settlement', id: item.id })} disabled={busyId === item.id}>Cancelar</Button><Button size="sm" onClick={() => setPendingConfirmation({ type: 'pay-settlement', id: item.id })} disabled={busyId === item.id}><CheckCircle2 size={14} /> Confirmar pago</Button></div> : <span className="text-xs text-neutral-500">{item.paidAt ? `Cerrada ${formatDateTime(item.paidAt)}` : 'Sin movimiento pendiente'}</span>}</div>
+                      <div className="flex flex-wrap items-start justify-between gap-3"><div><div className="flex flex-wrap items-center gap-2"><p className="font-semibold text-central-carbon">{item.driverName}</p><span className={`rounded-full px-2.5 py-1 text-[11px] font-semibold ${item.status === 'paid' ? 'bg-emerald-50 text-emerald-700' : item.status === 'cancelled' ? 'bg-red-50 text-red-700' : 'bg-amber-50 text-amber-700'}`}>{item.status === 'paid' ? 'Pagada' : item.status === 'cancelled' ? 'Cancelada' : 'Borrador'}</span></div><p className="mt-1 text-xs text-neutral-500">{new Date(item.periodFrom).toLocaleDateString('es-AR')} — {new Date(item.periodTo).toLocaleDateString('es-AR')} · {item.deliveries} entregas</p></div><div className="text-right"><p className="font-semibold">{formatCurrency(item.commissionTotal)} comisión</p><p className="text-xs text-neutral-500">Efectivo {formatCurrency(item.cashCollected)}</p></div></div>
+                      <div className="mt-3 flex flex-wrap items-center justify-between gap-3 rounded-sm bg-neutral-50 px-3 py-2"><p className="text-sm font-semibold">Saldo neto: <span className={item.netBalance < 0 ? 'text-red-600' : 'text-emerald-700'}>{formatCurrency(item.netBalance)}</span></p>{item.status === 'draft' ? <div className="flex gap-2"><Button size="sm" variant="secondary" onClick={() => setPendingConfirmation({ type: 'cancel-settlement', id: item.id })} disabled={busyId === item.id}>Cancelar</Button><Button size="sm" onClick={() => setPendingConfirmation({ type: 'pay-settlement', id: item.id })} disabled={busyId === item.id}><CheckCircle2 size={14} /> Confirmar pago</Button></div> : <span className="text-xs text-neutral-500">{item.paidAt ? `Cerrada ${formatDateTime(item.paidAt)}` : 'Sin movimiento pendiente'}</span>}</div>
                     </article>
                   ))}
                   {data.settlements.length === 0 ? <div className="rounded-sm border border-dashed border-neutral-200 p-10 text-center text-sm text-neutral-500">Todavía no se generaron liquidaciones.</div> : null}
@@ -886,10 +932,10 @@ export function DeliveryAdminPage() {
               <section className="rounded-sm border border-neutral-200 bg-neutral-50/60 p-4 lg:col-span-2">
                 <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
                   <div>
-                    <p className="text-xs font-black uppercase tracking-wider text-central-orange">Pedido</p>
-                    <h3 className="mt-1 text-lg font-black text-central-carbon">{historyDetail.orderCode} · {historyDetail.customerName}</h3>
+                    <p className="text-xs font-semibold uppercase tracking-wider text-central-orange">Pedido</p>
+                    <h3 className="mt-1 text-lg font-semibold text-central-carbon">{historyDetail.orderCode} · {historyDetail.customerName}</h3>
                   </div>
-                  <span className={`rounded-full border px-2.5 py-1 text-xs font-black ${statusClass(historyDetail.status)}`}>{STATUS_LABELS[historyDetail.status]}</span>
+                  <span className={`rounded-full border px-2.5 py-1 text-xs font-semibold ${statusClass(historyDetail.status)}`}>{STATUS_LABELS[historyDetail.status]}</span>
                 </div>
 
                 <div className="grid gap-x-6 gap-y-3 text-sm sm:grid-cols-2">
@@ -904,23 +950,23 @@ export function DeliveryAdminPage() {
                   <div><p className="text-xs text-neutral-400">Método de pago</p><p className="font-semibold">{historyDetail.paymentMethod === 'transferencia' ? 'Transferencia' : 'Efectivo'}</p></div>
                   <div><p className="text-xs text-neutral-400">Subtotal</p><p className="font-semibold">{formatCurrency(historyDetail.subtotal)}</p></div>
                   <div><p className="text-xs text-neutral-400">Costo de envío</p><p className="font-semibold">{formatCurrency(historyDetail.deliveryFee)}</p></div>
-                  <div><p className="text-xs text-neutral-400">Total del pedido</p><p className="font-black">{formatCurrency(historyDetail.orderTotal)}</p></div>
-                  <div><p className="text-xs text-neutral-400">Efectivo a cobrar</p><p className="font-black">{formatCurrency(historyDetail.cashToCollect)}</p></div>
+                  <div><p className="text-xs text-neutral-400">Total del pedido</p><p className="font-semibold">{formatCurrency(historyDetail.orderTotal)}</p></div>
+                  <div><p className="text-xs text-neutral-400">Efectivo a cobrar</p><p className="font-semibold">{formatCurrency(historyDetail.cashToCollect)}</p></div>
                 </div>
 
                 {historyDetail.mapsUrl ? (
-                  <a href={historyDetail.mapsUrl} target="_blank" rel="noreferrer" className="mt-4 inline-flex items-center gap-1.5 text-xs font-bold text-central-orange hover:underline">
+                  <a href={historyDetail.mapsUrl} target="_blank" rel="noreferrer" className="mt-4 inline-flex items-center gap-1.5 text-xs font-semibold text-central-orange hover:underline">
                     <ExternalLink size={13} /> Abrir ubicación del cliente en Google Maps
                   </a>
                 ) : null}
               </section>
 
               <section className="rounded-sm border border-neutral-200 p-4">
-                <p className="text-xs font-black uppercase tracking-wider text-central-orange">Repartidor y comisión</p>
+                <p className="text-xs font-semibold uppercase tracking-wider text-central-orange">Repartidor y comisión</p>
                 <div className="mt-3 space-y-3 text-sm">
-                  <div><p className="text-xs text-neutral-400">Repartidor</p><p className="font-black text-central-carbon">{historyDetail.driverName}</p></div>
+                  <div><p className="text-xs text-neutral-400">Repartidor</p><p className="font-semibold text-central-carbon">{historyDetail.driverName}</p></div>
                   <div><p className="text-xs text-neutral-400">Vehículo</p><p className="font-semibold capitalize">{historyDetail.vehicleType}</p></div>
-                  <div><p className="text-xs text-neutral-400">Comisión aplicada</p><p className="font-black text-emerald-700">{historyDetail.commissionPercent}% · {formatCurrency(historyDetail.commissionAmount)}</p></div>
+                  <div><p className="text-xs text-neutral-400">Comisión aplicada</p><p className="font-semibold text-emerald-700">{historyDetail.commissionPercent}% · {formatCurrency(historyDetail.commissionAmount)}</p></div>
                   <div><p className="text-xs text-neutral-400">Liquidación</p><p className="font-semibold">{settlementLabel(historyDetail.settlementStatus)}</p></div>
                   <div><p className="text-xs text-neutral-400">Fecha de pago</p><p className="font-semibold">{optionalDate(historyDetail.settlementPaidAt)}</p></div>
                 </div>
@@ -928,7 +974,7 @@ export function DeliveryAdminPage() {
             </div>
 
             <section className="rounded-sm border border-neutral-200 p-4">
-              <p className="text-xs font-black uppercase tracking-wider text-central-orange">Tiempos del reparto</p>
+              <p className="text-xs font-semibold uppercase tracking-wider text-central-orange">Tiempos del reparto</p>
               <div className="mt-3 grid gap-3 text-sm sm:grid-cols-2 lg:grid-cols-4">
                 <div><p className="text-xs text-neutral-400">Asignado</p><p className="font-semibold">{optionalDate(historyDetail.assignedAt)}</p></div>
                 <div><p className="text-xs text-neutral-400">Aceptado</p><p className="font-semibold">{optionalDate(historyDetail.acceptedAt)}</p></div>
@@ -944,12 +990,12 @@ export function DeliveryAdminPage() {
             </section>
 
             <section className="rounded-sm border border-neutral-200 p-4">
-              <p className="text-xs font-black uppercase tracking-wider text-central-orange">Cronología registrada</p>
+              <p className="text-xs font-semibold uppercase tracking-wider text-central-orange">Cronología registrada</p>
               <div className="mt-3 space-y-2">
                 {historyDetail.events.length ? historyDetail.events.map((event, index) => (
                   <div key={`${event.createdAt}-${index}`} className="flex flex-col gap-1 rounded-sm bg-neutral-50 px-3 py-2.5 sm:flex-row sm:items-center sm:justify-between">
                     <div>
-                      <p className="text-sm font-bold text-central-carbon">{STATUS_LABELS[event.status]}</p>
+                      <p className="text-sm font-semibold text-central-carbon">{STATUS_LABELS[event.status]}</p>
                       {event.note ? <p className="mt-0.5 text-xs text-neutral-500">{event.note}</p> : null}
                     </div>
                     <p className="shrink-0 text-xs text-neutral-400">{formatDateTime(event.createdAt)}</p>
