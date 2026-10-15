@@ -96,9 +96,19 @@ export async function POST(request: Request) {
   } catch (error) {
     const message = errorMessage(error);
     const isQuoteError = /cotización|ubicación|delivery|ruta|venció|modificada/i.test(message);
+    const isSupabaseCredentialError = /invalid api key|api key|jwt|service role|secret key/i.test(message);
+
+    console.error('[create-public-order] No se pudo crear el pedido.', {
+      message,
+      name: error instanceof Error ? error.name : 'UnknownError',
+    });
 
     return NextResponse.json(
-      { error: message },
+      {
+        error: isSupabaseCredentialError
+          ? 'No pudimos confirmar el pedido en este momento. Intentá nuevamente en unos instantes.'
+          : message,
+      },
       {
         status: isQuoteError ? 409 : 500,
         headers: {
