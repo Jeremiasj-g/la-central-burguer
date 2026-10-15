@@ -1,6 +1,6 @@
 'use client';
 
-import { ImagePlus, Plus, Search, Upload, X } from 'lucide-react';
+import { ImagePlus, Plus, Search, X } from 'lucide-react';
 import { useMemo, useState, type FormEvent } from 'react';
 import type { Product } from '../types/producto.types';
 import type { Category } from '@/features/categorias/types/categoria.types';
@@ -10,7 +10,6 @@ import { Input } from '@/shared/components/ui/Input';
 import { Select } from '@/shared/components/ui/Select';
 import { Textarea } from '@/shared/components/ui/Textarea';
 import { ProductImageMedia } from './ProductImageMedia';
-import { formatCurrency } from '@/shared/utils/format.utils';
 
 interface ProductoFormProps {
   product?: Product | null;
@@ -175,7 +174,7 @@ export function ProductoForm({ product, categories, ingredients, isSaving, onSub
             <p className={labelClass}>Seleccionados</p>
             <div className="flex min-h-[37px] max-h-[118px] flex-wrap content-start gap-1.5 overflow-y-auto py-1 custom-scrollbar" aria-label="Ingredientes seleccionados">
               {selectedIngredients.length ? selectedIngredients.map((ingredient) => (
-                <button key={ingredient.id} type="button" title={`Quitar \${ingredient.name}`} aria-label={`Quitar \${ingredient.name}`} className={selectedChipClass} onClick={() => toggleIngredient(ingredient.id)}>
+                <button key={ingredient.id} type="button" title={`Quitar ${ingredient.name}`} aria-label={`Quitar ${ingredient.name}`} className={selectedChipClass} onClick={() => toggleIngredient(ingredient.id)}>
                   {ingredient.name}
                   <X size={12} strokeWidth={1.8} className="opacity-65 transition-opacity duration-200 group-hover:opacity-100" />
                 </button>
@@ -201,7 +200,7 @@ export function ProductoForm({ product, categories, ingredients, isSaving, onSub
               {filteredIngredients.length ? (
                 <div className="flex flex-wrap content-start gap-1.5">
                   {filteredIngredients.map((ingredient) => (
-                    <button key={ingredient.id} type="button" title={`Agregar \${ingredient.name}`} aria-label={`Agregar \${ingredient.name}`} className={suggestionChipClass} onClick={() => toggleIngredient(ingredient.id)}>
+                    <button key={ingredient.id} type="button" title={`Agregar ${ingredient.name}`} aria-label={`Agregar ${ingredient.name}`} className={suggestionChipClass} onClick={() => toggleIngredient(ingredient.id)}>
                       <Plus size={12} strokeWidth={1.9} className="text-central-orange" />
                       {ingredient.name}
                     </button>
