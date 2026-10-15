@@ -128,6 +128,26 @@ export async function getProductos(filters: ProductFilters = {}): Promise<Produc
   }));
 }
 
+/**
+ * Revalida productos de un carrito o de una acción de compra.
+ * El estado del administrador y la categoría activa se comprueban con las políticas de Supabase.
+ */
+export async function getOrderableProductIds(productIds: string[]): Promise<Set<string>> {
+  if (!productIds.length) return new Set();
+  requireSupabaseConfigured('verificar la disponibilidad de productos');
+
+  const { data, error } = await getSupabaseBrowserClient()
+    .from('products')
+    .select('id')
+    .in('id', [...new Set(productIds)])
+    .is('deleted_at', null)
+    .eq('active', true)
+    .eq('available', true);
+
+  if (error) throw new Error(error.message);
+  return new Set((data ?? []).map((row) => row.id));
+}
+
 export async function getProductoById(id: string): Promise<Product | null> {
   requireSupabaseConfigured('consultar el producto');
 

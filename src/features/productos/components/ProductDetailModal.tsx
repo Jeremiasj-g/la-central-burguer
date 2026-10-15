@@ -14,7 +14,7 @@ interface ProductDetailModalProps {
   product: Product | null;
   open: boolean;
   onClose: () => void;
-  onAddToCart: (payload: { product: Product; quantity: number; note?: string }) => void;
+  onAddToCart: (payload: { product: Product; quantity: number; note?: string }) => Promise<boolean>;
   disabled?: boolean;
   onPreviewImage?: (product: Product) => void;
   categoryName?: string;
@@ -22,6 +22,7 @@ interface ProductDetailModalProps {
 
 export function ProductDetailModal({ product, open, onClose, onAddToCart, disabled = false, onPreviewImage, categoryName }: ProductDetailModalProps) {
   const [quantity, setQuantity] = useState(1);
+  const [isAdding, setIsAdding] = useState(false);
   const [withNote, setWithNote] = useState(false);
   const [note, setNote] = useState('');
   const [displayProduct, setDisplayProduct] = useState<Product | null>(product);
@@ -33,6 +34,7 @@ export function ProductDetailModal({ product, open, onClose, onAddToCart, disabl
   useEffect(() => {
     if (!open) return;
     setQuantity(1);
+    setIsAdding(false);
     setWithNote(false);
     setNote('');
   }, [open, product?.id]);
@@ -40,10 +42,19 @@ export function ProductDetailModal({ product, open, onClose, onAddToCart, disabl
   if (!displayProduct) return null;
   const currentProduct = displayProduct;
 
-  function handleAdd() {
-    if (disabled) return;
-    onAddToCart({ product: currentProduct, quantity, note: withNote && note.trim() ? note.trim() : undefined });
-    onClose();
+  async function handleAdd() {
+    if (disabled || isAdding) return;
+    setIsAdding(true);
+    try {
+      const added = await onAddToCart({
+        product: currentProduct,
+        quantity,
+        note: withNote && note.trim() ? note.trim() : undefined,
+      });
+      if (added) onClose();
+    } finally {
+      setIsAdding(false);
+    }
   }
 
   return (
@@ -156,11 +167,11 @@ export function ProductDetailModal({ product, open, onClose, onAddToCart, disabl
               <Button
                 size="sm"
                 className="min-w-0 bg-central-orange px-3 text-black transition duration-200 hover:bg-central-cream disabled:cursor-not-allowed sm:h-11 sm:px-5"
-                title={disabled ? 'Local cerrado, intente más tarde' : 'Agregar al carrito'}
-                disabled={disabled}
+                                title={disabled ? 'Local cerrado, intente más tarde' : 'Agregar al carrito'}
+                disabled={disabled || isAdding}
                 onClick={handleAdd}
               >
-                {disabled ? 'Local cerrado' : 'Agregar al carrito'}
+                {disabled ? 'Local cerrado' : isAdding ? 'Verificando...' : 'Agregar al carrito'}
               </Button>
             </div>
           </div>

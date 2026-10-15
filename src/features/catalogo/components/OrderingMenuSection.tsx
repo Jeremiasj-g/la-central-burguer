@@ -16,6 +16,8 @@ import { CartSidebar } from '@/features/carrito/components/CartSidebar';
 import { CartDrawer } from '@/features/carrito/components/CartDrawer';
 import { CheckoutModal } from '@/features/checkout/components/CheckoutModal';
 import { EmptyState } from '@/shared/components/ui/EmptyState';
+import { toast } from 'react-toastify';
+import { getOrderableProductIds } from '@/features/productos/services/productos.service';
 import { useBusinessConfig } from '@/features/configuracion/hooks/useBusinessConfig';
 import { isBusinessOpenBySchedule } from '@/features/configuracion/utils/businessStatus.utils';
 
@@ -28,10 +30,10 @@ export function OrderingMenuSection() {
   const [previewProduct, setPreviewProduct] = useState<Product | null>(null);
 
   const { categorias, isLoading: loadingCategories, error: categoriesError } = useCategorias({ active: 'active' });
-  const { productos, isLoading: loadingProducts, error: productsError } = useProductos({
+  const { productos, isLoading: loadingProducts, error: productsError, refresh: refreshProducts } = useProductos({
     search,
     categoryId: selectedCategoryId,
-    available: 'all',
+    available: 'available',
     active: 'active',
   });
   const cart = useCarrito();
@@ -47,6 +49,12 @@ export function OrderingMenuSection() {
     window.addEventListener('central-cart-open', handleCartOpen);
     return () => window.removeEventListener('central-cart-open', handleCartOpen);
   }, []);
+
+  useEffect(() => {
+    if (!loadingProducts && selectedProduct && !productos.some((item) => item.id === selectedProduct.id)) {
+      setSelectedProduct(null);
+    }
+  }, [loadingProducts, productos, selectedProduct]);
 
   const categoryById = useMemo(() => Object.fromEntries(categorias.map((category) => [category.id, category.name])), [categorias]);
   const activeTitle = selectedCategoryId === 'all' ? 'Menú completo' : categoryById[selectedCategoryId];
@@ -118,17 +126,29 @@ export function OrderingMenuSection() {
         onClose={() => setSelectedProduct(null)}
         onPreviewImage={setPreviewProduct}
         categoryName={selectedProduct ? categoryById[selectedProduct.categoryId] : undefined}
-        onAddToCart={({ product, quantity, note }) => {
-          if (!isBusinessOpen) return;
-          cart.addItem({
-            productId: product.id,
-            productName: product.name,
-            imageUrl: product.imageUrl,
-            categoryName: categoryById[product.categoryId],
-            unitPrice: product.currentPrice,
-            quantity,
-            note,
-          });
+        onAddToCart={async ({ product, quantity, note }) => {
+          if (!isBusinessOpen) return false;
+          try {
+            const orderableIds = await getOrderableProductIds([product.id]);
+            if (!orderableIds.has(product.id)) {
+              toast.warning('Este producto ya no está disponible.');
+              void refreshProducts();
+              return false;
+            }
+            cart.addItem({
+              productId: product.id,
+              productName: product.name,
+              imageUrl: product.imageUrl,
+              categoryName: categoryById[product.categoryId],
+              unitPrice: product.currentPrice,
+              quantity,
+              note,
+            });
+            return true;
+          } catch {
+            toast.error('No pudimos verificar la disponibilidad. Intentá nuevamente.');
+            return false;
+          }
         }}
       />
       <ProductImageLightbox
