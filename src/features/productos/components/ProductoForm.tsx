@@ -1,4 +1,5 @@
 'use client';
+// Validación temporal del diseño de alta de productos.
 
 import { CheckCircle2, ImagePlus, Package, Plus, Search, Star, Upload, X } from 'lucide-react';
 import { useMemo, useState, type FormEvent } from 'react';
