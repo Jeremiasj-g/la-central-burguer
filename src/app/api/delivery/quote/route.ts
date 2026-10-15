@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getSupabaseAdminClient } from '@/lib/supabase/admin';
+import { getSupabaseBrowserClient } from '@/lib/supabase/client';
 import {
   buildGoogleMapsUrl,
   calculateDeliveryCost,
@@ -171,7 +172,7 @@ async function saveCachedRoute(
 
 export async function GET() {
   try {
-    const supabase = getSupabaseAdminClient();
+    const supabase = getSupabaseBrowserClient();
     const { data: config, error: configError } = await supabase
       .from('business_config')
       .select('store_latitude,store_longitude')
@@ -296,7 +297,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const supabase = getSupabaseAdminClient();
+    const supabase = getSupabaseBrowserClient();
     const { data: config, error: configError } = await supabase
       .from('business_config')
       .select('store_latitude,store_longitude,delivery_base_fee,delivery_price_per_km,delivery_max_distance_km,delivery_rounding_value')
@@ -318,16 +319,31 @@ export async function POST(request: Request) {
     const customerLocation = { lat: body.lat, lng: body.lng };
     const straightDistanceKm = calculateDistanceKm(storeLocation, customerLocation);
 
-    let route = await findCachedRoute(storeLocation, customerLocation);
+    let route: RouteResult | null = null;
+
+    try {
+      route = await findCachedRoute(storeLocation, customerLocation);
+    } catch (error) {
+      console.warn('[delivery-route-cache] Lectura de caché omitida.', {
+        message: error instanceof Error ? error.message : String(error),
+      });
+    }
 
     if (!route) {
       route = await fetchSerpApiRoute(storeLocation, customerLocation);
-      await saveCachedRoute(storeLocation, customerLocation, {
-        routeDistanceKm: route.routeDistanceKm,
-        routeDurationSeconds: route.routeDurationSeconds,
-        routeDurationText: route.routeDurationText,
-        routeVia: route.routeVia,
-      });
+
+      try {
+        await saveCachedRoute(storeLocation, customerLocation, {
+          routeDistanceKm: route.routeDistanceKm,
+          routeDurationSeconds: route.routeDurationSeconds,
+          routeDurationText: route.routeDurationText,
+          routeVia: route.routeVia,
+        });
+      } catch (error) {
+        console.warn('[delivery-route-cache] Escritura de caché omitida.', {
+          message: error instanceof Error ? error.message : String(error),
+        });
+      }
     }
 
     const deliveryCost = calculateDeliveryCost({
