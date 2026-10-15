@@ -12,9 +12,9 @@ function formatOrderCount(count: number) {
 
 export function DeliveryMethodChart({ data, periodLabel }: { data: ChartPoint[]; periodLabel: string }) {
   return (
-    <div className="rounded-sm border border-neutral-200 bg-white p-6 shadow-soft">
-      <h3 className="text-lg font-black text-central-carbon">Delivery vs retiro local</h3>
-      <div className="mt-5 h-64">
+    <div className="min-w-0 rounded-[20px] border border-neutral-200/70 bg-white p-4 shadow-soft sm:p-5">
+      <h3 className="text-[15px] font-semibold tracking-[-.025em] text-central-carbon sm:text-[16px]">Delivery vs retiro local</h3>
+      <div className="mt-4 h-64 min-w-0">
         <ResponsiveContainer width="100%" height="100%">
           <PieChart>
             <Pie data={data} dataKey="value" nameKey="name" innerRadius={55} outerRadius={90} paddingAngle={4}>
@@ -24,7 +24,7 @@ export function DeliveryMethodChart({ data, periodLabel }: { data: ChartPoint[];
           </PieChart>
         </ResponsiveContainer>
       </div>
-      <div className="mt-3 flex flex-wrap gap-3 text-sm font-bold text-neutral-600">
+      <div className="mt-3 flex flex-wrap gap-3 text-[12px] font-medium text-neutral-600">
         {data.map((item, index) => (
           <span key={item.name} className="inline-flex items-center gap-2">
             <span className="h-3 w-3 rounded-sm" style={{ backgroundColor: colors[index % colors.length] }} />
