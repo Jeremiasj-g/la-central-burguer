@@ -154,64 +154,64 @@ export function ReportFilters({
           <ChevronDown size={15} className={`transition-transform duration-200 ${advancedOpen ? 'rotate-180' : ''}`} />
         </button>
 
-        <div id="report-advanced-filters" aria-hidden={!advancedOpen} inert={!advancedOpen} className={`grid min-w-0 transition-[grid-template-rows,opacity,margin] duration-200 ease-out ${advancedOpen ? 'mt-3 grid-rows-[1fr] opacity-100' : 'mt-0 grid-rows-[0fr] opacity-0 pointer-events-none'}`}>
+        <div id="report-advanced-filters" aria-hidden={!advancedOpen} inert={!advancedOpen} className={`report-advanced-panel grid min-w-0 transition-[grid-template-rows,opacity,margin] duration-200 ease-out ${advancedOpen ? 'mt-3 grid-rows-[1fr] opacity-100' : 'mt-0 grid-rows-[0fr] opacity-0 pointer-events-none'}`}>
           <div className="grid min-h-0 min-w-0 grid-cols-2 gap-3 overflow-hidden">
-          <div className="min-w-0">
-            <span className={labelClass}>Estado</span>
-            <Select
-              aria-label="Estado de las ventas"
-              variant="light"
-              value={filters.status}
-              options={STATUS_OPTIONS}
-              onValueChange={(status) => patch({ status: status as ReportFilters['status'] })}
-              className={compactSelect}
-            />
-          </div>
-          <div className="min-w-0">
-            <span className={labelClass}>Pago</span>
-            <Select
-              aria-label="Método de pago"
-              variant="light"
-              value={filters.paymentMethod}
-              options={PAYMENT_OPTIONS}
-              onValueChange={(paymentMethod) => patch({ paymentMethod: paymentMethod as ReportFilters['paymentMethod'] })}
-              className={compactSelect}
-            />
-          </div>
-          <div className="min-w-0">
-            <span className={labelClass}>Entrega</span>
-            <Select
-              aria-label="Tipo de entrega"
-              variant="light"
-              value={filters.deliveryMethod}
-              options={DELIVERY_OPTIONS}
-              onValueChange={(deliveryMethod) => patch({ deliveryMethod: deliveryMethod as ReportFilters['deliveryMethod'] })}
-              className={compactSelect}
-            />
-          </div>
-          <div className="min-w-0">
-            <span className={labelClass}>Origen</span>
-            <Select
-              aria-label="Origen de la venta"
-              variant="light"
-              value={filters.source ?? 'all'}
-              options={SOURCE_OPTIONS}
-              onValueChange={(source) => patch({ source: source as ReportFilters['source'] })}
-              className={compactSelect}
-            />
-          </div>
-          <label className="col-span-2 min-w-0">
-            <span className={labelClass}>Buscar pedidos o clientes</span>
-            <span className="relative block">
-              <Search size={14} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" />
-              <Input
-                value={filters.search}
-                onChange={(event) => patch({ search: event.target.value })}
-                placeholder="Código, nombre o teléfono"
-                className="!h-9 !rounded-[11px] !border-neutral-200/80 !bg-[#f8f8f9] !pl-9 !pr-3 !text-[12px] !text-neutral-900 !shadow-none placeholder:!text-neutral-400"
+            <div className="min-w-0">
+              <span className={labelClass}>Estado</span>
+              <Select
+                aria-label="Estado de las ventas"
+                variant="light"
+                value={filters.status}
+                options={STATUS_OPTIONS}
+                onValueChange={(status) => patch({ status: status as ReportFilters['status'] })}
+                className={compactSelect}
               />
-            </span>
-          </label>
+            </div>
+            <div className="min-w-0">
+              <span className={labelClass}>Pago</span>
+              <Select
+                aria-label="Método de pago"
+                variant="light"
+                value={filters.paymentMethod}
+                options={PAYMENT_OPTIONS}
+                onValueChange={(paymentMethod) => patch({ paymentMethod: paymentMethod as ReportFilters['paymentMethod'] })}
+                className={compactSelect}
+              />
+            </div>
+            <div className="min-w-0">
+              <span className={labelClass}>Entrega</span>
+              <Select
+                aria-label="Tipo de entrega"
+                variant="light"
+                value={filters.deliveryMethod}
+                options={DELIVERY_OPTIONS}
+                onValueChange={(deliveryMethod) => patch({ deliveryMethod: deliveryMethod as ReportFilters['deliveryMethod'] })}
+                className={compactSelect}
+              />
+            </div>
+            <div className="min-w-0">
+              <span className={labelClass}>Origen</span>
+              <Select
+                aria-label="Origen de la venta"
+                variant="light"
+                value={filters.source ?? 'all'}
+                options={SOURCE_OPTIONS}
+                onValueChange={(source) => patch({ source: source as ReportFilters['source'] })}
+                className={compactSelect}
+              />
+            </div>
+            <label className="col-span-2 min-w-0">
+              <span className={labelClass}>Buscar pedidos o clientes</span>
+              <span className="relative block">
+                <Search size={14} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" />
+                <Input
+                  value={filters.search}
+                  onChange={(event) => patch({ search: event.target.value })}
+                  placeholder="Código, nombre o teléfono"
+                  className="!h-9 !rounded-[11px] !border-neutral-200/80 !bg-[#f8f8f9] !pl-9 !pr-3 !text-[12px] !text-neutral-900 !shadow-none placeholder:!text-neutral-400"
+                />
+              </span>
+            </label>
           </div>
         </div>
       </div>
