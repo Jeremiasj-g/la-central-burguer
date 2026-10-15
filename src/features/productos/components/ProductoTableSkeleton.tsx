@@ -1,3 +1,4 @@
+// Validación CI temporal del diseño Productos wallet.
 export function ProductoTableSkeleton() {
   return (
     <div role="status" aria-label="Cargando productos" className="min-w-0 animate-pulse motion-reduce:animate-none">
