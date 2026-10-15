@@ -15,9 +15,9 @@ interface AccessRoleModalProps {
   onSaved: () => void;
 }
 
-const fieldClass = 'h-10 w-full rounded-sm border border-neutral-200 bg-white px-3 text-sm text-central-carbon outline-none transition focus:border-central-orange focus:ring-2 focus:ring-central-orange/15 disabled:bg-neutral-100 disabled:text-neutral-500';
-const textareaClass = 'min-h-24 w-full resize-y rounded-sm border border-neutral-200 bg-white px-3 py-2.5 text-sm text-central-carbon outline-none transition focus:border-central-orange focus:ring-2 focus:ring-central-orange/15';
-const labelClass = 'mb-1.5 block text-xs font-bold uppercase tracking-wide text-neutral-500';
+const fieldClass = 'h-10 w-full rounded-[11px] border border-neutral-200/70 bg-[#f7f7f9] px-3 text-[13px] font-normal text-neutral-900 outline-none transition-colors duration-200 focus:border-central-orange/40 focus:bg-white focus:ring-2 focus:ring-central-orange/10 disabled:bg-neutral-100 disabled:text-neutral-500';
+const textareaClass = 'min-h-24 w-full resize-y rounded-[11px] border border-neutral-200/70 bg-[#f7f7f9] px-3 py-2.5 text-[13px] font-normal text-neutral-900 outline-none transition-colors duration-200 focus:border-central-orange/40 focus:bg-white focus:ring-2 focus:ring-central-orange/10';
+const labelClass = 'mb-1.5 block text-[11px] font-medium text-neutral-500';
 
 export function AccessRoleModal({ role, permissions, onClose, onSaved }: AccessRoleModalProps) {
   const [form, setForm] = useState<AccessRoleFormPayload>({
@@ -67,9 +67,9 @@ export function AccessRoleModal({ role, permissions, onClose, onSaved }: AccessR
   return (
     <Modal open onClose={onClose} title={role ? 'Editar rol' : 'Nuevo rol'} size="lg" theme="light">
       <form onSubmit={submit}>
-        <div className="mb-5 flex gap-3 rounded-sm border border-neutral-200 bg-neutral-50 p-4">
+        <div className="mb-5 flex gap-3 rounded-[15px] border border-neutral-200/70 bg-[#f8f8f9] p-4">
           <span className="grid h-10 w-10 shrink-0 place-items-center rounded-sm bg-central-orange/10 text-central-orange"><KeyRound size={18} /></span>
-          <div><p className="text-sm font-black text-central-carbon">Permisos reutilizables</p><p className="mt-1 text-xs leading-5 text-neutral-500">Los roles agrupan permisos. Los usuarios sólo se vinculan a roles, evitando repetir reglas de acceso por persona.</p></div>
+          <div><p className="text-sm font-semibold text-central-carbon">Permisos reutilizables</p><p className="mt-1 text-xs leading-5 text-neutral-500">Los roles agrupan permisos. Los usuarios sólo se vinculan a roles, evitando repetir reglas de acceso por persona.</p></div>
         </div>
 
         <div className="grid gap-4 sm:grid-cols-2">
@@ -79,18 +79,18 @@ export function AccessRoleModal({ role, permissions, onClose, onSaved }: AccessR
         </div>
 
         <div className="mt-6">
-          <div className="mb-3 flex flex-wrap items-end justify-between gap-2"><div><p className={labelClass}>Permisos</p><p className="text-xs text-neutral-500">Seleccioná las capacidades que heredarán los usuarios con este rol.</p></div><span className="rounded-full bg-neutral-100 px-3 py-1 text-xs font-black text-neutral-600">{form.permissionCodes.length} seleccionados</span></div>
+          <div className="mb-3 flex flex-wrap items-end justify-between gap-2"><div><p className={labelClass}>Permisos</p><p className="text-xs text-neutral-500">Seleccioná las capacidades que heredarán los usuarios con este rol.</p></div><span className="rounded-full bg-neutral-100 px-3 py-1 text-xs font-semibold text-neutral-600">{form.permissionCodes.length} seleccionados</span></div>
           <div className="space-y-4">
             {groupedPermissions.map(([module, modulePermissions]) => (
-              <section key={module} className="rounded-sm border border-neutral-200 p-4">
-                <div className="mb-3 flex items-center gap-2"><LockKeyhole size={15} className="text-central-orange" /><h3 className="text-sm font-black text-central-carbon">{module}</h3></div>
+              <section key={module} className="rounded-[14px] border border-neutral-200/70 p-4">
+                <div className="mb-3 flex items-center gap-2"><LockKeyhole size={15} className="text-central-orange" /><h3 className="text-sm font-semibold text-central-carbon">{module}</h3></div>
                 <div className="grid gap-2 md:grid-cols-2">
                   {modulePermissions.map((permission) => {
                     const selected = form.permissionCodes.includes(permission.code);
                     return (
                       <button key={permission.id} type="button" onClick={() => togglePermission(permission.code)} className={`flex cursor-pointer items-start gap-3 rounded-sm border p-3 text-left transition ${selected ? 'border-central-orange bg-central-orange/[.05]' : 'border-neutral-200 hover:border-central-orange/35'}`}>
                         <span className={`mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded border ${selected ? 'border-central-orange bg-central-orange text-white' : 'border-neutral-300 bg-white'}`}>{selected ? <Check size={13} /> : null}</span>
-                        <span className="min-w-0"><span className="block text-sm font-bold text-central-carbon">{permission.name}</span><span className="mt-1 block text-xs leading-5 text-neutral-500">{permission.description || permission.code}</span></span>
+                        <span className="min-w-0"><span className="block text-sm font-medium text-central-carbon">{permission.name}</span><span className="mt-1 block text-xs leading-5 text-neutral-500">{permission.description || permission.code}</span></span>
                       </button>
                     );
                   })}
@@ -100,8 +100,8 @@ export function AccessRoleModal({ role, permissions, onClose, onSaved }: AccessR
           </div>
         </div>
 
-        <div className="mt-5 flex items-center justify-between gap-3 rounded-sm border border-neutral-200 bg-neutral-50 p-3">
-          <div><p className="text-sm font-black text-central-carbon">Rol activo</p><p className="text-xs text-neutral-500">Los roles inactivos no otorgan permisos ni pueden asignarse a nuevos usuarios.</p></div>
+        <div className="mt-5 flex items-center justify-between gap-3 rounded-[12px] border border-neutral-200/70 bg-[#f8f8f9] p-3">
+          <div><p className="text-sm font-semibold text-central-carbon">Rol activo</p><p className="text-xs text-neutral-500">Los roles inactivos no otorgan permisos ni pueden asignarse a nuevos usuarios.</p></div>
           <button type="button" disabled={Boolean(role?.isSystem)} onClick={() => setForm({ ...form, active: !form.active })} className={`relative h-7 w-12 cursor-pointer rounded-full transition disabled:cursor-not-allowed disabled:opacity-60 ${form.active ? 'bg-emerald-500' : 'bg-neutral-300'}`} aria-label="Alternar rol activo"><span className={`absolute top-1 h-5 w-5 rounded-full bg-white shadow transition ${form.active ? 'left-6' : 'left-1'}`} /></button>
         </div>
 
