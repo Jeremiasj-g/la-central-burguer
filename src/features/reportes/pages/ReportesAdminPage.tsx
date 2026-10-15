@@ -58,16 +58,23 @@ function createDefaultFilters(): ReportFilterState {
 function FeaturedMetricCard({ label, value, detail, tone }: { label: string; value: number; detail: string; tone: 'gross' | 'net' }) {
   const isNet = tone === 'net';
   return (
-    <article className={`relative min-h-[178px] overflow-hidden rounded-sm border p-6 shadow-sm sm:col-span-2 xl:col-span-3 2xl:col-span-6 ${isNet ? 'border-emerald-200 bg-[#eef8f3]' : 'border-central-carbon bg-central-carbon text-white'}`}>
-      <div className="relative z-10 flex h-full flex-col justify-between gap-6">
+    <article className={`relative min-h-[190px] overflow-hidden rounded-[22px] border p-6 sm:col-span-2 xl:col-span-3 2xl:col-span-6 ${isNet
+      ? 'border-emerald-200/70 bg-[linear-gradient(145deg,#f3fbf7,#ebf8f2)]'
+      : 'border-[#0a67c7]/20 bg-[linear-gradient(145deg,#0d5fb8,#0071e3)] text-white'}`}>
+      <div className="absolute -right-12 -top-16 h-40 w-40 rounded-full bg-white/[.08] blur-2xl" />
+      <div className="relative z-10 flex h-full flex-col justify-between gap-7">
         <div className="flex items-start justify-between gap-4">
-          <div>
-            <p className={`text-xs font-semibold uppercase tracking-[0.12em] ${isNet ? 'text-emerald-700' : 'text-white/55'}`}>{label}</p>
-            <p className={`mt-3 text-4xl font-semibold tracking-[-0.04em] sm:text-[42px] ${isNet ? 'text-[#0f8a5f]' : 'text-white'}`}><AnimatedValue value={value} formatter={formatCurrency} duration={900} /></p>
+          <div className="min-w-0">
+            <p className={`text-[11px] font-semibold uppercase tracking-[.1em] ${isNet ? 'text-emerald-700' : 'text-white/65'}`}>{label}</p>
+            <p className={`mt-3 break-words text-[40px] font-semibold leading-none tracking-[-.055em] sm:text-[48px] ${isNet ? 'text-[#087a55]' : 'text-white'}`}>
+              <AnimatedValue value={value} formatter={formatCurrency} duration={900} />
+            </p>
           </div>
-          <span className={`grid h-11 w-11 shrink-0 place-items-center rounded-sm ${isNet ? 'bg-white text-[#0f8a5f] shadow-sm' : 'bg-white/10 text-central-orange'}`}><DollarSign size={20} /></span>
+          <span className={`grid h-10 w-10 shrink-0 place-items-center rounded-[12px] ${isNet ? 'bg-white/90 text-[#0f8a5f]' : 'bg-white/[.13] text-white'}`}>
+            <DollarSign size={18} strokeWidth={2} />
+          </span>
         </div>
-        <p className={`max-w-2xl text-sm leading-6 ${isNet ? 'text-emerald-900/70' : 'text-white/60'}`}>{detail}</p>
+        <p className={`max-w-2xl text-[13px] leading-6 ${isNet ? 'text-emerald-900/65' : 'text-white/72'}`}>{detail}</p>
       </div>
     </article>
   );
@@ -75,12 +82,12 @@ function FeaturedMetricCard({ label, value, detail, tone }: { label: string; val
 
 function MetricCard({ label, value, detail, icon: Icon, formatter }: { label: string; value: number; detail: string; icon: React.ComponentType<{ size?: number; className?: string }>; formatter: (value: number) => string }) {
   return (
-    <article className="relative min-w-0 overflow-hidden rounded-sm border border-neutral-200 bg-white p-5 shadow-sm xl:col-span-2 2xl:col-span-2">
-      <span className="absolute right-4 top-4 grid h-10 w-10 shrink-0 place-items-center rounded-sm bg-central-orange/10 text-central-orange"><Icon size={18} /></span>
+    <article className="relative min-w-0 overflow-hidden rounded-[20px] border border-black/[.055] bg-white p-5 xl:col-span-2 2xl:col-span-2">
+      <span className="absolute right-4 top-4 grid h-9 w-9 shrink-0 place-items-center rounded-[11px] bg-[#eaf3ff] text-[#0071e3]"><Icon size={16} /></span>
       <div className="min-w-0 pr-12">
-        <p className="truncate text-xs font-bold text-neutral-500">{label}</p>
-        <p className="mt-2 break-words text-2xl font-extrabold tracking-tight text-central-carbon"><AnimatedValue value={value} formatter={formatter} /></p>
-        <p className="mt-1 max-w-full text-xs leading-5 text-neutral-500">{detail}</p>
+        <p className="truncate text-[11px] font-semibold uppercase tracking-[.08em] text-[#86868b]">{label}</p>
+        <p className="mt-2 break-words text-[30px] font-semibold leading-none tracking-[-.05em] text-[#1d1d1f]"><AnimatedValue value={value} formatter={formatter} /></p>
+        <p className="mt-2 max-w-full text-[12px] leading-5 text-[#6e6e73]">{detail}</p>
       </div>
     </article>
   );
