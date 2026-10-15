@@ -72,7 +72,7 @@ export function Select({
         aria-label={ariaLabel}
         aria-labelledby={ariaLabelledBy}
         className={cn(
-          'group flex h-10 w-full min-w-0 cursor-pointer items-center justify-between gap-3 rounded-sm border px-3 text-left text-base outline-none transition-[border-color,background-color,box-shadow] duration-150 focus-visible:border-central-orange focus-visible:ring-2 focus-visible:ring-central-orange/25 disabled:cursor-not-allowed sm:text-sm',
+          'group flex h-10 w-full min-w-0 cursor-pointer items-center justify-between gap-3 rounded-sm border px-3 text-left text-base outline-none transition-[border-color,background-color,box-shadow] duration-200 focus-visible:border-central-orange focus-visible:ring-2 focus-visible:ring-central-orange/25 disabled:cursor-not-allowed sm:text-sm',
           triggerVariants[variant],
           className,
         )}
@@ -82,7 +82,7 @@ export function Select({
         </span>
         <SelectPrimitive.Icon asChild>
           <span className={cn('grid h-6 w-6 shrink-0 place-items-center rounded-sm transition-colors', iconVariants[variant])}>
-            <ChevronDown size={15} strokeWidth={2.4} className="transition-transform duration-150 group-data-[state=open]:rotate-180" />
+            <ChevronDown size={15} strokeWidth={2.4} className="transition-transform duration-200 group-data-[state=open]:rotate-180" />
           </span>
         </SelectPrimitive.Icon>
       </SelectPrimitive.Trigger>
