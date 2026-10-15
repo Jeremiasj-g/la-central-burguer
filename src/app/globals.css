@@ -844,3 +844,16 @@ body.admin-apple-deep .Toastify__close-button {
     padding-top: env(safe-area-inset-top);
   }
 }
+
+
+/* Superficies anidadas: se integran visualmente al panel padre. */
+.admin-redesign-deep section.bg-white > div.bg-white,
+.admin-redesign-deep section.bg-white > aside.bg-white {
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.admin-redesign-deep .border-dashed {
+  border-color: rgba(0,0,0,.12) !important;
+  background: rgba(255,255,255,.34);
+}
