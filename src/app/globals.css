@@ -845,3 +845,46 @@ body.pedidos-wallet-active [role="dialog"] h2 {
     animation-duration: 0.01ms !important;
   }
 }
+
+/* Catálogo wallet: Recetas, Ingredientes y Categorías. */
+.catalog-wallet {
+  font-weight: 400;
+  font-variant-numeric: tabular-nums;
+}
+
+.catalog-wallet :is(button, strong, b, th) {
+  font-weight: 600;
+}
+
+.catalog-wallet :is(input, textarea, [role="combobox"]) {
+  font-weight: 400;
+}
+
+.catalog-wallet :is(button, input, textarea, a) {
+  transition-duration: 200ms;
+}
+
+body.catalog-wallet-active [role="dialog"] {
+  border-radius: 20px;
+}
+
+body.catalog-wallet-active [role="dialog"] :is(h1, h2, h3, strong, b, button) {
+  font-weight: 600;
+}
+
+body.catalog-wallet-active [role="dialog"] h2 {
+  font-size: 18px;
+  letter-spacing: -.035em;
+}
+
+body.catalog-wallet-active .lcb-dropdown-content {
+  border-radius: 13px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .catalog-wallet *,
+  body.catalog-wallet-active [role="dialog"] * {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
+}
