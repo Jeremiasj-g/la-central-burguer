@@ -574,3 +574,46 @@ body.counter-wallet-active [role="dialog"] :is(input, textarea) {
     transition-duration: 0.01ms !important;
   }
 }
+
+
+/* Configuración: misma jerarquía wallet que Usuarios, Mostrador y Delivery. */
+.config-wallet {
+  font-weight: 400;
+  font-variant-numeric: tabular-nums;
+}
+
+.config-wallet :is(button, strong, b) {
+  font-weight: 600;
+}
+
+.config-wallet :is(input, textarea) {
+  font-weight: 400;
+}
+
+.config-wallet :is(button, input, textarea, a) {
+  transition-duration: 200ms;
+}
+
+.config-wallet :is(button, input, textarea, a):focus-visible {
+  outline-offset: 2px;
+}
+
+body.config-wallet-active [role="dialog"] {
+  border-radius: 20px;
+}
+
+body.config-wallet-active [role="dialog"] :is(h1, h2, h3, strong, b, button) {
+  font-weight: 600;
+}
+
+body.config-wallet-active [role="dialog"] :is(input, textarea) {
+  font-weight: 400;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .config-wallet *,
+  body.config-wallet-active [role="dialog"] * {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
+}
