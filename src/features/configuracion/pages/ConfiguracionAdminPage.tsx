@@ -1,4 +1,5 @@
 'use client';
+// Validación temporal de CI del rediseño de configuración.
 
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { Clock3, ImageUp, MapPin, Navigation, Pencil, Save, Trash2, Store, Truck, MessageCircle, CreditCard, Instagram } from 'lucide-react';
