@@ -1,12 +1,11 @@
 'use client';
 
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
-import { Clock3, ImageUp, MapPin, Navigation, Pencil, Save, Trash2, Store, Truck, MessageCircle, CreditCard, Instagram, CheckCircle2 } from 'lucide-react';
+import { Clock3, ImageUp, MapPin, Navigation, Pencil, Save, Trash2, Store, Truck, MessageCircle, CreditCard, Instagram } from 'lucide-react';
 import { useBusinessConfig } from '../hooks/useBusinessConfig';
 import type { BusinessConfig } from '../types/configuracion.types';
 import { getBusinessStatusLabel, isBusinessOpenBySchedule } from '../utils/businessStatus.utils';
 import { Button } from '@/shared/components/ui/Button';
-import { Card } from '@/shared/components/ui/Card';
 import { ConfirmDialog } from '@/shared/components/ui/ConfirmDialog';
 import { Input } from '@/shared/components/ui/Input';
 import { Textarea } from '@/shared/components/ui/Textarea';
