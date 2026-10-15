@@ -554,7 +554,7 @@ export function VentaMostradorPage() {
         </div>
       </section>
 
-      <section className="mt-6 overflow-hidden rounded-sm border border-neutral-200 bg-white shadow-soft">
+      <section className="mt-6 overflow-hidden rounded-[20px] border border-neutral-200/70 bg-white shadow-soft">
         <div className="flex flex-col gap-3 border-b border-neutral-100 p-4 sm:flex-row sm:items-center sm:justify-between sm:p-5">
           <div>
             <h2 className="font-semibold text-central-carbon">Ventas de mostrador registradas</h2>
@@ -566,70 +566,57 @@ export function VentaMostradorPage() {
         </div>
 
         <div className="max-w-full overflow-x-auto">
-          <table className="w-full min-w-[1040px] text-left text-sm">
-            <thead className="bg-neutral-50 text-[11px] font-semibold uppercase tracking-wider text-neutral-500">
+          <table className="w-full min-w-[780px] text-left text-[12px]">
+            <thead className="border-b border-neutral-100 bg-[#f8f8f9] text-[10px] font-medium uppercase tracking-[.08em] text-neutral-500">
               <tr>
-                <th className="px-5 py-3">Fecha</th>
-                <th className="px-4 py-3">Venta</th>
-                <th className="px-4 py-3">Cliente</th>
-                <th className="px-4 py-3">Modalidad</th>
-                <th className="px-4 py-3">Pago</th>
-                <th className="px-4 py-3 text-right">Unidades</th>
-                <th className="px-4 py-3 text-right">Total</th>
-                <th className="px-4 py-3">Estado</th>
-                <th className="px-5 py-3 text-right">Acciones</th>
+                <th className="px-5 py-3.5">Fecha</th>
+                <th className="px-4 py-3.5">Venta / Cliente</th>
+                <th className="px-4 py-3.5">Modalidad y pago</th>
+                <th className="px-4 py-3.5 text-right">Unidades</th>
+                <th className="px-4 py-3.5 text-right">Total</th>
+                <th className="px-4 py-3.5">Estado</th>
+                <th className="px-5 py-3.5 text-right">Acciones</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-neutral-100">
               {salesLoading ? (
                 Array.from({ length: 4 }).map((_, index) => (
-                  <tr key={index}>
-                    <td colSpan={9} className="px-5 py-4">
-                      <div className="h-5 animate-pulse rounded bg-neutral-100" />
-                    </td>
-                  </tr>
+                  <tr key={index}><td colSpan={7} className="px-5 py-4"><div className="h-5 animate-pulse rounded-lg bg-neutral-100" /></td></tr>
                 ))
               ) : sales.length ? (
                 sales.map((sale) => {
                   const cancelled = sale.status === 'cancelado';
                   return (
-                    <tr key={sale.id} className={`transition ${cancelled ? 'bg-red-50/30' : 'hover:bg-neutral-50/70'}`}>
-                      <td className="whitespace-nowrap px-5 py-3.5 text-neutral-600">{formatDateTime(sale.createdAt)}</td>
-                      <td className="px-4 py-3.5 font-semibold text-central-orange">{sale.orderCode}</td>
-                      <td className="px-4 py-3.5">
-                        <p className="font-medium text-central-carbon">{sale.customerName}</p>
-                        <p className="mt-0.5 text-xs text-neutral-500">{sale.customerPhone}</p>
+                    <tr key={sale.id} className={cancelled ? 'bg-red-50/30 transition-colors duration-200' : 'transition-colors duration-200 hover:bg-[#fafafa]'}>
+                      <td className="whitespace-nowrap px-5 py-4 text-neutral-500">{formatDateTime(sale.createdAt)}</td>
+                      <td className="px-4 py-4">
+                        <p className="font-semibold text-neutral-900">{sale.orderCode}</p>
+                        <p className="mt-0.5 max-w-[210px] truncate text-[11px] text-neutral-500" title={sale.customerName}>{sale.customerName}</p>
                       </td>
-                      <td className="px-4 py-3.5 text-neutral-600">{sale.serviceMode === 'dine_in' ? 'Comer ahí' : 'Para llevar'}</td>
-                      <td className="px-4 py-3.5 text-neutral-600">{sale.paymentMethod === 'transferencia' ? 'Transferencia' : 'Efectivo'}</td>
-                      <td className="px-4 py-3.5 text-right font-medium text-neutral-700">{sale.itemCount}</td>
-                      <td className="px-4 py-3.5 text-right font-semibold text-central-carbon">{formatCurrency(sale.total)}</td>
-                      <td className="px-4 py-3.5">
-                        <span className={`rounded-sm px-2 py-1 text-xs font-medium ${cancelled ? 'bg-red-100 text-red-700' : 'bg-emerald-50 text-emerald-700'}`}>
+                      <td className="px-4 py-4">
+                        <p className="text-neutral-800">{sale.serviceMode === 'dine_in' ? 'Comer ahí' : 'Para llevar'}</p>
+                        <p className="mt-0.5 text-[11px] text-neutral-400">{sale.paymentMethod === 'transferencia' ? 'Transferencia' : 'Efectivo'}</p>
+                      </td>
+                      <td className="px-4 py-4 text-right font-medium text-neutral-600">{sale.itemCount}</td>
+                      <td className="whitespace-nowrap px-4 py-4 text-right font-semibold text-neutral-900 [font-variant-numeric:tabular-nums]">{formatCurrency(sale.total)}</td>
+                      <td className="px-4 py-4">
+                        <span className={cancelled
+                          ? 'inline-flex rounded-full bg-red-50 px-2.5 py-1 text-[11px] font-medium text-red-700'
+                          : 'inline-flex rounded-full bg-emerald-50 px-2.5 py-1 text-[11px] font-medium text-emerald-700'}>
                           {cancelled ? 'Cancelada' : 'Realizada'}
                         </span>
                       </td>
-                      <td className="px-5 py-3.5">
+                      <td className="px-5 py-4">
                         <div className="flex justify-end gap-1.5">
-                          <button
-                            type="button"
-                            onClick={() => void startEditingSale(sale)}
-                            disabled={cancelled || submitting}
-                            className="grid h-8 w-8 place-items-center rounded-sm border border-neutral-200 text-neutral-500 transition hover:border-central-orange hover:text-central-orange disabled:cursor-not-allowed disabled:opacity-35"
-                            title="Editar venta"
-                            aria-label={`Editar ${sale.orderCode}`}
-                          >
+                          <button type="button" onClick={() => void startEditingSale(sale)} disabled={cancelled || submitting}
+                            className="grid h-8 w-8 cursor-pointer place-items-center rounded-[9px] border border-neutral-200 bg-white text-neutral-500 transition-colors duration-200 hover:bg-neutral-50 hover:text-neutral-900 disabled:cursor-not-allowed disabled:opacity-35"
+                            title="Editar venta" aria-label={`Editar ${sale.orderCode}`}>
                             <Edit3 size={14} />
                           </button>
-                          <button
-                            type="button"
-                            onClick={() => setCancelTarget(sale)}
-                            disabled={cancelled || cancelling}
-                            className="grid h-8 w-8 place-items-center rounded-sm border border-red-200 text-red-500 transition hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-35"
-                            title="Cancelar venta"
-                            aria-label={`Cancelar ${sale.orderCode}`}
-                          >
-                            <XCircle size={15} />
+                          <button type="button" onClick={() => setCancelTarget(sale)} disabled={cancelled || cancelling}
+                            className="grid h-8 w-8 cursor-pointer place-items-center rounded-[9px] border border-red-200 bg-white text-red-500 transition-colors duration-200 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-35"
+                            title="Cancelar venta" aria-label={`Cancelar ${sale.orderCode}`}>
+                            <XCircle size={14} />
                           </button>
                         </div>
                       </td>
@@ -637,9 +624,7 @@ export function VentaMostradorPage() {
                   );
                 })
               ) : (
-                <tr>
-                  <td colSpan={9} className="px-5 py-10 text-center text-sm text-neutral-500">Todavía no hay ventas de mostrador registradas.</td>
-                </tr>
+                <tr><td colSpan={7} className="px-5 py-10 text-center text-[12px] text-neutral-500">Todavía no hay ventas de mostrador registradas.</td></tr>
               )}
             </tbody>
           </table>
