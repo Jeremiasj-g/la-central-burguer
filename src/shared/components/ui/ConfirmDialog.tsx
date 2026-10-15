@@ -11,6 +11,7 @@ interface ConfirmDialogProps {
   confirmLabel?: string;
   cancelLabel?: string;
   tone?: 'default' | 'danger';
+  theme?: 'dark' | 'light';
   isLoading?: boolean;
   onConfirm: () => void | Promise<void>;
   onCancel: () => void;
@@ -23,6 +24,7 @@ export function ConfirmDialog({
   confirmLabel = 'Confirmar',
   cancelLabel = 'Cancelar',
   tone = 'default',
+  theme = 'dark',
   isLoading,
   onConfirm,
   onCancel,
@@ -33,20 +35,26 @@ export function ConfirmDialog({
       onClose={onCancel}
       title={title}
       size="sm"
-      theme="dark"
-      panelClassName="w-[min(100%,28rem)] border-white/10 bg-[#191919]"
+      theme={theme}
+      panelClassName={theme === 'light'
+        ? 'w-[min(100%,28rem)] !rounded-[20px] !border-neutral-200/80 !bg-white'
+        : 'w-[min(100%,28rem)] border-white/10 bg-[#191919]'}
     >
       <div className="flex min-w-0 gap-3 sm:gap-4">
-        <span className={`grid h-10 w-10 shrink-0 place-items-center rounded-sm border sm:h-11 sm:w-11 ${tone === 'danger' ? 'border-red-500/35 bg-red-500/10 text-red-300' : 'border-central-orange/35 bg-central-orange/10 text-central-orange'}`}>
+        <span className={`grid h-10 w-10 shrink-0 place-items-center rounded-[12px] border sm:h-11 sm:w-11 ${tone === 'danger'
+          ? theme === 'light' ? 'border-red-200 bg-red-50 text-red-600' : 'border-red-500/35 bg-red-500/10 text-red-300'
+          : 'border-central-orange/35 bg-central-orange/10 text-central-orange'}`}>
           <AlertTriangle size={19} />
         </span>
-        <p className="min-w-0 break-words text-sm leading-6 text-white/70">{description}</p>
+        <p className={`min-w-0 break-words text-sm leading-6 ${theme === 'light' ? 'text-neutral-600' : 'text-white/70'}`}>{description}</p>
       </div>
-      <div className="mt-5 grid min-w-0 grid-cols-2 gap-2 border-t border-white/10 pt-4 sm:mt-6 sm:gap-3">
+      <div className={`mt-5 grid min-w-0 grid-cols-2 gap-2 border-t pt-4 sm:mt-6 sm:gap-3 ${theme === 'light' ? 'border-neutral-100' : 'border-white/10'}`}>
         <Button
           type="button"
-          variant="dark"
-          className="min-w-0 rounded-sm bg-white/10 px-2 text-sm hover:bg-white/15 sm:px-4"
+          variant={theme === 'light' ? 'secondary' : 'dark'}
+          className={theme === 'light'
+            ? 'min-w-0 !rounded-[11px] !border-neutral-200 !bg-[#f7f7f9] px-2 !text-[12px] !font-medium !text-neutral-600 !shadow-none hover:!bg-neutral-100 sm:px-4'
+            : 'min-w-0 rounded-sm bg-white/10 px-2 text-sm hover:bg-white/15 sm:px-4'}
           onClick={onCancel}
           disabled={isLoading}
         >
@@ -55,7 +63,9 @@ export function ConfirmDialog({
         <Button
           type="button"
           variant={tone === 'danger' ? 'danger' : 'primary'}
-          className="min-w-0 rounded-sm px-2 text-sm sm:px-4"
+          className={theme === 'light'
+            ? 'min-w-0 !rounded-[11px] px-2 !text-[12px] !font-medium !shadow-none transition-colors duration-200 sm:px-4'
+            : 'min-w-0 rounded-sm px-2 text-sm sm:px-4'}
           onClick={() => void onConfirm()}
           disabled={isLoading}
         >
