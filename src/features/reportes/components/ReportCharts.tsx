@@ -57,7 +57,7 @@ export function ReportCharts({
 
   return (
     <section>
-      <div className="mb-4 rounded-sm border border-neutral-200 bg-white px-5 py-4 shadow-sm">
+      <div className="mb-4 rounded-sm border border-neutral-200 bg-white px-5 py-4 shadow-soft">
         <h3 className="text-base font-extrabold text-central-carbon">Análisis gráfico del período</h3>
         <p className="mt-1 text-xs leading-5 text-neutral-500">
           Reutiliza las mismas visualizaciones del Dashboard, pero calculadas exclusivamente con los filtros aplicados en Reportes.
