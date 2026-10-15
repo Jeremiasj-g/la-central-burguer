@@ -365,65 +365,92 @@ export function AccessManagementPage() {
           : { title: '', description: '', label: 'Confirmar', tone: 'default' as const };
 
   return (
-    <div className="min-w-0">
-      <AdminPageHeader
-        eyebrow="Seguridad"
-        title="Usuarios y roles"
-        description="Administrá identidades, invitaciones, roles y permisos con un modelo escalable de acceso basado en RBAC."
-        actions={<><Button variant="secondary" onClick={() => void load(true)} disabled={refreshing}><RefreshCw size={16} className={refreshing ? 'animate-spin' : ''} /> Actualizar</Button><Button onClick={() => tab === 'users' ? setUserModal('new') : setRoleModal('new')}><Plus size={16} /> {tab === 'users' ? 'Nuevo usuario' : 'Nuevo rol'}</Button></>}
-      />
+    <div className="access-wallet min-w-0 pb-8">
+      <div className="mb-5 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <div className="min-w-0">
+          <h1 className="text-[28px] font-semibold leading-tight tracking-[-.045em] text-neutral-950 sm:text-[34px]">Equipo y permisos</h1>
+          <p className="mt-1 text-[13px] leading-5 text-neutral-500">Personas, accesos y responsabilidades, en un solo lugar.</p>
+        </div>
+        <div className="flex shrink-0 items-center gap-2">
+          <Button size="sm" variant="secondary" className="!h-9 !rounded-[11px] !border-neutral-200 !px-3 !text-[12px] !font-medium !shadow-none" onClick={() => void load(true)} disabled={refreshing}>
+            <RefreshCw size={14} className={refreshing ? 'animate-spin' : ''} /> Actualizar
+          </Button>
+          <Button size="sm" className="!h-9 !rounded-[11px] !px-3 !text-[12px] !font-semibold !shadow-none" onClick={() => tab === 'users' ? setUserModal('new') : setRoleModal('new')}>
+            <Plus size={14} /> {tab === 'users' ? 'Nuevo usuario' : 'Nuevo rol'}
+          </Button>
+        </div>
+      </div>
 
       {loading ? <AccessManagementSkeleton /> : (
         <>
-          <section className="mb-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-            <Metric icon={Users} label="Usuarios" value={String(data.users.length)} helper={`${pendingUsers} pendientes de activación`} />
-            <Metric icon={UserRoundCheck} label="Usuarios activos" value={String(activeUsers)} helper="Email verificado y cuenta habilitada" />
-            <Metric icon={Bike} label="Repartidores" value={String(deliveryUsers)} helper="Usuarios con rol Delivery" />
-            <Metric icon={ShieldCheck} label="Roles" value={String(data.roles.length)} helper={`${customRoles} roles personalizados`} />
-          </section>
+          <AccessOverview
+            totalUsers={data.users.length}
+            activeUsers={activeUsers}
+            pendingUsers={pendingUsers}
+            deliveryUsers={deliveryUsers}
+            totalRoles={data.roles.length}
+            customRoles={customRoles}
+          />
 
-          <div className="mb-5 flex min-w-0 gap-2 overflow-x-auto rounded-sm border border-neutral-200 bg-white p-2 shadow-sm">
-            <button onClick={() => { setTab('users'); setQuery(''); }} className={`inline-flex cursor-pointer items-center gap-2 rounded-sm px-4 py-2.5 text-sm font-medium transition ${tab === 'users' ? 'bg-central-carbon text-white' : 'text-neutral-500 hover:bg-neutral-100'}`}><Users size={16} /> Usuarios</button>
-            <button onClick={() => { setTab('roles'); setQuery(''); }} className={`inline-flex cursor-pointer items-center gap-2 rounded-sm px-4 py-2.5 text-sm font-medium transition ${tab === 'roles' ? 'bg-central-carbon text-white' : 'text-neutral-500 hover:bg-neutral-100'}`}><Shield size={16} /> Roles y permisos</button>
+          <div className="mb-5 mt-8 flex min-w-0 flex-col gap-4 border-b border-neutral-200 pb-4 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h2 className="text-[21px] font-semibold tracking-[-.035em] text-neutral-950">Administrar accesos</h2>
+              <p className="mt-0.5 text-[12px] text-neutral-500">Consultá usuarios y configurá sus permisos.</p>
+            </div>
+            <div role="group" aria-label="Tipo de acceso" className="inline-grid w-full shrink-0 grid-cols-2 rounded-[12px] bg-[#eaeaec] p-1 sm:w-auto">
+              <button type="button" aria-pressed={tab === 'users'} onClick={() => { setTab('users'); setQuery(''); }}
+                className={tab === 'users'
+                  ? 'inline-flex h-9 cursor-pointer items-center justify-center gap-2 rounded-[9px] bg-white px-4 text-[12px] font-medium text-neutral-900 shadow-[0_1px_4px_rgba(0,0,0,.1)] transition-all duration-200'
+                  : 'inline-flex h-9 cursor-pointer items-center justify-center gap-2 rounded-[9px] px-4 text-[12px] font-medium text-neutral-500 transition-all duration-200 hover:text-neutral-900'}>
+                <Users size={14} /> Usuarios
+              </button>
+              <button type="button" aria-pressed={tab === 'roles'} onClick={() => { setTab('roles'); setQuery(''); }}
+                className={tab === 'roles'
+                  ? 'inline-flex h-9 cursor-pointer items-center justify-center gap-2 rounded-[9px] bg-white px-4 text-[12px] font-medium text-neutral-900 shadow-[0_1px_4px_rgba(0,0,0,.1)] transition-all duration-200'
+                  : 'inline-flex h-9 cursor-pointer items-center justify-center gap-2 rounded-[9px] px-4 text-[12px] font-medium text-neutral-500 transition-all duration-200 hover:text-neutral-900'}>
+                <Shield size={14} /> Roles y permisos
+              </button>
+            </div>
           </div>
 
-          <div className="mb-5 flex max-w-xl items-center gap-2 rounded-sm border border-neutral-200 bg-white px-3 shadow-sm focus-within:border-central-orange focus-within:ring-2 focus-within:ring-central-orange/10"><Search size={16} className="text-neutral-400" /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder={tab === 'users' ? 'Buscar usuario, email, teléfono, estado o rol…' : 'Buscar rol por nombre, código o descripción…'} className="h-11 min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-neutral-400" /></div>
+          <div className="mb-4 flex max-w-[450px] items-center gap-2 rounded-[12px] border border-neutral-200/80 bg-white px-3 transition-colors duration-200 focus-within:border-central-orange/40 focus-within:ring-2 focus-within:ring-central-orange/10">
+            <Search size={15} className="text-neutral-400" />
+            <input value={query} onChange={(event) => setQuery(event.target.value)}
+              placeholder={tab === 'users' ? 'Buscar usuario, email o rol…' : 'Buscar rol o permiso…'}
+              className="h-9 min-w-0 flex-1 bg-transparent text-[12px] font-normal outline-none placeholder:text-neutral-400" />
+          </div>
 
           {tab === 'users' ? (
-            <section className="rounded-sm border border-neutral-200 bg-white p-5 shadow-sm">
+            <section className="rounded-[20px] border border-neutral-200/70 bg-white p-4 shadow-soft sm:p-5">
               <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
-                <div><h2 className="font-semibold text-central-carbon">Cuentas de usuario</h2><p className="text-xs text-neutral-500">Podés enviar una invitación por correo o crear la cuenta directamente con una contraseña inicial.</p></div>
-                <div className="flex flex-wrap items-center gap-2">
-                  <div className="inline-flex rounded-sm border border-neutral-200 bg-neutral-50 p-1" role="group" aria-label="Cambiar vista de usuarios">
-                    <button
-                      type="button"
-                      onClick={() => setUserViewMode('grid')}
-                      className={`inline-flex h-8 items-center gap-1.5 rounded-sm px-3 text-xs font-medium transition ${userViewMode === 'grid' ? 'bg-white text-central-carbon shadow-sm' : 'text-neutral-500 hover:text-central-carbon'}`}
-                      aria-pressed={userViewMode === 'grid'}
-                    >
-                      <LayoutGrid size={14} /> Cuadros
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setUserViewMode('table')}
-                      className={`inline-flex h-8 items-center gap-1.5 rounded-sm px-3 text-xs font-medium transition ${userViewMode === 'table' ? 'bg-white text-central-carbon shadow-sm' : 'text-neutral-500 hover:text-central-carbon'}`}
-                      aria-pressed={userViewMode === 'table'}
-                    >
-                      <List size={15} /> Tabla
-                    </button>
-                  </div>
-                  <Button onClick={() => setUserModal('new')}><Plus size={16} /> Nuevo usuario</Button>
+                <div>
+                  <h2 className="text-[16px] font-semibold tracking-tight text-neutral-900">Cuentas de usuario</h2>
+                  <p className="mt-1 text-[12px] text-neutral-500">{users.length} usuarios · invitaciones, roles y accesos.</p>
+                </div>
+                <div role="group" aria-label="Cambiar vista de usuarios" className="inline-grid grid-cols-2 rounded-[11px] bg-[#efeff1] p-1">
+                  <button type="button" aria-pressed={userViewMode === 'grid'} onClick={() => setUserViewMode('grid')}
+                    className={userViewMode === 'grid'
+                      ? 'inline-flex h-8 cursor-pointer items-center gap-1.5 rounded-[8px] bg-white px-3 text-[12px] font-medium text-neutral-900 shadow-[0_1px_3px_rgba(0,0,0,.08)]'
+                      : 'inline-flex h-8 cursor-pointer items-center gap-1.5 rounded-[8px] px-3 text-[12px] font-medium text-neutral-500 hover:text-neutral-900'}>
+                    <LayoutGrid size={14} /> Cuadros
+                  </button>
+                  <button type="button" aria-pressed={userViewMode === 'table'} onClick={() => setUserViewMode('table')}
+                    className={userViewMode === 'table'
+                      ? 'inline-flex h-8 cursor-pointer items-center gap-1.5 rounded-[8px] bg-white px-3 text-[12px] font-medium text-neutral-900 shadow-[0_1px_3px_rgba(0,0,0,.08)]'
+                      : 'inline-flex h-8 cursor-pointer items-center gap-1.5 rounded-[8px] px-3 text-[12px] font-medium text-neutral-500 hover:text-neutral-900'}>
+                    <List size={14} /> Tabla
+                  </button>
                 </div>
               </div>
 
               {userViewMode === 'grid' ? (
-                <div className="grid min-w-0 gap-4 md:grid-cols-2 2xl:grid-cols-3">
+                <div className="grid min-w-0 gap-3 md:grid-cols-2 2xl:grid-cols-3">
                   {users.map((user) => <UserCard key={user.id} user={user} onEdit={() => setUserModal(user)} onPassword={() => { setPasswordUser(user); setNewPassword(''); }} onConfirm={setConfirmState} />)}
-                  {users.length === 0 ? <div className="md:col-span-2 2xl:col-span-3 rounded-sm border border-dashed border-neutral-200 p-10 text-center text-sm text-neutral-500">No hay usuarios que coincidan con la búsqueda.</div> : null}
+                  {users.length === 0 ? <div className="md:col-span-2 2xl:col-span-3 rounded-[12px] border border-dashed border-neutral-200 p-10 text-center text-sm text-neutral-500">No hay usuarios que coincidan con la búsqueda.</div> : null}
                 </div>
               ) : (
-                <div className="min-w-0 overflow-hidden rounded-sm border border-neutral-200 bg-white">
-                  <div className="hidden grid-cols-[minmax(0,1.55fr)_minmax(0,.8fr)_minmax(0,1.05fr)_minmax(0,.9fr)_minmax(0,.9fr)_minmax(0,1.35fr)] items-center gap-3 bg-neutral-50 px-4 py-2.5 text-[10px] font-semibold uppercase tracking-wide text-neutral-500 xl:grid">
+                <div className="min-w-0 overflow-hidden rounded-[12px] border border-neutral-100">
+                  <div className="hidden grid-cols-[minmax(0,1.55fr)_minmax(0,.8fr)_minmax(0,1.05fr)_minmax(0,.9fr)_minmax(0,.9fr)_minmax(0,1.35fr)] items-center gap-3 bg-[#f8f8f9] px-4 py-3 text-[10px] font-medium uppercase tracking-[.08em] text-neutral-500 xl:grid">
                     <span>Usuario</span><span>Roles</span><span>Delivery</span><span>Creado</span><span>Último ingreso</span><span className="text-right">Acciones</span>
                   </div>
                   {users.map((user) => <UserTableRow key={user.id} user={user} onEdit={() => setUserModal(user)} onPassword={() => { setPasswordUser(user); setNewPassword(''); }} onConfirm={setConfirmState} />)}
@@ -432,11 +459,14 @@ export function AccessManagementPage() {
               )}
             </section>
           ) : (
-            <section className="rounded-sm border border-neutral-200 bg-white p-5 shadow-sm">
-              <div className="mb-5 flex flex-wrap items-center justify-between gap-3"><div><h2 className="font-semibold text-central-carbon">Roles y permisos</h2><p className="text-xs text-neutral-500">Los roles del sistema protegen las funciones esenciales; podés crear roles adicionales para futuras áreas.</p></div><Button onClick={() => setRoleModal('new')}><Plus size={16} /> Nuevo rol</Button></div>
-              <div className="grid gap-4 md:grid-cols-2 2xl:grid-cols-3">
+            <section className="rounded-[20px] border border-neutral-200/70 bg-white p-4 shadow-soft sm:p-5">
+              <div className="mb-5">
+                <h2 className="text-[16px] font-semibold tracking-tight text-neutral-900">Roles y permisos</h2>
+                <p className="mt-1 text-[12px] text-neutral-500">Los roles del sistema protegen funciones esenciales; podés gestionar los demás sin modificar el historial.</p>
+              </div>
+              <div className="grid gap-3 md:grid-cols-2 2xl:grid-cols-3">
                 {roles.map((role) => <RoleCard key={role.id} role={role} onEdit={() => setRoleModal(role)} onDelete={() => setConfirmState({ type: 'delete-role', role })} />)}
-                {roles.length === 0 ? <div className="md:col-span-2 2xl:col-span-3 rounded-sm border border-dashed border-neutral-200 p-10 text-center text-sm text-neutral-500">No hay roles que coincidan con la búsqueda.</div> : null}
+                {roles.length === 0 ? <div className="md:col-span-2 2xl:col-span-3 rounded-[12px] border border-dashed border-neutral-200 p-10 text-center text-sm text-neutral-500">No hay roles que coincidan con la búsqueda.</div> : null}
               </div>
             </section>
           )}
