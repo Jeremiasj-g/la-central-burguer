@@ -107,25 +107,25 @@ export function ReportTables({
     : { page: detailPage, totalItems: detailTotal, onPageChange: onDetailPageChange };
 
   return (
-    <section className="min-w-0 overflow-hidden rounded-sm border border-neutral-200 bg-white shadow-soft">
-      <div className="flex min-w-0 flex-col gap-4 border-b border-neutral-100 p-4 sm:p-5 lg:flex-row lg:items-center lg:justify-between">
+    <section className="min-w-0 overflow-hidden rounded-[20px] border border-neutral-200/70 bg-white shadow-soft">
+      <div className="flex min-w-0 flex-col gap-3 border-b border-neutral-100 px-4 py-4 sm:px-5 lg:flex-row lg:items-center lg:justify-between">
         <div className="min-w-0">
-          <h3 className="break-words text-base font-extrabold text-central-carbon">Detalle y consolidación</h3>
-          <p className="mt-1 break-words text-xs leading-5 text-neutral-500">Alterná entre una vista agrupada y el detalle transaccional de pedidos. Cada página muestra hasta 10 filas.</p>
+          <h3 className="break-words text-[15px] font-semibold tracking-tight text-neutral-900">Explorar movimientos</h3>
+          <p className="mt-1 break-words text-[11px] leading-5 text-neutral-500">Agrupados o individuales · 10 registros por página</p>
         </div>
         <div className="flex min-w-0 flex-col gap-2 sm:flex-row sm:items-center sm:justify-end">
-          <div className="grid w-full grid-cols-2 rounded-sm border border-neutral-200 bg-neutral-50 p-1 sm:inline-flex sm:w-auto sm:flex-none">
-            <button type="button" aria-pressed={view === 'consolidated'} onClick={() => handleViewChange('consolidated')} className={`inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-sm px-3.5 py-2 text-xs font-bold ${view === 'consolidated' ? 'bg-white text-central-orange shadow-sm' : 'text-neutral-500'}`}>
+          <div className="grid w-full grid-cols-2 rounded-[11px] bg-[#efeff1] p-1 sm:inline-flex sm:w-auto sm:flex-none">
+            <button type="button" aria-pressed={view === 'consolidated'} onClick={() => handleViewChange('consolidated')} className={`inline-flex cursor-pointer items-center justify-center gap-2 whitespace-nowrap rounded-[9px] px-3.5 py-2 text-[12px] font-semibold transition-colors ${view === 'consolidated' ? 'bg-white text-neutral-900 shadow-sm' : 'text-neutral-500 hover:text-neutral-900'}`}>
               <Layers3 size={14} className="shrink-0" /> <span>Consolidado</span>
             </button>
-            <button type="button" aria-pressed={view === 'detail'} onClick={() => handleViewChange('detail')} className={`inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-sm px-3.5 py-2 text-xs font-bold ${view === 'detail' ? 'bg-white text-central-orange shadow-sm' : 'text-neutral-500'}`}>
+            <button type="button" aria-pressed={view === 'detail'} onClick={() => handleViewChange('detail')} className={`inline-flex cursor-pointer items-center justify-center gap-2 whitespace-nowrap rounded-[9px] px-3.5 py-2 text-[12px] font-semibold transition-colors ${view === 'detail' ? 'bg-white text-neutral-900 shadow-sm' : 'text-neutral-500 hover:text-neutral-900'}`}>
               <List size={14} className="shrink-0" /> <span>Detalle</span>
             </button>
           </div>
 
           {view === 'consolidated' ? (
             <div className="w-full sm:w-48 sm:flex-none">
-              <Select aria-label="Agrupar reporte" variant="light" value={groupBy} options={groupOptions} onValueChange={(nextGroup) => handleGroupChange(nextGroup as ReportGroupBy)} className="min-w-0 text-xs font-bold" />
+              <Select aria-label="Agrupar reporte" variant="light" value={groupBy} options={groupOptions} onValueChange={(nextGroup) => handleGroupChange(nextGroup as ReportGroupBy)} className="!h-9 !rounded-[10px] !border-neutral-200 !bg-[#f8f8f9] !text-[12px] !font-medium !shadow-none" />
             </div>
           ) : null}
         </div>
