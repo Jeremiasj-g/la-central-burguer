@@ -10,19 +10,17 @@ interface DeliveryMetricCardProps {
 
 export function DeliveryMetricCard({ icon: Icon, label, value, detail }: DeliveryMetricCardProps) {
   return (
-    <article className="rounded-sm border border-neutral-200 bg-white p-5 shadow-sm">
-      <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0">
-          <p className="text-xs font-bold uppercase tracking-wide text-neutral-500">{label}</p>
-          <p className="mt-2 break-words text-2xl font-black tracking-tight text-central-carbon">
-            <AnimatedFormattedValue value={value} />
-          </p>
-          <p className="mt-1 text-xs leading-5 text-neutral-500">{detail}</p>
-        </div>
-        <span className="grid h-10 w-10 shrink-0 place-items-center rounded-sm bg-central-orange/10 text-central-orange">
-          <Icon size={18} />
+    <article className="min-w-0 border-b border-neutral-100 p-5 last:border-b-0 sm:border-b-0 sm:border-r sm:last:border-r-0">
+      <div className="flex items-center gap-2">
+        <span className="grid h-7 w-7 shrink-0 place-items-center rounded-[9px] bg-[#f6f6f7] text-neutral-500">
+          <Icon size={14} strokeWidth={1.8} />
         </span>
+        <p className="min-w-0 text-[11px] font-medium text-neutral-500">{label}</p>
       </div>
+      <p className="mt-3 break-words text-[clamp(1.4rem,2.1vw,2rem)] font-semibold leading-none tracking-[-.045em] text-neutral-900 [font-variant-numeric:tabular-nums]">
+        <AnimatedFormattedValue value={value} />
+      </p>
+      <p className="mt-2 text-[11px] leading-4 text-neutral-400">{detail}</p>
     </article>
   );
 }
