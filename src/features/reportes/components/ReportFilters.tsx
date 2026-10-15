@@ -73,7 +73,7 @@ export function ReportFilters({
   }
 
   return (
-    <section className="mb-6 min-w-0 overflow-hidden rounded-sm border border-neutral-200 bg-white shadow-sm">
+    <section className="mb-6 min-w-0 overflow-hidden rounded-sm border border-neutral-200 bg-white shadow-soft">
       <div className="flex flex-col gap-3 border-b border-neutral-100 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-5">
         <div className="flex min-w-0 items-start gap-3 sm:items-center">
           <span className="grid h-9 w-9 shrink-0 place-items-center rounded-sm bg-central-orange/10 text-central-orange">
