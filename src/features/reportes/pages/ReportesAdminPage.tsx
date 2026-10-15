@@ -215,7 +215,7 @@ export function ReportesAdminPage() {
   }
 
   function handleDraftChange(next: ReportFilterState) {
-    if (next.from !== draftFilters.from || next.to !== draftFilters.to) setPreset('custom');
+    if (next.from !== draftFilters.from || next.to !== draftFilters.to || (draftFilters.allTime && !next.allTime)) setPreset('custom');
     setDraftFilters(next);
   }
 
