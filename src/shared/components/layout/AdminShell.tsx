@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { LogOut, Menu, X } from 'lucide-react';
+import { ChevronRight, ExternalLink, LogOut, Menu, X } from 'lucide-react';
 import { AdminNotifications } from './AdminNotifications';
 import { useEffect, useState } from 'react';
 import { ADMIN_NAVIGATION } from '@/shared/constants/navigation';
@@ -12,6 +12,13 @@ import { logoutAdmin, isAdminLoggedIn } from '@/features/auth/services/auth.serv
 import { useBusinessConfig } from '@/features/configuracion/hooks/useBusinessConfig';
 import { BusinessLogo } from '@/features/configuracion/components/BusinessLogo';
 import { BurgerLoader } from '@/shared/components/ui/BurgerLoader';
+
+const ADMIN_NAV_GROUPS = [
+  { label: 'Resumen', items: ADMIN_NAVIGATION.slice(0, 1) },
+  { label: 'Catálogo', items: ADMIN_NAVIGATION.slice(1, 5) },
+  { label: 'Operación', items: ADMIN_NAVIGATION.slice(5, 8) },
+  { label: 'Administración', items: ADMIN_NAVIGATION.slice(8, 11) },
+] as const;
 
 export function AdminShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -70,48 +77,89 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
   }
 
   const sidebar = (
-    <aside className="flex h-full flex-col bg-central-carbon text-white">
-      <div className="flex items-center gap-3 border-b border-white/10 px-5 py-5">
+    <aside className="flex h-full flex-col overflow-hidden bg-central-carbon text-white">
+      <div className="flex items-center gap-3 px-5 pb-4 pt-5">
         <span className="grid h-11 w-11 shrink-0 place-items-center overflow-hidden rounded-sm bg-central-orange text-white">
           <BusinessLogo logoUrl={config?.logoUrl} businessName={config?.businessName} mode="admin" />
         </span>
-        <div>
-          <p className="max-w-40 truncate text-base font-black leading-none">{businessFirstWords}</p>
-          <p className="text-xs font-bold uppercase tracking-[.22em] text-central-orange">{businessLastWord || 'Admin'} · Admin</p>
+        <div className="min-w-0">
+          <p className="truncate text-sm font-black leading-tight">{businessFirstWords} {businessLastWord}</p>
+          <p className="mt-0.5 text-[11px] font-bold uppercase tracking-[.16em] text-central-orange">Administración</p>
         </div>
       </div>
-      <nav className="flex-1 space-y-1 overflow-y-auto px-3 py-4">
-        {ADMIN_NAVIGATION.map((item) => {
-          const Icon = item.icon;
-          const active = pathname === item.href;
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              onClick={() => setMobileOpen(false)}
-              className={cn(
-                'flex items-center gap-3 rounded-sm px-4 py-3 text-sm font-bold transition',
-                item.development
-                  ? 'border border-red-500/45 bg-red-500/10 text-red-300 hover:border-red-400/70 hover:bg-red-500/20 hover:text-red-200'
-                  : 'text-white/65 hover:bg-white/10 hover:text-white',
-                active && !item.development && 'bg-central-orange text-white shadow-orange',
-                active && item.development && 'border-red-400 bg-red-500/25 text-red-100 shadow-[0_12px_30px_rgba(239,68,68,.14)]',
-              )}
-            >
-              <Icon size={18} />
-              <span className="min-w-0 flex-1 truncate">{item.label}</span>
-              {item.development ? (
-                <span className="rounded-sm border border-red-400/50 bg-red-500/15 px-1.5 py-0.5 text-[9px] font-black uppercase tracking-[.12em] text-red-300">
-                  Dev
-                </span>
-              ) : null}
-            </Link>
-          );
-        })}
+
+      <nav className="no-scrollbar flex-1 overflow-y-auto px-3 pb-4">
+        {ADMIN_NAV_GROUPS.map((group) => (
+          <div key={group.label} className="mb-5">
+            <p className="mb-1.5 px-3 text-[10px] font-black uppercase tracking-[.14em] text-white/30">
+              {group.label}
+            </p>
+            <div className="space-y-1">
+              {group.items.map((item) => {
+                const Icon = item.icon;
+                const active = pathname === item.href;
+
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    onClick={() => setMobileOpen(false)}
+                    className={cn(
+                      'group flex min-h-10 items-center gap-3 rounded-sm px-3 py-2 text-[13px] font-bold transition',
+                      item.development
+                        ? 'border border-red-500/35 bg-red-500/10 text-red-300 hover:border-red-400/65 hover:bg-red-500/20 hover:text-red-200'
+                        : 'text-white/65 hover:bg-white/10 hover:text-white',
+                      active && !item.development && 'bg-central-orange text-white shadow-orange',
+                      active && item.development && 'border-red-400 bg-red-500/25 text-red-100 shadow-[0_12px_30px_rgba(239,68,68,.14)]',
+                    )}
+                  >
+                    <span
+                      className={cn(
+                        'grid h-7 w-7 shrink-0 place-items-center rounded-sm transition-colors',
+                        active && !item.development
+                          ? 'bg-white/15 text-white'
+                          : item.development
+                            ? 'bg-red-500/10 text-red-300'
+                            : 'bg-white/[.06] text-white/55 group-hover:bg-white/10 group-hover:text-white',
+                      )}
+                    >
+                      <Icon size={15.5} strokeWidth={2.1} />
+                    </span>
+                    <span className="min-w-0 flex-1 truncate">{item.label}</span>
+                    {item.development ? (
+                      <span className="rounded-sm border border-red-400/50 bg-red-500/15 px-1.5 py-0.5 text-[8px] font-black uppercase tracking-[.12em] text-red-300">
+                        Dev
+                      </span>
+                    ) : active ? (
+                      <ChevronRight size={13} className="text-white/70" />
+                    ) : null}
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+        ))}
       </nav>
-      <div className="border-t border-white/10 p-4">
-        <button onClick={handleLogout} className="flex w-full items-center gap-3 rounded-sm px-4 py-3 text-sm font-bold text-white/65 transition hover:bg-white/10 hover:text-white">
-          <LogOut size={18} /> Salir
+
+      <div className="border-t border-white/10 p-3">
+        <Link
+          href={ROUTES.menu}
+          onClick={() => setMobileOpen(false)}
+          className="mb-1 flex min-h-10 items-center gap-3 rounded-sm px-3 py-2 text-[13px] font-bold text-white/55 transition hover:bg-white/10 hover:text-white"
+        >
+          <span className="grid h-7 w-7 place-items-center rounded-sm bg-white/[.06]">
+            <ExternalLink size={15} />
+          </span>
+          Ver sitio público
+        </Link>
+        <button
+          onClick={handleLogout}
+          className="flex min-h-10 w-full items-center gap-3 rounded-sm px-3 py-2 text-left text-[13px] font-bold text-white/55 transition hover:bg-white/10 hover:text-white"
+        >
+          <span className="grid h-7 w-7 place-items-center rounded-sm bg-white/[.06]">
+            <LogOut size={15} />
+          </span>
+          Cerrar sesión
         </button>
       </div>
     </aside>
@@ -119,15 +167,15 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="admin-scope min-h-screen bg-[#f6f4ef] text-central-carbon">
-      <div className="fixed inset-y-0 left-0 z-40 hidden w-72 lg:block">{sidebar}</div>
+      <div className="fixed inset-y-0 left-0 z-40 hidden w-[250px] lg:block">{sidebar}</div>
 
       {mobileOpen ? (
         <div className="fixed inset-0 z-50 bg-black/60 lg:hidden" onClick={() => setMobileOpen(false)}>
-          <div className="h-full w-72" onClick={(event) => event.stopPropagation()}>{sidebar}</div>
+          <div className="h-full w-[min(290px,86vw)]" onClick={(event) => event.stopPropagation()}>{sidebar}</div>
         </div>
       ) : null}
 
-      <div className="lg:pl-72">
+      <div className="lg:pl-[250px]">
         <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-neutral-200 bg-white/85 px-4 backdrop-blur-xl sm:px-6">
           <button className="rounded-sm border border-neutral-200 p-2 lg:hidden" onClick={() => setMobileOpen((value) => !value)} aria-label="Abrir navegación">
             {mobileOpen ? <X /> : <Menu />}
