@@ -453,3 +453,44 @@ main[style*="SF Pro Display"] section.grid.grid-cols-3 > article:not([class*="or
     line-height: 1.35;
   }
 }
+
+
+/* Delivery wallet: pesos suaves y controles compactos, sin afectar el resto del admin. */
+.delivery-wallet {
+  font-weight: 400;
+}
+
+.delivery-wallet button,
+.delivery-wallet strong,
+.delivery-wallet b,
+.delivery-wallet th {
+  font-weight: 600;
+}
+
+.delivery-wallet [role="combobox"],
+.delivery-wallet input,
+.delivery-wallet select,
+.delivery-wallet textarea {
+  font-weight: 400;
+}
+
+.delivery-wallet button {
+  transition-duration: 200ms;
+}
+
+.delivery-wallet table thead {
+  background: #f8f8f9;
+  color: #737373;
+}
+
+.delivery-wallet table tbody tr {
+  transition: background-color 200ms ease;
+}
+
+.delivery-wallet table tbody tr:hover {
+  background: #fafafa;
+}
+
+.delivery-wallet :is(button, input, textarea):focus-visible {
+  outline-offset: 2px;
+}
