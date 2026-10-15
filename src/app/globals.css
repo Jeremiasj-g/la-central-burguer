@@ -777,3 +777,58 @@ body.admin-apple-deep .Toastify__close-button {
     flex: 1 1 auto;
   }
 }
+
+
+/* Estados interactivos heredados: reinterpretados en azul sin tocar su lógica. */
+.admin-redesign-deep [class~="bg-central-orange/15"],
+.admin-redesign-deep [class~="bg-central-orange/20"],
+.admin-redesign-deep [class~="bg-central-orange/30"],
+.admin-redesign-deep [class~="bg-central-orange/60"] {
+  background-color: rgba(0, 113, 227, .09) !important;
+}
+
+.admin-redesign-deep [class~="border-central-orange/20"],
+.admin-redesign-deep [class~="border-central-orange/30"],
+.admin-redesign-deep [class~="border-central-orange/40"],
+.admin-redesign-deep [class~="border-central-orange/60"] {
+  border-color: rgba(0, 113, 227, .28) !important;
+}
+
+.admin-redesign-deep [class*="hover:border-central-orange"]:hover {
+  border-color: rgba(0, 113, 227, .38) !important;
+}
+
+.admin-redesign-deep [class*="hover:text-central-orange"]:hover {
+  color: #0071e3 !important;
+}
+
+.admin-redesign-deep [class*="hover:bg-central-orange"]:hover {
+  background-color: #0071e3 !important;
+  color: white !important;
+}
+
+.admin-redesign-deep [class*="focus:border-central-orange"]:focus,
+.admin-redesign-deep [class*="focus-within:border-central-orange"]:focus-within {
+  border-color: rgba(0, 113, 227, .42) !important;
+}
+
+.admin-redesign-deep [class*="focus:ring-central-orange"]:focus,
+.admin-redesign-deep [class*="focus-within:ring-orange"]:focus-within {
+  --tw-ring-color: rgba(0, 113, 227, .12) !important;
+}
+
+.admin-scope {
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Segoe UI", sans-serif;
+  font-feature-settings: "tnum" 1, "ss01" 1;
+}
+
+.admin-redesign-deep main section > :is(header, div):first-child h2,
+.admin-redesign-deep main section > :is(header, div):first-child h3 {
+  font-weight: 600;
+  color: #1d1d1f;
+}
+
+.admin-redesign-deep .shadow-soft,
+.admin-redesign-deep .shadow-sm {
+  box-shadow: 0 1px 2px rgba(0,0,0,.025), 0 8px 24px rgba(0,0,0,.025) !important;
+}
