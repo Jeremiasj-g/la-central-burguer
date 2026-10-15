@@ -1,4 +1,5 @@
 'use client';
+// Validación temporal de CI para las notificaciones wallet.
 
 import Link from 'next/link';
 import { Bell, CheckCheck, Clock3, PackageCheck, X } from 'lucide-react';
