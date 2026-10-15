@@ -1,4 +1,5 @@
 'use client';
+// CI temporal para validar las transiciones y filtros de fecha.
 
 import { useState } from 'react';
 import { ChevronDown, RotateCcw, Search, SlidersHorizontal } from 'lucide-react';
