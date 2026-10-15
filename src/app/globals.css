@@ -212,8 +212,8 @@ select {
   background: linear-gradient(180deg, rgba(237, 160, 43, .95), rgba(216, 137, 24, .9));
 }
 
-/* En el panel admin el radio debe ser más sobrio y menos “pill” */
-.admin-scope :is(.rounded-xl, .rounded-2xl, .rounded-3xl) {
+/* Los cuatro módulos base conservan la geometría previa; el resto usa el nuevo sistema Apple. */
+.admin-scope.admin-redesign-preserve :is(.rounded-xl, .rounded-2xl, .rounded-3xl) {
   border-radius: 0.125rem !important;
 }
 
@@ -451,5 +451,329 @@ main[style*="SF Pro Display"] section.grid.grid-cols-3 > article:not([class*="or
     margin-top: .55rem;
     font-size: 11px;
     line-height: 1.35;
+  }
+}
+
+
+/* -------------------------------------------------------------------------- */
+/* Admin 2026 · exploración visual estilo Apple (rama de rediseño)            */
+/* -------------------------------------------------------------------------- */
+
+body.admin-apple-mode {
+  background: #f5f5f7;
+  color: #1d1d1f;
+}
+
+body.admin-apple-mode * {
+  scrollbar-color: rgba(0, 113, 227, .42) rgba(0, 0, 0, .035);
+}
+
+body.admin-apple-mode *::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, .035);
+}
+
+body.admin-apple-mode *::-webkit-scrollbar-thumb {
+  background: rgba(0, 113, 227, .42);
+  border: 2px solid #f5f5f7;
+}
+
+body.admin-apple-mode *::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 113, 227, .62);
+}
+
+.admin-sidebar {
+  box-shadow: 1px 0 0 rgba(255,255,255,.7);
+}
+
+.admin-topbar {
+  box-shadow: 0 1px 0 rgba(255,255,255,.72);
+}
+
+/* Los módulos posteriores a Ingredientes reciben el rediseño completo. */
+.admin-redesign-deep {
+  --admin-accent: #0071e3;
+  --admin-accent-hover: #0077ed;
+  --admin-accent-soft: #eaf3ff;
+  --admin-ink: #1d1d1f;
+  --admin-muted: #6e6e73;
+  --admin-subtle: #86868b;
+  --admin-line: rgba(0, 0, 0, .07);
+  --admin-surface: #ffffff;
+  --admin-soft: #f5f5f7;
+}
+
+.admin-redesign-deep .admin-page-header {
+  margin-bottom: 2rem;
+}
+
+.admin-redesign-deep .admin-page-title {
+  font-size: clamp(2.25rem, 4vw, 3.35rem);
+  font-weight: 600;
+  letter-spacing: -.055em;
+}
+
+.admin-redesign-deep .admin-page-description {
+  max-width: 52rem;
+  color: var(--admin-muted);
+  font-size: .95rem;
+}
+
+.admin-redesign-deep .admin-page-eyebrow {
+  color: var(--admin-accent);
+  letter-spacing: .13em;
+}
+
+/* Nueva paleta: el naranja de marca deja de dominar el espacio operativo. */
+.admin-redesign-deep .text-central-carbon {
+  color: var(--admin-ink) !important;
+}
+
+.admin-redesign-deep .text-central-orange {
+  color: var(--admin-accent) !important;
+}
+
+.admin-redesign-deep .bg-central-orange {
+  background-color: var(--admin-accent) !important;
+}
+
+.admin-redesign-deep .border-central-orange {
+  border-color: var(--admin-accent) !important;
+}
+
+.admin-redesign-deep [class~="bg-central-orange/10"],
+.admin-redesign-deep [class~="bg-central-orange/9"],
+.admin-redesign-deep [class~="bg-central-orange/8"],
+.admin-redesign-deep [class~="bg-central-orange/5"],
+.admin-redesign-deep [class~="bg-central-orange/[.05]"] {
+  background-color: rgba(0, 113, 227, .075) !important;
+}
+
+.admin-redesign-deep [class~="border-central-orange/15"],
+.admin-redesign-deep [class~="border-central-orange/35"],
+.admin-redesign-deep [class~="border-central-orange/50"],
+.admin-redesign-deep [class~="border-central-orange/55"] {
+  border-color: rgba(0, 113, 227, .18) !important;
+}
+
+/* Geometría suave: más aire, menos cajas rígidas. */
+.admin-redesign-deep .rounded-sm {
+  border-radius: 14px !important;
+}
+
+.admin-redesign-deep :is(.rounded-xl, .rounded-2xl, .rounded-3xl) {
+  border-radius: 20px !important;
+}
+
+.admin-redesign-deep :is(
+  [data-ui="card"],
+  .bg-white.shadow-sm,
+  .bg-white.shadow-soft,
+  .bg-white.border.border-neutral-200
+) {
+  border-color: var(--admin-line) !important;
+  background: rgba(255,255,255,.94) !important;
+  box-shadow: 0 1px 2px rgba(0,0,0,.025), 0 10px 30px rgba(0,0,0,.025) !important;
+}
+
+.admin-redesign-deep .bg-white .bg-neutral-50,
+.admin-redesign-deep .bg-white .bg-neutral-100 {
+  border-color: transparent !important;
+  background-color: var(--admin-soft) !important;
+}
+
+.admin-redesign-deep :is(.border-neutral-100, .border-neutral-200) {
+  border-color: var(--admin-line) !important;
+}
+
+/* Métricas: el dato manda, el chrome desaparece. */
+.admin-redesign-deep article :is(.text-2xl, .text-3xl, .text-4xl) {
+  color: var(--admin-ink);
+  font-weight: 600 !important;
+  letter-spacing: -.045em;
+  font-variant-numeric: tabular-nums;
+}
+
+.admin-redesign-deep article .text-xs.uppercase {
+  color: var(--admin-subtle) !important;
+  font-weight: 600 !important;
+  letter-spacing: .08em !important;
+}
+
+.admin-redesign-deep h2,
+.admin-redesign-deep h3 {
+  letter-spacing: -.025em;
+}
+
+/* Botones compartidos */
+body.admin-apple-deep [data-ui="button"] {
+  border-radius: 11px !important;
+  box-shadow: none !important;
+  font-weight: 600 !important;
+  transition: transform .16s ease, background-color .16s ease, border-color .16s ease, color .16s ease !important;
+}
+
+body.admin-apple-deep [data-ui="button"]:active:not(:disabled) {
+  transform: scale(.975);
+}
+
+body.admin-apple-deep [data-ui="button"][data-variant="primary"] {
+  background: var(--admin-accent) !important;
+  color: white !important;
+}
+
+body.admin-apple-deep [data-ui="button"][data-variant="primary"]:hover {
+  background: var(--admin-accent-hover) !important;
+}
+
+body.admin-apple-deep [data-ui="button"][data-variant="secondary"] {
+  border-color: var(--admin-line) !important;
+  background: rgba(255,255,255,.95) !important;
+  color: #3a3a3c !important;
+}
+
+body.admin-apple-deep [data-ui="button"][data-variant="dark"] {
+  background: #1d1d1f !important;
+  color: white !important;
+}
+
+body.admin-apple-deep [data-ui="button"][data-variant="danger"] {
+  background: #ff3b30 !important;
+  color: white !important;
+}
+
+/* Campos y selects: superficies grises sin borde permanente, como Settings de macOS. */
+body.admin-apple-deep [data-ui="input"],
+body.admin-apple-deep .admin-redesign-deep :is(input:not([type="checkbox"]):not([type="radio"]):not([type="file"]), textarea),
+body.admin-apple-deep [data-ui="select-trigger"][data-variant="light"],
+body.admin-apple-deep .admin-redesign-deep [role="combobox"] {
+  border-color: transparent !important;
+  background: #f5f5f7 !important;
+  color: #1d1d1f !important;
+  box-shadow: inset 0 0 0 1px rgba(0,0,0,.025) !important;
+  border-radius: 12px !important;
+}
+
+body.admin-apple-deep [data-ui="input"]:focus,
+body.admin-apple-deep .admin-redesign-deep :is(input:not([type="checkbox"]):not([type="radio"]):not([type="file"]), textarea):focus,
+body.admin-apple-deep [data-ui="select-trigger"][data-state="open"],
+body.admin-apple-deep .admin-redesign-deep [role="combobox"]:focus-visible {
+  border-color: rgba(0,113,227,.35) !important;
+  background: white !important;
+  box-shadow: 0 0 0 3px rgba(0,113,227,.12) !important;
+  outline: none !important;
+}
+
+body.admin-apple-deep [data-ui="select-content"][data-variant="light"],
+body.admin-apple-deep .lcb-dropdown-content {
+  border-color: rgba(0,0,0,.08) !important;
+  background: rgba(255,255,255,.96) !important;
+  color: #1d1d1f !important;
+  border-radius: 15px !important;
+  box-shadow: 0 20px 55px rgba(0,0,0,.13) !important;
+  backdrop-filter: blur(26px);
+}
+
+/* Tablas: cabeceras discretas y filas con mucha respiración. */
+.admin-redesign-deep table {
+  color: #3a3a3c !important;
+}
+
+.admin-redesign-deep thead {
+  background: #f7f7f9 !important;
+  color: #86868b !important;
+}
+
+.admin-redesign-deep thead th {
+  font-size: .68rem !important;
+  font-weight: 600 !important;
+  letter-spacing: .08em !important;
+}
+
+.admin-redesign-deep tbody {
+  --tw-divide-opacity: 1;
+}
+
+.admin-redesign-deep tbody tr {
+  transition: background-color .16s ease;
+}
+
+.admin-redesign-deep tbody tr:hover {
+  background: rgba(0,113,227,.025);
+}
+
+/* Tabs y segmentados existentes pasan a un control segmentado suave. */
+.admin-redesign-deep [role="tablist"],
+.admin-redesign-deep :is(.bg-neutral-100, .bg-neutral-50)[class*="p-1"] {
+  border-radius: 12px !important;
+  background: rgba(118,118,128,.10) !important;
+}
+
+/* Los chips de estado conservan semántica, pero sin volumen excesivo. */
+.admin-redesign-deep .rounded-full {
+  box-shadow: none !important;
+}
+
+/* Modales del admin: sheet Apple, con dark sheet real cuando el flujo lo requiere. */
+body.admin-apple-deep [data-ui="modal-panel"] {
+  border-radius: 22px !important;
+  border-color: rgba(0,0,0,.09) !important;
+  box-shadow: 0 28px 90px rgba(0,0,0,.22) !important;
+}
+
+body.admin-apple-deep [data-ui="modal-panel"][data-theme="light"] {
+  background: rgba(255,255,255,.985) !important;
+  color: #1d1d1f !important;
+}
+
+body.admin-apple-deep [data-ui="modal-panel"][data-theme="dark"] {
+  border-color: rgba(255,255,255,.10) !important;
+  background: rgba(29,29,31,.985) !important;
+  color: #f5f5f7 !important;
+}
+
+body.admin-apple-deep [data-ui="modal-panel"][data-theme="dark"] .text-central-orange {
+  color: #64a8ff !important;
+}
+
+/* Calendario reutilizable dentro de reportes y delivery. */
+body.admin-apple-deep .lcb-calendar-popover {
+  border-color: rgba(0,0,0,.08) !important;
+  box-shadow: 0 24px 70px rgba(0,0,0,.14) !important;
+}
+
+/* Toasts del entorno administrador */
+body.admin-apple-deep .Toastify__toast {
+  border: 1px solid rgba(0,0,0,.08);
+  border-radius: 15px;
+  background: rgba(255,255,255,.96);
+  color: #1d1d1f;
+  box-shadow: 0 18px 50px rgba(0,0,0,.13);
+  backdrop-filter: blur(24px);
+}
+
+body.admin-apple-deep .Toastify__progress-bar {
+  background: #0071e3;
+}
+
+body.admin-apple-deep .Toastify__close-button {
+  color: #6e6e73;
+}
+
+/* Responsive: la jerarquía se mantiene sin encerrar contenido innecesariamente. */
+@media (max-width: 767px) {
+  .admin-redesign-deep .admin-page-header {
+    margin-bottom: 1.5rem;
+  }
+
+  .admin-redesign-deep .admin-page-title {
+    font-size: 2.35rem;
+  }
+
+  .admin-redesign-deep .admin-page-actions {
+    width: 100%;
+  }
+
+  .admin-redesign-deep .admin-page-actions > * {
+    flex: 1 1 auto;
   }
 }
