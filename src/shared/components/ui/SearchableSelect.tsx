@@ -48,7 +48,7 @@ export function SearchableSelect({
           aria-haspopup="listbox"
           aria-label={ariaLabel}
           className={cn(
-            'group flex h-10 w-full min-w-0 cursor-pointer items-center justify-between gap-3 rounded-sm border border-neutral-200 bg-white px-3 text-left text-sm text-central-carbon shadow-[0_1px_2px_rgba(17,16,15,.04)] outline-none transition-[border-color,background-color,box-shadow] duration-150 hover:border-central-orange/55 hover:bg-[#fffdf8] focus-visible:border-central-orange focus-visible:ring-2 focus-visible:ring-central-orange/25 data-[state=open]:border-central-orange data-[state=open]:ring-2 data-[state=open]:ring-central-orange/15',
+            'group flex h-10 w-full min-w-0 cursor-pointer items-center justify-between gap-3 rounded-sm border border-neutral-200 bg-white px-3 text-left text-sm text-central-carbon shadow-[0_1px_2px_rgba(17,16,15,.04)] outline-none transition-[border-color,background-color,box-shadow] duration-200 hover:border-central-orange/55 hover:bg-[#fffdf8] focus-visible:border-central-orange focus-visible:ring-2 focus-visible:ring-central-orange/25 data-[state=open]:border-central-orange data-[state=open]:ring-2 data-[state=open]:ring-central-orange/15',
             className,
           )}
         >
