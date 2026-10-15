@@ -116,7 +116,7 @@ export function AdminNotifications() {
             onClick={() => setOpen(false)}
             data-state={open ? 'open' : 'closed'}
             aria-hidden="true"
-            tabIndex={open ? 0 : -1}
+            tabIndex={-1}
             className={cn('lcb-notifications-backdrop fixed inset-0 z-40 bg-black/30 backdrop-blur-[2px] sm:hidden', !open && 'pointer-events-none')}
           />
           <div
