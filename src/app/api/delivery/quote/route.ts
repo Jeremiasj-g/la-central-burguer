@@ -19,6 +19,7 @@ const STORE_CACHE_RADIUS_KM = 0.02;
 const CACHE_SEARCH_DELTA = 0.0006;
 const ROUTE_PROVIDER = 'serpapi_google_maps';
 const TRAVEL_MODE = 'two_wheeler';
+const PUBLIC_DELIVERY_ERROR = 'No pudimos calcular el envío en este momento. Intentá nuevamente.';
 
 interface QuoteRequestBody {
   lat?: number;
@@ -49,10 +50,6 @@ interface RouteResult {
 
 function isValidCoordinate(value: unknown, min: number, max: number): value is number {
   return typeof value === 'number' && Number.isFinite(value) && value >= min && value <= max;
-}
-
-function serverErrorMessage(error: unknown) {
-  return error instanceof Error ? error.message : 'No se pudo calcular la ruta del delivery.';
 }
 
 function routeCacheKey(
@@ -327,8 +324,14 @@ export async function POST(request: Request) {
       },
     );
   } catch (error) {
+    console.error('[delivery-quote] No se pudo calcular la cotización de delivery.', {
+      message: error instanceof Error ? error.message : String(error),
+      name: error instanceof Error ? error.name : 'UnknownError',
+      stack: error instanceof Error ? error.stack : undefined,
+    });
+
     return NextResponse.json(
-      { error: serverErrorMessage(error) },
+      { error: PUBLIC_DELIVERY_ERROR },
       {
         status: 502,
         headers: {
