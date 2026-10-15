@@ -514,3 +514,63 @@ body.delivery-wallet-active [role="dialog"] textarea {
 body.delivery-wallet-active [role="dialog"] {
   border-radius: 20px;
 }
+
+
+/* Usuarios y Venta mostrador: estética wallet, tipografía 400–600 y portales coherentes. */
+.access-wallet,
+.counter-wallet {
+  font-weight: 400;
+  font-variant-numeric: tabular-nums;
+}
+
+.access-wallet button,
+.counter-wallet button,
+.access-wallet strong,
+.counter-wallet strong,
+.access-wallet b,
+.counter-wallet b {
+  font-weight: 600;
+}
+
+.access-wallet :is(input, textarea),
+.counter-wallet :is(input, textarea) {
+  font-weight: 400;
+}
+
+.access-wallet :is(button, input, textarea),
+.counter-wallet :is(button, input, textarea) {
+  transition-duration: 200ms;
+}
+
+body.access-wallet-active [role="dialog"],
+body.counter-wallet-active [role="dialog"] {
+  border-radius: 20px;
+}
+
+body.access-wallet-active [role="dialog"] :is(h1, h2, h3, strong, b, button),
+body.counter-wallet-active [role="dialog"] :is(h1, h2, h3, strong, b, button),
+body.access-wallet-active .lcb-dropdown-content [role="option"] {
+  font-weight: 600;
+}
+
+body.access-wallet-active [role="dialog"] :is(input, textarea),
+body.counter-wallet-active [role="dialog"] :is(input, textarea) {
+  font-weight: 400;
+}
+
+.access-wallet [role="group"] button,
+.counter-wallet [role="tablist"] button {
+  transition: background-color 200ms ease, color 200ms ease, border-color 200ms ease, transform 200ms ease;
+}
+
+.access-wallet [role="group"] button:active,
+.counter-wallet [role="tablist"] button:active {
+  transform: scale(.98);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .access-wallet *,
+  .counter-wallet * {
+    transition-duration: 0.01ms !important;
+  }
+}
