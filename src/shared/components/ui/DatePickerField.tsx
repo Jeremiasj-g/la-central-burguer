@@ -5,6 +5,7 @@ import { createPortal } from 'react-dom';
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { cn } from '@/shared/utils/cn';
 import { BurgerMark } from './BurgerMark';
+import { useAnimatedPresence } from '@/shared/hooks/useAnimatedPresence';
 
 const MONTHS = [
   'enero',
@@ -98,6 +99,7 @@ export function DatePickerField({
   const triggerRef = useRef<HTMLButtonElement>(null);
   const popoverRef = useRef<HTMLDivElement>(null);
   const [open, setOpen] = useState(false);
+  const mounted = useAnimatedPresence(open);
   const [calendarView, setCalendarView] = useState<'days' | 'months'>('days');
   const [position, setPosition] = useState({ top: 0, left: 0, width: 336 });
   const [positionReady, setPositionReady] = useState(false);
@@ -113,10 +115,7 @@ export function DatePickerField({
   }, [selected]);
 
   useLayoutEffect(() => {
-    if (!open) {
-      setPositionReady(false);
-      return;
-    }
+    if (!open) return;
 
     function updatePosition() {
       const trigger = triggerRef.current;
@@ -218,15 +217,18 @@ export function DatePickerField({
   const visibleMonthIndex = visibleMonth.getMonth();
   const today = new Date();
 
-  const popover = open && typeof document !== 'undefined'
+  const popover = mounted && typeof document !== 'undefined'
     ? createPortal(
         <div
           ref={popoverRef}
           role="dialog"
+          data-state={open ? 'open' : 'closed'}
+          aria-hidden={!open}
           aria-label={`Calendario para ${ariaLabel}`}
           className={cn(
             'lcb-calendar-popover fixed z-[140] rounded-[20px] border border-neutral-200 bg-white p-3.5 text-central-carbon shadow-[0_24px_70px_rgba(17,16,15,.18),0_4px_18px_rgba(17,16,15,.09)] backdrop-blur-xl',
-            positionReady ? 'visible opacity-100' : 'invisible opacity-0',
+            !positionReady && 'invisible opacity-0',
+            !open && 'pointer-events-none',
           )}
           style={{ top: position.top, left: position.left, width: position.width }}
         >
