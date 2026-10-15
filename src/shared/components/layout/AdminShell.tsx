@@ -180,11 +180,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
           <button className="rounded-sm border border-neutral-200 p-2 lg:hidden" onClick={() => setMobileOpen((value) => !value)} aria-label="Abrir navegación">
             {mobileOpen ? <X /> : <Menu />}
           </button>
-          <div>
-            <p className="text-sm font-bold text-neutral-500">Panel de gestión</p>
-            <p className="text-lg font-black text-central-carbon">{config?.businessName ?? 'La Central Burger'}</p>
-          </div>
-          <div className="flex items-center gap-3">
+          <div className="ml-auto flex items-center gap-3">
             <AdminNotifications />
             <Link href={ROUTES.menu} className="rounded-sm bg-central-orange/10 px-4 py-2 text-sm font-bold text-central-orange hover:bg-central-orange hover:text-white">Ver sitio</Link>
           </div>
