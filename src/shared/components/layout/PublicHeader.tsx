@@ -7,9 +7,11 @@ import { useCarrito } from '@/features/carrito/hooks/useCarrito';
 import { useBusinessConfig } from '@/features/configuracion/hooks/useBusinessConfig';
 import { ROUTES } from '@/shared/constants/routes';
 import { BusinessLogo } from '@/features/configuracion/components/BusinessLogo';
+import { useAnimatedPresence } from '@/shared/hooks/useAnimatedPresence';
 
 export function PublicHeader() {
   const [open, setOpen] = useState(false);
+  const navMounted = useAnimatedPresence(open);
   const { config, isLoading } = useBusinessConfig();
   const cart = useCarrito();
   const businessName = config?.businessName ?? 'La Central Burger';
@@ -71,8 +73,8 @@ export function PublicHeader() {
         </div>
       </div>
 
-      {open ? (
-        <div className="border-t border-central-orange/20 bg-[#11100f] px-4 py-4 md:hidden">
+      {navMounted ? (
+        <div data-state={open ? 'open' : 'closed'} aria-hidden={!open} className={`lcb-mobile-nav overflow-hidden border-t border-central-orange/20 bg-[#11100f] px-4 py-4 md:hidden ${!open ? 'pointer-events-none' : ''}`}>
           <nav className="grid gap-2">
             {nav.map((item) => (
               <Link key={item.href} href={item.href} className="rounded-sm px-4 py-3 text-sm font-black uppercase tracking-wide text-central-cream/80 hover:bg-central-orange/10" onClick={() => setOpen(false)}>
