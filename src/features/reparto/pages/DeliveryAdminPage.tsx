@@ -343,6 +343,11 @@ export function DeliveryAdminPage() {
   }, []);
 
   useEffect(() => {
+    document.body.classList.add('delivery-wallet-active');
+    return () => document.body.classList.remove('delivery-wallet-active');
+  }, []);
+
+  useEffect(() => {
     void load();
     let refreshTimer: ReturnType<typeof setTimeout> | null = null;
     const unsubscribe = subscribeToDeliveryOrders(() => {
