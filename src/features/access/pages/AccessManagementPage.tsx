@@ -14,7 +14,6 @@ import {
   RotateCcw,
   Search,
   Shield,
-  ShieldCheck,
   UserRoundCheck,
   UserRoundX,
   Users,
@@ -301,6 +300,11 @@ export function AccessManagementPage() {
       setRefreshing(false);
     }
   }
+
+  useEffect(() => {
+    document.body.classList.add('access-wallet-active');
+    return () => document.body.classList.remove('access-wallet-active');
+  }, []);
 
   useEffect(() => { void load(); }, []);
 
