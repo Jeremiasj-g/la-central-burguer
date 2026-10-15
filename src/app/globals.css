@@ -832,3 +832,24 @@ body.admin-apple-deep .Toastify__close-button {
 .admin-redesign-deep .shadow-sm {
   box-shadow: 0 1px 2px rgba(0,0,0,.025), 0 8px 24px rgba(0,0,0,.025) !important;
 }
+
+
+/* Aplanado de superficies: evita el efecto “caja dentro de caja” en operaciones complejas. */
+.admin-redesign-deep section.bg-white > :is(div, aside).bg-white,
+.admin-redesign-deep [data-ui="card"] > .bg-white {
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.admin-redesign-deep section.bg-white > :is(div, aside).bg-white + :is(div, aside).bg-white {
+  border-left-color: rgba(0,0,0,.055) !important;
+}
+
+.admin-redesign-deep :is(.bg-neutral-50, .bg-neutral-100) {
+  box-shadow: none !important;
+}
+
+.admin-redesign-deep .border-dashed {
+  border-color: rgba(0,0,0,.12) !important;
+  background: rgba(255,255,255,.36);
+}
