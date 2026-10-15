@@ -791,72 +791,58 @@ export function DeliveryAdminPage() {
               </div>
 
               <div className="max-w-full overflow-x-auto">
-                <table className="w-full min-w-[1380px] text-left text-sm">
-                  <thead className="bg-neutral-50 text-[11px] font-semibold uppercase tracking-wider text-neutral-500">
+                <table className="w-full min-w-[850px] text-left text-[12px]">
+                  <thead className="border-b border-neutral-100 bg-[#f8f8f9] text-[10px] font-medium uppercase tracking-[.08em] text-neutral-500">
                     <tr>
-                      <th className="px-5 py-3">Asignado</th>
-                      <th className="px-4 py-3">Pedido</th>
-                      <th className="px-4 py-3">Cliente</th>
-                      <th className="px-4 py-3">Repartidor</th>
-                      <th className="px-4 py-3">Estado reparto</th>
-                      <th className="px-4 py-3 text-right">Distancia</th>
-                      <th className="px-4 py-3">Pago</th>
-                      <th className="px-4 py-3 text-right">Pedido</th>
-                      <th className="px-4 py-3 text-right">Envío</th>
-                      <th className="px-4 py-3 text-right">Comisión</th>
-                      <th className="px-4 py-3">Liquidación</th>
-                      <th className="px-5 py-3 text-right">Detalle</th>
+                      <th className="whitespace-nowrap px-5 py-3.5">Fecha</th>
+                      <th className="px-4 py-3.5">Pedido / Cliente</th>
+                      <th className="px-4 py-3.5">Repartidor</th>
+                      <th className="px-4 py-3.5">Estado</th>
+                      <th className="px-4 py-3.5 text-right">Importe</th>
+                      <th className="px-4 py-3.5 text-right">Comisión</th>
+                      <th className="px-5 py-3.5 text-right">Detalle</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-neutral-100">
                     {historyLoading ? (
                       Array.from({ length: 5 }).map((_, index) => (
                         <tr key={index}>
-                          <td colSpan={12} className="px-5 py-4"><div className="h-5 animate-pulse rounded bg-neutral-100" /></td>
+                          <td colSpan={7} className="px-5 py-4"><div className="h-5 animate-pulse rounded-lg bg-neutral-100" /></td>
                         </tr>
                       ))
                     ) : historyRows.length ? historyRows.map((item) => (
-                      <tr key={item.id} className="transition hover:bg-neutral-50/70">
-                        <td className="whitespace-nowrap px-5 py-3.5 text-neutral-600">{formatDateTime(item.assignedAt)}</td>
-                        <td className="px-4 py-3.5">
-                          <p className="font-semibold text-central-orange">{item.orderCode}</p>
-                          <p className="mt-0.5 text-xs text-neutral-400">Pedido {formatDateTime(item.orderCreatedAt)}</p>
+                      <tr key={item.id} className="transition-colors duration-200 hover:bg-[#fafafa]">
+                        <td className="whitespace-nowrap px-5 py-4 text-neutral-500">{formatDateTime(item.assignedAt)}</td>
+                        <td className="px-4 py-4">
+                          <p className="font-semibold text-neutral-900">{item.orderCode}</p>
+                          <p className="mt-0.5 max-w-[230px] truncate text-[11px] text-neutral-500" title={item.customerName}>{item.customerName}</p>
                         </td>
-                        <td className="px-4 py-3.5">
-                          <p className="font-semibold text-central-carbon">{item.customerName}</p>
-                          <p className="mt-0.5 text-xs text-neutral-500">{item.customerPhone}</p>
+                        <td className="px-4 py-4">
+                          <p className="font-medium text-neutral-900">{item.driverName}</p>
+                          <p className="mt-0.5 text-[11px] capitalize text-neutral-400">{item.vehicleType}</p>
                         </td>
-                        <td className="px-4 py-3.5">
-                          <p className="font-semibold text-central-carbon">{item.driverName}</p>
-                          <p className="mt-0.5 text-xs capitalize text-neutral-500">{item.vehicleType}</p>
+                        <td className="px-4 py-4">
+                          <span className={`inline-flex whitespace-nowrap rounded-full border px-2.5 py-1 text-[11px] font-medium ${statusClass(item.status)}`}>
+                            {STATUS_LABELS[item.status]}
+                          </span>
                         </td>
-                        <td className="px-4 py-3.5">
-                          <span className={`rounded-full border px-2.5 py-1 text-[11px] font-semibold ${statusClass(item.status)}`}>{STATUS_LABELS[item.status]}</span>
+                        <td className="whitespace-nowrap px-4 py-4 text-right font-semibold text-neutral-900">{formatCurrency(item.orderTotal)}</td>
+                        <td className="px-4 py-4 text-right">
+                          <p className="whitespace-nowrap font-semibold text-emerald-700">{formatCurrency(item.commissionAmount)}</p>
+                          <p className="mt-0.5 text-[11px] text-neutral-400">{settlementLabel(item.settlementStatus)}</p>
                         </td>
-                        <td className="px-4 py-3.5 text-right">
-                          <p className="font-semibold text-central-carbon">{(item.routeDistanceKm ?? item.distanceKm) === null ? '—' : `${(item.routeDistanceKm ?? item.distanceKm)?.toFixed(1)} km`}</p>
-                          {typeof item.routeDurationSeconds === 'number' ? <p className="mt-0.5 text-[11px] text-neutral-400">{formatRouteDuration(item.routeDurationSeconds)}</p> : null}
-                        </td>
-                        <td className="px-4 py-3.5 text-neutral-600">{item.paymentMethod === 'transferencia' ? 'Transferencia' : 'Efectivo'}</td>
-                        <td className="px-4 py-3.5 text-right font-semibold text-central-carbon">{formatCurrency(item.orderTotal)}</td>
-                        <td className="px-4 py-3.5 text-right text-neutral-600">{formatCurrency(item.deliveryFee)}</td>
-                        <td className="px-4 py-3.5 text-right">
-                          <p className="font-semibold text-emerald-700">{formatCurrency(item.commissionAmount)}</p>
-                          <p className="text-[11px] text-neutral-400">{item.commissionPercent}%</p>
-                        </td>
-                        <td className="px-4 py-3.5 text-neutral-600">{settlementLabel(item.settlementStatus)}</td>
-                        <td className="px-5 py-3.5 text-right">
+                        <td className="px-5 py-4 text-right">
                           <button
                             type="button"
                             onClick={() => setHistoryDetail(item)}
-                            className="inline-flex h-8 items-center gap-1.5 rounded-sm border border-neutral-200 bg-white px-2.5 text-xs font-semibold text-neutral-600 transition hover:border-central-orange hover:text-central-orange"
+                            className="inline-flex h-8 cursor-pointer items-center gap-1.5 whitespace-nowrap rounded-[9px] border border-neutral-200 bg-white px-2.5 text-[11px] font-medium text-neutral-600 transition hover:bg-neutral-50 hover:text-neutral-950"
                           >
-                            <Eye size={14} /> Ver
+                            <Eye size={13} /> Ver detalle
                           </button>
                         </td>
                       </tr>
                     )) : (
-                      <tr><td colSpan={12} className="px-5 py-10 text-center text-sm text-neutral-500">Todavía no hay asignaciones de delivery registradas.</td></tr>
+                      <tr><td colSpan={7} className="px-5 py-10 text-center text-[12px] text-neutral-500">Todavía no hay asignaciones de delivery registradas.</td></tr>
                     )}
                   </tbody>
                 </table>
