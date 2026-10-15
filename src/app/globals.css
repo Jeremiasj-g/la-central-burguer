@@ -853,3 +853,15 @@ body.admin-apple-deep .Toastify__close-button {
   border-color: rgba(0,0,0,.12) !important;
   background: rgba(255,255,255,.36);
 }
+
+
+@media (max-width: 1023px) {
+  .admin-sidebar {
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  .admin-topbar {
+    padding-top: env(safe-area-inset-top);
+  }
+}
