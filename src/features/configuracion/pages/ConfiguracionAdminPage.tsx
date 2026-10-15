@@ -1,11 +1,10 @@
 'use client';
 
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
-import { Clock, ImageUp, MapPin, Navigation, Pencil, Save, Trash2 } from 'lucide-react';
+import { Clock3, ImageUp, MapPin, Navigation, Pencil, Save, Trash2, Store, Truck, MessageCircle, CreditCard, Instagram, CheckCircle2 } from 'lucide-react';
 import { useBusinessConfig } from '../hooks/useBusinessConfig';
 import type { BusinessConfig } from '../types/configuracion.types';
 import { getBusinessStatusLabel, isBusinessOpenBySchedule } from '../utils/businessStatus.utils';
-import { AdminPageHeader } from '@/shared/components/layout/AdminPageHeader';
 import { Button } from '@/shared/components/ui/Button';
 import { Card } from '@/shared/components/ui/Card';
 import { ConfirmDialog } from '@/shared/components/ui/ConfirmDialog';
@@ -19,7 +18,11 @@ import { DataLoadError } from '@/shared/components/feedback/DataLoadError';
 import { BusinessLogo } from '../components/BusinessLogo';
 import { toast } from 'react-toastify';
 
-const adminInputClass = '!bg-neutral-50 !text-neutral-600 !placeholder:text-neutral-400 border-neutral-300 pr-10 shadow-[inset_0_1px_2px_rgba(0,0,0,.04)] hover:border-neutral-400 focus:!bg-white focus:!text-central-carbon focus:border-central-orange focus:ring-central-orange/20';
+const adminInputClass = 'min-w-0 !rounded-[11px] !border-neutral-200/80 !bg-[#f7f7f9] !px-3 !pr-10 !text-[13px] !font-normal !text-neutral-800 !shadow-none !placeholder:text-neutral-400 transition-all duration-200 hover:!border-neutral-300 focus:!border-central-orange/40 focus:!bg-white focus:!ring-2 focus:!ring-central-orange/10';
+const labelClass = 'mb-1.5 block text-[11px] font-medium text-neutral-500';
+const panelClass = 'min-w-0 rounded-[20px] border border-neutral-200/70 bg-white p-4 shadow-[0_8px_24px_rgba(15,23,42,.035)] sm:p-6';
+const sectionTitleClass = 'text-[16px] font-semibold tracking-[-.02em] text-neutral-900';
+const actionClass = '!h-9 !rounded-[11px] !px-3 !text-[12px] !font-medium !shadow-none';
 
 function EditableControl({ children, multiline = false }: { children: ReactNode; multiline?: boolean }) {
   return (
@@ -29,7 +32,7 @@ function EditableControl({ children, multiline = false }: { children: ReactNode;
         aria-hidden="true"
         size={15}
         className={cn(
-          'pointer-events-none absolute right-3 text-neutral-400 transition group-focus-within:text-central-orange',
+          'pointer-events-none absolute right-3 text-neutral-400/70 transition-colors duration-200 group-focus-within:text-central-orange',
           multiline ? 'top-3.5' : 'top-1/2 -translate-y-1/2',
         )}
       />
@@ -71,6 +74,11 @@ export function ConfiguracionAdminPage() {
   const [isSaving, setIsSaving] = useState(false);
   const [confirmSaveOpen, setConfirmSaveOpen] = useState(false);
   const [confirmStatusOpen, setConfirmStatusOpen] = useState(false);
+
+  useEffect(() => {
+    document.body.classList.add('config-wallet-active');
+    return () => document.body.classList.remove('config-wallet-active');
+  }, []);
 
   useEffect(() => {
     if (!config) return;
@@ -159,45 +167,70 @@ export function ConfiguracionAdminPage() {
   }
 
   if (error) return <DataLoadError message={error} onRetry={refresh} />;
-  if (isLoading || !config || !values) return <div>Cargando configuración...</div>;
+  if (isLoading || !config || !values) return (
+    <div className="config-wallet min-w-0 animate-pulse pb-8" role="status" aria-label="Cargando configuración">
+      <div className="mb-6 h-9 w-72 max-w-full rounded-[12px] bg-neutral-200" />
+      <div className="mb-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        {Array.from({ length: 4 }, (_, index) => <div key={index} className="h-28 rounded-[18px] border border-neutral-200/70 bg-white" />)}
+      </div>
+      <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(290px,360px)]">
+        <div className="h-[440px] rounded-[20px] border border-neutral-200/70 bg-white" />
+        <div className="h-72 rounded-[20px] border border-neutral-200/70 bg-white" />
+      </div>
+      <span className="sr-only">Cargando configuración del negocio…</span>
+    </div>
+  );
 
   return (
-    <div>
-      <div className="sticky top-16 z-20 -mx-4 -mt-4 mb-6 border-b border-neutral-200 bg-[#f6f4ef]/95 px-4 pb-3 pt-4 shadow-[0_8px_24px_rgba(0,0,0,.06)] backdrop-blur-xl sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8">
-        <AdminPageHeader
-          className="mb-0"
-          eyebrow="Configuración"
-          title="Datos del negocio"
-          description="Estos datos alimentan el sitio público, el checkout, el delivery y el mensaje de WhatsApp."
-          actions={
-            <div className="flex flex-wrap gap-2">
-              <Button type="button" variant="secondary" title="Cambiar estado manualmente" disabled={values.autoScheduleEnabled} onClick={() => setConfirmStatusOpen(true)}>
-                {values.isOpen ? 'Cerrar local' : 'Abrir local'}
-              </Button>
-              <Button type="button" title="Guardar configuración" onClick={() => setConfirmSaveOpen(true)} disabled={isSaving}>
-                <Save size={17} /> {isSaving ? 'Guardando...' : 'Guardar cambios'}
-              </Button>
-            </div>
-          }
-        />
+    <div className="config-wallet min-w-0 pb-8">
+      <div className="mb-6 flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+        <div className="min-w-0">
+          <h1 className="text-[28px] font-semibold leading-tight tracking-[-.045em] text-neutral-950 sm:text-[34px]">Configuración del negocio</h1>
+          <p className="mt-1 max-w-2xl text-[13px] leading-5 text-neutral-500">Administrá la identidad, los horarios, los cobros y el delivery de La Central.</p>
+        </div>
+        <div className="flex w-full flex-wrap items-center gap-2 lg:w-auto lg:justify-end">
+          <Button type="button" size="sm" variant="secondary" className={actionClass} title="Cambiar estado manualmente" disabled={values.autoScheduleEnabled} onClick={() => setConfirmStatusOpen(true)}>
+            {values.isOpen ? 'Cerrar local' : 'Abrir local'}
+          </Button>
+          <Button type="button" size="sm" className={actionClass} title="Guardar configuración" onClick={() => setConfirmSaveOpen(true)} disabled={isSaving}>
+            <Save size={14} /> {isSaving ? 'Guardando…' : 'Guardar cambios'}
+          </Button>
+        </div>
       </div>
 
-      <div className="mb-6 grid gap-4 md:grid-cols-2 xl:grid-cols-6">
-        <Card className="rounded-sm p-5"><p className="text-sm text-neutral-500">Negocio</p><p className="mt-2 text-2xl font-black">{values.businessName}</p></Card>
-        <Card className="rounded-sm p-5"><p className="text-sm text-neutral-500">WhatsApp</p><p className="mt-2 text-2xl font-black">{values.whatsappNumber}</p></Card>
-        <Card className="rounded-sm p-5"><p className="text-sm text-neutral-500">Alias</p><p className="mt-2 break-all text-xl font-black">{values.transferAlias}</p></Card>
-        <Card className="rounded-sm p-5"><p className="text-sm text-neutral-500">CVU / CBU</p><p className="mt-2 break-all text-base font-black">{values.transferCvu}</p></Card>
-        <Card className="rounded-sm p-5"><p className="text-sm text-neutral-500">Delivery base</p><p className="mt-2 text-2xl font-black text-central-orange">{formatCurrency(values.deliveryBaseFee)}</p><p className="mt-1 text-xs text-neutral-500">+ {formatCurrency(values.deliveryPricePerKm)} por km</p></Card>
-        <Card className="rounded-sm p-5"><p className="text-sm text-neutral-500">Estado actual</p><p className={cn('mt-2 text-2xl font-black', effectiveOpen ? 'text-emerald-700' : 'text-red-700')}>{getBusinessStatusLabel(previewConfig!)}</p></Card>
+      <div className="mb-6 grid min-w-0 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        <div className="min-w-0 rounded-[18px] border border-neutral-200/70 bg-white p-4 shadow-[0_8px_22px_rgba(15,23,42,.03)]">
+          <div className="flex items-center gap-2 text-[11px] font-medium text-neutral-500"><Store size={14} className="text-neutral-400" /> Identidad</div>
+          <p className="mt-2 truncate text-[19px] font-semibold tracking-tight text-neutral-900" title={values.businessName}>{values.businessName}</p>
+          <p className="mt-1 text-[11px] text-neutral-400">Nombre público del local</p>
+        </div>
+        <div className="min-w-0 rounded-[18px] border border-neutral-200/70 bg-white p-4 shadow-[0_8px_22px_rgba(15,23,42,.03)]">
+          <div className="flex items-center gap-2 text-[11px] font-medium text-neutral-500"><MessageCircle size={14} className="text-neutral-400" /> Contacto</div>
+          <p className="mt-2 truncate text-[19px] font-semibold tracking-tight text-neutral-900" title={values.whatsappNumber}>{values.whatsappNumber || 'Sin número'}</p>
+          <p className="mt-1 text-[11px] text-neutral-400">WhatsApp de pedidos</p>
+        </div>
+        <div className="min-w-0 rounded-[18px] border border-neutral-200/70 bg-white p-4 shadow-[0_8px_22px_rgba(15,23,42,.03)]">
+          <div className="flex items-center gap-2 text-[11px] font-medium text-neutral-500"><Truck size={14} className="text-neutral-400" /> Tarifa de envío</div>
+          <p className="mt-2 text-[19px] font-semibold tracking-tight text-neutral-900">{formatCurrency(values.deliveryBaseFee)}</p>
+          <p className="mt-1 truncate text-[11px] text-neutral-400">+ {formatCurrency(values.deliveryPricePerKm)} por km</p>
+        </div>
+        <div className="min-w-0 rounded-[18px] border border-neutral-200/70 bg-[#fcfbf8] p-4 shadow-[0_8px_22px_rgba(15,23,42,.03)]">
+          <div className="flex items-center gap-2 text-[11px] font-medium text-neutral-500"><Clock3 size={14} className="text-neutral-400" /> Estado del local</div>
+          <div className="mt-2 flex items-center gap-2">
+            <span className={cn('h-2 w-2 shrink-0 rounded-full', effectiveOpen ? 'bg-emerald-500' : 'bg-rose-400')} aria-hidden="true" />
+            <p className={cn('min-w-0 truncate text-[19px] font-semibold tracking-tight', effectiveOpen ? 'text-emerald-700' : 'text-neutral-900')}>{getBusinessStatusLabel(previewConfig!)}</p>
+          </div>
+          <p className="mt-1 text-[11px] text-neutral-400">{values.autoScheduleEnabled ? 'Según horario automático' : 'Control manual'}</p>
+        </div>
       </div>
 
-      <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_420px]">
-        <section className="rounded-sm border border-neutral-200 bg-white p-5 shadow-soft">
-          <h2 className="text-xl font-black text-central-carbon">Datos editables</h2>
+      <div className="grid min-w-0 items-start gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(290px,360px)]">
+        <section className={panelClass}>
+          <div className="mb-5"><h2 className={sectionTitleClass}>Identidad del negocio</h2><p className="mt-1 text-[12px] text-neutral-500">Los datos que se muestran a tus clientes en la web y el checkout.</p></div>
 
-          <div className="mt-5 rounded-sm border border-neutral-200 bg-neutral-50 p-4">
+          <div className="rounded-[15px] border border-neutral-200/70 bg-[#f8f8fa] p-4">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
-              <div className="grid h-32 w-full shrink-0 place-items-center overflow-hidden rounded-sm border border-neutral-300 bg-[#11100f] p-3 sm:w-44">
+              <div className="grid h-32 w-full shrink-0 place-items-center overflow-hidden rounded-[13px] border border-neutral-200 bg-[#11100f] p-3 sm:w-40">
                 {values.logoUrl ? (
                   <BusinessLogo logoUrl={values.logoUrl} businessName={values.businessName} mode="admin" className="max-h-full max-w-full" />
                 ) : (
@@ -208,10 +241,10 @@ export function ConfiguracionAdminPage() {
               </div>
 
               <div className="min-w-0 flex-1">
-                <label className="block text-sm font-bold text-neutral-700">Logo del negocio</label>
-                <p className="mt-1 text-xs leading-5 text-neutral-500">Se muestra en el hero, el navbar, el footer y el panel administrador. Recomendado: imagen cuadrada PNG o WEBP con fondo transparente, máximo 2 MB.</p>
+                <label className="block text-[13px] font-semibold text-neutral-800">Logo del negocio</label>
+                <p className="mt-1 text-[11px] leading-5 text-neutral-500">Se muestra en el hero, el navbar, el footer y el panel administrador. Recomendado: imagen cuadrada PNG o WEBP con fondo transparente, máximo 2 MB.</p>
                 <div className="mt-3 flex flex-wrap gap-2">
-                  <label className="inline-flex cursor-pointer items-center gap-2 rounded-sm bg-central-orange px-4 py-2.5 text-sm font-black text-white transition hover:bg-[#b66f10]">
+                  <label className="inline-flex min-h-9 cursor-pointer items-center gap-2 rounded-[11px] bg-central-orange px-3 py-2 text-[12px] font-semibold text-white transition-colors duration-200 hover:bg-central-ember focus-within:ring-2 focus-within:ring-central-orange/30">
                     <ImageUp size={16} /> {values.logoUrl ? 'Cambiar logo' : 'Subir logo'}
                     <input
                       type="file"
@@ -224,7 +257,7 @@ export function ConfiguracionAdminPage() {
                     />
                   </label>
                   {values.logoUrl ? (
-                    <Button type="button" variant="secondary" size="sm" title="Quitar logo personalizado" onClick={removeLogo}>
+                    <Button type="button" variant="secondary" size="sm" className={actionClass} title="Quitar logo personalizado" onClick={removeLogo}>
                       <Trash2 size={16} /> Quitar logo
                     </Button>
                   ) : null}
@@ -233,72 +266,72 @@ export function ConfiguracionAdminPage() {
             </div>
           </div>
 
-          <div className="mt-5 grid gap-4 md:grid-cols-2">
+          <div className="mt-5 grid min-w-0 gap-4 md:grid-cols-2">
             <div>
-              <label className="mb-2 block text-sm font-bold text-neutral-700">Nombre del negocio</label>
+              <label className={labelClass}>Nombre del negocio</label>
               <EditableControl>
                 <Input className={adminInputClass} value={values.businessName} onChange={(event) => setValues({ ...values, businessName: event.target.value })} />
               </EditableControl>
             </div>
             <div>
-              <label className="mb-2 block text-sm font-bold text-neutral-700">Número de WhatsApp</label>
+              <label className={labelClass}>Número de WhatsApp</label>
               <EditableControl>
                 <Input className={adminInputClass} value={values.whatsappNumber} onChange={(event) => setValues({ ...values, whatsappNumber: event.target.value })} />
               </EditableControl>
             </div>
             <div>
-              <label className="mb-2 block text-sm font-bold text-neutral-700">Alias de transferencia</label>
+              <label className={labelClass}>Alias de transferencia</label>
               <EditableControl>
                 <Input className={adminInputClass} value={values.transferAlias} onChange={(event) => setValues({ ...values, transferAlias: event.target.value })} />
               </EditableControl>
             </div>
             <div>
-              <label className="mb-2 block text-sm font-bold text-neutral-700">CVU / CBU</label>
+              <label className={labelClass}>CVU / CBU</label>
               <EditableControl>
                 <Input className={adminInputClass} value={values.transferCvu} onChange={(event) => setValues({ ...values, transferCvu: event.target.value })} />
               </EditableControl>
             </div>
             <div>
-              <label className="mb-2 block text-sm font-bold text-neutral-700">Dirección</label>
+              <label className={labelClass}>Dirección</label>
               <EditableControl>
                 <Input className={adminInputClass} value={values.address} onChange={(event) => setValues({ ...values, address: event.target.value })} />
               </EditableControl>
             </div>
             <div>
-              <label className="mb-2 block text-sm font-bold text-neutral-700">Especialidad</label>
+              <label className={labelClass}>Especialidad</label>
               <EditableControl>
                 <Input className={adminInputClass} value={values.specialty} onChange={(event) => setValues({ ...values, specialty: event.target.value })} />
               </EditableControl>
             </div>
             <div className="md:col-span-2">
-              <label className="mb-2 block text-sm font-bold text-neutral-700">Descripción del hero</label>
+              <label className={labelClass}>Descripción del hero</label>
               <EditableControl multiline>
                 <Textarea className={`${adminInputClass} min-h-28 py-3`} value={values.heroDescription} onChange={(event) => setValues({ ...values, heroDescription: event.target.value })} />
               </EditableControl>
             </div>
           </div>
 
-          <div className="mt-7 border-t border-neutral-200 pt-5">
+          <div className="mt-7 border-t border-neutral-100 pt-6">
             <div>
-              <h3 className="text-lg font-black text-central-carbon">Redes sociales del footer</h3>
-              <p className="mt-1 text-sm text-neutral-500">Configurá las URLs a las que redirigen los íconos del pie de página. Podés pegar la URL completa o escribirla sin https://.</p>
+              <h3 className="flex items-center gap-2 text-[15px] font-semibold tracking-tight text-neutral-900"><Instagram size={16} className="text-central-orange" /> Redes sociales</h3>
+              <p className="mt-1 text-[12px] leading-5 text-neutral-500">Configurá las URLs a las que redirigen los íconos del pie de página. Podés pegar la URL completa o escribirla sin https://.</p>
             </div>
 
-            <div className="mt-4 grid gap-4 md:grid-cols-2">
+            <div className="mt-4 grid min-w-0 gap-4 md:grid-cols-2">
               <div>
-                <label className="mb-2 block text-sm font-bold text-neutral-700">Facebook</label>
+                <label className={labelClass}>Facebook</label>
                 <EditableControl>
                   <Input className={adminInputClass} value={values.facebookUrl} onChange={(event) => setValues({ ...values, facebookUrl: event.target.value })} placeholder="facebook.com/tu-pagina" />
                 </EditableControl>
               </div>
               <div>
-                <label className="mb-2 block text-sm font-bold text-neutral-700">Instagram</label>
+                <label className={labelClass}>Instagram</label>
                 <EditableControl>
                   <Input className={adminInputClass} value={values.instagramUrl} onChange={(event) => setValues({ ...values, instagramUrl: event.target.value })} placeholder="instagram.com/tu-cuenta" />
                 </EditableControl>
               </div>
               <div className="md:col-span-2">
-                <label className="mb-2 block text-sm font-bold text-neutral-700">WhatsApp</label>
+                <label className={labelClass}>WhatsApp</label>
                 <EditableControl>
                   <Input className={adminInputClass} value={values.whatsappUrl} onChange={(event) => setValues({ ...values, whatsappUrl: event.target.value })} placeholder="wa.me/54379..." />
                 </EditableControl>
@@ -307,50 +340,50 @@ export function ConfiguracionAdminPage() {
             </div>
           </div>
 
-          <div className="mt-7 border-t border-neutral-200 pt-5">
+          <div className="mt-7 border-t border-neutral-100 pt-6">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div>
-                <h3 className="text-lg font-black text-central-carbon">Delivery y ubicación del local</h3>
-                <p className="mt-1 text-sm text-neutral-500">Esta ubicación se usa para estimar el envío por distancia aproximada.</p>
+                <h3 className="flex items-center gap-2 text-[15px] font-semibold tracking-tight text-neutral-900"><Truck size={16} className="text-central-orange" /> Delivery y ubicación</h3>
+                <p className="mt-1 text-[12px] leading-5 text-neutral-500">Esta ubicación se usa para estimar el envío por distancia aproximada.</p>
               </div>
-              <Button type="button" variant="secondary" size="sm" title="Usar la ubicación actual como ubicación del local" onClick={setStoreCurrentLocation} disabled={isGettingLocation}>
+              <Button type="button" variant="secondary" size="sm" className={actionClass} title="Usar la ubicación actual como ubicación del local" onClick={setStoreCurrentLocation} disabled={isGettingLocation}>
                 <Navigation size={16} /> {isGettingLocation ? 'Buscando...' : 'Usar ubicación actual'}
               </Button>
             </div>
 
-            <div className="mt-4 grid gap-4 md:grid-cols-2">
+            <div className="mt-4 grid min-w-0 gap-4 md:grid-cols-2">
               <div>
-                <label className="mb-2 block text-sm font-bold text-neutral-700">Latitud del local</label>
+                <label className={labelClass}>Latitud del local</label>
                 <EditableControl>
                   <Input className={adminInputClass} type="number" step="any" value={values.storeLatitude ?? ''} onChange={(event) => setValues({ ...values, storeLatitude: event.target.value === '' ? undefined : Number(event.target.value) })} />
                 </EditableControl>
               </div>
               <div>
-                <label className="mb-2 block text-sm font-bold text-neutral-700">Longitud del local</label>
+                <label className={labelClass}>Longitud del local</label>
                 <EditableControl>
                   <Input className={adminInputClass} type="number" step="any" value={values.storeLongitude ?? ''} onChange={(event) => setValues({ ...values, storeLongitude: event.target.value === '' ? undefined : Number(event.target.value) })} />
                 </EditableControl>
               </div>
               <div>
-                <label className="mb-2 block text-sm font-bold text-neutral-700">Precio base de envío</label>
+                <label className={labelClass}>Precio base de envío</label>
                 <EditableControl>
                   <Input className={adminInputClass} type="number" min={0} value={values.deliveryBaseFee} onChange={(event) => setValues({ ...values, deliveryBaseFee: Number(event.target.value) })} />
                 </EditableControl>
               </div>
               <div>
-                <label className="mb-2 block text-sm font-bold text-neutral-700">Precio por kilómetro</label>
+                <label className={labelClass}>Precio por kilómetro</label>
                 <EditableControl>
                   <Input className={adminInputClass} type="number" min={0} value={values.deliveryPricePerKm} onChange={(event) => setValues({ ...values, deliveryPricePerKm: Number(event.target.value) })} />
                 </EditableControl>
               </div>
               <div>
-                <label className="mb-2 block text-sm font-bold text-neutral-700">Radio máximo de entrega (km)</label>
+                <label className={labelClass}>Radio máximo de entrega (km)</label>
                 <EditableControl>
                   <Input className={adminInputClass} type="number" min={0} step="0.5" value={values.deliveryMaxDistanceKm} onChange={(event) => setValues({ ...values, deliveryMaxDistanceKm: Number(event.target.value) })} />
                 </EditableControl>
               </div>
               <div>
-                <label className="mb-2 block text-sm font-bold text-neutral-700">Redondeo del envío</label>
+                <label className={labelClass}>Redondeo del envío</label>
                 <EditableControl>
                   <Input className={adminInputClass} type="number" min={1} value={values.deliveryRoundingValue} onChange={(event) => setValues({ ...values, deliveryRoundingValue: Number(event.target.value) })} />
                 </EditableControl>
@@ -359,11 +392,11 @@ export function ConfiguracionAdminPage() {
 
             {typeof values.storeLatitude === 'number' && typeof values.storeLongitude === 'number' ? (
               <div className="mt-4 space-y-3">
-                <a className="inline-flex items-center gap-2 rounded-sm border border-neutral-200 bg-neutral-50 px-3 py-2 text-sm font-bold text-central-carbon hover:border-central-orange hover:text-central-orange" href={buildGoogleMapsUrl({ lat: values.storeLatitude, lng: values.storeLongitude })} target="_blank" rel="noreferrer">
+                <a className="inline-flex items-center gap-2 rounded-[11px] border border-neutral-200 bg-[#f8f8fa] px-3 py-2 text-[12px] font-medium text-neutral-700 transition-colors duration-200 hover:border-central-orange/40 hover:text-central-orange" href={buildGoogleMapsUrl({ lat: values.storeLatitude, lng: values.storeLongitude })} target="_blank" rel="noreferrer">
                   <MapPin size={16} /> Ver ubicación del local en Google Maps
                 </a>
 
-                <div className="w-full overflow-hidden rounded-sm border border-neutral-200 bg-neutral-100 shadow-[inset_0_1px_2px_rgba(0,0,0,.04)]">
+                <div className="w-full overflow-hidden rounded-[15px] border border-neutral-200/70 bg-neutral-100">
                   <iframe
                     title={`Ubicación de ${values.businessName} en Google Maps`}
                     src={`https://www.google.com/maps?q=${values.storeLatitude},${values.storeLongitude}&z=16&output=embed`}
@@ -378,51 +411,52 @@ export function ConfiguracionAdminPage() {
           </div>
         </section>
 
-        <section className="rounded-sm border border-neutral-200 bg-white p-5 shadow-soft">
+        <section className={cn(panelClass, 'xl:sticky xl:top-6')}>
           <div className="flex items-center gap-3">
-            <span className="grid h-10 w-10 place-items-center rounded-sm bg-central-orange/10 text-central-orange"><Clock size={19} /></span>
+            <span className="grid h-10 w-10 shrink-0 place-items-center rounded-[12px] bg-central-orange/10 text-central-orange"><Clock3 size={18} /></span>
             <div>
-              <h2 className="text-xl font-black text-central-carbon">Apertura automática</h2>
-              <p className="text-sm text-neutral-500">Activá horarios para abrir/cerrar el local solo.</p>
+              <h2 className={sectionTitleClass}>Apertura automática</h2>
+              <p className="text-[12px] text-neutral-500">Activá horarios para abrir/cerrar el local solo.</p>
             </div>
           </div>
 
-          <label className="mt-5 flex items-center gap-3 rounded-sm border border-neutral-200 bg-neutral-50 p-3 text-sm font-bold text-central-carbon">
-            <input type="checkbox" checked={values.autoScheduleEnabled} onChange={(event) => setValues({ ...values, autoScheduleEnabled: event.target.checked })} />
-            Usar automatización de apertura y cierre
+          <label className="mt-5 flex cursor-pointer items-center justify-between gap-3 rounded-[13px] border border-neutral-200/70 bg-[#f8f8fa] p-3.5">
+            <span className="min-w-0 text-[12px] font-medium leading-5 text-neutral-700">Apertura y cierre automáticos</span>
+            <input type="checkbox" className="peer sr-only" checked={values.autoScheduleEnabled} onChange={(event) => setValues({ ...values, autoScheduleEnabled: event.target.checked })} />
+            <span aria-hidden="true" className="relative h-6 w-11 shrink-0 rounded-full bg-neutral-300 transition-colors duration-200 after:absolute after:left-0.5 after:top-0.5 after:h-5 after:w-5 after:rounded-full after:bg-white after:shadow-sm after:transition-transform after:duration-200 peer-checked:bg-central-orange peer-checked:after:translate-x-5 peer-focus-visible:ring-2 peer-focus-visible:ring-central-orange/30" />
           </label>
 
           <div className="mt-4 grid gap-4 sm:grid-cols-2">
             <div>
-              <label className="mb-2 block text-sm font-bold text-neutral-700">Hora de apertura</label>
+              <label className={labelClass}>Hora de apertura</label>
               <EditableControl>
                 <Input className={`${adminInputClass} admin-time-input`} type="time" value={values.autoOpenTime} onChange={(event) => setValues({ ...values, autoOpenTime: event.target.value })} />
               </EditableControl>
             </div>
             <div>
-              <label className="mb-2 block text-sm font-bold text-neutral-700">Hora de cierre</label>
+              <label className={labelClass}>Hora de cierre</label>
               <EditableControl>
                 <Input className={`${adminInputClass} admin-time-input`} type="time" value={values.autoCloseTime} onChange={(event) => setValues({ ...values, autoCloseTime: event.target.value })} />
               </EditableControl>
             </div>
           </div>
 
-          <p className="mt-4 rounded-sm border border-neutral-200 bg-neutral-50 p-3 text-sm text-neutral-600">
+          <p className="mt-4 rounded-[13px] border border-neutral-200/70 bg-[#f8f8fa] p-3 text-[12px] leading-5 text-neutral-600">
             Con la configuración actual, el sitio muestra el local como <strong className={effectiveOpen ? 'text-emerald-700' : 'text-red-700'}>{effectiveOpen ? 'abierto' : 'cerrado'}</strong>.
           </p>
         </section>
       </div>
 
-      <section className="mt-5 rounded-sm border border-neutral-200 bg-white p-5 shadow-soft">
+      <section className={cn(panelClass, 'mt-4')}>
         <div>
-          <h2 className="text-xl font-black text-central-carbon">Métodos de pago</h2>
-          <p className="mt-1 text-sm text-neutral-500">Definí cuáles opciones aparecen en el checkout. El alias y el CVU se usan cuando el cliente elige transferencia.</p>
+          <h2 className="flex items-center gap-2 text-[16px] font-semibold tracking-tight text-neutral-900"><CreditCard size={17} className="text-central-orange" /> Métodos de pago</h2>
+          <p className="mt-1 text-[12px] leading-5 text-neutral-500">Definí cuáles opciones aparecen en el checkout. El alias y el CVU se usan cuando el cliente elige transferencia.</p>
         </div>
         <div className="mt-4 grid gap-3 md:grid-cols-2">
           {values.paymentMethods.map((method, index) => (
-            <div key={method.id} className="grid items-center gap-3 rounded-sm border border-neutral-200 bg-neutral-50 p-3 sm:grid-cols-[1fr_auto]">
+            <div key={method.id} className="grid min-w-0 items-center gap-3 rounded-[15px] border border-neutral-200/70 bg-[#f8f8fa] p-4 sm:grid-cols-[minmax(0,1fr)_auto]">
               <div>
-                <label className="mb-2 block text-xs font-black uppercase tracking-[.14em] text-neutral-500">{method.type}</label>
+                <label className="mb-1.5 block text-[10px] font-medium uppercase tracking-[.08em] text-neutral-400">{method.type}</label>
                 <EditableControl>
                   <Input
                     className={adminInputClass}
@@ -434,16 +468,18 @@ export function ConfiguracionAdminPage() {
                   />
                 </EditableControl>
               </div>
-              <label className="mt-5 flex items-center gap-2 text-sm font-bold text-neutral-700">
+              <label className="flex cursor-pointer items-center justify-between gap-3 self-end pb-1 text-[12px] font-medium text-neutral-600">
+                <span>Activo</span>
                 <input
                   type="checkbox"
+                  className="peer sr-only"
                   checked={method.active}
                   onChange={(event) => setValues({
                     ...values,
                     paymentMethods: values.paymentMethods.map((item, itemIndex) => itemIndex === index ? { ...item, active: event.target.checked } : item),
                   })}
                 />
-                Activo
+                <span aria-hidden="true" className="relative h-6 w-11 shrink-0 rounded-full bg-neutral-300 transition-colors duration-200 after:absolute after:left-0.5 after:top-0.5 after:h-5 after:w-5 after:rounded-full after:bg-white after:shadow-sm after:transition-transform after:duration-200 peer-checked:bg-central-orange peer-checked:after:translate-x-5 peer-focus-visible:ring-2 peer-focus-visible:ring-central-orange/30" />
               </label>
             </div>
           ))}
