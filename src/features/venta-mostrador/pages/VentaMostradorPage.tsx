@@ -99,6 +99,11 @@ export function VentaMostradorPage() {
   }
 
   useEffect(() => {
+    document.body.classList.add('counter-wallet-active');
+    return () => document.body.classList.remove('counter-wallet-active');
+  }, []);
+
+  useEffect(() => {
     void loadProducts();
     void loadCategories();
     void loadSales(1);
