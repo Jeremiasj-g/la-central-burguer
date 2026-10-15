@@ -1,21 +1,19 @@
 'use client';
 
-import { Filter, RotateCcw, Search } from 'lucide-react';
-import { Button } from '@/shared/components/ui/Button';
+import { useState } from 'react';
+import { ChevronDown, RotateCcw, Search, SlidersHorizontal } from 'lucide-react';
 import { DatePickerField } from '@/shared/components/ui/DatePickerField';
 import { Input } from '@/shared/components/ui/Input';
 import { Select } from '@/shared/components/ui/Select';
-import type {
-  ReportDatePreset,
-  ReportFilters,
-} from '../types/reporte.types';
+import type { ReportDatePreset, ReportFilters } from '../types/reporte.types';
 
 interface ReportFiltersProps {
-  filters: ReportFilters & { source?: 'all' | 'web' | 'admin' | 'import' };
+  filters: ReportFilters;
   preset: ReportDatePreset;
   isLoading: boolean;
+  hasPendingChanges?: boolean;
   onPresetChange: (preset: ReportDatePreset) => void;
-  onChange: (next: ReportFilters & { source?: 'all' | 'web' | 'admin' | 'import' }) => void;
+  onChange: (next: ReportFilters) => void;
   onApply: () => void;
   onReset: () => void;
 }
@@ -27,13 +25,13 @@ const PRESETS: { value: ReportDatePreset; label: string }[] = [
   { value: 'last30', label: 'Últimos 30 días' },
   { value: 'thisMonth', label: 'Este mes' },
   { value: 'previousMonth', label: 'Mes anterior' },
-  { value: 'allTime', label: 'Histórico completo' },
-  { value: 'custom', label: 'Rango personalizado' },
+  { value: 'allTime', label: 'Desde siempre' },
+  { value: 'custom', label: 'Elegir fechas' },
 ];
 
 const STATUS_OPTIONS = [
   { value: 'valid', label: 'Ventas válidas' },
-  { value: 'all', label: 'Todos' },
+  { value: 'all', label: 'Todos los estados' },
   { value: 'aceptado', label: 'Aceptados' },
   { value: 'cancelado', label: 'Cancelados' },
 ] as const;
@@ -57,139 +55,184 @@ const SOURCE_OPTIONS = [
   { value: 'import', label: 'Importado' },
 ] as const;
 
-const adminInputClass = '!border-neutral-200 !bg-white !text-central-carbon placeholder:!text-neutral-400 disabled:cursor-not-allowed disabled:!bg-neutral-100 disabled:!text-neutral-400';
+const compactSelect = '!h-9 !rounded-[11px] !border-neutral-200/80 !bg-[#f8f8f9] !px-2.5 !text-[12px] !font-medium !shadow-none';
+const compactDate = '!h-9 !rounded-[11px] !border-neutral-200/80 !bg-[#f8f8f9] !px-2.5 !text-[12px]';
+const labelClass = 'mb-1.5 block text-[11px] font-semibold text-neutral-500';
 
 export function ReportFilters({
   filters,
   preset,
   isLoading,
+  hasPendingChanges = false,
   onPresetChange,
   onChange,
   onApply,
   onReset,
 }: ReportFiltersProps) {
-  function patch(patchValues: Partial<ReportFilters & { source?: 'all' | 'web' | 'admin' | 'import' }>) {
-    onChange({ ...filters, ...patchValues });
+  const [advancedOpen, setAdvancedOpen] = useState(false);
+
+  function patch(values: Partial<ReportFilters>) {
+    onChange({ ...filters, ...values });
   }
 
+  const activeCriteria = [
+    filters.status !== 'valid',
+    filters.paymentMethod !== 'all',
+    filters.deliveryMethod !== 'all',
+    (filters.source ?? 'all') !== 'all',
+    Boolean(filters.search.trim()),
+  ].filter(Boolean).length;
+
   return (
-    <section className="mb-6 min-w-0 overflow-hidden rounded-sm border border-neutral-200 bg-white shadow-soft">
-      <div className="flex flex-col gap-3 border-b border-neutral-100 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-5">
-        <div className="flex min-w-0 items-start gap-3 sm:items-center">
-          <span className="grid h-9 w-9 shrink-0 place-items-center rounded-sm bg-central-orange/10 text-central-orange">
-            <Filter size={18} />
-          </span>
-          <div className="min-w-0">
-            <p className="text-sm font-extrabold text-central-carbon">Filtros del reporte</p>
-            <p className="mt-0.5 text-xs leading-5 text-neutral-500">Definí período y criterios antes de consolidar la información.</p>
-          </div>
+    <aside aria-label="Filtros del reporte" className="flex min-w-0 flex-col rounded-[22px] border border-neutral-200/80 bg-white p-4 shadow-[0_8px_30px_-24px_rgba(20,20,20,.35)] sm:p-5">
+      <div className="mb-5 flex items-center justify-between gap-3">
+        <div className="min-w-0">
+          <h2 className="text-[15px] font-bold tracking-[-.025em] text-neutral-900">Personalizá el análisis</h2>
+          <p className="mt-0.5 text-[11px] leading-5 text-neutral-500">Elegí qué movimientos querés ver.</p>
         </div>
-        <button
-          type="button"
-          onClick={onReset}
-          className="inline-flex shrink-0 items-center gap-2 self-start text-xs font-bold text-neutral-500 transition hover:text-central-orange sm:self-auto"
-        >
-          <RotateCcw size={14} /> Restablecer
-        </button>
+        <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-neutral-100 text-neutral-600">
+          <SlidersHorizontal size={17} strokeWidth={1.9} />
+        </span>
       </div>
 
-      <div className="grid min-w-0 gap-4 p-4 sm:p-5 md:grid-cols-2 xl:grid-cols-12">
-        <label className="min-w-0 md:col-span-2 xl:col-span-3">
-          <span className="mb-1.5 block text-xs font-bold uppercase tracking-wide text-neutral-500">Período</span>
+      <div className="min-w-0">
+        <label className={labelClass} htmlFor="report-period-label">Período</label>
+        <div id="report-period-label">
           <Select
             aria-label="Período del reporte"
             variant="light"
             value={preset}
             options={PRESETS}
-            onValueChange={(nextPreset) => onPresetChange(nextPreset as ReportDatePreset)}
+            onValueChange={(next) => onPresetChange(next as ReportDatePreset)}
+            className={compactSelect}
           />
-        </label>
-
-        <div className="min-w-0 xl:col-span-2">
-          <span className="mb-1.5 block text-xs font-bold uppercase tracking-wide text-neutral-500">Desde</span>
-          <DatePickerField
-            value={filters.from}
-            disabled={filters.allTime}
-            onChange={(value) => patch({ from: value, allTime: false })}
-            ariaLabel="Fecha desde del reporte"
-          />
-          {filters.allTime ? <span className="mt-1 block text-[11px] text-neutral-400">Desde el primer pedido registrado.</span> : null}
-        </div>
-
-        <div className="min-w-0 xl:col-span-2">
-          <span className="mb-1.5 block text-xs font-bold uppercase tracking-wide text-neutral-500">Hasta</span>
-          <DatePickerField
-            value={filters.to}
-            disabled={filters.allTime}
-            onChange={(value) => patch({ to: value, allTime: false })}
-            ariaLabel="Fecha hasta del reporte"
-          />
-          {filters.allTime ? <span className="mt-1 block text-[11px] text-neutral-400">Incluye todo el historial disponible.</span> : null}
-        </div>
-
-        <label className="min-w-0 xl:col-span-2">
-          <span className="mb-1.5 block text-xs font-bold uppercase tracking-wide text-neutral-500">Estado</span>
-          <Select
-            aria-label="Estado de las ventas"
-            variant="light"
-            value={filters.status}
-            options={STATUS_OPTIONS}
-            onValueChange={(status) => patch({ status: status as ReportFilters['status'] })}
-          />
-        </label>
-
-        <label className="min-w-0 md:col-span-2 xl:col-span-3">
-          <span className="mb-1.5 block text-xs font-bold uppercase tracking-wide text-neutral-500">Buscar</span>
-          <div className="relative min-w-0">
-            <Search className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" size={16} />
-            <Input
-              value={filters.search}
-              onChange={(event) => patch({ search: event.target.value })}
-              placeholder="Pedido, cliente o teléfono"
-              className={`min-w-0 pl-9 ${adminInputClass}`}
-            />
-          </div>
-        </label>
-
-        <label className="min-w-0 xl:col-span-3">
-          <span className="mb-1.5 block text-xs font-bold uppercase tracking-wide text-neutral-500">Método de pago</span>
-          <Select
-            aria-label="Método de pago"
-            variant="light"
-            value={filters.paymentMethod}
-            options={PAYMENT_OPTIONS}
-            onValueChange={(paymentMethod) => patch({ paymentMethod: paymentMethod as ReportFilters['paymentMethod'] })}
-          />
-        </label>
-
-        <label className="min-w-0 xl:col-span-3">
-          <span className="mb-1.5 block text-xs font-bold uppercase tracking-wide text-neutral-500">Tipo de entrega</span>
-          <Select
-            aria-label="Tipo de entrega"
-            variant="light"
-            value={filters.deliveryMethod}
-            options={DELIVERY_OPTIONS}
-            onValueChange={(deliveryMethod) => patch({ deliveryMethod: deliveryMethod as ReportFilters['deliveryMethod'] })}
-          />
-        </label>
-
-        <label className="min-w-0 xl:col-span-3">
-          <span className="mb-1.5 block text-xs font-bold uppercase tracking-wide text-neutral-500">Origen</span>
-          <Select
-            aria-label="Origen de la venta"
-            variant="light"
-            value={filters.source ?? 'all'}
-            options={SOURCE_OPTIONS}
-            onValueChange={(source) => patch({ source: source as 'all' | 'web' | 'admin' | 'import' })}
-          />
-        </label>
-
-        <div className="flex min-w-0 items-end md:col-span-2 xl:col-span-3 xl:justify-end">
-          <Button type="button" onClick={onApply} disabled={isLoading} className="w-full sm:w-auto">
-            {isLoading ? 'Procesando…' : 'Aplicar filtros'}
-          </Button>
         </div>
       </div>
-    </section>
+
+      {preset === 'custom' ? (
+        <div className="mt-3 grid min-w-0 grid-cols-2 gap-2">
+          <div className="min-w-0">
+            <span className={labelClass}>Desde</span>
+            <DatePickerField
+              value={filters.from}
+              onChange={(from) => patch({ from, allTime: false })}
+              ariaLabel="Fecha desde del reporte"
+              className={compactDate}
+            />
+          </div>
+          <div className="min-w-0">
+            <span className={labelClass}>Hasta</span>
+            <DatePickerField
+              value={filters.to}
+              onChange={(to) => patch({ to, allTime: false })}
+              ariaLabel="Fecha hasta del reporte"
+              className={compactDate}
+            />
+          </div>
+        </div>
+      ) : preset === 'allTime' ? (
+        <p className="mt-2 text-[11px] text-neutral-500">Incluye todo el historial registrado.</p>
+      ) : null}
+
+      <div className="mt-4 border-t border-neutral-100 pt-3">
+        <button
+          type="button"
+          aria-expanded={advancedOpen}
+          aria-controls="report-advanced-filters"
+          onClick={() => setAdvancedOpen((open) => !open)}
+          className="flex w-full cursor-pointer items-center justify-between rounded-lg px-0.5 py-1.5 text-left text-[12px] font-semibold text-neutral-600 transition-colors hover:text-central-orange"
+        >
+          <span className="flex items-center gap-2">
+            Más criterios
+            {activeCriteria > 0 ? (
+              <span className="grid min-h-5 min-w-5 place-items-center rounded-full bg-central-orange/10 px-1.5 text-[10px] font-bold text-central-orange">
+                {activeCriteria}
+              </span>
+            ) : null}
+          </span>
+          <ChevronDown size={15} className={`transition-transform duration-200 ${advancedOpen ? 'rotate-180' : ''}`} />
+        </button>
+
+        <div id="report-advanced-filters" hidden={!advancedOpen} className="mt-3 grid min-w-0 grid-cols-2 gap-3">
+          <div className="min-w-0">
+            <span className={labelClass}>Estado</span>
+            <Select
+              aria-label="Estado de las ventas"
+              variant="light"
+              value={filters.status}
+              options={STATUS_OPTIONS}
+              onValueChange={(status) => patch({ status: status as ReportFilters['status'] })}
+              className={compactSelect}
+            />
+          </div>
+          <div className="min-w-0">
+            <span className={labelClass}>Pago</span>
+            <Select
+              aria-label="Método de pago"
+              variant="light"
+              value={filters.paymentMethod}
+              options={PAYMENT_OPTIONS}
+              onValueChange={(paymentMethod) => patch({ paymentMethod: paymentMethod as ReportFilters['paymentMethod'] })}
+              className={compactSelect}
+            />
+          </div>
+          <div className="min-w-0">
+            <span className={labelClass}>Entrega</span>
+            <Select
+              aria-label="Tipo de entrega"
+              variant="light"
+              value={filters.deliveryMethod}
+              options={DELIVERY_OPTIONS}
+              onValueChange={(deliveryMethod) => patch({ deliveryMethod: deliveryMethod as ReportFilters['deliveryMethod'] })}
+              className={compactSelect}
+            />
+          </div>
+          <div className="min-w-0">
+            <span className={labelClass}>Origen</span>
+            <Select
+              aria-label="Origen de la venta"
+              variant="light"
+              value={filters.source ?? 'all'}
+              options={SOURCE_OPTIONS}
+              onValueChange={(source) => patch({ source: source as ReportFilters['source'] })}
+              className={compactSelect}
+            />
+          </div>
+          <label className="col-span-2 min-w-0">
+            <span className={labelClass}>Buscar pedidos o clientes</span>
+            <span className="relative block">
+              <Search size={14} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" />
+              <Input
+                value={filters.search}
+                onChange={(event) => patch({ search: event.target.value })}
+                placeholder="Código, nombre o teléfono"
+                className="!h-9 !rounded-[11px] !border-neutral-200/80 !bg-[#f8f8f9] !pl-9 !pr-3 !text-[12px] !text-neutral-900 !shadow-none placeholder:!text-neutral-400"
+              />
+            </span>
+          </label>
+        </div>
+      </div>
+
+      <div className="mt-auto flex items-center gap-2 pt-4">
+        <button
+          type="button"
+          onClick={onApply}
+          disabled={isLoading}
+          className="inline-flex h-9 min-w-0 flex-1 cursor-pointer items-center justify-center gap-2 rounded-[11px] bg-central-carbon px-3 text-[12px] font-semibold text-white transition duration-200 hover:bg-neutral-800 active:scale-[.98] disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          {isLoading ? 'Actualizando…' : 'Aplicar filtros'}
+          {hasPendingChanges && !isLoading ? <span className="h-1.5 w-1.5 rounded-full bg-central-orange" aria-label="Cambios pendientes" /> : null}
+        </button>
+        <button
+          type="button"
+          onClick={onReset}
+          title="Restablecer todos los filtros"
+          aria-label="Restablecer todos los filtros"
+          className="grid h-9 w-9 shrink-0 cursor-pointer place-items-center rounded-[11px] border border-neutral-200 bg-white text-neutral-500 transition duration-200 hover:bg-neutral-100 hover:text-neutral-900"
+        >
+          <RotateCcw size={15} />
+        </button>
+      </div>
+    </aside>
   );
 }
