@@ -1,4 +1,5 @@
 'use client';
+// Validación temporal de la modal minimalista de tres columnas.
 
 import { ImagePlus, Plus, Search, X } from 'lucide-react';
 import { useMemo, useState, type FormEvent } from 'react';
