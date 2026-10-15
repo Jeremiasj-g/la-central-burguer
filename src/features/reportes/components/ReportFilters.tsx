@@ -96,8 +96,8 @@ export function ReportFilters({
       </div>
 
       <div className="min-w-0">
-        <label className={labelClass} htmlFor="report-period-label">Período</label>
-        <div id="report-period-label">
+        <span className={labelClass}>Período</span>
+        <div>
           <Select
             aria-label="Período del reporte"
             variant="light"
@@ -153,7 +153,7 @@ export function ReportFilters({
           <ChevronDown size={15} className={`transition-transform duration-200 ${advancedOpen ? 'rotate-180' : ''}`} />
         </button>
 
-        <div id="report-advanced-filters" hidden={!advancedOpen} className="mt-3 grid min-w-0 grid-cols-2 gap-3">
+        <div id="report-advanced-filters" className={`mt-3 min-w-0 grid-cols-2 gap-3 ${advancedOpen ? 'grid' : 'hidden'}`}>
           <div className="min-w-0">
             <span className={labelClass}>Estado</span>
             <Select
