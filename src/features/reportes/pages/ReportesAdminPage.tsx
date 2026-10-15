@@ -58,7 +58,7 @@ function createDefaultFilters(): ReportFilterState {
 function FeaturedMetricCard({ label, value, detail, tone }: { label: string; value: number; detail: string; tone: 'gross' | 'net' }) {
   const isNet = tone === 'net';
   return (
-    <article className={`relative min-h-[178px] overflow-hidden rounded-sm border p-6 shadow-sm sm:col-span-2 xl:col-span-3 2xl:col-span-6 ${isNet ? 'border-emerald-200 bg-[#eef8f3]' : 'border-central-carbon bg-central-carbon text-white'}`}>
+    <article className={`relative min-h-[178px] overflow-hidden rounded-sm border p-6 shadow-soft sm:col-span-2 xl:col-span-3 2xl:col-span-6 ${isNet ? 'border-emerald-200 bg-[#eef8f3]' : 'border-central-carbon bg-central-carbon text-white'}`}>
       <div className="relative z-10 flex h-full flex-col justify-between gap-6">
         <div className="flex items-start justify-between gap-4">
           <div>
@@ -75,7 +75,7 @@ function FeaturedMetricCard({ label, value, detail, tone }: { label: string; val
 
 function MetricCard({ label, value, detail, icon: Icon, formatter }: { label: string; value: number; detail: string; icon: React.ComponentType<{ size?: number; className?: string }>; formatter: (value: number) => string }) {
   return (
-    <article className="relative min-w-0 overflow-hidden rounded-sm border border-neutral-200 bg-white p-5 shadow-sm xl:col-span-2 2xl:col-span-2">
+    <article className="relative min-w-0 overflow-hidden rounded-sm border border-neutral-200 bg-white p-5 shadow-soft xl:col-span-2 2xl:col-span-2">
       <span className="absolute right-4 top-4 grid h-10 w-10 shrink-0 place-items-center rounded-sm bg-central-orange/10 text-central-orange"><Icon size={18} /></span>
       <div className="min-w-0 pr-12">
         <p className="truncate text-xs font-bold text-neutral-500">{label}</p>
@@ -232,7 +232,7 @@ export function ReportesAdminPage() {
         <MetricCard label="Comisiones liquidadas" value={summary.settledDeliveryCommission} detail="Sólo liquidaciones marcadas como pagadas" icon={WalletCards} formatter={formatCurrency} />
         <MetricCard label="Cancelaciones" value={summary.cancelledOrders} detail={`${(summary.cancellationRate * 100).toFixed(1)}% del total seleccionado`} icon={Ban} formatter={formatNumber} />
       </section>
-      <section className="mb-6 overflow-hidden rounded-sm border border-neutral-200 bg-white shadow-sm">
+      <section className="mb-6 overflow-hidden rounded-sm border border-neutral-200 bg-white shadow-soft">
         <div className="flex flex-col gap-3 border-b border-neutral-100 p-4 sm:flex-row sm:items-center sm:justify-between sm:p-5">
           <div>
             <h2 className="font-black text-central-carbon">Visualización del reporte</h2>
@@ -261,7 +261,7 @@ export function ReportesAdminPage() {
 
       {analysisView === 'tables' ? (
         isLoading
-          ? <div className="mb-6 rounded-sm border border-neutral-200 bg-white p-12 text-center text-sm font-semibold text-neutral-500 shadow-sm">Procesando el reporte…</div>
+          ? <div className="mb-6 rounded-sm border border-neutral-200 bg-white p-12 text-center text-sm font-semibold text-neutral-500 shadow-soft">Procesando el reporte…</div>
           : <ReportTables groups={groups} groupBy={groupBy} onGroupByChange={setGroupBy} detailOrders={detailOrders} detailTotal={detailTotal} detailPage={detailPage} detailLoading={detailLoading} onDetailPageChange={setDetailPage} />
       ) : (
         <ReportCharts dataset={filteredData} filters={appliedFilters} periodLabel={periodDescription} isLoading={isLoading} />
