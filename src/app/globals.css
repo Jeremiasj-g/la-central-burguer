@@ -445,6 +445,60 @@ select {
   }
 }
 
+
+/* Menús móviles: despliegue y cierre sin saltos de layout. */
+@keyframes lcb-mobile-nav-in {
+  from { max-height: 0; opacity: 0; padding-top: 0; padding-bottom: 0; transform: translateY(-6px); }
+  to { max-height: 220px; opacity: 1; padding-top: 1rem; padding-bottom: 1rem; transform: translateY(0); }
+}
+
+@keyframes lcb-mobile-nav-out {
+  from { max-height: 220px; opacity: 1; padding-top: 1rem; padding-bottom: 1rem; transform: translateY(0); }
+  to { max-height: 0; opacity: 0; padding-top: 0; padding-bottom: 0; transform: translateY(-6px); }
+}
+
+.lcb-mobile-nav[data-state="open"] {
+  animation: lcb-mobile-nav-in 200ms cubic-bezier(.16, 1, .3, 1) both;
+}
+
+.lcb-mobile-nav[data-state="closed"] {
+  animation: lcb-mobile-nav-out 200ms ease-in both;
+}
+
+.lcb-admin-mobile-overlay[data-state="open"] {
+  animation: lcb-overlay-enter 200ms ease-out both;
+}
+
+.lcb-admin-mobile-overlay[data-state="closed"] {
+  animation: lcb-overlay-exit 200ms ease-in both;
+}
+
+.lcb-admin-mobile-overlay[data-state="open"] .lcb-admin-mobile-panel {
+  animation: lcb-admin-nav-in 200ms cubic-bezier(.16, 1, .3, 1) both;
+}
+
+.lcb-admin-mobile-overlay[data-state="closed"] .lcb-admin-mobile-panel {
+  animation: lcb-admin-nav-out 200ms ease-in both;
+}
+
+@keyframes lcb-admin-nav-in {
+  from { transform: translateX(-18px); opacity: .65; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+@keyframes lcb-admin-nav-out {
+  from { transform: translateX(0); opacity: 1; }
+  to { transform: translateX(-18px); opacity: .65; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lcb-mobile-nav,
+  .lcb-admin-mobile-overlay,
+  .lcb-admin-mobile-panel {
+    animation: none !important;
+  }
+}
+
 /* Controles sticky del menú y formularios adaptados al teclado móvil */
 .menu-ordering-tools {
   scroll-margin-top: 72px;
