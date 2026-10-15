@@ -114,6 +114,8 @@ export function Modal({ open, title, children, onClose, className, panelClassNam
       onMouseDown={onClose}
     >
       <section
+        data-ui="modal-panel"
+        data-theme={theme}
         ref={panelRef}
         role="dialog"
         aria-modal="true"
