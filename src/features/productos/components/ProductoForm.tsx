@@ -104,129 +104,155 @@ export function ProductoForm({ product, categories, ingredients, isSaving, onSub
     });
   }
 
-  const fieldLabelClass = 'admin-modal-label';
-  const selectedChipClass = 'inline-flex items-center gap-1.5 rounded-full border border-central-orange/35 bg-white/[.11] px-2.5 py-1 text-[11px] font-black leading-none text-white shadow-sm';
-  const suggestionChipClass = 'rounded-sm border border-white/10 bg-[#1d1d1d] px-2.5 py-1 text-[11px] font-bold text-white/84 transition hover:border-central-orange/75 hover:text-white';
+  const labelClass = 'mb-1.5 block text-[11px] font-medium text-neutral-500';
+  const fieldClass = '!h-10 !rounded-[11px] !border-neutral-200/80 !bg-[#f7f7f9] !px-3 !text-[13px] !font-normal !text-neutral-900 !shadow-none placeholder:!text-neutral-400 focus:!border-central-orange/45 focus:!bg-white focus:!ring-central-orange/10';
+  const selectedChipClass = 'inline-flex cursor-pointer items-center gap-1.5 rounded-full border border-central-orange/20 bg-central-orange/[.09] px-2.5 py-1.5 text-[11px] font-medium leading-none text-central-ember transition-[background-color,border-color,color,transform] duration-200 hover:border-central-orange/45 hover:bg-central-orange/15 active:scale-[.97]';
+  const suggestionChipClass = 'cursor-pointer rounded-full border border-neutral-200/80 bg-[#f7f7f9] px-2.5 py-1.5 text-[11px] font-normal text-neutral-600 transition-[background-color,border-color,color,transform] duration-200 hover:border-central-orange/35 hover:bg-central-orange/[.06] hover:text-central-ember active:scale-[.97]';
 
   return (
-    <form className="space-y-4" onSubmit={handleSubmit}>
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,1.05fr)_minmax(320px,.9fr)]">
-        <div className="space-y-3.5">
-          <div className="admin-modal-field">
-            <label className={fieldLabelClass}>Nombre <span className="text-red-300">*</span></label>
-            <Input value={values.name} onChange={(event) => setValues({ ...values, name: event.target.value })} required autoFocus />
+    <form className="space-y-5" onSubmit={handleSubmit}>
+      <div className="grid min-w-0 gap-5 lg:grid-cols-[minmax(0,1.1fr)_minmax(270px,.9fr)] lg:gap-6">
+        <div className="min-w-0 space-y-4">
+          <div>
+            <label htmlFor="product-name" className={labelClass}>Nombre del producto <span className="text-red-500">*</span></label>
+            <Input id="product-name" className={fieldClass} value={values.name} onChange={(event) => setValues({ ...values, name: event.target.value })} placeholder="Ej. Hamburguesa clásica" required autoFocus />
           </div>
 
-          <div className="admin-modal-field">
-            <label className={fieldLabelClass}>Ingredientes</label>
-            <div className="space-y-3">
+          <div>
+            <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+              <span className="text-[11px] font-medium text-neutral-500">Ingredientes asociados</span>
+              <span className="rounded-full bg-[#f7f7f9] px-2.5 py-1 text-[10px] font-medium tabular-nums text-neutral-500">{selectedIngredients.length} seleccionados</span>
+            </div>
+            <div className="rounded-[13px] border border-neutral-200/80 bg-[#fafafa] p-3">
               <div className="flex min-h-8 flex-wrap items-center gap-1.5">
                 {selectedIngredients.length ? selectedIngredients.map((ingredient) => (
                   <button
                     key={ingredient.id}
                     type="button"
                     title={`Quitar ${ingredient.name}`}
+                    aria-label={`Quitar ${ingredient.name}`}
                     onClick={() => toggleIngredient(ingredient.id)}
                     className={selectedChipClass}
                   >
                     {ingredient.name}
-                    <X size={12} className="text-white/70" />
+                    <X size={12} strokeWidth={1.8} />
                   </button>
                 )) : (
-                  <span className="text-xs font-semibold text-white/40">Seleccioná ingredientes desde las sugerencias.</span>
+                  <span className="py-1 text-[11px] text-neutral-400">Seleccioná ingredientes de las opciones disponibles.</span>
                 )}
               </div>
-
-              <div>
-                <p className="mb-2 text-xs font-medium text-white/48">Sugerencias</p>
-                <div className="flex max-h-24 flex-wrap gap-1.5 overflow-y-auto pr-1 custom-scrollbar">
-                  {suggestedIngredients.map((ingredient) => (
+              <div className="mt-3 border-t border-neutral-200/70 pt-3">
+                <p className="mb-2 text-[10px] font-medium uppercase tracking-[.08em] text-neutral-400">Agregar ingredientes</p>
+                <div className="custom-scrollbar flex max-h-28 flex-wrap gap-1.5 overflow-y-auto pr-1">
+                  {suggestedIngredients.length ? suggestedIngredients.map((ingredient) => (
                     <button
                       key={ingredient.id}
                       type="button"
                       title={`Agregar ${ingredient.name}`}
+                      aria-label={`Agregar ${ingredient.name}`}
                       onClick={() => toggleIngredient(ingredient.id)}
                       className={suggestionChipClass}
                     >
                       {ingredient.name}
                     </button>
-                  ))}
+                  )) : (
+                    <p className="py-1 text-[11px] text-neutral-400">No hay más ingredientes disponibles.</p>
+                  )}
                 </div>
               </div>
             </div>
           </div>
 
-          <div className="admin-modal-field">
-            <label className={fieldLabelClass}>Descripción <span className="font-semibold text-white/50">(opcional)</span></label>
+          <div>
+            <label htmlFor="product-description" className={labelClass}>Descripción <span className="font-normal text-neutral-400">(opcional)</span></label>
             <Textarea
+              id="product-description"
+              className="!min-h-24 !rounded-[11px] !border-neutral-200/80 !bg-[#f7f7f9] !px-3 !py-2.5 !text-[13px] !font-normal !text-neutral-900 placeholder:!text-neutral-400 focus:!border-central-orange/45 focus:!bg-white focus:!ring-central-orange/10"
               value={values.description}
               onChange={(event) => setValues({ ...values, description: event.target.value })}
               placeholder="Agregá un detalle extra. La descripción también se arma con los ingredientes seleccionados."
               rows={4}
             />
+            <p className="mt-1.5 text-[11px] leading-4 text-neutral-400">Los ingredientes seleccionados se incorporan a la descripción al guardar.</p>
           </div>
 
-          <div className="admin-modal-field">
-            <label className={fieldLabelClass}>Precio <span className="text-red-300">*</span></label>
-            <Input type="number" min={0} value={values.currentPrice || ''} onChange={(event) => setValues({ ...values, currentPrice: Number(event.target.value) })} placeholder="$" required />
-          </div>
-
-          <div className="admin-modal-field">
-            <label className={fieldLabelClass}>Categoría <span className="text-red-300">*</span></label>
-            <Select
-              aria-label="Categoría del producto"
-              value={values.categoryId}
-              options={categories.map((category) => ({ value: category.id, label: category.name }))}
-              onValueChange={(categoryId) => setValues({ ...values, categoryId })}
-              placeholder="Seleccionar categoría"
-              required
-            />
+          <div className="grid min-w-0 gap-3 sm:grid-cols-2">
+            <div className="min-w-0">
+              <label htmlFor="product-price" className={labelClass}>Precio de venta <span className="text-red-500">*</span></label>
+              <Input id="product-price" className={fieldClass} type="number" min={0} value={values.currentPrice || ''} onChange={(event) => setValues({ ...values, currentPrice: Number(event.target.value) })} placeholder="$" required />
+            </div>
+            <div className="min-w-0">
+              <span className={labelClass}>Categoría <span className="text-red-500">*</span></span>
+              <Select
+                aria-label="Categoría del producto"
+                variant="light"
+                value={values.categoryId}
+                options={categories.map((category) => ({ value: category.id, label: category.name }))}
+                onValueChange={(categoryId) => setValues({ ...values, categoryId })}
+                placeholder="Seleccionar categoría"
+                className="!h-10 !rounded-[11px] !border-neutral-200/80 !bg-[#f7f7f9] !text-[12px] !font-normal !shadow-none"
+                contentClassName="!rounded-[13px]"
+                required
+              />
+            </div>
           </div>
         </div>
 
-        <div className="space-y-3.5">
+        <div className="min-w-0 space-y-4">
           <div>
-            <label className="mb-2 block text-sm font-extrabold text-white/86">Imagen</label>
-            <label className="grid cursor-pointer place-items-center rounded-sm border border-dashed border-white/12 bg-[#1b1b1b] px-5 py-7 text-center transition hover:border-central-orange/70 hover:bg-central-orange/5">
-              <input type="file" accept="image/png,image/jpeg,image/webp,image/gif" className="hidden" onChange={(event) => handleImageFile(event.target.files?.[0])} />
-              <Upload className="text-white/55" size={30} />
-              <span className="mt-3 text-sm font-black text-central-orange">Haz clic para subir</span>
-              <span className="mt-1 text-xs font-bold uppercase tracking-[.12em] text-white/45">PNG, JPG o GIF (máx. 450 KB)</span>
+            <span className={labelClass}>Imagen del producto</span>
+            <label className="flex cursor-pointer flex-col items-center justify-center rounded-[14px] border border-dashed border-neutral-300 bg-[#f8f8f9] px-4 py-5 text-center outline-none transition-[border-color,background-color] duration-200 hover:border-central-orange/45 hover:bg-central-orange/[.035] focus-within:border-central-orange/45 focus-within:ring-2 focus-within:ring-central-orange/10">
+              <input type="file" accept="image/png,image/jpeg,image/webp,image/gif" className="sr-only" onChange={(event) => handleImageFile(event.target.files?.[0])} aria-label="Subir imagen del producto" />
+              <span className="grid h-10 w-10 place-items-center rounded-[12px] bg-white text-neutral-500 shadow-[0_1px_3px_rgba(17,16,15,.06)]">
+                <Upload size={19} strokeWidth={1.8} />
+              </span>
+              <span className="mt-2 text-[12px] font-medium text-neutral-800">Seleccionar imagen</span>
+              <span className="mt-1 text-[11px] text-neutral-400">PNG, JPG, WEBP o GIF · Máx. 450 KB</span>
             </label>
-            {imageError ? <p className="mt-2 rounded-sm border border-red-400/25 bg-red-500/10 px-3 py-2 text-xs font-bold text-red-200">{imageError}</p> : null}
+            {imageError ? <p role="alert" className="mt-2 rounded-[11px] border border-red-200/80 bg-red-50 px-3 py-2 text-[11px] leading-5 text-red-600">{imageError}</p> : null}
           </div>
 
-          <div className="overflow-hidden rounded-sm border border-white/10 bg-black/30">
-            <ProductImageMedia
-              imageUrl={values.imageUrl}
-              productName={values.name || 'Vista previa del producto'}
-              categoryName={selectedCategory?.name}
-              className="h-44 w-full"
-            />
+          <div>
+            <p className={labelClass}>Vista previa</p>
+            <div className="overflow-hidden rounded-[14px] border border-neutral-200/80 bg-[#191b20]">
+              <ProductImageMedia
+                imageUrl={values.imageUrl}
+                productName={values.name || 'Vista previa del producto'}
+                categoryName={selectedCategory?.name}
+                className="h-44 w-full sm:h-48 lg:h-40"
+              />
+            </div>
           </div>
 
-          <div className="grid gap-2 sm:grid-cols-3 lg:grid-cols-1 xl:grid-cols-3">
-            {([
-              ['active', 'Activo'],
-              ['available', 'Disponible'],
-              ['featured', 'Destacado'],
-            ] as const).map(([key, label]) => (
-              <label key={key} className="flex items-center gap-3 rounded-sm border border-white/10 bg-white/[.04] p-3 text-sm font-bold text-white/85">
-                <input
-                  type="checkbox"
-                  checked={values[key]}
-                  onChange={(event) => setValues({ ...values, [key]: event.target.checked })}
-                />
-                {label}
-              </label>
-            ))}
+          <div>
+            <p className={labelClass}>Visibilidad del producto</p>
+            <div className="space-y-2 rounded-[13px] border border-neutral-200/80 bg-[#fafafa] p-2.5">
+              {([
+                ['active', 'Producto activo', 'Habilitado en el catálogo'],
+                ['available', 'Disponible', 'Se puede solicitar en el menú'],
+                ['featured', 'Destacado', 'Se muestra como recomendado'],
+              ] as const).map(([key, label, description]) => (
+                <label key={key} className="flex cursor-pointer items-center justify-between gap-3 rounded-[10px] px-2.5 py-2 transition-colors duration-200 hover:bg-white">
+                  <span className="min-w-0">
+                    <span className="block text-[12px] font-medium text-neutral-800">{label}</span>
+                    <span className="mt-0.5 block text-[10px] leading-4 text-neutral-500">{description}</span>
+                  </span>
+                  <input
+                    type="checkbox"
+                    className="h-4 w-4 shrink-0 cursor-pointer accent-central-orange"
+                    checked={values[key]}
+                    onChange={(event) => setValues({ ...values, [key]: event.target.checked })}
+                  />
+                </label>
+              ))}
+            </div>
           </div>
         </div>
       </div>
 
-      <div className="flex justify-end gap-3 border-t border-white/10 pt-4">
-        <Button type="button" variant="dark" className="rounded-sm bg-white/10 hover:bg-white/15" onClick={onCancel}>Cancelar</Button>
-        <Button type="submit" className="rounded-sm" disabled={isSaving}>{isSaving ? 'Guardando...' : 'Guardar'}</Button>
+      <div className="flex min-w-0 justify-end gap-2 border-t border-neutral-100 pt-4">
+        <Button type="button" variant="secondary" className="!rounded-[11px] !border-neutral-200 !bg-[#f7f7f9] !px-4 !text-[12px] !font-medium !text-neutral-600 !shadow-none hover:!bg-neutral-100" onClick={onCancel}>Cancelar</Button>
+        <Button type="submit" className="!rounded-[11px] !bg-[#191b20] !px-4 !text-[12px] !font-medium !shadow-none hover:!bg-neutral-700" disabled={isSaving}>{isSaving ? 'Guardando...' : 'Guardar producto'}</Button>
       </div>
     </form>
   );
