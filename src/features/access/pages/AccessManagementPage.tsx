@@ -1,4 +1,5 @@
 'use client';
+// CI temporal: activación manual segura de Delivery.
 
 import { useEffect, useMemo, useState } from 'react';
 import {
