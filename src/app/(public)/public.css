@@ -308,3 +308,13 @@ body.lcb-public-typography [data-lcb-scroll-lock-overlay="true"] .lcb-product-de
     padding-top: 12px;
   }
 }
+
+/* En móviles angostos, el resumen conserva espacio para los controles y el precio. */
+@media (max-width: 390px) {
+  body.lcb-public-typography [data-lcb-scroll-lock-overlay="true"] .lcb-product-detail .lcb-detail-summary {
+    padding-bottom: calc(4px + env(safe-area-inset-bottom, 0px));
+  }
+  body.lcb-public-typography [data-lcb-scroll-lock-overlay="true"] .lcb-product-detail .lcb-detail-stepper {
+    flex-shrink: 0;
+  }
+}
