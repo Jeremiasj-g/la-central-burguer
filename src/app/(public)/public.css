@@ -266,7 +266,7 @@ body.lcb-public-typography .Toastify__toast-container :is(strong, b) {
  * otros modales del sitio, ni paneles del administrador.
  */
 body.lcb-public-typography [data-lcb-scroll-lock-overlay="true"] section.lcb-product-detail {
-  background: #191b20 !important;
+  background: #171717 !important;
   color: #f5f4f2 !important;
   border-color: rgba(255,255,255,.10) !important;
   border-radius: 22px !important;

@@ -87,7 +87,7 @@ export function ProductDetailModal({
       title={currentProduct.name}
       theme="dark"
       size="lg"
-      panelClassName="lcb-product-detail !rounded-[22px] !border-white/10 !bg-[#191b20] !text-[#f5f4f2] !shadow-[0_25px_85px_rgba(0,0,0,.35)]"
+      panelClassName="lcb-product-detail !rounded-[22px] !border-white/10 !bg-[#171717] !text-[#f5f4f2] !shadow-[0_25px_85px_rgba(0,0,0,.35)]"
     >
       <div className="lcb-product-detail-content grid min-w-0 gap-5 sm:gap-6 md:grid-cols-[minmax(0,.92fr)_minmax(0,1.08fr)] md:items-start md:gap-7">
         <div className="min-w-0">
@@ -205,7 +205,7 @@ export function ProductDetailModal({
             </div>
           </div>
 
-          <div className="lcb-detail-summary sticky bottom-[-1px] z-10 -mx-3.5 border-t border-white/10 bg-[#191b20] px-3.5 pb-1 pt-4 sm:-mx-5 sm:px-5 md:static md:mx-0 md:px-0 md:pb-0">
+          <div className="lcb-detail-summary sticky bottom-[-1px] z-10 -mx-3.5 border-t border-white/10 bg-[#171717] px-3.5 pb-1 pt-4 sm:-mx-5 sm:px-5 md:static md:mx-0 md:px-0 md:pb-0">
             <div className="mb-3 flex items-baseline justify-between gap-3">
               <span className="text-[13px] font-medium text-white/60">Total</span>
               <span className="text-[26px] font-semibold tracking-[-.045em] text-white tabular-nums" aria-live="polite">
