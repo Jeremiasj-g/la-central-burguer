@@ -321,10 +321,14 @@ body.lcb-public-typography [data-lcb-scroll-lock-overlay="true"] .lcb-product-de
 
 
 /* Entrada inferior del carrito público: ascenso, leve estiramiento y asentamiento
-   de 200 ms. El resto de drawers conserva la animación lateral compartida. */
+   de 200 ms. El resto de drawers conserva la animación lateral compartida.
+   El fondo del carrito aparece sin desvanecerse. */
+body.lcb-public-typography .lcb-drawer-overlay:has(> aside.lcb-cart-drawer)[data-state="open"],
+body.lcb-public-typography .lcb-drawer-overlay:has(> aside.lcb-cart-drawer)[data-state="closed"] {
+  animation: none;
+}
 @keyframes lcb-cart-sheet-enter {
   0% {
-    opacity: 1;
     transform: translate3d(0, 105%, 0) scaleY(1);
     animation-timing-function: cubic-bezier(.2, .78, .26, 1);
   }
@@ -337,7 +341,6 @@ body.lcb-public-typography [data-lcb-scroll-lock-overlay="true"] .lcb-product-de
     animation-timing-function: ease-in-out;
   }
   100% {
-    opacity: 1;
     transform: translate3d(0, 0, 0) scaleY(1);
   }
 }
