@@ -1,4 +1,5 @@
 'use client';
+// Comprobación CI temporal: menú con un encabezado y tipografía limpia.
 
 import { useEffect, useMemo, useState } from 'react';
 import { useCategorias } from '@/features/categorias/hooks/useCategorias';
