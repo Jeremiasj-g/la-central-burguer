@@ -1,3 +1,4 @@
+// Verificación CI temporal de notificaciones Admin.
 import { getSupabaseBrowserClient } from '@/lib/supabase/client';
 
 type PushResponse = {
