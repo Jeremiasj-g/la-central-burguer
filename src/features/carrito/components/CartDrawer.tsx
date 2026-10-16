@@ -1,10 +1,9 @@
 'use client';
 
-import { ShoppingBag, Trash2 } from 'lucide-react';
+import { ArrowRight, ShoppingBag, Trash2 } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import type { CartItem } from '../types/carrito.types';
 import { CartItemRow } from './CartItemRow';
-import { Button } from '@/shared/components/ui/Button';
 import { ConfirmDialog } from '@/shared/components/ui/ConfirmDialog';
 import { Drawer } from '@/shared/components/ui/Drawer';
 import { formatCurrency } from '@/shared/utils/format.utils';
@@ -27,6 +26,7 @@ export function CartDrawer({ open, onClose, items, total, checkoutDisabled = fal
   const [isClearing, setIsClearing] = useState(false);
   const clearTimerRef = useRef<number | null>(null);
   const disabled = items.length === 0 || checkoutDisabled || isClearing;
+  const quantity = items.reduce((sum, item) => sum + item.quantity, 0);
 
   useEffect(() => () => {
     if (clearTimerRef.current !== null) window.clearTimeout(clearTimerRef.current);
@@ -47,46 +47,67 @@ export function CartDrawer({ open, onClose, items, total, checkoutDisabled = fal
         open={open}
         onClose={onClose}
         title="Mi pedido"
+        className="lcb-cart-drawer"
         footer={
-          <div>
-            <div className="mb-3 flex justify-end">
-              <button
-                type="button"
-                className="inline-flex items-center gap-2 rounded-sm border border-red-500/25 px-3 py-2 text-xs font-bold text-red-300 transition duration-200 hover:border-red-400/45 hover:bg-red-500/10 hover:text-red-200 disabled:cursor-default disabled:opacity-40 motion-reduce:transition-none"
-                onClick={() => setConfirmClearOpen(true)}
-                disabled={items.length === 0 || isClearing}
-              >
-                <Trash2 size={14} />
-                Vaciar carrito
-              </button>
+          <div className="space-y-4">
+            <div className="flex min-w-0 items-center justify-between gap-4">
+              <div className="min-w-0">
+                <p className="text-[11px] font-normal text-white/45">Total del carrito</p>
+                <p className="mt-0.5 text-[26px] font-semibold leading-tight tracking-[-.045em] tabular-nums text-[#f6f5f3]" aria-live="polite">
+                  {formatCurrency(total)}
+                </p>
+              </div>
+              {items.length > 0 ? (
+                <button
+                  type="button"
+                  className="inline-flex h-9 shrink-0 items-center gap-1.5 rounded-[10px] px-2.5 text-[11px] font-medium text-white/45 transition-colors duration-200 hover:bg-red-500/[.08] hover:text-red-300 disabled:cursor-default disabled:opacity-40"
+                  onClick={() => setConfirmClearOpen(true)}
+                  disabled={isClearing}
+                >
+                  <Trash2 size={14} strokeWidth={1.7} />
+                  Vaciar
+                </button>
+              ) : null}
             </div>
-            <div className="mb-3 flex items-center justify-between text-lg font-black sm:mb-5 sm:text-xl">
-              <span>Total</span>
-              <span className="text-central-orange">{formatCurrency(total)}</span>
-            </div>
-            <Button size="sm" className="w-full rounded-sm transition duration-200 sm:h-11" title={checkoutDisabled ? 'Local cerrado, intente más tarde' : 'Confirmar pedido'} disabled={disabled} onClick={onCheckout}>Confirmar pedido</Button>
+            <button
+              type="button"
+              className="flex h-12 w-full items-center justify-center gap-2 rounded-[13px] bg-central-orange px-4 text-[13px] font-semibold text-[#191919] transition-[background-color,transform,opacity] duration-200 hover:bg-[#ffc04a] active:scale-[.99] disabled:cursor-not-allowed disabled:opacity-45 motion-reduce:transition-none"
+              title={checkoutDisabled ? 'Local cerrado, intentá más tarde' : 'Confirmar pedido'}
+              disabled={disabled}
+              onClick={onCheckout}
+            >
+              Confirmar pedido <ArrowRight size={17} strokeWidth={1.9} />
+            </button>
           </div>
         }
       >
         {items.length === 0 ? (
-          <div className="grid min-h-[48dvh] place-items-center">
-            <div className="text-center text-white/45">
-              <ShoppingBag className="mx-auto mb-4" size={68} strokeWidth={1} />
-              <p>Pedido vacío</p>
-            </div>
+          <div className="flex min-h-[210px] flex-col items-center justify-center px-3 py-8 text-center">
+            <span className="grid h-14 w-14 place-items-center rounded-[17px] bg-white/[.055] text-[#f4af3e]">
+              <ShoppingBag size={25} strokeWidth={1.55} />
+            </span>
+            <p className="mt-4 text-[14px] font-semibold text-white/90">Tu carrito está vacío</p>
+            <p className="mt-1.5 max-w-[230px] text-[12px] leading-5 text-white/45">
+              Explorá el menú y agregá algo rico a tu pedido.
+            </p>
           </div>
         ) : (
-          <div className="divide-y divide-white/10">
-            {items.map((item) => (
-              <CartItemRow
-                key={item.id}
-                item={item}
-                onUpdateQuantity={onUpdateQuantity}
-                onUpdateNote={onUpdateNote}
-                onRemove={onRemove}
-                forceRemoving={isClearing}
-              />
-            ))}
+          <div>
+            <p className="border-b border-white/[.075] pb-2 text-[11px] font-medium text-white/45">
+              {quantity} {quantity === 1 ? 'producto' : 'productos'} en tu pedido
+            </p>
+            <div className="divide-y divide-white/[.075]">
+              {items.map((item) => (
+                <CartItemRow
+                  key={item.id}
+                  item={item}
+                  onUpdateQuantity={onUpdateQuantity}
+                  onUpdateNote={onUpdateNote}
+                  onRemove={onRemove}
+                  forceRemoving={isClearing}
+                />
+              ))}
+            </div>
           </div>
         )}
       </Drawer>
