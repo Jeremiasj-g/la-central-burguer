@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { ArrowUpRight, Clock3, Instagram, Facebook, MapPin, MessageCircle, MoveUpRight } from 'lucide-react';
+import { ArrowUpRight, Clock3, Camera, UsersRound, MapPin, MessageCircle, MoveUpRight } from 'lucide-react';
 import { useBusinessConfig } from '@/features/configuracion/hooks/useBusinessConfig';
 
 function urlOrFallback(value: string | undefined, fallback: string) {
@@ -16,8 +16,8 @@ export function PublicFooter() {
   const address = config?.address?.trim() || 'Madariaga 246';
   const whatsapp = (config?.whatsappNumber || '543794752707').replace(/\D/g, '');
   const links = [
-    { title: 'Instagram', href: urlOrFallback(config?.instagramUrl, '#'), Icon: Instagram },
-    { title: 'Facebook', href: urlOrFallback(config?.facebookUrl, '#'), Icon: Facebook },
+    { title: 'Instagram', href: urlOrFallback(config?.instagramUrl, '#'), Icon: Camera },
+    { title: 'Facebook', href: urlOrFallback(config?.facebookUrl, '#'), Icon: UsersRound },
     { title: 'WhatsApp', href: urlOrFallback(config?.whatsappUrl, `https://wa.me/${whatsapp}`), Icon: MessageCircle },
   ];
   return (
