@@ -72,10 +72,6 @@ body.lcb-public-typography[data-public-theme="light"] .bg-central-orange,
 .public-site[data-public-theme="light"] a.bg-central-orange{color:#201c17!important;}
 /* Menú, buscador, carrusel y productos mantienen sus proporciones. */
 .public-site[data-public-theme="light"] .lcb-ordering-section{color:var(--lcb-light-text);}
-.public-site[data-public-theme="light"] .menu-ordering-tools{
- background:rgba(255,255,255,.88);border:1px solid var(--lcb-light-border);
- border-radius:16px!important;box-shadow:0 8px 25px rgba(25,29,33,.055);backdrop-filter:blur(10px);
-}
 .public-site[data-public-theme="light"] .menu-ordering-tools input[type="search"]{
  background:#f7f7f5!important;color:var(--lcb-light-text)!important;border-color:var(--lcb-light-border)!important;
  box-shadow:none!important;border-radius:12px!important;
