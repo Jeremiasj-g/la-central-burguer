@@ -15,11 +15,12 @@ interface DrawerProps {
   footer?: React.ReactNode;
   className?: string;
   theme?: 'dark' | 'light';
+  exitDuration?: number;
 }
 
-export function Drawer({ open, onClose, title, children, footer, className, theme = 'dark' }: DrawerProps) {
+export function Drawer({ open, onClose, title, children, footer, className, theme = 'dark', exitDuration = 200 }: DrawerProps) {
   const viewport = useSmartModalViewport(0);
-  const mounted = useAnimatedPresence(open);
+  const mounted = useAnimatedPresence(open, exitDuration);
 
   useBodyScrollLock(open);
 
