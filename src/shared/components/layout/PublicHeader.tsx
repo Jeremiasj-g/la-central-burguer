@@ -1,88 +1,59 @@
 'use client';
 
 import Link from 'next/link';
-import { Menu, ShoppingCart, X } from 'lucide-react';
+import { ArrowUpRight, Menu, ShoppingBag, X } from 'lucide-react';
 import { useState } from 'react';
 import { useCarrito } from '@/features/carrito/hooks/useCarrito';
 import { useBusinessConfig } from '@/features/configuracion/hooks/useBusinessConfig';
-import { ROUTES } from '@/shared/constants/routes';
 import { BusinessLogo } from '@/features/configuracion/components/BusinessLogo';
 import { useAnimatedPresence } from '@/shared/hooks/useAnimatedPresence';
+import { PublicThemeSwitch } from './PublicThemeProvider';
 
 export function PublicHeader() {
   const [open, setOpen] = useState(false);
   const navMounted = useAnimatedPresence(open);
   const { config, isLoading } = useBusinessConfig();
-  const cart = useCarrito();
-  const businessName = config?.businessName ?? 'La Central Burger';
-  const cartCount = cart.items.reduce((total, item) => total + item.quantity, 0);
+  const { items } = useCarrito();
+  const businessName = config?.businessName?.trim() || 'La Central Burger';
+  const count = items.reduce((total, item) => total + item.quantity, 0);
 
-  const nav = [
-    { label: 'Inicio', href: ROUTES.home },
-    { label: 'Menú', href: '#menu' },
-  ];
-
-  function handleCartClick() {
+  function openCart() {
     setOpen(false);
     window.dispatchEvent(new CustomEvent('central-cart-open'));
   }
 
   return (
-    <header className="sticky top-0 z-40 min-h-[68px] sm:min-h-[72px] border-b border-central-orange/25 bg-[#0d0c0b]/88 text-central-cream shadow-dark backdrop-blur-xl">
-      <div className="mx-auto flex max-w-7xl items-center justify-between px-5 py-2.5 sm:px-6 sm:py-3 lg:px-8">
-        <Link href="/" className="flex min-w-0 items-center gap-3" aria-label={`Ir al inicio de ${businessName}`}>
+    <header className="lcb-public-header sticky top-0 z-40">
+      <div className="mx-auto flex h-[72px] max-w-[1440px] items-center justify-between gap-3 px-4 sm:h-[80px] sm:px-7 lg:px-10">
+        <Link href="/" className="lcb-header-brand flex min-w-0 items-center gap-2.5" aria-label={`Ir al inicio de ${businessName}`} onClick={() => setOpen(false)}>
           <BusinessLogo logoUrl={config?.logoUrl} businessName={businessName} mode="navbar" loading={isLoading} />
+          <span className="hidden max-w-[175px] truncate text-[13px] font-semibold tracking-[-.02em] sm:block">{businessName}</span>
         </Link>
-
-        <nav className="hidden items-center gap-2 md:flex">
-          {nav.map((item) => (
-            <Link key={item.href} href={item.href} className="rounded-sm px-4 py-2 text-xs font-black uppercase tracking-[.18em] text-central-cream/72 transition hover:bg-central-orange/10 hover:text-central-orange">
-              {item.label}
-            </Link>
-          ))}
+        <nav className="hidden items-center gap-1 rounded-full p-1 md:flex" aria-label="Navegación principal">
+          <Link className="lcb-header-link" href="/">Inicio</Link>
+          <Link className="lcb-header-link" href="#menu">Carta</Link>
         </nav>
-
-        <Link href="#menu" className="hidden rounded-sm bg-central-orange px-5 py-3 text-xs font-black uppercase tracking-[.18em] text-black shadow-orange transition hover:bg-central-cream md:inline-flex">
-          Pedir ahora
-        </Link>
-
-        <div className="flex items-center gap-2 md:hidden">
-          <button
-            type="button"
-            onClick={handleCartClick}
-            className="relative grid h-10 w-10 place-items-center rounded-sm border border-central-orange/30 text-central-cream transition hover:border-central-orange hover:text-central-orange"
-            aria-label={cartCount > 0 ? `Abrir carrito, ${cartCount} productos` : 'Abrir carrito'}
-            title="Carrito"
-          >
-            <ShoppingCart size={21} className={cartCount > 0 ? 'lcb-bell-vibrate' : undefined} />
-            {cartCount > 0 ? (
-              <span className="absolute -right-1.5 -top-1.5 grid min-h-5 min-w-5 place-items-center rounded-full bg-central-orange px-1 text-[10px] font-black leading-none text-black ring-2 ring-[#0d0c0b]">
-                {cartCount > 99 ? '99+' : cartCount}
-              </span>
-            ) : null}
+        <div className="flex shrink-0 items-center gap-2">
+          <PublicThemeSwitch />
+          <button className="lcb-cart-header-button" type="button" onClick={openCart}
+            title="Abrir mi pedido" aria-label={count ? `Abrir carrito con ${count} productos` : 'Abrir carrito'}>
+            <ShoppingBag size={18} strokeWidth={1.8} />
+            <span className="hidden sm:inline">Mi pedido</span>
+            {count > 0 ? <span className="lcb-cart-quantity" aria-live="polite">{count > 99 ? '99+' : count}</span> : null}
           </button>
-
-          <button
-            type="button"
-            className="grid h-10 w-10 place-items-center rounded-sm border border-central-orange/30 text-central-cream transition hover:border-central-orange hover:text-central-orange"
-            onClick={() => setOpen((value) => !value)}
-            aria-label={open ? 'Cerrar menú' : 'Abrir menú'}
-          >
-            {open ? <X size={22} /> : <Menu size={22} />}
+          <a className="lcb-header-cta hidden lg:inline-flex" href="#menu">Pedir ahora <ArrowUpRight size={15} strokeWidth={1.8} /></a>
+          <button type="button" onClick={() => setOpen(v => !v)} className="lcb-header-mobile-menu md:hidden"
+            aria-label={open ? 'Cerrar navegación' : 'Abrir navegación'} aria-expanded={open}>
+            {open ? <X size={19}/> : <Menu size={19}/>}
           </button>
         </div>
       </div>
-
       {navMounted ? (
-        <div data-state={open ? 'open' : 'closed'} aria-hidden={!open} className={`lcb-mobile-nav overflow-hidden border-t border-central-orange/20 bg-[#11100f] px-4 py-4 md:hidden ${!open ? 'pointer-events-none' : ''}`}>
-          <nav className="grid gap-2">
-            {nav.map((item) => (
-              <Link key={item.href} href={item.href} className="rounded-sm px-4 py-3 text-sm font-black uppercase tracking-wide text-central-cream/80 hover:bg-central-orange/10" onClick={() => setOpen(false)}>
-                {item.label}
-              </Link>
-            ))}
-          </nav>
-        </div>
+        <nav data-state={open ? 'open' : 'closed'} aria-label="Menú móvil" className={`lcb-mobile-nav ${!open ? 'pointer-events-none' : ''}`}>
+          <Link onClick={() => setOpen(false)} href="/">Inicio</Link>
+          <Link onClick={() => setOpen(false)} href="#menu">Explorar la carta</Link>
+          <button type="button" onClick={openCart}>Ver mi pedido <ShoppingBag size={17}/></button>
+        </nav>
       ) : null}
     </header>
   );

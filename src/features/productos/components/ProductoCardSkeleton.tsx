@@ -1,18 +1,13 @@
-import Skeleton from 'react-loading-skeleton';
-
 export function ProductoCardSkeleton() {
   return (
-    <div className="skeleton-dark rounded-sm border border-central-orange/20 bg-[#171514] p-5 shadow-dark">
-      <div className="grid grid-cols-[34px_1fr_auto] gap-4">
-        <Skeleton width={30} height={30} borderRadius={8} />
-        <div>
-          <Skeleton width={120} height={12} />
-          <Skeleton className="mt-3" height={34} />
-          <Skeleton className="mt-3" count={2} />
-        </div>
-        <Skeleton width={92} height={34} />
+    <div role="status" aria-label="Cargando producto" className="lcb-menu-product min-w-0 animate-pulse overflow-hidden motion-reduce:animate-none">
+      <div className="aspect-[1.33] bg-[var(--lcb-hover)]"/>
+      <div className="space-y-3 px-5 pb-6 pt-5">
+        <div className="h-3 w-1/3 rounded-full bg-[var(--lcb-hover)]"/>
+        <div className="h-5 w-4/5 rounded-full bg-[var(--lcb-hover)]"/>
+        <div className="h-4 w-full rounded-full bg-[var(--lcb-hover)]"/>
+        <div className="h-5 w-1/2 rounded-full bg-[var(--lcb-hover)]"/>
       </div>
-      <Skeleton className="mt-5" height={1} />
     </div>
   );
 }

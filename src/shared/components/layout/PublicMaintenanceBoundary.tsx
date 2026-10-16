@@ -15,7 +15,7 @@ export function PublicMaintenanceBoundary({ children }: { children: ReactNode })
   }, [maintenance]);
 
   return (
-    <div className="min-h-dvh bg-central-carbon text-central-cream">
+    <div className="lcb-public-shell min-h-dvh">
       <div inert={maintenance ? true : undefined} aria-hidden={maintenance ? true : undefined}>
         {children}
       </div>
