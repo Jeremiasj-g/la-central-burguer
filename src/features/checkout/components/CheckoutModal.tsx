@@ -1,4 +1,5 @@
 'use client';
+// CI temporal del rediseño de checkout.
 
 import { useEffect, useMemo, useState } from 'react';
 import { ArrowRight, Check, ChevronDown, CreditCard, MapPin, MessageSquareText, Navigation, ShoppingBag, Store, Truck, UserRound, XCircle } from 'lucide-react';
