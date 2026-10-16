@@ -269,7 +269,7 @@ export function CheckoutModal({ open, onClose, items, onOrderCreated }: Checkout
             disabled={!canSendOrder}
             className="inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-[12px] bg-central-orange px-4 text-[12px] font-semibold text-[#191919] transition-[background-color,opacity] duration-200 hover:bg-[#ffc04a] disabled:cursor-not-allowed disabled:opacity-45 sm:px-6"
           >
-            {isSubmitting ? 'Enviando...' : 'Enviar pedido'}
+            {isSubmitting ? 'Enviando...' : 'Enviar a WhatsApp'}
             <ArrowRight size={16} strokeWidth={1.9}/>
           </button>
         </div>
