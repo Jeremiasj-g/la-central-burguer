@@ -1,4 +1,5 @@
 'use client';
+// CI temporal del rediseño de modal pública.
 
 import { Check, Maximize2, MessageSquareText, Minus, Plus, ShoppingBag } from 'lucide-react';
 import { useEffect, useState } from 'react';
