@@ -43,8 +43,8 @@ export function CartSidebar({ items, total, checkoutDisabled = false, onUpdateQu
       <aside className="sticky top-[84px] z-20 hidden h-[calc(100dvh-100px)] min-h-[520px] self-start rounded-sm bg-[#20201f] p-6 text-central-cream shadow-dark lg:flex lg:flex-col">
         <div className="flex shrink-0 items-center justify-between gap-3 border-b border-dashed border-central-orange/45 pb-4">
           <div>
-            <p className="text-xs font-black uppercase tracking-[.28em] text-central-orange">Resumen</p>
-            <h2 className="mt-1 font-display text-4xl uppercase tracking-wide">Mi pedido</h2>
+            <p className="text-[11px] font-medium tracking-normal text-central-orange">Resumen</p>
+            <h2 className="mt-1.5 text-[26px] font-semibold tracking-[-.035em]">Mi pedido</h2>
           </div>
           <div className="grid h-12 w-12 place-items-center rounded-sm border border-central-orange/35 bg-black/35 text-central-orange">
             <ShoppingBag />
@@ -87,10 +87,10 @@ export function CartSidebar({ items, total, checkoutDisabled = false, onUpdateQu
             </button>
           </div>
           <div className="mb-5 flex items-center justify-between text-xl font-black">
-            <span className="font-display text-3xl uppercase tracking-wide">Total</span>
-            <span className="font-display text-3xl text-central-orange">{formatCurrency(total)}</span>
+            <span className="text-[15px] font-medium tracking-normal">Total</span>
+            <span className="text-[24px] font-semibold tracking-[-.035em] text-central-orange">{formatCurrency(total)}</span>
           </div>
-          <Button className="h-13 w-full rounded-sm bg-central-orange font-black uppercase tracking-wide text-black transition duration-200 hover:bg-central-cream" title={checkoutDisabled ? 'Local cerrado, intente más tarde' : 'Confirmar pedido'} disabled={disabled} onClick={onCheckout}>Confirmar pedido</Button>
+          <Button className="h-13 w-full rounded-sm bg-central-orange text-[13px] font-semibold tracking-normal text-black transition duration-200 hover:bg-central-cream" title={checkoutDisabled ? 'Local cerrado, intente más tarde' : 'Confirmar pedido'} disabled={disabled} onClick={onCheckout}>Confirmar pedido</Button>
         </div>
       </aside>
 

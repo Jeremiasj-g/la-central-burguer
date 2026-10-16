@@ -36,13 +36,13 @@ export function PublicHeader() {
 
         <nav className="hidden items-center gap-2 md:flex">
           {nav.map((item) => (
-            <Link key={item.href} href={item.href} className="rounded-sm px-4 py-2 text-xs font-black uppercase tracking-[.18em] text-central-cream/72 transition hover:bg-central-orange/10 hover:text-central-orange">
+            <Link key={item.href} href={item.href} className="rounded-[11px] px-4 py-2 text-[12px] font-medium tracking-normal text-central-cream/72 transition hover:bg-central-orange/10 hover:text-central-orange">
               {item.label}
             </Link>
           ))}
         </nav>
 
-        <Link href="#menu" className="hidden rounded-sm bg-central-orange px-5 py-3 text-xs font-black uppercase tracking-[.18em] text-black shadow-orange transition hover:bg-central-cream md:inline-flex">
+        <Link href="#menu" className="hidden rounded-[11px] bg-central-orange px-5 py-3 text-[12px] font-semibold tracking-normal text-black shadow-orange transition hover:bg-central-cream md:inline-flex">
           Pedir ahora
         </Link>
 
@@ -77,7 +77,7 @@ export function PublicHeader() {
         <div data-state={open ? 'open' : 'closed'} aria-hidden={!open} className={`lcb-mobile-nav overflow-hidden border-t border-central-orange/20 bg-[#11100f] px-4 py-4 md:hidden ${!open ? 'pointer-events-none' : ''}`}>
           <nav className="grid gap-2">
             {nav.map((item) => (
-              <Link key={item.href} href={item.href} className="rounded-sm px-4 py-3 text-sm font-black uppercase tracking-wide text-central-cream/80 hover:bg-central-orange/10" onClick={() => setOpen(false)}>
+              <Link key={item.href} href={item.href} className="rounded-[11px] px-4 py-3 text-[13px] font-medium tracking-normal text-central-cream/80 hover:bg-central-orange/10" onClick={() => setOpen(false)}>
                 {item.label}
               </Link>
             ))}

@@ -38,7 +38,7 @@ export function PublicFooter() {
         {isLoading ? (
           <div className="skeleton-dark mx-auto max-w-sm"><Skeleton height={48} borderRadius={2} /></div>
         ) : (
-          <h2 className="menu-title-shadow font-display text-5xl uppercase tracking-wide text-central-orange sm:text-6xl">{businessName}</h2>
+          <h2 className="text-[42px] font-semibold tracking-[-.055em] text-central-orange sm:text-[54px]">{businessName}</h2>
         )}
         <div className="brush-line mx-auto mt-5" />
 

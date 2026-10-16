@@ -7,6 +7,7 @@ import { FreeMode, Mousewheel } from 'swiper/modules';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import type { Category } from '@/features/categorias/types/categoria.types';
 import { cn } from '@/shared/utils/cn';
+import { formatMenuLabel } from '../utils/menuLabel';
 
 const icons = {
   BadgePercent,
@@ -83,7 +84,7 @@ function getCategoryAsset(categoryName: string) {
 
 function tabClasses(active: boolean) {
   return cn(
-    'group flex h-[92px] w-full min-w-0 flex-col overflow-hidden rounded-sm border px-2 py-2 text-center uppercase transition sm:h-[108px] sm:px-3 sm:py-2.5',
+    'group flex h-[92px] w-full min-w-0 flex-col overflow-hidden rounded-sm border px-2 py-2 text-center transition sm:h-[108px] sm:px-3 sm:py-2.5',
     active
       ? 'border-central-orange bg-central-orange text-black shadow-orange'
       : 'border-white/10 bg-[#20201f] text-central-cream/70 hover:border-central-orange/60 hover:text-central-orange',
@@ -124,11 +125,11 @@ function CategoryIcon({
   );
 }
 
-function CategoryLabel({ children }: { children: React.ReactNode }) {
+function CategoryLabel({ children }: { children: string }) {
   return (
     <span className="flex h-[30%] w-full min-w-0 items-center justify-center overflow-hidden">
-      <span className="line-clamp-2 w-full min-w-0 text-[9px] font-semibold leading-[1.05] tracking-[.035em] [overflow-wrap:anywhere] hyphens-auto sm:text-[10px] sm:leading-[1.08] sm:tracking-[.045em]">
-        {children}
+      <span className="line-clamp-2 w-full min-w-0 text-[10px] font-semibold leading-[1.12] tracking-normal [overflow-wrap:anywhere] hyphens-auto sm:text-[11px] sm:leading-[1.18]">
+        {formatMenuLabel(children)}
       </span>
     </span>
   );

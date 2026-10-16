@@ -4,6 +4,7 @@ import type { Product } from '../types/producto.types';
 import { formatCurrency } from '@/shared/utils/format.utils';
 import { cn } from '@/shared/utils/cn';
 import { ProductImageMedia } from './ProductImageMedia';
+import { formatMenuLabel } from '@/features/catalogo/utils/menuLabel';
 
 interface ProductoCardProps {
   product: Product;
@@ -73,15 +74,15 @@ export function ProductoCard({ product, categoryName, disabled = false, onSelect
       <div className="relative z-10 flex min-h-[160px] max-w-[72%] flex-col justify-between p-4 pr-2 sm:min-h-[170px] sm:max-w-[68%]">
         <div>
           <div className="flex flex-wrap items-center gap-2">
-            {categoryName ? <span className="text-[10px] font-black uppercase tracking-[.22em] text-central-orange/75">{categoryName}</span> : null}
-            {product.featured ? <span className="inline-flex items-center gap-1 rounded-full border border-central-orange/35 px-2 py-0.5 text-[10px] font-black uppercase tracking-widest text-central-orange"><Star size={11} /> recomendado</span> : null}
+            {categoryName ? <span className="text-[11px] font-medium tracking-normal text-central-orange/80">{formatMenuLabel(categoryName)}</span> : null}
+            {product.featured ? <span className="inline-flex items-center gap-1 rounded-full border border-central-orange/35 px-2 py-0.5 text-[10px] font-medium tracking-normal text-central-orange"><Star size={11} /> recomendado</span> : null}
           </div>
-          <h3 className="mt-1.5 line-clamp-2 font-black text-base leading-tight text-central-cream sm:text-xl">{product.name}</h3>
-          <p className="mt-1 line-clamp-2 text-xs sm:text-sm font-medium leading-5 text-central-cream/62">{product.description}</p>
+          <h3 className="mt-1.5 line-clamp-2 text-[17px] font-semibold leading-tight tracking-[-.02em] text-central-cream sm:text-[19px]">{product.name}</h3>
+          <p className="mt-1.5 line-clamp-2 text-xs font-normal leading-5 text-central-cream/62 sm:text-sm">{product.description}</p>
         </div>
 
         <div className="mt-3 flex items-end sm:mt-4 justify-between gap-3">
-          <p className="font-black text-central-orange">{formatCurrency(product.currentPrice)}</p>
+          <p className="text-[17px] font-semibold tracking-[-.02em] text-central-orange">{formatCurrency(product.currentPrice)}</p>
         </div>
       </div>
     </article>

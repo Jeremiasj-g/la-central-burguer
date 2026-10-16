@@ -82,7 +82,7 @@ export function ProductDetailModal({ product, open, onClose, onAddToCart, disabl
             imageClassName="transition duration-300 group-hover/image:scale-[1.02]"
           />
           <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black via-black/65 to-transparent p-3 md:p-4">
-            <p className="font-display text-2xl uppercase tracking-wide text-central-orange md:text-3xl">{formatCurrency(currentProduct.currentPrice)}</p>
+            <p className="text-[25px] font-semibold tracking-[-.035em] text-central-orange md:text-[28px]">{formatCurrency(currentProduct.currentPrice)}</p>
           </div>
           {onPreviewImage ? (
             <span className="absolute right-2.5 top-2.5 grid h-8 w-8 place-items-center rounded-sm border border-white/20 bg-black/70 text-central-cream backdrop-blur transition duration-200 group-hover/image:border-central-orange group-hover/image:bg-central-orange group-hover/image:text-black">
@@ -96,7 +96,7 @@ export function ProductDetailModal({ product, open, onClose, onAddToCart, disabl
 
           <div className="mt-4 grid grid-cols-2 gap-3">
             <div className="rounded-sm border border-central-orange/20 bg-black/30 p-3">
-              <p className="text-[11px] font-black uppercase tracking-[.18em] text-central-orange/80">Cantidad</p>
+              <p className="text-[12px] font-medium tracking-normal text-central-orange/80">Cantidad</p>
               <div className="mt-2 flex items-center justify-between gap-2">
                 <button
                   type="button"
@@ -106,7 +106,7 @@ export function ProductDetailModal({ product, open, onClose, onAddToCart, disabl
                 >
                   <Minus size={16} />
                 </button>
-                <span className="min-w-7 text-center font-display text-2xl text-central-cream">{quantity}</span>
+                <span className="min-w-7 text-center text-[22px] font-semibold text-central-cream">{quantity}</span>
                 <button
                   type="button"
                   className="grid h-8 w-8 shrink-0 place-items-center rounded-sm border border-central-orange/25 text-central-cream/75 transition duration-200 hover:bg-central-orange hover:text-black"
@@ -119,7 +119,7 @@ export function ProductDetailModal({ product, open, onClose, onAddToCart, disabl
             </div>
 
             <div className="rounded-sm border border-central-orange/20 bg-black/30 p-3">
-              <p className="text-[11px] font-black uppercase tracking-[.18em] text-central-orange/80">Aclaración</p>
+              <p className="text-[12px] font-medium tracking-normal text-central-orange/80">Aclaración</p>
               <div className="mt-2 grid grid-cols-2 gap-2">
                 <label className={cn('flex cursor-pointer items-center justify-center gap-1.5 rounded-sm border px-2 py-2 text-xs font-bold transition-[border-color,background-color,color,transform] duration-200 ease-out motion-reduce:transition-none', !withNote ? 'border-central-orange bg-central-orange/12 text-central-cream' : 'border-white/10 text-central-cream/60')}>
                   <input checked={!withNote} onChange={() => setWithNote(false)} type="radio" name="product-note-choice" className="sr-only" />
@@ -159,8 +159,8 @@ export function ProductDetailModal({ product, open, onClose, onAddToCart, disabl
 
           <div className="mt-4 border-t border-dashed border-central-orange/35 pt-4">
             <div className="mb-3 flex items-center justify-between gap-3">
-              <span className="font-display text-2xl uppercase tracking-wide md:text-3xl">Total</span>
-              <span className="font-display text-3xl text-central-orange md:text-4xl">{formatCurrency(currentProduct.currentPrice * quantity)}</span>
+              <span className="text-[18px] font-medium tracking-normal md:text-[20px]">Total</span>
+              <span className="text-[26px] font-semibold tracking-[-.035em] text-central-orange md:text-[30px]">{formatCurrency(currentProduct.currentPrice * quantity)}</span>
             </div>
             <div className="grid grid-cols-[auto_1fr] gap-2 sm:flex sm:justify-end">
               <Button size="sm" variant="ghost" className="px-3 text-central-cream transition duration-200 hover:bg-white/10" onClick={onClose}>Cancelar</Button>

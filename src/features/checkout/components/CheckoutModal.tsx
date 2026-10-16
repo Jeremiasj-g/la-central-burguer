@@ -258,7 +258,7 @@ export function CheckoutModal({ open, onClose, items, onOrderCreated }: Checkout
       {createdOrder ? (
         <div className="space-y-4">
           <div className="rounded-sm border border-central-orange/30 bg-central-orange/10 p-4 text-center sm:p-5">
-            <p className="text-[10px] font-black uppercase tracking-[.24em] text-central-orange sm:text-xs">Gracias por tu compra</p>
+            <p className="text-[12px] font-medium tracking-normal text-central-orange">Gracias por tu compra</p>
             <h3 className="mt-2 text-xl font-black text-white sm:text-2xl">Tu pedido fue confirmado</h3>
             <p className="mt-2 text-xs leading-5 text-white/65 sm:mt-3 sm:text-sm sm:leading-6">Ya registramos tu pedido en el panel de {config?.businessName ?? 'La Central Burger'} y abrimos WhatsApp con el detalle para coordinarlo.</p>
             <div className="mx-auto mt-4 max-w-xs rounded-sm border border-white/10 bg-black/30 p-3 sm:mt-5 sm:p-4">

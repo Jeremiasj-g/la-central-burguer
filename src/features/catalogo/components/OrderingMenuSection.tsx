@@ -1,6 +1,5 @@
 'use client';
 
-import { ShoppingBag } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { useCategorias } from '@/features/categorias/hooks/useCategorias';
 import { useProductos } from '@/features/productos/hooks/useProductos';
@@ -20,6 +19,7 @@ import { toast } from 'react-toastify';
 import { getOrderableProductIds } from '@/features/productos/services/productos.service';
 import { useBusinessConfig } from '@/features/configuracion/hooks/useBusinessConfig';
 import { isBusinessOpenBySchedule } from '@/features/configuracion/utils/businessStatus.utils';
+import { formatMenuLabel } from '../utils/menuLabel';
 
 export function OrderingMenuSection() {
   const [search, setSearch] = useState('');
@@ -39,7 +39,6 @@ export function OrderingMenuSection() {
   const cart = useCarrito();
   const { config } = useBusinessConfig();
   const isBusinessOpen = config ? isBusinessOpenBySchedule(config) : false;
-  const businessName = config?.businessName?.trim() || 'La Central Burger';
 
   useEffect(() => {
     function handleCartOpen() {
@@ -57,23 +56,16 @@ export function OrderingMenuSection() {
   }, [loadingProducts, productos, selectedProduct]);
 
   const categoryById = useMemo(() => Object.fromEntries(categorias.map((category) => [category.id, category.name])), [categorias]);
-  const activeTitle = selectedCategoryId === 'all' ? 'Menú completo' : categoryById[selectedCategoryId];
+  const activeTitle = selectedCategoryId === 'all' ? 'Menú completo' : (categoryById[selectedCategoryId] ?? 'Menú');
 
   return (
-    <section id="menu" className="brick-wall relative px-5 py-7 text-central-cream sm:px-6 sm:py-8 lg:px-8 lg:py-10">
-      <div className="pointer-events-none absolute inset-0 overflow-x-clip">
-        <div className="absolute left-6 top-8 hidden max-w-[280px] text-[70px] watermark-text opacity-90 lg:block">{businessName}</div>
-        <div className="absolute right-[-60px] top-20 hidden h-72 w-72 rounded-full border-[18px] border-central-cream/5 lg:block" />
-      </div>
-
-      <div className="relative w-full">
-        <div className="mb-5 text-center sm:mb-7">
-          <div className="mx-auto mb-3 grid h-14 w-14 place-items-center rounded-full border-2 border-central-cream/80 bg-central-cream text-central-carbon shadow-dark sm:mb-4 sm:h-20 sm:w-20">
-            <ShoppingBag size={30} />
-          </div>
-          <p className="font-black uppercase tracking-[.35em] text-central-orange sm:tracking-[.45em]">{businessName}</p>
-          <h2 className="menu-title-shadow mt-2 font-display text-3xl sm:mt-3 sm:text-7xl uppercase tracking-wide text-central-cream">{activeTitle}</h2>
-          <div className="brush-line mx-auto mt-4" />
+    <section id="menu" className="brick-wall lcb-ordering-section relative px-5 py-9 text-central-cream sm:px-6 sm:py-12 lg:px-8 lg:py-14">
+      <div className="relative mx-auto w-full max-w-[1480px]">
+        <div className="mb-6 text-center sm:mb-9">
+          <h2 className="mx-auto max-w-[95%] break-words text-[clamp(3.1rem,9vw,6.4rem)] font-semibold leading-[1.06] tracking-[-.055em] text-central-cream" aria-live="polite">
+            {formatMenuLabel(activeTitle)}
+          </h2>
+          <div className="mx-auto mt-5 h-[3px] w-14 rounded-full bg-central-orange sm:mt-6" aria-hidden="true" />
         </div>
 
         <div className="relative min-h-[calc(100dvh-72px)] lg:grid lg:min-h-[calc(100dvh+420px)] lg:grid-cols-[minmax(0,1fr)_390px] lg:gap-6 xl:grid-cols-[minmax(0,1fr)_430px]">
@@ -89,14 +81,7 @@ export function OrderingMenuSection() {
               </div>
             </div>
 
-            <div className="mt-4 rounded-sm p-1  backdrop-blur sm:mt-5">
-              <div className="mb-4 flex flex-col gap-2 border-b border-dashed border-central-orange/40 pb-4 sm:flex-row sm:items-end sm:justify-between">
-                <div>
-                  <p className="text-xs font-black uppercase tracking-[.32em] text-central-orange">Elegí y agregá al pedido</p>
-                  <h3 className="mt-1.5 font-display text-3xl sm:mt-2 sm:text-4xl uppercase leading-none tracking-wide text-central-cream">{activeTitle}</h3>
-                </div>
-              </div>
-
+            <div className="mt-4 rounded-sm p-1 backdrop-blur sm:mt-5">
               {categoriesError || productsError ? (
                 <div className="rounded-sm border border-red-400/30 bg-red-500/10 p-5 text-sm text-red-100">
                   {productsError ?? categoriesError}
