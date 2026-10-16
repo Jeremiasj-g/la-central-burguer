@@ -7,6 +7,7 @@ import { Button } from '@/shared/components/ui/Button';
 import { ConfirmDialog } from '@/shared/components/ui/ConfirmDialog';
 import { CartItemRow } from './CartItemRow';
 import { formatCurrency } from '@/shared/utils/format.utils';
+import { useCustomerTheme } from '@/shared/components/layout/CustomerThemeProvider';
 
 interface CartSidebarProps {
   items: CartItem[];
@@ -24,6 +25,7 @@ export function CartSidebar({ items, total, checkoutDisabled = false, onUpdateQu
   const [isClearing, setIsClearing] = useState(false);
   const clearTimerRef = useRef<number | null>(null);
   const disabled = items.length === 0 || checkoutDisabled || isClearing;
+  const theme = useCustomerTheme();
 
   useEffect(() => () => {
     if (clearTimerRef.current !== null) window.clearTimeout(clearTimerRef.current);
@@ -40,27 +42,27 @@ export function CartSidebar({ items, total, checkoutDisabled = false, onUpdateQu
 
   return (
     <>
-      <aside className="sticky top-[84px] z-20 hidden h-[calc(100dvh-100px)] min-h-[520px] self-start rounded-sm bg-[#20201f] p-6 text-central-cream shadow-dark lg:flex lg:flex-col">
-        <div className="flex shrink-0 items-center justify-between gap-3 border-b border-dashed border-central-orange/45 pb-4">
+      <aside className="lcb-polished-cart sticky top-[98px] z-20 hidden h-[min(720px,calc(100dvh-116px))] min-h-[490px] self-start rounded-[20px] border p-5 lg:flex lg:flex-col xl:p-6">
+        <div className="flex shrink-0 items-center justify-between gap-3 lcb-polished-cart-divider border-b pb-4">
           <div>
-            <p className="text-xs font-black uppercase tracking-[.28em] text-central-orange">Resumen</p>
-            <h2 className="mt-1 font-display text-4xl uppercase tracking-wide">Mi pedido</h2>
+            <p className="lcb-polished-eyebrow text-[10px] font-semibold uppercase tracking-[.14em]">Resumen</p>
+            <h2 className="lcb-polished-cart-title mt-1.5 text-[24px] font-semibold leading-tight tracking-[-.035em]">Mi pedido</h2>
           </div>
-          <div className="grid h-12 w-12 place-items-center rounded-sm border border-central-orange/35 bg-black/35 text-central-orange">
+          <div className="lcb-polished-cart-icon grid h-11 w-11 place-items-center rounded-[13px]">
             <ShoppingBag />
           </div>
         </div>
         <div className="custom-scrollbar mt-4 min-h-0 flex-1 overflow-y-auto pr-3">
           {items.length === 0 ? (
-            <div className="grid h-full place-items-center text-center text-central-cream/45">
+            <div className="lcb-polished-cart-empty grid h-full place-items-center text-center">
               <div>
-                <ShoppingBag className="mx-auto mb-4" size={84} strokeWidth={1} />
+                <ShoppingBag className="mx-auto mb-4" size={52} strokeWidth={1.3} />
                 <p className="font-bold">Pedido vacío</p>
                 <p className="mt-2 text-sm">Agregá productos desde el menú.</p>
               </div>
             </div>
           ) : (
-            <div className="divide-y divide-central-orange/20">
+            <div className="lcb-polished-cart-items divide-y">
               {items.map((item) => (
                 <CartItemRow
                   key={item.id}
@@ -74,11 +76,11 @@ export function CartSidebar({ items, total, checkoutDisabled = false, onUpdateQu
             </div>
           )}
         </div>
-        <div className="shrink-0 border-t border-dashed border-central-orange/45 pt-5">
+        <div className="shrink-0 lcb-polished-cart-divider border-t pt-5">
           <div className="mb-3 flex justify-end">
             <button
               type="button"
-              className="inline-flex items-center gap-2 rounded-sm border border-red-500/25 px-3 py-2 text-xs font-bold text-red-300 transition duration-200 hover:border-red-400/45 hover:bg-red-500/10 hover:text-red-200 disabled:cursor-default disabled:opacity-40 motion-reduce:transition-none"
+              className="lcb-polished-cart-clear inline-flex items-center gap-2 rounded-[10px] px-3 py-2 text-[11px] font-medium transition-colors duration-200 disabled:cursor-default disabled:opacity-40 motion-reduce:transition-none"
               onClick={() => setConfirmClearOpen(true)}
               disabled={items.length === 0 || isClearing}
             >
@@ -86,11 +88,11 @@ export function CartSidebar({ items, total, checkoutDisabled = false, onUpdateQu
               Vaciar carrito
             </button>
           </div>
-          <div className="mb-5 flex items-center justify-between text-xl font-black">
-            <span className="font-display text-3xl uppercase tracking-wide">Total</span>
-            <span className="font-display text-3xl text-central-orange">{formatCurrency(total)}</span>
+          <div className="lcb-polished-cart-total mb-5 flex items-center justify-between gap-2">
+            <span className="text-[14px] font-medium">Total</span>
+            <span className="lcb-polished-product-price text-[23px] font-semibold tracking-[-.04em]">{formatCurrency(total)}</span>
           </div>
-          <Button className="h-13 w-full rounded-sm bg-central-orange font-black uppercase tracking-wide text-black transition duration-200 hover:bg-central-cream" title={checkoutDisabled ? 'Local cerrado, intente más tarde' : 'Confirmar pedido'} disabled={disabled} onClick={onCheckout}>Confirmar pedido</Button>
+          <Button className="lcb-polished-checkout-button h-12 w-full rounded-[12px] text-[13px] font-semibold transition duration-200" title={checkoutDisabled ? 'Local cerrado, intente más tarde' : 'Confirmar pedido'} disabled={disabled} onClick={onCheckout}>Confirmar pedido</Button>
         </div>
       </aside>
 
@@ -100,6 +102,7 @@ export function CartSidebar({ items, total, checkoutDisabled = false, onUpdateQu
         description="¿Seguro que querés eliminar todos los productos del pedido?"
         confirmLabel="Vaciar carrito"
         tone="danger"
+        theme={theme}
         onCancel={() => setConfirmClearOpen(false)}
         onConfirm={clearWithAnimation}
       />

@@ -6,7 +6,7 @@ import { MapPin } from 'lucide-react';
 import { useBusinessConfig } from '@/features/configuracion/hooks/useBusinessConfig';
 import { BusinessLogo } from '@/features/configuracion/components/BusinessLogo';
 
-const socialButtonBase = 'grid h-12 w-12 place-items-center overflow-visible transition-transform duration-200 ease-out hover:scale-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-[#11100f]';
+const socialButtonBase = 'lcb-polished-social grid h-11 w-11 place-items-center overflow-visible rounded-[12px] border transition-transform duration-200 ease-out hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2';
 
 function normalizeExternalUrl(value: string | undefined, fallback: string) {
   const trimmed = value?.trim();
@@ -24,32 +24,32 @@ export function PublicFooter() {
   const whatsappUrl = normalizeExternalUrl(config?.whatsappUrl, `https://wa.me/${whatsapp}`);
 
   return (
-    <footer className="brick-wall relative overflow-hidden border-t border-central-orange/25 px-4 py-16 text-central-cream sm:px-6 lg:px-8">
-      <div className="absolute right-0 top-8 h-[75%] w-1 rounded-l-full bg-central-orange" />
+    <footer className="lcb-polished-footer relative overflow-hidden border-t px-4 py-14 sm:px-7 sm:py-16 lg:px-10">
+      
       {!isLoading ? (
-        <div className="pointer-events-none absolute left-8 top-10 hidden text-[70px] watermark-text lg:block">{businessName}</div>
+        
       ) : null}
 
-      <div className="mx-auto max-w-7xl text-center">
-        <div className="brand-stamp mx-auto mb-8 h-28 w-28 overflow-hidden">
+      <div className="mx-auto max-w-[1480px] text-center">
+        <div className="brand-stamp mx-auto mb-6 h-24 w-24 overflow-hidden">
           <BusinessLogo logoUrl={config?.logoUrl} businessName={businessName} mode="stamp" loading={isLoading} />
         </div>
 
         {isLoading ? (
           <div className="skeleton-dark mx-auto max-w-sm"><Skeleton height={48} borderRadius={2} /></div>
         ) : (
-          <h2 className="menu-title-shadow font-display text-5xl uppercase tracking-wide text-central-orange sm:text-6xl">{businessName}</h2>
+          <h2 className="lcb-polished-footer-title text-[36px] font-semibold tracking-[-.055em] sm:text-[50px]">{businessName}</h2>
         )}
-        <div className="brush-line mx-auto mt-5" />
+        <div className="lcb-polished-accent-line mx-auto mt-5" />
 
         {isLoading ? (
-          <div className="skeleton-dark mt-8 flex justify-center gap-4">
+          <div className="skeleton-dark mt-7 flex justify-center gap-4">
             <Skeleton width={48} height={48} borderRadius={2} />
             <Skeleton width={48} height={48} borderRadius={2} />
             <Skeleton width={48} height={48} borderRadius={2} />
           </div>
         ) : (
-          <div className="mt-8 flex justify-center gap-4">
+          <div className="mt-7 flex justify-center gap-4">
             <Link
               className={`${socialButtonBase} hover:drop-shadow-[0_0_14px_rgba(24,119,242,.75)] focus-visible:ring-[#1877F2]`}
               href={facebookUrl}
@@ -134,13 +134,13 @@ export function PublicFooter() {
           </div>
         ) : (
           <>
-            <p className="mt-8 flex items-center justify-center gap-2 text-sm font-bold text-central-cream/65">
+            <p className="lcb-polished-footer-address mt-7 flex items-center justify-center gap-2 text-[13px] font-medium">
               <MapPin size={16} /> {address} · Corrientes, Argentina
             </p>
-            <p className="mt-2 text-sm text-central-cream/45">Copyright © 2026 {businessName}. Todos los derechos reservados.</p>
+            <p className="lcb-polished-footer-meta mt-2 text-[12px]">Copyright © 2026 {businessName}. Todos los derechos reservados.</p>
           </>
         )}
-        <p className="mt-2 text-sm text-central-cream/45">Desarrollado por <span className="font-bold text-central-orange">@Devcor</span></p>
+        <p className="lcb-polished-footer-meta mt-2 text-[12px]">Desarrollado por <span className="font-semibold text-central-orange">@Devcor</span></p>
       </div>
     </footer>
   );
