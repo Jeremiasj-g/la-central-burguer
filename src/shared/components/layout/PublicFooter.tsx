@@ -26,9 +26,6 @@ export function PublicFooter() {
   return (
     <footer className="lcb-polished-footer relative overflow-hidden border-t px-4 py-14 sm:px-7 sm:py-16 lg:px-10">
       
-      {!isLoading ? (
-        
-      ) : null}
 
       <div className="mx-auto max-w-[1480px] text-center">
         <div className="brand-stamp mx-auto mb-6 h-24 w-24 overflow-hidden">
