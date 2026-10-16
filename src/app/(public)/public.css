@@ -404,3 +404,77 @@ body.lcb-public-typography .lcb-cart-item-row button:focus-visible {
     border-radius: 20px 0 0 20px !important;
   }
 }
+
+
+/* Checkout público — misma superficie original de modal de producto y carrito. */
+body.lcb-public-typography [data-lcb-scroll-lock-overlay="true"] section.lcb-checkout-panel {
+  background: #171717 !important;
+  color: #f6f5f2 !important;
+  border-color: rgba(255,255,255,.085) !important;
+  border-radius: 22px !important;
+  box-shadow: 0 26px 85px rgba(0,0,0,.35);
+}
+body.lcb-public-typography [data-lcb-scroll-lock-overlay="true"] .lcb-checkout-panel > div:first-child {
+  padding: 17px 20px;
+  border-bottom-color: rgba(255,255,255,.085);
+}
+body.lcb-public-typography [data-lcb-scroll-lock-overlay="true"] .lcb-checkout-panel > div:first-child h2 {
+  font-size: 21px;
+  font-weight: 600 !important;
+  letter-spacing: -.035em;
+  line-height: 1.3;
+  color: #f6f5f2;
+}
+body.lcb-public-typography [data-lcb-scroll-lock-overlay="true"] .lcb-checkout-panel > div:first-child button {
+  display: grid;
+  width: 35px;
+  height: 35px;
+  place-items: center;
+  padding: 0;
+  border-radius: 11px;
+  background: rgba(255,255,255,.055);
+}
+body.lcb-public-typography [data-lcb-scroll-lock-overlay="true"] .lcb-checkout-panel > div:nth-child(2) {
+  padding: 20px;
+  scrollbar-color: rgba(255,255,255,.25) transparent;
+}
+body.lcb-public-typography [data-lcb-scroll-lock-overlay="true"] .lcb-checkout-panel .lcb-checkout-input,
+body.lcb-public-typography [data-lcb-scroll-lock-overlay="true"] .lcb-checkout-panel .lcb-checkout-notes {
+  background: rgba(255,255,255,.045) !important;
+  border-color: rgba(255,255,255,.10) !important;
+  color: #f6f5f2 !important;
+  box-shadow: none;
+}
+body.lcb-public-typography [data-lcb-scroll-lock-overlay="true"] .lcb-checkout-panel :is(.lcb-checkout-input,.lcb-checkout-notes):focus {
+  border-color: rgba(255,178,26,.65) !important;
+  outline: 0;
+  box-shadow: 0 0 0 3px rgba(255,178,26,.075);
+}
+body.lcb-public-typography [data-lcb-scroll-lock-overlay="true"] .lcb-checkout-panel :is(.lcb-checkout-input,.lcb-checkout-notes)::placeholder {
+  color: rgba(255,255,255,.36) !important;
+}
+body.lcb-public-typography [data-lcb-scroll-lock-overlay="true"] .lcb-checkout-panel .lcb-checkout-choice:has(input:focus-visible) {
+  outline: 2px solid #ffb21a;
+  outline-offset: 2px;
+}
+body.lcb-public-typography [data-lcb-scroll-lock-overlay="true"] .lcb-checkout-panel .lcb-checkout-choice:has(input:checked) {
+  border-color: rgba(255,178,26,.68);
+  background: rgba(255,178,26,.09);
+}
+body.lcb-public-typography [data-lcb-scroll-lock-overlay="true"] .lcb-checkout-modal-footer {
+  padding: 11px 20px calc(11px + env(safe-area-inset-bottom,0px));
+  border-top: 1px solid rgba(255,255,255,.085);
+  background: #171717;
+  box-shadow: 0 -9px 23px rgba(0,0,0,.075);
+}
+@media (max-width: 639px) {
+  body.lcb-public-typography [data-lcb-scroll-lock-overlay="true"] .lcb-checkout-panel > div:first-child {
+    padding: 14px 15px;
+  }
+  body.lcb-public-typography [data-lcb-scroll-lock-overlay="true"] .lcb-checkout-panel > div:nth-child(2) {
+    padding: 16px 15px;
+  }
+  body.lcb-public-typography [data-lcb-scroll-lock-overlay="true"] .lcb-checkout-modal-footer {
+    padding: 10px 15px calc(10px + env(safe-area-inset-bottom,0px));
+  }
+}
