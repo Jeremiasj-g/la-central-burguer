@@ -7,6 +7,7 @@ import { CartItemRow } from './CartItemRow';
 import { ConfirmDialog } from '@/shared/components/ui/ConfirmDialog';
 import { Drawer } from '@/shared/components/ui/Drawer';
 import { formatCurrency } from '@/shared/utils/format.utils';
+import { usePublicTheme } from '@/shared/components/layout/PublicThemeProvider';
 
 interface CartDrawerProps {
   open: boolean;
@@ -22,6 +23,7 @@ interface CartDrawerProps {
 }
 
 export function CartDrawer({ open, onClose, items, total, checkoutDisabled = false, onUpdateQuantity, onUpdateNote, onRemove, onClear, onCheckout }: CartDrawerProps) {
+  const theme = usePublicTheme();
   const [confirmClearOpen, setConfirmClearOpen] = useState(false);
   const [isClearing, setIsClearing] = useState(false);
   const clearTimerRef = useRef<number | null>(null);
@@ -114,6 +116,7 @@ export function CartDrawer({ open, onClose, items, total, checkoutDisabled = fal
 
       <ConfirmDialog
         open={open && confirmClearOpen && items.length > 0}
+        theme={theme}
         title="Vaciar carrito"
         description="¿Seguro que querés eliminar todos los productos del pedido?"
         confirmLabel="Vaciar carrito"

@@ -2,6 +2,8 @@ import { Oswald, Outfit } from 'next/font/google';
 import './public.css';
 import './display.css';
 import { PublicTypographyPortalSync } from './PublicTypographyPortalSync';
+import { PublicThemeProvider } from '@/shared/components/layout/PublicThemeProvider';
+import './light.css';
 
 const publicFont = Outfit({
   subsets: ['latin'],
@@ -20,7 +22,7 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
   return (
     <div className={`${publicFont.className} ${publicDisplayFont.variable} public-site`}>
       <PublicTypographyPortalSync />
-      {children}
+      <PublicThemeProvider>{children}</PublicThemeProvider>
     </div>
   );
 }

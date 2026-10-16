@@ -17,6 +17,7 @@ import { Textarea } from '@/shared/components/ui/Textarea';
 import { formatCurrency } from '@/shared/utils/format.utils';
 import { calculateCartTotals } from '@/features/carrito/services/carrito.service';
 import { cn } from '@/shared/utils/cn';
+import { usePublicTheme } from '@/shared/components/layout/PublicThemeProvider';
 import { useBusinessConfig } from '@/features/configuracion/hooks/useBusinessConfig';
 import {
   EMPTY_CHECKOUT_VALUES,
@@ -65,6 +66,7 @@ function isFreshQuote(expiresAt: string | undefined) {
 }
 
 export function CheckoutModal({ open, onClose, items, onOrderCreated }: CheckoutModalProps) {
+  const theme = usePublicTheme();
   const [confirmSendOpen, setConfirmSendOpen] = useState(false);
   const [deliveryQuote, setDeliveryQuote] = useState<DeliveryQuote | null>(null);
   const [isQuotingDelivery, setIsQuotingDelivery] = useState(false);
@@ -252,7 +254,7 @@ export function CheckoutModal({ open, onClose, items, onOrderCreated }: Checkout
       open={open}
       onClose={onClose}
       title={createdOrder ? 'Pedido creado' : 'Finalizá tu pedido'}
-      theme="dark"
+      theme={theme}
       size="lg"
       panelClassName="lcb-checkout-panel !max-w-[920px] !rounded-[22px] !border-white/10 !bg-[#171717] !text-[#f6f5f2] max-sm:!max-w-[calc(100vw-1rem)]"
       footer={!createdOrder ? (
@@ -507,6 +509,7 @@ export function CheckoutModal({ open, onClose, items, onOrderCreated }: Checkout
 
       <ConfirmDialog
         open={confirmSendOpen}
+        theme={theme}
         title="Confirmar pedido"
         description="¿Seguro que querés crear el pedido y abrir WhatsApp con el detalle?"
         confirmLabel="Crear y enviar"

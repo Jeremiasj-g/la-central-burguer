@@ -8,6 +8,7 @@ import { useBusinessConfig } from '@/features/configuracion/hooks/useBusinessCon
 import { ROUTES } from '@/shared/constants/routes';
 import { BusinessLogo } from '@/features/configuracion/components/BusinessLogo';
 import { useAnimatedPresence } from '@/shared/hooks/useAnimatedPresence';
+import { PublicThemeToggle } from './PublicThemeProvider';
 
 export function PublicHeader() {
   const [open, setOpen] = useState(false);
@@ -46,7 +47,9 @@ export function PublicHeader() {
           Pedir ahora
         </Link>
 
-        <div className="flex items-center gap-2 md:hidden">
+        <div className="flex items-center gap-2">
+          <PublicThemeToggle />
+          <div className="flex items-center gap-2 md:hidden">
           <button
             type="button"
             onClick={handleCartClick}
@@ -70,6 +73,7 @@ export function PublicHeader() {
           >
             {open ? <X size={22} /> : <Menu size={22} />}
           </button>
+          </div>
         </div>
       </div>
 

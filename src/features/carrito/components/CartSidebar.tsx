@@ -6,6 +6,7 @@ import type { CartItem } from '../types/carrito.types';
 import { ConfirmDialog } from '@/shared/components/ui/ConfirmDialog';
 import { CartItemRow } from './CartItemRow';
 import { formatCurrency } from '@/shared/utils/format.utils';
+import { usePublicTheme } from '@/shared/components/layout/PublicThemeProvider';
 
 interface CartSidebarProps {
   items: CartItem[];
@@ -19,6 +20,7 @@ interface CartSidebarProps {
 }
 
 export function CartSidebar({ items, total, checkoutDisabled = false, onUpdateQuantity, onUpdateNote, onRemove, onClear, onCheckout }: CartSidebarProps) {
+  const theme = usePublicTheme();
   const [confirmClearOpen, setConfirmClearOpen] = useState(false);
   const [isClearing, setIsClearing] = useState(false);
   const clearTimerRef = useRef<number | null>(null);
@@ -107,6 +109,7 @@ export function CartSidebar({ items, total, checkoutDisabled = false, onUpdateQu
 
       <ConfirmDialog
         open={confirmClearOpen && items.length > 0}
+        theme={theme}
         title="Vaciar carrito"
         description="¿Seguro que querés eliminar todos los productos del pedido?"
         confirmLabel="Vaciar carrito"

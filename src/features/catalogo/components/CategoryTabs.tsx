@@ -116,7 +116,7 @@ function CategoryIcon({
           alt=""
           className={cn(
             'h-full max-h-[44px] w-full max-w-[58px] object-contain sm:max-h-[52px] sm:max-w-[66px]',
-            active ? 'brightness-0' : 'brightness-0 invert opacity-75',
+            active ? 'brightness-0' : 'lcb-category-unselected-icon brightness-0 invert opacity-75',
           )}
           onError={() => setFailed(true)}
         />
@@ -153,7 +153,7 @@ export function CategoryTabs({ categories, selectedCategoryId, onSelect }: Categ
   }, [swiper, categories.length]);
 
   return (
-    <div className="category-tabs-swiper relative rounded-sm py-2 backdrop-blur-xl">
+    <div className="category-tabs-swiper lcb-category-swiper relative rounded-sm py-2 backdrop-blur-xl">
       <Swiper
         modules={[FreeMode, Mousewheel]}
         freeMode
@@ -172,7 +172,7 @@ export function CategoryTabs({ categories, selectedCategoryId, onSelect }: Categ
         onTransitionEnd={syncNavigationState}
       >
         <SwiperSlide className="!w-[96px] sm:!w-[132px]">
-          <button type="button" onClick={() => onSelect('all')} className={tabClasses(selectedCategoryId === 'all')}>
+          <button type="button" onClick={() => onSelect('all')} className={cn(tabClasses(selectedCategoryId === 'all'), 'lcb-category-tab')}>
             <CategoryIcon src={categoryAssets.utensils} fallback={Utensils} active={selectedCategoryId === 'all'} />
             <CategoryLabel>Todo</CategoryLabel>
           </button>
@@ -183,7 +183,7 @@ export function CategoryTabs({ categories, selectedCategoryId, onSelect }: Categ
           const active = selectedCategoryId === category.id;
           return (
             <SwiperSlide key={category.id} className="!w-[96px] sm:!w-[132px]">
-              <button type="button" onClick={() => onSelect(category.id)} className={tabClasses(active)} title={category.name}>
+              <button type="button" onClick={() => onSelect(category.id)} className={cn(tabClasses(active), 'lcb-category-tab')} title={category.name}>
                 <CategoryIcon src={getCategoryAsset(category.name)} fallback={FallbackIcon} active={active} />
                 <CategoryLabel>{category.name}</CategoryLabel>
               </button>

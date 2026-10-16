@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, type TouchEvent } from 'react';
 import { Modal } from '@/shared/components/ui/Modal';
 import { ProductImageMedia } from './ProductImageMedia';
+import { usePublicTheme } from '@/shared/components/layout/PublicThemeProvider';
 
 interface ProductImageLightboxProps {
   open: boolean;
@@ -27,6 +28,7 @@ function getMidpoint(first: React.Touch, second: React.Touch) {
 }
 
 export function ProductImageLightbox({ open, imageUrl, productName, categoryName, onClose }: ProductImageLightboxProps) {
+  const theme = usePublicTheme();
   const viewportRef = useRef<HTMLDivElement | null>(null);
   const [scale, setScale] = useState(MIN_SCALE);
   const [offset, setOffset] = useState({ x: 0, y: 0 });
@@ -140,9 +142,9 @@ export function ProductImageLightbox({ open, imageUrl, productName, categoryName
       open={open}
       onClose={onClose}
       title={productName}
-      theme="dark"
+      theme={theme}
       size="xl"
-      panelClassName="border-central-orange/30 bg-[#11100f] text-central-cream"
+      panelClassName="lcb-image-lightbox !rounded-[20px]"
     >
       <div
         ref={viewportRef}

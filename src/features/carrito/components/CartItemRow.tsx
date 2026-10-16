@@ -7,6 +7,7 @@ import { ConfirmDialog } from '@/shared/components/ui/ConfirmDialog';
 import { formatCurrency } from '@/shared/utils/format.utils';
 import { ProductImageMedia } from '@/features/productos/components/ProductImageMedia';
 import { cn } from '@/shared/utils/cn';
+import { usePublicTheme } from '@/shared/components/layout/PublicThemeProvider';
 
 interface CartItemRowProps {
   item: CartItem;
@@ -17,6 +18,7 @@ interface CartItemRowProps {
 }
 
 export function CartItemRow({ item, onUpdateQuantity, onUpdateNote, onRemove, forceRemoving = false }: CartItemRowProps) {
+  const theme = usePublicTheme();
   const [confirmRemoveOpen, setConfirmRemoveOpen] = useState(false);
   const [editingNote, setEditingNote] = useState(false);
   const [draftNote, setDraftNote] = useState(item.note ?? '');
@@ -157,6 +159,7 @@ export function CartItemRow({ item, onUpdateQuantity, onUpdateNote, onRemove, fo
 
       <ConfirmDialog
         open={confirmRemoveOpen}
+        theme={theme}
         title="Eliminar del pedido"
         description={`¿Seguro que querés quitar ${item.productName} del pedido?`}
         confirmLabel="Eliminar"

@@ -9,6 +9,7 @@ import { formatCurrency } from '@/shared/utils/format.utils';
 import { cn } from '@/shared/utils/cn';
 import { formatMenuLabel } from '@/features/catalogo/utils/menuLabel';
 import { ProductImageMedia } from './ProductImageMedia';
+import { usePublicTheme } from '@/shared/components/layout/PublicThemeProvider';
 
 interface ProductDetailModalProps {
   product: Product | null;
@@ -23,6 +24,7 @@ interface ProductDetailModalProps {
 export function ProductDetailModal({
   product, open, onClose, onAddToCart, disabled = false, onPreviewImage, categoryName,
 }: ProductDetailModalProps) {
+  const theme = usePublicTheme();
   const [quantity, setQuantity] = useState(1);
   const [isAdding, setIsAdding] = useState(false);
   const [withNote, setWithNote] = useState(false);
@@ -85,7 +87,7 @@ export function ProductDetailModal({
       open={open}
       onClose={onClose}
       title={currentProduct.name}
-      theme="dark"
+      theme={theme}
       size="lg"
       panelClassName="lcb-product-detail !rounded-[22px] !border-white/10 !bg-[#171717] !text-[#f5f4f2] !shadow-[0_25px_85px_rgba(0,0,0,.35)]"
     >
