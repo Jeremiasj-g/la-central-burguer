@@ -12,6 +12,8 @@ interface ModalProps {
   open: boolean;
   title?: string;
   children: React.ReactNode;
+  footer?: React.ReactNode;
+  footerClassName?: string;
   onClose: () => void;
   className?: string;
   panelClassName?: string;
@@ -30,7 +32,7 @@ function isFormControl(element: Element | null): element is HTMLElement {
   return Boolean(element?.matches('input, textarea, select, [role="combobox"], [contenteditable="true"]'));
 }
 
-export function Modal({ open, title, children, onClose, className, panelClassName, size = 'md', theme = 'light' }: ModalProps) {
+export function Modal({ open, title, children, footer, footerClassName, onClose, className, panelClassName, size = 'md', theme = 'light' }: ModalProps) {
   const viewport = useSmartModalViewport(16);
   const mounted = useAnimatedPresence(open);
   const panelRef = useRef<HTMLElement>(null);
@@ -144,6 +146,7 @@ export function Modal({ open, title, children, onClose, className, panelClassNam
         >
           {children}
         </div>
+        {footer ? <footer className={cn('shrink-0', footerClassName)}>{footer}</footer> : null}
       </section>
     </div>,
     document.body,
