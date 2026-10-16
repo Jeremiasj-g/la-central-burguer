@@ -7,6 +7,7 @@ import { ConfirmDialog } from '@/shared/components/ui/ConfirmDialog';
 import { formatCurrency } from '@/shared/utils/format.utils';
 import { ProductImageMedia } from '@/features/productos/components/ProductImageMedia';
 import { cn } from '@/shared/utils/cn';
+import { useCustomerTheme } from '@/shared/components/layout/CustomerThemeProvider';
 
 interface CartItemRowProps {
   item: CartItem;
@@ -17,6 +18,7 @@ interface CartItemRowProps {
 }
 
 export function CartItemRow({ item, onUpdateQuantity, onUpdateNote, onRemove, forceRemoving = false }: CartItemRowProps) {
+  const theme = useCustomerTheme();
   const [confirmRemoveOpen, setConfirmRemoveOpen] = useState(false);
   const [editingNote, setEditingNote] = useState(false);
   const [draftNote, setDraftNote] = useState(item.note ?? '');
@@ -51,7 +53,7 @@ export function CartItemRow({ item, onUpdateQuantity, onUpdateNote, onRemove, fo
   return (
     <div
       className={cn(
-        'grid grid-cols-[48px_1fr_auto] gap-3 py-3 transition-[opacity,transform] duration-200 ease-in-out motion-reduce:transition-none sm:grid-cols-[58px_1fr_auto] sm:gap-4 sm:py-4',
+        'lcb-polished-cart-row grid min-w-0 grid-cols-[48px_minmax(0,1fr)_auto] gap-3 py-3 transition-[opacity,transform] duration-200 ease-in-out motion-reduce:transition-none sm:grid-cols-[58px_1fr_auto] sm:gap-4 sm:py-4',
         removing ? 'pointer-events-none -translate-x-4 opacity-0' : 'translate-x-0 opacity-100',
       )}
     >
@@ -59,7 +61,7 @@ export function CartItemRow({ item, onUpdateQuantity, onUpdateNote, onRemove, fo
         imageUrl={item.imageUrl}
         productName={item.productName}
         categoryName={item.categoryName}
-        className="h-12 w-12 rounded-sm border border-central-orange/20 bg-black sm:h-14 sm:w-14"
+        className="h-12 w-12 rounded-[11px] border border-central-orange/20 bg-black sm:h-14 sm:w-14"
         compact
       />
       <div className="min-w-0">
@@ -147,6 +149,7 @@ export function CartItemRow({ item, onUpdateQuantity, onUpdateNote, onRemove, fo
         description={`¿Seguro que querés quitar ${item.productName} del pedido?`}
         confirmLabel="Eliminar"
         tone="danger"
+        theme={theme}
         onCancel={() => setConfirmRemoveOpen(false)}
         onConfirm={removeWithAnimation}
       />

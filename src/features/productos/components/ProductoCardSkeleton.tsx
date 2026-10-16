@@ -2,7 +2,7 @@ import Skeleton from 'react-loading-skeleton';
 
 export function ProductoCardSkeleton() {
   return (
-    <div className="skeleton-dark rounded-sm border border-central-orange/20 bg-[#171514] p-5 shadow-dark">
+    <div className="lcb-polished-product skeleton-dark rounded-[18px] border p-5">
       <div className="grid grid-cols-[34px_1fr_auto] gap-4">
         <Skeleton width={30} height={30} borderRadius={8} />
         <div>

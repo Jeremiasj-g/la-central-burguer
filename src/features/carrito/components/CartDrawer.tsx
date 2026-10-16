@@ -8,6 +8,7 @@ import { Button } from '@/shared/components/ui/Button';
 import { ConfirmDialog } from '@/shared/components/ui/ConfirmDialog';
 import { Drawer } from '@/shared/components/ui/Drawer';
 import { formatCurrency } from '@/shared/utils/format.utils';
+import { useCustomerTheme } from '@/shared/components/layout/CustomerThemeProvider';
 
 interface CartDrawerProps {
   open: boolean;
@@ -27,6 +28,7 @@ export function CartDrawer({ open, onClose, items, total, checkoutDisabled = fal
   const [isClearing, setIsClearing] = useState(false);
   const clearTimerRef = useRef<number | null>(null);
   const disabled = items.length === 0 || checkoutDisabled || isClearing;
+  const theme = useCustomerTheme();
 
   useEffect(() => () => {
     if (clearTimerRef.current !== null) window.clearTimeout(clearTimerRef.current);
@@ -47,6 +49,7 @@ export function CartDrawer({ open, onClose, items, total, checkoutDisabled = fal
         open={open}
         onClose={onClose}
         title="Mi pedido"
+        className="lcb-polished-cart-drawer"
         footer={
           <div>
             <div className="mb-3 flex justify-end">
@@ -64,7 +67,7 @@ export function CartDrawer({ open, onClose, items, total, checkoutDisabled = fal
               <span>Total</span>
               <span className="text-central-orange">{formatCurrency(total)}</span>
             </div>
-            <Button size="sm" className="w-full rounded-sm transition duration-200 sm:h-11" title={checkoutDisabled ? 'Local cerrado, intente más tarde' : 'Confirmar pedido'} disabled={disabled} onClick={onCheckout}>Confirmar pedido</Button>
+            <Button size="sm" className="lcb-polished-checkout-button w-full rounded-[12px] transition duration-200 sm:h-11" title={checkoutDisabled ? 'Local cerrado, intente más tarde' : 'Confirmar pedido'} disabled={disabled} onClick={onCheckout}>Confirmar pedido</Button>
           </div>
         }
       >
@@ -97,6 +100,7 @@ export function CartDrawer({ open, onClose, items, total, checkoutDisabled = fal
         description="¿Seguro que querés eliminar todos los productos del pedido?"
         confirmLabel="Vaciar carrito"
         tone="danger"
+        theme={theme}
         onCancel={() => setConfirmClearOpen(false)}
         onConfirm={clearWithAnimation}
       />

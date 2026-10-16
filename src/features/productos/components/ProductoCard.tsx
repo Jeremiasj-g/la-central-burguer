@@ -19,8 +19,8 @@ export function ProductoCard({ product, categoryName, disabled = false, onSelect
 
   return (
     <article className={cn(
-      'group relative min-h-[160px] overflow-hidden rounded-sm bg-[#20201f] shadow-2xl transition-all duration-200 ease-out motion-reduce:transition-none hover:scale-[1.035] hover:border-central-orange/65 sm:min-h-[170px]',
-      blocked && 'opacity-70 hover:scale-100',
+      'lcb-polished-product group relative min-h-[174px] overflow-hidden rounded-[18px] border transition-[transform,border-color,box-shadow] duration-200 ease-out motion-reduce:transition-none hover:-translate-y-[2px] sm:min-h-[188px]',
+      blocked && 'opacity-70 hover:translate-y-0',
     )}>
       <button
         type="button"
@@ -46,7 +46,7 @@ export function ProductoCard({ product, categoryName, disabled = false, onSelect
         </span>
       ) : null}
 
-      <div className="absolute inset-y-0 right-0 w-[40%] overflow-hidden bg-black sm:w-[38%]">
+      <div className="lcb-polished-product-media absolute inset-y-0 right-0 w-[41%] overflow-hidden sm:w-[40%]">
         <ProductImageMedia
           imageUrl={product.imageUrl}
           productName={product.name}
@@ -54,14 +54,14 @@ export function ProductoCard({ product, categoryName, disabled = false, onSelect
           className="h-full w-full"
           imageClassName=""
         />
-        <div className="absolute inset-0 bg-gradient-to-r from-[#171514] via-[#171514]/70 to-transparent" />
+        <div className="lcb-polished-product-gradient absolute inset-0" />
         <div className="absolute inset-0 bg-gradient-to-t from-black/38 via-transparent to-transparent" />
       </div>
 
       {onPreviewImage && !unavailable ? (
         <button
           type="button"
-          className="absolute bottom-2.5 right-2.5 z-40 grid h-8 w-8 place-items-center rounded-sm border border-central-orange/35 bg-black/75 text-central-cream/80 backdrop-blur transition hover:border-central-orange hover:bg-central-orange hover:text-black focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-central-orange"
+          className="absolute bottom-2.5 right-2.5 z-40 grid h-9 w-9 place-items-center rounded-[11px] border border-central-orange/35 bg-black/75 text-central-cream/80 backdrop-blur transition hover:border-central-orange hover:bg-central-orange hover:text-black focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-central-orange"
           onClick={() => onPreviewImage(product)}
           title={`Ampliar imagen de ${product.name}`}
           aria-label={`Ampliar imagen de ${product.name}`}
@@ -70,18 +70,18 @@ export function ProductoCard({ product, categoryName, disabled = false, onSelect
         </button>
       ) : null}
 
-      <div className="relative z-10 flex min-h-[160px] max-w-[72%] flex-col justify-between p-4 pr-2 sm:min-h-[170px] sm:max-w-[68%]">
+      <div className="relative z-10 flex min-h-[174px] max-w-[74%] flex-col justify-between p-4 pr-2 sm:min-h-[188px] sm:max-w-[70%] sm:p-5 sm:pr-2">
         <div>
           <div className="flex flex-wrap items-center gap-2">
-            {categoryName ? <span className="text-[10px] font-black uppercase tracking-[.22em] text-central-orange/75">{categoryName}</span> : null}
-            {product.featured ? <span className="inline-flex items-center gap-1 rounded-full border border-central-orange/35 px-2 py-0.5 text-[10px] font-black uppercase tracking-widest text-central-orange"><Star size={11} /> recomendado</span> : null}
+            {categoryName ? <span className="lcb-polished-category-label text-[10px] font-semibold tracking-[.05em]">{categoryName}</span> : null}
+            {product.featured ? <span className="lcb-polished-featured inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[9px] font-semibold"><Star size={11} /> recomendado</span> : null}
           </div>
-          <h3 className="mt-1.5 line-clamp-2 font-black text-base leading-tight text-central-cream sm:text-xl">{product.name}</h3>
-          <p className="mt-1 line-clamp-2 text-xs sm:text-sm font-medium leading-5 text-central-cream/62">{product.description}</p>
+          <h3 className="lcb-polished-product-title mt-2 line-clamp-2 text-[16px] font-semibold leading-[1.25] tracking-[-.025em] sm:text-[18px]">{product.name}</h3>
+          <p className="lcb-polished-product-description mt-2 line-clamp-2 text-[12px] font-normal leading-5">{product.description}</p>
         </div>
 
         <div className="mt-3 flex items-end sm:mt-4 justify-between gap-3">
-          <p className="font-black text-central-orange">{formatCurrency(product.currentPrice)}</p>
+          <p className="lcb-polished-product-price text-[17px] font-semibold tracking-[-.025em] sm:text-[18px]">{formatCurrency(product.currentPrice)}</p>
         </div>
       </div>
     </article>

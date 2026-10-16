@@ -1,0 +1,294 @@
+/* Pulido de experiencia pública inspirado en los módulos de administración.
+   El maquetado y la lógica del sitio del cliente permanecen intactos. */
+.public-site {
+ --lcb-polish-bg:#151619;
+ --lcb-polish-surface:#1e2025;
+ --lcb-polish-secondary:#26282d;
+ --lcb-polish-text:#f6f5f3;
+ --lcb-polish-muted:#a6a7ad;
+ --lcb-polish-border:rgba(255,255,255,.085);
+ --lcb-polish-accent:#ffb21a;
+ --lcb-polish-accent-text:#e9af4d;
+ --lcb-polish-fade:rgba(30,32,37,.83);
+ --lcb-polish-header:rgba(20,21,24,.84);
+ --lcb-polish-shadow:0 15px 42px rgba(0,0,0,.15);
+ background:var(--lcb-polish-bg);
+ color:var(--lcb-polish-text);
+ transition:background-color .2s,color .2s;
+}
+.public-site[data-customer-theme="light"] {
+ --lcb-polish-bg:#f5f5f3;
+ --lcb-polish-surface:#fff;
+ --lcb-polish-secondary:#f0f0ee;
+ --lcb-polish-text:#24262b;
+ --lcb-polish-muted:#787b83;
+ --lcb-polish-border:rgba(31,34,39,.09);
+ --lcb-polish-accent:#ed941a;
+ --lcb-polish-accent-text:#a55c0d;
+ --lcb-polish-fade:rgba(255,255,255,.86);
+ --lcb-polish-header:rgba(249,249,247,.85);
+ --lcb-polish-shadow:0 13px 40px rgba(29,32,38,.055);
+}
+body.lcb-public-typography {
+ --lcb-polish-bg:#151619;
+ --lcb-polish-surface:#1e2025;
+ --lcb-polish-secondary:#26282d;
+ --lcb-polish-text:#f6f5f3;
+ --lcb-polish-muted:#a6a7ad;
+ --lcb-polish-border:rgba(255,255,255,.085);
+ --lcb-polish-accent:#ffb21a;
+ --lcb-polish-accent-text:#e9af4d;
+}
+body.lcb-public-typography[data-customer-theme="light"] {
+ --lcb-polish-bg:#f5f5f3;
+ --lcb-polish-surface:#fff;
+ --lcb-polish-secondary:#f0f0ee;
+ --lcb-polish-text:#24262b;
+ --lcb-polish-muted:#787b83;
+ --lcb-polish-border:rgba(31,34,39,.09);
+ --lcb-polish-accent:#ed941a;
+ --lcb-polish-accent-text:#a55c0d;
+ background:var(--lcb-polish-bg);
+}
+.public-site .lcb-polished-shell {background:var(--lcb-polish-bg)!important;color:var(--lcb-polish-text)!important;}
+.public-site :is(button,a,input,textarea) {transition-duration:.2s;}
+.public-site :is(button,a,input,textarea):focus-visible {outline:2px solid var(--lcb-polish-accent);outline-offset:2px;}
+.public-site ::selection {background:rgba(255,178,26,.25);}
+/* Header: conservar la navegación actual, suavizar superficies y pesos */
+.public-site .lcb-polished-header {
+ background:var(--lcb-polish-header);
+ border-color:var(--lcb-polish-border);
+ color:var(--lcb-polish-text);
+ box-shadow:0 4px 24px rgba(0,0,0,.055);
+ -webkit-backdrop-filter:blur(10px);
+}
+.public-site .lcb-polished-nav-link {color:var(--lcb-polish-muted);}
+.public-site .lcb-polished-nav-link:hover {background:var(--lcb-polish-secondary);color:var(--lcb-polish-text);}
+.public-site .lcb-polished-header-cta {
+ background:var(--lcb-polish-accent);color:#1c1b19;
+ box-shadow:none;
+}
+.public-site .lcb-polished-header-cta:hover {filter:brightness(1.065);transform:translateY(-1px);}
+.public-site .lcb-polished-nav-icon,.public-site .lcb-customer-theme-toggle {
+ border:1px solid var(--lcb-polish-border);
+ background:var(--lcb-polish-surface);color:var(--lcb-polish-text);
+}
+.public-site .lcb-polished-nav-icon:hover,.public-site .lcb-customer-theme-toggle:hover {background:var(--lcb-polish-secondary);}
+.public-site .lcb-customer-theme-toggle {
+ display:inline-flex;align-items:center;justify-content:center;gap:8px;
+ min-width:40px;height:40px;border-radius:11px;padding:0 11px;
+ font-size:11px;font-weight:500;transition:background-color .2s;
+}
+.public-site .lcb-polished-mobile-menu {background:var(--lcb-polish-surface);border-color:var(--lcb-polish-border);}
+.public-site .lcb-polished-mobile-link {color:var(--lcb-polish-text);}
+.public-site .lcb-polished-mobile-link:hover {background:var(--lcb-polish-secondary);}
+.public-site .lcb-polished-header [class*="ring-[#0d0c0b]"] {--tw-ring-color:var(--lcb-polish-surface);}
+/* Hero queda oscuro en los dos temas, con su personalidad, logo y jerarquía originales. */
+.public-site .lcb-polished-hero {color:#f7f3e9;}
+.public-site .lcb-polished-hero-facts > div {
+ border-radius:16px;
+ border-color:rgba(255,255,255,.11);
+ background:rgba(22,23,25,.49);
+ box-shadow:0 12px 28px rgba(0,0,0,.08);
+}
+.public-site .lcb-polished-hero-facts p:first-child {
+ letter-spacing:.11em;font-size:10px;font-weight:600;
+}
+.public-site .lcb-polished-hero-facts p:last-child {
+ font-size:clamp(14px,1.4vw,17px);font-weight:600;
+}
+.public-site .lcb-polished-hero a[href="#menu"] {
+ border-radius:13px;font-weight:600;letter-spacing:.035em;
+ box-shadow:0 12px 35px rgba(245,157,20,.13);
+}
+/* Menú: misma disposición 2 columnas / sidebar original, pulido en lugar de reconstrucción */
+.public-site .lcb-polished-menu {
+ background:var(--lcb-polish-bg);
+ color:var(--lcb-polish-text);
+}
+.public-site .lcb-polished-menu-heading {color:var(--lcb-polish-text);}
+.public-site .lcb-polished-menu-icon {
+ background:var(--lcb-polish-surface);
+ color:var(--lcb-polish-accent-text);
+ border:1px solid var(--lcb-polish-border);
+ box-shadow:var(--lcb-polish-shadow);
+}
+.public-site .lcb-polished-eyebrow {color:var(--lcb-polish-accent-text);}
+.public-site .lcb-polished-title,.public-site .lcb-polished-subtitle {
+ color:var(--lcb-polish-text);text-shadow:none;
+}
+.public-site .lcb-polished-accent-line {
+ width:34px;height:3px;border-radius:99px;
+ background:var(--lcb-polish-accent);
+}
+.public-site .lcb-polished-menu-tools {
+ background:var(--lcb-polish-surface);
+ border:1px solid var(--lcb-polish-border);
+ box-shadow:0 8px 24px rgba(0,0,0,.04);
+ backdrop-filter:blur(10px);
+}
+.public-site .lcb-polished-list-heading {border-color:var(--lcb-polish-border);}
+.public-site .lcb-polished-search-input {
+ width:100%;background:var(--lcb-polish-secondary)!important;
+ color:var(--lcb-polish-text)!important;
+ border-color:var(--lcb-polish-border)!important;
+ box-shadow:none!important;
+}
+.public-site .lcb-polished-search-input::placeholder {color:var(--lcb-polish-muted)!important;opacity:.8;}
+.public-site .lcb-polished-search-input:focus {
+ border-color:var(--lcb-polish-accent)!important;
+ box-shadow:0 0 0 3px rgba(255,178,26,.09)!important;
+}
+.public-site .lcb-polished-category-container {background:transparent;backdrop-filter:none;}
+.public-site .lcb-polished-category {
+ background:var(--lcb-polish-secondary);
+ color:var(--lcb-polish-muted);
+ border-color:var(--lcb-polish-border);
+}
+.public-site .lcb-polished-category:hover {
+ background:var(--lcb-polish-surface);
+ color:var(--lcb-polish-text);
+ border-color:rgba(241,165,42,.40);
+}
+.public-site .lcb-polished-category-active {
+ background:var(--lcb-polish-accent);border-color:var(--lcb-polish-accent);
+ color:#191919;box-shadow:0 6px 20px rgba(255,178,26,.09);
+}
+.public-site .lcb-polished-category-image {filter:brightness(0) invert(1);}
+.public-site[data-customer-theme="light"] .lcb-polished-category-image {filter:brightness(0);}
+.public-site .lcb-polished-category-container [class*="bg-black/85"] {
+ background:var(--lcb-polish-surface)!important;
+ color:var(--lcb-polish-text)!important;
+ border-color:var(--lcb-polish-border)!important;
+}
+.public-site .lcb-polished-empty {
+ background:var(--lcb-polish-surface);
+ color:var(--lcb-polish-text);
+ border:1px solid var(--lcb-polish-border);
+ border-radius:17px;
+}
+/* Tarjetas originales con imagen lateral; radios, tipografía y peso visual normalizados */
+.public-site .lcb-polished-product {
+ background:var(--lcb-polish-surface);
+ color:var(--lcb-polish-text);
+ border-color:var(--lcb-polish-border);
+ box-shadow:var(--lcb-polish-shadow);
+}
+.public-site .lcb-polished-product:hover {
+ border-color:rgba(240,160,35,.32);
+ box-shadow:0 17px 40px rgba(0,0,0,.09);
+}
+.public-site .lcb-polished-product:focus-within {outline:2px solid var(--lcb-polish-accent);outline-offset:2px;}
+.public-site .lcb-polished-product-media {background:var(--lcb-polish-secondary);}
+.public-site .lcb-polished-product-gradient {
+ background:linear-gradient(to right,var(--lcb-polish-surface) 0%,var(--lcb-polish-fade) 53%,transparent 100%);
+}
+.public-site .lcb-polished-product-title {color:var(--lcb-polish-text);}
+.public-site .lcb-polished-product-description {color:var(--lcb-polish-muted);}
+.public-site .lcb-polished-product-price {color:var(--lcb-polish-accent-text);}
+.public-site .lcb-polished-category-label {color:var(--lcb-polish-accent-text);}
+.public-site .lcb-polished-featured {
+ background:rgba(250,164,34,.08);color:var(--lcb-polish-accent-text);
+ border-color:rgba(250,164,34,.23);
+}
+/* Sidebar conserva su lugar fijo y su lista editable. */
+.public-site .lcb-polished-cart {
+ background:var(--lcb-polish-surface);color:var(--lcb-polish-text);
+ border-color:var(--lcb-polish-border);
+ box-shadow:var(--lcb-polish-shadow);
+}
+.public-site .lcb-polished-cart-divider,
+.public-site .lcb-polished-cart-items {border-color:var(--lcb-polish-border);}
+.public-site .lcb-polished-cart-items > :not([hidden])~:not([hidden]) {border-color:var(--lcb-polish-border);}
+.public-site .lcb-polished-cart-title {color:var(--lcb-polish-text);}
+.public-site .lcb-polished-cart-icon {
+ color:var(--lcb-polish-accent-text);background:var(--lcb-polish-secondary);
+ border:1px solid var(--lcb-polish-border);
+}
+.public-site .lcb-polished-cart-empty {color:var(--lcb-polish-muted);}
+.public-site .lcb-polished-cart-total {color:var(--lcb-polish-text);}
+.public-site .lcb-polished-cart-clear {color:var(--lcb-polish-muted);}
+.public-site .lcb-polished-cart-clear:hover {background:var(--lcb-polish-secondary);color:#d86c5f;}
+.public-site .lcb-polished-checkout-button {
+ background:var(--lcb-polish-accent)!important;
+ color:#1c1b18!important;border:0!important;
+ box-shadow:none!important;
+}
+.public-site .lcb-polished-checkout-button:hover {filter:brightness(1.07);}
+.public-site .lcb-polished-cart-row {
+ color:var(--lcb-polish-text);
+}
+.public-site[data-customer-theme="light"] .lcb-polished-cart-row [class*="text-central-cream"],
+.public-site[data-customer-theme="light"] .lcb-polished-cart-row [class*="text-white"] {
+ color:var(--lcb-polish-text)!important;
+}
+.public-site[data-customer-theme="light"] .lcb-polished-cart-row [class*="bg-black"] {
+ background:var(--lcb-polish-secondary)!important;
+}
+.public-site .lcb-polished-floating-cart {
+ background:#202228;color:#fff;border-color:rgba(255,255,255,.14);
+ box-shadow:0 16px 45px rgba(0,0,0,.22);
+}
+/* Footer: misma estructura y redes, sin el ladrillo ni ornamentos agresivos. */
+.public-site .lcb-polished-footer {
+ background:var(--lcb-polish-surface);color:var(--lcb-polish-text);
+ border-color:var(--lcb-polish-border);
+}
+.public-site .lcb-polished-footer-title {
+ color:var(--lcb-polish-text);text-shadow:none;
+}
+.public-site .lcb-polished-footer-address {color:var(--lcb-polish-muted);}
+.public-site .lcb-polished-footer-meta {color:var(--lcb-polish-muted);}
+.public-site .lcb-polished-social {
+ border-color:var(--lcb-polish-border);background:var(--lcb-polish-secondary);
+}
+.public-site .lcb-polished-social:hover {background:var(--lcb-polish-bg);}
+.public-site .lcb-polished-footer .brand-stamp {filter:none;}
+/* Modales/drawer portaleados al body: tema sincronizado con menú. */
+body.lcb-public-typography [data-lcb-scroll-lock-overlay="true"] :is(.lcb-polished-product-modal,.lcb-polished-checkout-modal,.lcb-polished-cart-drawer) {
+ background:var(--lcb-polish-surface)!important;color:var(--lcb-polish-text)!important;
+ border-color:var(--lcb-polish-border)!important;border-radius:20px!important;
+}
+body.lcb-public-typography [data-lcb-scroll-lock-overlay="true"] :is(.lcb-polished-product-modal,.lcb-polished-checkout-modal,.lcb-polished-cart-drawer) :is(input:not([type=checkbox]):not([type=radio]),textarea,select) {
+ background:var(--lcb-polish-secondary)!important;
+ color:var(--lcb-polish-text)!important;border-color:var(--lcb-polish-border)!important;
+ border-radius:12px!important;
+}
+body.lcb-public-typography[data-customer-theme="light"] [data-lcb-scroll-lock-overlay="true"] :is(.lcb-polished-product-modal,.lcb-polished-checkout-modal,.lcb-polished-cart-drawer) :is(p,span,label,h2,h3,h4,strong,button)[class*="text-white"],
+body.lcb-public-typography[data-customer-theme="light"] [data-lcb-scroll-lock-overlay="true"] :is(.lcb-polished-product-modal,.lcb-polished-checkout-modal,.lcb-polished-cart-drawer) :is(p,span,label,h2,h3,h4,strong,button)[class*="text-central-cream"] {
+ color:var(--lcb-polish-text)!important;
+}
+body.lcb-public-typography[data-customer-theme="light"] [data-lcb-scroll-lock-overlay="true"] :is(.lcb-polished-product-modal,.lcb-polished-checkout-modal,.lcb-polished-cart-drawer) [class*="bg-black/"],
+body.lcb-public-typography[data-customer-theme="light"] [data-lcb-scroll-lock-overlay="true"] :is(.lcb-polished-product-modal,.lcb-polished-checkout-modal,.lcb-polished-cart-drawer) [class*="bg-[#24211f]"] {
+ background:var(--lcb-polish-secondary)!important;
+}
+body.lcb-public-typography [data-lcb-scroll-lock-overlay="true"] :is(.lcb-polished-product-modal,.lcb-polished-checkout-modal,.lcb-polished-cart-drawer) [class*="border-white"] {
+ border-color:var(--lcb-polish-border)!important;
+}
+body.lcb-public-typography [data-lcb-scroll-lock-overlay="true"] :is(.lcb-polished-product-modal,.lcb-polished-checkout-modal,.lcb-polished-cart-drawer) button[class*="bg-central-orange"] {
+ background:var(--lcb-polish-accent)!important;color:#1d1c19!important;
+}
+body.lcb-public-typography [data-lcb-scroll-lock-overlay="true"] .lcb-polished-checkout-modal aside {
+ background:var(--lcb-polish-secondary);border-color:var(--lcb-polish-border);
+ border-radius:16px;
+}
+body.lcb-public-typography[data-customer-theme="light"] [data-lcb-scroll-lock-overlay="true"] .lcb-polished-cart-drawer .lcb-polished-cart-row [class*="text-central-cream"] {
+ color:var(--lcb-polish-text)!important;
+}
+body.lcb-public-typography [data-lcb-scroll-lock-overlay="true"] .lcb-polished-cart-drawer .lcb-polished-checkout-button {
+ background:var(--lcb-polish-accent)!important;color:#1c1b18!important;
+}
+body.lcb-public-typography .Toastify__toast {
+ background:var(--lcb-polish-surface)!important;color:var(--lcb-polish-text)!important;
+ border-color:var(--lcb-polish-border)!important;
+}
+body.lcb-public-typography .Toastify__progress-bar {background:var(--lcb-polish-accent)!important;}
+@media (max-width:640px){
+ .public-site .lcb-polished-menu {padding-left:16px;padding-right:16px;}
+ .public-site .lcb-polished-menu-tools {padding:10px;}
+}
+@media (prefers-reduced-motion:reduce){
+ .public-site .lcb-polished-product,
+ .public-site .lcb-polished-header-cta,
+ .public-site .lcb-customer-theme-toggle {transition:none!important;transform:none!important;}
+}

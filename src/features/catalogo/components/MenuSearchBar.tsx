@@ -8,7 +8,7 @@ interface MenuSearchBarProps {
 
 export function MenuSearchBar({ value, onChange }: MenuSearchBarProps) {
   return (
-    <label className="relative block">
+    <label className="lcb-polished-search relative block">
       <Search className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-central-orange" size={19} />
       <Input
         type="search"
@@ -17,7 +17,7 @@ export function MenuSearchBar({ value, onChange }: MenuSearchBarProps) {
         value={value}
         onChange={(event) => onChange(event.target.value)}
         placeholder="Buscar hamburguesas, lomitos, pizzas..."
-        className="h-11 rounded-sm border border-central-orange/35 bg-[#11100f] pl-11 text-base sm:h-16 sm:pl-14 font-bold text-central-cream shadow-dark outline-none placeholder:text-central-cream/38 focus:border-central-orange focus:ring-central-orange/40"
+        className="lcb-polished-search-input h-11 rounded-[12px] border pl-11 text-[13px] font-medium outline-none transition-colors duration-200 sm:h-12 sm:pl-12 sm:text-[14px]"
       />
     </label>
   );

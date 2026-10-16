@@ -18,6 +18,7 @@ import { Textarea } from '@/shared/components/ui/Textarea';
 import { formatCurrency } from '@/shared/utils/format.utils';
 import { calculateCartTotals } from '@/features/carrito/services/carrito.service';
 import { cn } from '@/shared/utils/cn';
+import { useCustomerTheme } from '@/shared/components/layout/CustomerThemeProvider';
 import { useBusinessConfig } from '@/features/configuracion/hooks/useBusinessConfig';
 import {
   EMPTY_CHECKOUT_VALUES,
@@ -66,6 +67,7 @@ function isFreshQuote(expiresAt: string | undefined) {
 }
 
 export function CheckoutModal({ open, onClose, items, onOrderCreated }: CheckoutModalProps) {
+  const theme = useCustomerTheme();
   const [confirmSendOpen, setConfirmSendOpen] = useState(false);
   const [deliveryQuote, setDeliveryQuote] = useState<DeliveryQuote | null>(null);
   const [isQuotingDelivery, setIsQuotingDelivery] = useState(false);
@@ -251,17 +253,17 @@ export function CheckoutModal({ open, onClose, items, onOrderCreated }: Checkout
       open={open}
       onClose={onClose}
       title={createdOrder ? 'Pedido creado' : 'Datos de contacto y entrega'}
-      theme="dark"
+      theme={theme}
       size="lg"
-      panelClassName="max-sm:max-w-[calc(100vw-1.5rem)]"
+      panelClassName="lcb-polished-checkout-modal !rounded-[20px] max-sm:max-w-[calc(100vw-1.5rem)]"
     >
       {createdOrder ? (
         <div className="space-y-4">
-          <div className="rounded-sm border border-central-orange/30 bg-central-orange/10 p-4 text-center sm:p-5">
+          <div className="rounded-[12px] border border-central-orange/30 bg-central-orange/10 p-4 text-center sm:p-5">
             <p className="text-[10px] font-black uppercase tracking-[.24em] text-central-orange sm:text-xs">Gracias por tu compra</p>
             <h3 className="mt-2 text-xl font-black text-white sm:text-2xl">Tu pedido fue confirmado</h3>
             <p className="mt-2 text-xs leading-5 text-white/65 sm:mt-3 sm:text-sm sm:leading-6">Ya registramos tu pedido en el panel de {config?.businessName ?? 'La Central Burger'} y abrimos WhatsApp con el detalle para coordinarlo.</p>
-            <div className="mx-auto mt-4 max-w-xs rounded-sm border border-white/10 bg-black/30 p-3 sm:mt-5 sm:p-4">
+            <div className="mx-auto mt-4 max-w-xs rounded-[12px] border border-white/10 bg-black/30 p-3 sm:mt-5 sm:p-4">
               <p className="text-[10px] font-bold text-white/50 sm:text-xs">Código de pedido</p>
               <p className="mt-1 font-mono text-xl font-black text-central-orange sm:text-2xl">{createdOrder.orderCode}</p>
             </div>
@@ -286,10 +288,10 @@ export function CheckoutModal({ open, onClose, items, onOrderCreated }: Checkout
             <div>
               <label className="mb-2 block text-xs font-bold text-white/80 sm:mb-3 sm:text-sm">Opciones de entrega<RequiredMark /></label>
               <div className="grid grid-cols-2 gap-2 sm:gap-3">
-                <label className={cn('flex cursor-pointer items-center gap-2 rounded-sm border p-3 text-xs font-bold transition-[border-color,background-color,color,transform] duration-200 ease-out active:scale-[.99] motion-reduce:transition-none sm:gap-3 sm:p-4 sm:text-sm', isDelivery ? 'border-central-orange bg-central-orange/12 text-central-cream' : 'border-white/10 bg-white/[.035] text-white/70 hover:border-central-orange/50')}>
+                <label className={cn('flex cursor-pointer items-center gap-2 rounded-[12px] border p-3 text-xs font-bold transition-[border-color,background-color,color,transform] duration-200 ease-out active:scale-[.99] motion-reduce:transition-none sm:gap-3 sm:p-4 sm:text-sm', isDelivery ? 'border-central-orange bg-central-orange/12 text-central-cream' : 'border-white/10 bg-white/[.035] text-white/70 hover:border-central-orange/50')}>
                   <input type="radio" className="accent-central-orange" checked={isDelivery} onChange={() => setDeliveryMethod('delivery')} /> Envío
                 </label>
-                <label className={cn('flex cursor-pointer items-center gap-2 rounded-sm border p-3 text-xs font-bold transition-[border-color,background-color,color,transform] duration-200 ease-out active:scale-[.99] motion-reduce:transition-none sm:gap-3 sm:p-4 sm:text-sm', values.deliveryMethod === 'retiro_local' ? 'border-central-orange bg-central-orange/12 text-central-cream' : 'border-white/10 bg-white/[.035] text-white/70 hover:border-central-orange/50')}>
+                <label className={cn('flex cursor-pointer items-center gap-2 rounded-[12px] border p-3 text-xs font-bold transition-[border-color,background-color,color,transform] duration-200 ease-out active:scale-[.99] motion-reduce:transition-none sm:gap-3 sm:p-4 sm:text-sm', values.deliveryMethod === 'retiro_local' ? 'border-central-orange bg-central-orange/12 text-central-cream' : 'border-white/10 bg-white/[.035] text-white/70 hover:border-central-orange/50')}>
                   <input type="radio" className="accent-central-orange" checked={values.deliveryMethod === 'retiro_local'} onChange={() => setDeliveryMethod('retiro_local')} /> Retiro
                 </label>
               </div>
@@ -308,7 +310,7 @@ export function CheckoutModal({ open, onClose, items, onOrderCreated }: Checkout
                     Ubicación GPS<RequiredMark />
                   </label>
                   <div className={cn(
-                    'rounded-sm border bg-white/[.035] p-3 transition-colors duration-200 motion-reduce:transition-none',
+                    'rounded-[12px] border bg-white/[.035] p-3 transition-colors duration-200 motion-reduce:transition-none',
                     deliveryQuote && !deliveryQuote.isWithinRange ? 'border-red-400/35' : 'border-white/10',
                   )}>
                     <div className="flex flex-wrap items-center justify-between gap-2 sm:gap-3">
@@ -342,13 +344,13 @@ export function CheckoutModal({ open, onClose, items, onOrderCreated }: Checkout
               {activePaymentMethods.length ? (
                 <div className="grid grid-cols-2 gap-2 sm:gap-3">
                   {activePaymentMethods.map((method) => (
-                    <label key={method.id} className={cn('flex cursor-pointer items-center gap-2 rounded-sm border p-3 text-xs font-bold transition-[border-color,background-color,color,transform] duration-200 ease-out active:scale-[.99] motion-reduce:transition-none sm:gap-3 sm:p-4 sm:text-sm', values.paymentMethod === method.type ? 'border-central-orange bg-central-orange/12 text-central-cream' : 'border-white/10 bg-white/[.035] text-white/70 hover:border-central-orange/50')}>
+                    <label key={method.id} className={cn('flex cursor-pointer items-center gap-2 rounded-[12px] border p-3 text-xs font-bold transition-[border-color,background-color,color,transform] duration-200 ease-out active:scale-[.99] motion-reduce:transition-none sm:gap-3 sm:p-4 sm:text-sm', values.paymentMethod === method.type ? 'border-central-orange bg-central-orange/12 text-central-cream' : 'border-white/10 bg-white/[.035] text-white/70 hover:border-central-orange/50')}>
                       <input type="radio" className="accent-central-orange" checked={values.paymentMethod === method.type} onChange={() => update('paymentMethod', method.type)} /> {method.name}
                     </label>
                   ))}
                 </div>
               ) : (
-                <p className="rounded-sm border border-red-400/30 bg-red-500/10 p-3 text-xs font-bold text-red-200">No hay métodos de pago habilitados. Contactá al local.</p>
+                <p className="rounded-[12px] border border-red-400/30 bg-red-500/10 p-3 text-xs font-bold text-red-200">No hay métodos de pago habilitados. Contactá al local.</p>
               )}
             </div>
 
@@ -358,7 +360,7 @@ export function CheckoutModal({ open, onClose, items, onOrderCreated }: Checkout
             </div>
           </div>
 
-          <aside className="rounded-sm border border-white/10 bg-[#24211f] p-4 lg:sticky lg:top-0 lg:self-start lg:p-5">
+          <aside className="rounded-[12px] border border-white/10 bg-[#24211f] p-4 lg:sticky lg:top-0 lg:self-start lg:p-5">
             <p className="text-base font-black text-white sm:text-lg">Resumen</p>
             <div className="mt-3 space-y-2 text-xs text-white/65 sm:mt-4 sm:space-y-3 sm:text-sm">
               {items.map((item) => (
@@ -377,7 +379,7 @@ export function CheckoutModal({ open, onClose, items, onOrderCreated }: Checkout
             </div>
             {isDelivery && !hasValidDeliveryQuote ? <p className="mt-3 text-[10px] leading-4 text-white/45 sm:mt-5 sm:text-xs sm:leading-5">Compartí tu ubicación GPS para calcular el envío y obtener el total final.</p> : null}
             {values.paymentMethod === 'transferencia' ? <p className="mt-2 text-[10px] leading-4 text-white/45 sm:mt-3 sm:text-xs sm:leading-5">Los datos de transferencia se enviarán automáticamente en el mensaje de WhatsApp.</p> : null}
-            <Button size="sm" className="mt-4 w-full rounded-sm sm:mt-5 sm:h-11" disabled={!canSendOrder} onClick={() => setConfirmSendOpen(true)}>{isSubmitting ? 'Creando pedido...' : 'Enviar a WhatsApp'}</Button>
+            <Button size="sm" className="mt-4 w-full rounded-[12px] sm:mt-5 sm:h-11" disabled={!canSendOrder} onClick={() => setConfirmSendOpen(true)}>{isSubmitting ? 'Creando pedido...' : 'Enviar a WhatsApp'}</Button>
           </aside>
         </div>
       )}
@@ -385,6 +387,7 @@ export function CheckoutModal({ open, onClose, items, onOrderCreated }: Checkout
       <ConfirmDialog
         open={confirmSendOpen}
         title="Confirmar pedido"
+        theme={theme}
         description="¿Seguro que querés crear el pedido y abrir WhatsApp con el detalle?"
         confirmLabel="Crear y enviar"
         isLoading={isSubmitting}

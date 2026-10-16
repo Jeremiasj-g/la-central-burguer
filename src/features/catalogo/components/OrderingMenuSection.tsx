@@ -60,40 +60,40 @@ export function OrderingMenuSection() {
   const activeTitle = selectedCategoryId === 'all' ? 'Menú completo' : categoryById[selectedCategoryId];
 
   return (
-    <section id="menu" className="brick-wall relative px-5 py-7 text-central-cream sm:px-6 sm:py-8 lg:px-8 lg:py-10">
-      <div className="pointer-events-none absolute inset-0 overflow-x-clip">
+    <section id="menu" className="lcb-polished-menu relative scroll-mt-[78px] px-4 py-10 sm:px-7 sm:py-12 lg:px-10 lg:py-16">
+      <div className="pointer-events-none absolute inset-0 hidden overflow-x-clip">
         <div className="absolute left-6 top-8 hidden max-w-[280px] text-[70px] watermark-text opacity-90 lg:block">{businessName}</div>
         <div className="absolute right-[-60px] top-20 hidden h-72 w-72 rounded-full border-[18px] border-central-cream/5 lg:block" />
       </div>
 
-      <div className="relative w-full">
-        <div className="mb-5 text-center sm:mb-7">
-          <div className="mx-auto mb-3 grid h-14 w-14 place-items-center rounded-full border-2 border-central-cream/80 bg-central-cream text-central-carbon shadow-dark sm:mb-4 sm:h-20 sm:w-20">
-            <ShoppingBag size={30} />
+      <div className="relative mx-auto w-full max-w-[1480px]">
+        <div className="lcb-polished-menu-heading mb-7 text-center sm:mb-9">
+          <div className="lcb-polished-menu-icon mx-auto mb-4 grid h-12 w-12 place-items-center rounded-[15px] sm:mb-5 sm:h-14 sm:w-14">
+            <ShoppingBag size={23} strokeWidth={1.7} />
           </div>
-          <p className="font-black uppercase tracking-[.35em] text-central-orange sm:tracking-[.45em]">{businessName}</p>
-          <h2 className="menu-title-shadow mt-2 font-display text-3xl sm:mt-3 sm:text-7xl uppercase tracking-wide text-central-cream">{activeTitle}</h2>
-          <div className="brush-line mx-auto mt-4" />
+          <p className="lcb-polished-eyebrow text-[11px] font-semibold uppercase tracking-[.19em]">{businessName}</p>
+          <h2 className="lcb-polished-title mt-2 text-4xl font-semibold tracking-[-.055em] sm:mt-3 sm:text-6xl">{activeTitle}</h2>
+          <div className="lcb-polished-accent-line mx-auto mt-4" />
         </div>
 
-        <div className="relative min-h-[calc(100dvh-72px)] lg:grid lg:min-h-[calc(100dvh+420px)] lg:grid-cols-[minmax(0,1fr)_390px] lg:gap-6 xl:grid-cols-[minmax(0,1fr)_430px]">
+        <div className="relative lg:grid lg:grid-cols-[minmax(0,1fr)_340px] lg:items-start lg:gap-5 xl:grid-cols-[minmax(0,1fr)_370px] xl:gap-6">
           <div className="min-w-0">
-            <div className="menu-ordering-tools sticky top-[72px] z-30 rounded-sm p-1 lg:py-6">
+            <div className="lcb-polished-menu-tools menu-ordering-tools sticky top-[76px] z-30 rounded-[18px] p-3 sm:p-4 lg:top-[85px]">
               <MenuSearchBar value={search} onChange={setSearch} />
               <div className="">
                 {loadingCategories ? (
-                  <div className="skeleton-dark h-[92px] rounded-sm bg-black/35 sm:h-28" />
+                  <div className="skeleton-dark h-[100px] rounded-[13px] bg-black/15 sm:h-[116px]" />
                 ) : (
                   <CategoryTabs categories={categorias} selectedCategoryId={selectedCategoryId} onSelect={setSelectedCategoryId} />
                 )}
               </div>
             </div>
 
-            <div className="mt-4 rounded-sm p-1  backdrop-blur sm:mt-5">
-              <div className="mb-4 flex flex-col gap-2 border-b border-dashed border-central-orange/40 pb-4 sm:flex-row sm:items-end sm:justify-between">
+            <div className="mt-6 rounded-[18px] p-0 sm:mt-7">
+              <div className="lcb-polished-list-heading mb-5 flex flex-col gap-2 border-b pb-4 sm:flex-row sm:items-end sm:justify-between">
                 <div>
-                  <p className="text-xs font-black uppercase tracking-[.32em] text-central-orange">Elegí y agregá al pedido</p>
-                  <h3 className="mt-1.5 font-display text-3xl sm:mt-2 sm:text-4xl uppercase leading-none tracking-wide text-central-cream">{activeTitle}</h3>
+                  <p className="lcb-polished-eyebrow text-[10px] font-semibold uppercase tracking-[.14em]">Elegí y agregá al pedido</p>
+                  <h3 className="lcb-polished-subtitle mt-2 text-[24px] font-semibold leading-tight tracking-[-.045em] sm:text-[28px]">{activeTitle}</h3>
                 </div>
               </div>
 
@@ -103,13 +103,13 @@ export function OrderingMenuSection() {
                 </div>
               ) : (
                 <>
-                  <div className="grid gap-3 sm:gap-4 xl:grid-cols-2">
+                  <div className="grid min-w-0 gap-3.5 sm:gap-4 xl:grid-cols-2">
                     {loadingProducts ? Array.from({ length: 8 }).map((_, index) => <ProductoCardSkeleton key={index} />) : null}
                     {!loadingProducts && productos.map((product) => (
                       <ProductoCard key={product.id} product={product} categoryName={categoryById[product.categoryId]} disabled={!isBusinessOpen} onSelect={setSelectedProduct} onPreviewImage={setPreviewProduct} />
                     ))}
                   </div>
-                  {!loadingProducts && productos.length === 0 ? <EmptyState className="mt-6 border-central-orange/25 bg-black/30 text-central-cream" title="No encontramos productos" description="Probá cambiar el texto de búsqueda o elegir otra categoría." /> : null}
+                  {!loadingProducts && productos.length === 0 ? <EmptyState className="lcb-polished-empty mt-6" title="No encontramos productos" description="Probá cambiar el texto de búsqueda o elegir otra categoría." /> : null}
                 </>
               )}
             </div>

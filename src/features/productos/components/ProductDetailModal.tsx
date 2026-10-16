@@ -8,6 +8,7 @@ import { Modal } from '@/shared/components/ui/Modal';
 import { Textarea } from '@/shared/components/ui/Textarea';
 import { formatCurrency } from '@/shared/utils/format.utils';
 import { cn } from '@/shared/utils/cn';
+import { useCustomerTheme } from '@/shared/components/layout/CustomerThemeProvider';
 import { ProductImageMedia } from './ProductImageMedia';
 
 interface ProductDetailModalProps {
@@ -21,6 +22,7 @@ interface ProductDetailModalProps {
 }
 
 export function ProductDetailModal({ product, open, onClose, onAddToCart, disabled = false, onPreviewImage, categoryName }: ProductDetailModalProps) {
+  const theme = useCustomerTheme();
   const [quantity, setQuantity] = useState(1);
   const [isAdding, setIsAdding] = useState(false);
   const [withNote, setWithNote] = useState(false);
@@ -62,14 +64,14 @@ export function ProductDetailModal({ product, open, onClose, onAddToCart, disabl
       open={open}
       onClose={onClose}
       title={currentProduct.name}
-      theme="dark"
+      theme={theme}
       size="lg"
-      panelClassName="border-central-orange/30 bg-[#171514] text-central-cream"
+      panelClassName="lcb-polished-product-modal !rounded-[20px]"
     >
       <div className="grid gap-4 md:grid-cols-[240px_1fr] md:gap-6">
         <button
           type="button"
-          className="group/image relative h-[24dvh] min-h-[160px] max-h-[210px] overflow-hidden rounded-sm border border-central-orange/25 bg-black text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-central-orange md:h-full md:max-h-none"
+          className="group/image relative h-[24dvh] min-h-[160px] max-h-[210px] overflow-hidden rounded-[12px] border border-central-orange/25 bg-black text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-central-orange md:h-full md:max-h-none"
           onClick={() => onPreviewImage?.(currentProduct)}
           title={`Ampliar imagen de ${currentProduct.name}`}
           aria-label={`Ampliar imagen de ${currentProduct.name}`}
@@ -85,7 +87,7 @@ export function ProductDetailModal({ product, open, onClose, onAddToCart, disabl
             <p className="font-display text-2xl uppercase tracking-wide text-central-orange md:text-3xl">{formatCurrency(currentProduct.currentPrice)}</p>
           </div>
           {onPreviewImage ? (
-            <span className="absolute right-2.5 top-2.5 grid h-8 w-8 place-items-center rounded-sm border border-white/20 bg-black/70 text-central-cream backdrop-blur transition duration-200 group-hover/image:border-central-orange group-hover/image:bg-central-orange group-hover/image:text-black">
+            <span className="absolute right-2.5 top-2.5 grid h-8 w-8 place-items-center rounded-[12px] border border-white/20 bg-black/70 text-central-cream backdrop-blur transition duration-200 group-hover/image:border-central-orange group-hover/image:bg-central-orange group-hover/image:text-black">
               <Maximize2 size={15} />
             </span>
           ) : null}
@@ -95,12 +97,12 @@ export function ProductDetailModal({ product, open, onClose, onAddToCart, disabl
           <p className="text-sm font-semibold leading-6 text-central-cream/72 md:text-base md:leading-7">{currentProduct.description}</p>
 
           <div className="mt-4 grid grid-cols-2 gap-3">
-            <div className="rounded-sm border border-central-orange/20 bg-black/30 p-3">
+            <div className="rounded-[12px] border border-central-orange/20 bg-black/30 p-3">
               <p className="text-[11px] font-black uppercase tracking-[.18em] text-central-orange/80">Cantidad</p>
               <div className="mt-2 flex items-center justify-between gap-2">
                 <button
                   type="button"
-                  className="grid h-8 w-8 shrink-0 place-items-center rounded-sm border border-central-orange/25 text-central-cream/75 transition duration-200 hover:bg-central-orange hover:text-black"
+                  className="grid h-8 w-8 shrink-0 place-items-center rounded-[12px] border border-central-orange/25 text-central-cream/75 transition duration-200 hover:bg-central-orange hover:text-black"
                   onClick={() => setQuantity((value) => Math.max(value - 1, 1))}
                   aria-label="Disminuir cantidad"
                 >
@@ -109,7 +111,7 @@ export function ProductDetailModal({ product, open, onClose, onAddToCart, disabl
                 <span className="min-w-7 text-center font-display text-2xl text-central-cream">{quantity}</span>
                 <button
                   type="button"
-                  className="grid h-8 w-8 shrink-0 place-items-center rounded-sm border border-central-orange/25 text-central-cream/75 transition duration-200 hover:bg-central-orange hover:text-black"
+                  className="grid h-8 w-8 shrink-0 place-items-center rounded-[12px] border border-central-orange/25 text-central-cream/75 transition duration-200 hover:bg-central-orange hover:text-black"
                   onClick={() => setQuantity((value) => value + 1)}
                   aria-label="Aumentar cantidad"
                 >
@@ -118,17 +120,17 @@ export function ProductDetailModal({ product, open, onClose, onAddToCart, disabl
               </div>
             </div>
 
-            <div className="rounded-sm border border-central-orange/20 bg-black/30 p-3">
+            <div className="rounded-[12px] border border-central-orange/20 bg-black/30 p-3">
               <p className="text-[11px] font-black uppercase tracking-[.18em] text-central-orange/80">Aclaración</p>
               <div className="mt-2 grid grid-cols-2 gap-2">
-                <label className={cn('flex cursor-pointer items-center justify-center gap-1.5 rounded-sm border px-2 py-2 text-xs font-bold transition-[border-color,background-color,color,transform] duration-200 ease-out motion-reduce:transition-none', !withNote ? 'border-central-orange bg-central-orange/12 text-central-cream' : 'border-white/10 text-central-cream/60')}>
+                <label className={cn('flex cursor-pointer items-center justify-center gap-1.5 rounded-[12px] border px-2 py-2 text-xs font-bold transition-[border-color,background-color,color,transform] duration-200 ease-out motion-reduce:transition-none', !withNote ? 'border-central-orange bg-central-orange/12 text-central-cream' : 'border-white/10 text-central-cream/60')}>
                   <input checked={!withNote} onChange={() => setWithNote(false)} type="radio" name="product-note-choice" className="sr-only" />
                   <span aria-hidden="true" className={cn('grid h-4 w-4 place-items-center rounded-full border transition-[border-color,background-color] duration-200 motion-reduce:transition-none', !withNote ? 'border-central-orange bg-central-orange/10' : 'border-white/30 bg-transparent')}>
                     <span className={cn('h-2 w-2 rounded-full bg-central-orange transition-[opacity,transform] duration-200 motion-reduce:transition-none', !withNote ? 'scale-100 opacity-100' : 'scale-0 opacity-0')} />
                   </span>
                   No
                 </label>
-                <label className={cn('flex cursor-pointer items-center justify-center gap-1.5 rounded-sm border px-2 py-2 text-xs font-bold transition-[border-color,background-color,color,transform] duration-200 ease-out motion-reduce:transition-none', withNote ? 'border-central-orange bg-central-orange/12 text-central-cream' : 'border-white/10 text-central-cream/60')}>
+                <label className={cn('flex cursor-pointer items-center justify-center gap-1.5 rounded-[12px] border px-2 py-2 text-xs font-bold transition-[border-color,background-color,color,transform] duration-200 ease-out motion-reduce:transition-none', withNote ? 'border-central-orange bg-central-orange/12 text-central-cream' : 'border-white/10 text-central-cream/60')}>
                   <input checked={withNote} onChange={() => setWithNote(true)} type="radio" name="product-note-choice" className="sr-only" />
                   <span aria-hidden="true" className={cn('grid h-4 w-4 place-items-center rounded-full border transition-[border-color,background-color] duration-200 motion-reduce:transition-none', withNote ? 'border-central-orange bg-central-orange/10' : 'border-white/30 bg-transparent')}>
                     <span className={cn('h-2 w-2 rounded-full bg-central-orange transition-[opacity,transform] duration-200 motion-reduce:transition-none', withNote ? 'scale-100 opacity-100' : 'scale-0 opacity-0')} />
