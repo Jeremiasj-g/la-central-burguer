@@ -1,4 +1,5 @@
 'use client';
+// PR temporal: verificación del tema claro público.
 
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
 import { Moon, Sun } from 'lucide-react';
