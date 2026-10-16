@@ -17,7 +17,7 @@ export function MenuSearchBar({ value, onChange }: MenuSearchBarProps) {
         value={value}
         onChange={(event) => onChange(event.target.value)}
         placeholder="Buscar hamburguesas, lomitos, pizzas..."
-        className="h-11 rounded-[12px] border border-central-orange/35 bg-[#11100f] pl-11 text-base sm:h-16 sm:pl-14 font-bold text-central-cream shadow-dark outline-none placeholder:text-central-cream/38 focus:border-central-orange focus:ring-central-orange/40"
+        className="lcb-menu-search-input h-11 rounded-[12px] border border-white/[.085] bg-[#222222] pl-11 text-base sm:h-16 sm:pl-14 font-normal text-central-cream shadow-none outline-none placeholder:text-central-cream/38 focus:border-central-orange focus:ring-central-orange/40"
       />
     </label>
   );
