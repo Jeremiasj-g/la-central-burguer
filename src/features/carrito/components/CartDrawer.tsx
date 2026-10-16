@@ -1,4 +1,5 @@
 'use client';
+// Verificación temporal del rediseño del carrito.
 
 import { ArrowRight, ShoppingBag, Trash2 } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
