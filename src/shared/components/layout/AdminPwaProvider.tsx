@@ -1,4 +1,5 @@
 'use client';
+// Verificación temporal de instalabilidad PWA Admin.
 
 import { Download, CheckCircle2 } from 'lucide-react';
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
