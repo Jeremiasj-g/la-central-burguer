@@ -28,24 +28,24 @@ export function PublicHeader() {
       <div className="mx-auto flex min-h-[68px] w-full max-w-[1120px] items-center justify-between gap-3 px-4 py-2 sm:min-h-[72px] sm:px-6 lg:px-8">
         <div className="flex min-w-0 items-center gap-5 lg:gap-8">
           <Link
-          href={ROUTES.home}
-          className="inline-flex shrink-0 items-center rounded-full focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-central-orange"
-          aria-label={`Ir al inicio de ${businessName}`}
-          title="Ir al inicio"
-        >
-          <BusinessLogo logoUrl={config?.logoUrl} businessName={businessName} mode="navbar" loading={isLoading} />
+            href={ROUTES.home}
+            className="inline-flex shrink-0 items-center rounded-full focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-central-orange"
+            aria-label={`Ir al inicio de ${businessName}`}
+            title="Ir al inicio"
+          >
+            <BusinessLogo logoUrl={config?.logoUrl} businessName={businessName} mode="navbar" loading={isLoading} />
           </Link>
 
           <nav aria-label="Navegación principal" className="hidden items-center gap-1 border-l border-white/10 pl-5 md:flex lg:pl-8">
-          {navigation.map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              className="inline-flex h-10 items-center rounded-[11px] px-4 text-[13px] font-medium tracking-normal text-central-cream/75 transition-colors duration-200 hover:bg-central-orange/10 hover:text-central-orange focus-visible:outline focus-visible:outline-2 focus-visible:outline-central-orange"
-            >
-              {item.label}
-            </Link>
-          ))}
+            {navigation.map((item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                className="inline-flex h-10 items-center rounded-[11px] px-4 text-[13px] font-medium tracking-normal text-central-cream/75 transition-colors duration-200 hover:bg-central-orange/10 hover:text-central-orange focus-visible:outline focus-visible:outline-2 focus-visible:outline-central-orange"
+              >
+                {item.label}
+              </Link>
+            ))}
           </nav>
         </div>
 
