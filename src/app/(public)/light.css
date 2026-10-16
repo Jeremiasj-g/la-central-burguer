@@ -40,13 +40,11 @@ body.lcb-public-typography[data-public-theme="light"] .bg-central-orange,
  color:var(--lcb-light-text)!important;box-shadow:0 4px 24px rgba(25,29,34,.045)!important;
  backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
 }
-.public-site[data-public-theme="light"] header.sticky.top-0 :is(.lcb-theme-toggle,button[title="Carrito"],button[aria-label="Abrir menú"],button[aria-label="Cerrar menú"]){
+.public-site[data-public-theme="light"] header.sticky.top-0 :is(.lcb-theme-toggle,button[title="Carrito"]){
  background:#fff!important;color:var(--lcb-light-text)!important;border-color:var(--lcb-light-border)!important;border-radius:11px;
 }
 .public-site[data-public-theme="light"] header.sticky.top-0 a:not(.bg-central-orange){color:var(--lcb-light-text)!important;}
 .public-site[data-public-theme="light"] header.sticky.top-0 a.bg-central-orange{color:#1e1b16!important;}
-.public-site[data-public-theme="light"] .lcb-mobile-nav{background:#fff!important;border-color:var(--lcb-light-border)!important;}
-.public-site[data-public-theme="light"] .lcb-mobile-nav a{color:var(--lcb-light-text)!important;}
 /* Fondo con la retícula original, ahora clara: hero, menú y footer. */
 .public-site[data-public-theme="light"] .brick-wall{
  background-color:#f6f4f1;
