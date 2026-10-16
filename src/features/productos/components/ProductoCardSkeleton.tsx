@@ -1,3 +1,4 @@
+// CI temporal: valida los skeletons y modales claros.
 import Skeleton from 'react-loading-skeleton';
 
 export function ProductoCardSkeleton() {
