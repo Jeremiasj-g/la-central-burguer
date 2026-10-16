@@ -1,3 +1,4 @@
+// Verificación temporal CI de mantenimiento y productos no disponibles.
 import Skeleton from 'react-loading-skeleton';
 
 export function ProductoCardSkeleton() {
