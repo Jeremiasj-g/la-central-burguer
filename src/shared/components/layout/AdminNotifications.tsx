@@ -14,6 +14,7 @@ import { ROUTES } from '@/shared/constants/routes';
 import { useAnimatedPresence } from '@/shared/hooks/useAnimatedPresence';
 import { cn } from '@/shared/utils/cn';
 import { formatCurrency, formatDateTime } from '@/shared/utils/format.utils';
+import { updateAdminAppBadge } from '@/features/pedidos/services/admin-push.service';
 
 function isIncomingOrder(order: Order) {
   return order.status === 'aceptado';
@@ -30,7 +31,7 @@ export function AdminNotifications() {
   async function loadOrders() {
     try {
       const [data, storedSeenIds] = await Promise.all([getPedidos(), getSeenOrderIds()]);
-      setOrders(data.slice(0, 8));
+      setOrders(data);
       setSeenIds(storedSeenIds);
       setError(null);
     } catch (err) {
@@ -42,7 +43,15 @@ export function AdminNotifications() {
 
   useEffect(() => {
     loadOrders();
-    return subscribeToOrders(loadOrders);
+    const unsubscribe = subscribeToOrders(loadOrders);
+    const onPush = (event: MessageEvent) => {
+      if (event.data?.type === 'ADMIN_PUSH_RECEIVED') void loadOrders();
+    };
+    navigator.serviceWorker?.addEventListener('message', onPush);
+    return () => {
+      unsubscribe();
+      navigator.serviceWorker?.removeEventListener('message', onPush);
+    };
   }, []);
 
   useEffect(() => {
@@ -73,6 +82,8 @@ export function AdminNotifications() {
     [orders, seenIds],
   );
   const unseenCount = unseenOrders.length;
+
+  useEffect(() => { updateAdminAppBadge(unseenCount); }, [unseenCount]);
 
   async function markAllAsSeen() {
     try {
@@ -164,7 +175,7 @@ export function AdminNotifications() {
                   <p className="text-[13px] font-medium text-neutral-700">Sin novedades por ahora</p>
                   <p className="mt-1 text-[11px] text-neutral-500">Los últimos pedidos aparecerán acá.</p>
                 </div>
-              ) : orders.map((order) => {
+              ) : orders.slice(0, 8).map((order) => {
                 const unseen = isIncomingOrder(order) && !seenIds.includes(order.id);
                 return (
                   <Link
