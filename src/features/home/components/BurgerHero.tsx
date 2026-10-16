@@ -24,9 +24,6 @@ export function BurgerHero() {
   return (
     <section className="brick-wall grunge-border relative min-h-[720px] overflow-hidden px-4 py-20 text-central-cream sm:px-6 lg:px-8 lg:py-24">
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_18%,rgba(216,137,24,.18),transparent_30rem),linear-gradient(90deg,rgba(0,0,0,.30),transparent_45%,rgba(0,0,0,.34))]" />
-      {!isLoading ? (
-        <div className="pointer-events-none absolute left-6 top-28 hidden text-[88px] watermark-text lg:block">{businessName}</div>
-      ) : null}
       <div className="pointer-events-none absolute -right-24 top-28 hidden h-[380px] w-[380px] rounded-full border-[28px] border-central-cream/5 xl:block" />
       <div className="pointer-events-none absolute bottom-0 right-0 hidden h-[290px] w-[520px] rounded-tl-[80px] bg-[radial-gradient(circle_at_60%_45%,rgba(216,137,24,.38),rgba(216,137,24,.08)_42%,transparent_70%)] blur-sm lg:block" />
 
