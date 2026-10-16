@@ -49,98 +49,112 @@ export function CartItemRow({ item, onUpdateQuantity, onUpdateNote, onRemove, fo
   }
 
   return (
-    <div
-      className={cn(
-        'grid grid-cols-[48px_1fr_auto] gap-3 py-3 transition-[opacity,transform] duration-200 ease-in-out motion-reduce:transition-none sm:grid-cols-[58px_1fr_auto] sm:gap-4 sm:py-4',
-        removing ? 'pointer-events-none -translate-x-4 opacity-0' : 'translate-x-0 opacity-100',
-      )}
-    >
-      <ProductImageMedia
-        imageUrl={item.imageUrl}
-        productName={item.productName}
-        categoryName={item.categoryName}
-        className="h-12 w-12 rounded-sm border border-central-orange/20 bg-black sm:h-14 sm:w-14"
-        compact
-      />
-      <div className="min-w-0">
-        <h4 className="text-sm font-black leading-tight text-central-cream sm:text-base">{item.productName}</h4>
-        <p className="mt-0.5 text-xs font-black text-central-cream/52 sm:mt-1 sm:text-sm">{formatCurrency(item.unitPrice)}</p>
+    <article className={cn(
+      'lcb-cart-item-row min-w-0 py-4 transition-[opacity,transform] duration-200 ease-out motion-reduce:transition-none',
+      removing ? 'pointer-events-none -translate-x-3 opacity-0' : 'translate-x-0 opacity-100',
+    )}>
+      <div className="grid min-w-0 grid-cols-[64px_minmax(0,1fr)_32px] items-start gap-3">
+        <ProductImageMedia
+          imageUrl={item.imageUrl}
+          productName={item.productName}
+          categoryName={item.categoryName}
+          compact
+          className="h-16 w-16 shrink-0 rounded-[13px] bg-[#242424]"
+        />
 
-        {editingNote ? (
-          <div className="mt-2 rounded-sm border border-central-orange/25 bg-black/35 p-2 transition duration-200">
-            <textarea
-              autoFocus
-              rows={2}
-              maxLength={180}
-              value={draftNote}
-              onChange={(event) => setDraftNote(event.target.value)}
-              onKeyDown={(event) => {
-                if (event.key === 'Escape') cancelNoteEdit();
-                if ((event.ctrlKey || event.metaKey) && event.key === 'Enter') saveNote();
-              }}
-              placeholder="Ej.: sin cebolla, poco queso..."
-              className="custom-scrollbar min-h-14 w-full resize-none bg-transparent text-sm leading-5 text-central-cream outline-none placeholder:text-central-cream/35"
-            />
-            <div className="mt-2 flex justify-end gap-2">
-              <button
-                type="button"
-                className="grid h-7 w-7 place-items-center rounded-sm border border-white/10 text-white/60 transition duration-200 hover:bg-white/10 hover:text-white"
-                title="Cancelar edición"
-                aria-label="Cancelar edición de aclaración"
-                onClick={cancelNoteEdit}
-              >
-                <X size={14} />
-              </button>
-              <button
-                type="button"
-                className="grid h-7 w-7 place-items-center rounded-sm border border-central-orange/35 bg-central-orange text-black transition duration-200 hover:bg-central-cream"
-                title="Guardar aclaración"
-                aria-label="Guardar aclaración"
-                onClick={saveNote}
-              >
-                <Check size={14} />
-              </button>
-            </div>
-          </div>
-        ) : (
-          <div className="mt-2 flex min-w-0 items-start gap-2">
-            {item.note ? (
-              <p className="min-w-0 flex-1 break-words rounded-sm border border-central-orange/20 bg-black/35 px-2.5 py-1.5 text-xs leading-5 text-central-cream/70">
-                {item.note}
-              </p>
-            ) : (
-              <span className="min-w-0 flex-1 text-xs text-central-cream/35">Sin aclaración</span>
-            )}
-            <button
-              type="button"
-              className="grid h-7 w-7 shrink-0 place-items-center rounded-sm border border-central-orange/20 text-central-cream/60 transition duration-200 hover:bg-central-orange hover:text-black"
-              title={item.note ? 'Editar aclaración' : 'Agregar aclaración'}
-              aria-label={item.note ? 'Editar aclaración' : 'Agregar aclaración'}
-              onClick={() => setEditingNote(true)}
-            >
-              <Pencil size={13} />
-            </button>
-          </div>
-        )}
-
-        <div className="mt-2 flex items-center gap-2 sm:mt-3 sm:gap-3">
-          <button className="grid h-7 w-7 place-items-center rounded-sm border border-central-orange/20 text-central-cream/70 transition duration-200 hover:bg-central-orange hover:text-black sm:h-8 sm:w-8" title="Disminuir cantidad" onClick={() => onUpdateQuantity(item.id, item.quantity - 1)}><Minus size={14} /></button>
-          <span className="w-5 text-center font-black">{item.quantity}</span>
-          <button className="grid h-7 w-7 place-items-center rounded-sm border border-central-orange/20 text-central-cream/70 transition duration-200 hover:bg-central-orange hover:text-black sm:h-8 sm:w-8" title="Aumentar cantidad" onClick={() => onUpdateQuantity(item.id, item.quantity + 1)}><Plus size={14} /></button>
+        <div className="min-w-0 pt-0.5">
+          <h4 className="line-clamp-3 break-words text-[13px] font-semibold leading-[1.36] tracking-[-.012em] text-[#f6f5f2] sm:text-[14px]">
+            {item.productName}
+          </h4>
+          <p className="mt-1 text-[11px] font-normal tabular-nums text-white/45">
+            {formatCurrency(item.unitPrice)} c/u
+          </p>
         </div>
-      </div>
-      <div className="text-right">
-        <p className="text-sm font-black text-central-cream sm:text-base">{formatCurrency(item.unitPrice * item.quantity)}</p>
+
         <button
-          className="mt-3 rounded-sm p-1.5 text-red-400 transition duration-200 hover:bg-red-500/10 disabled:cursor-default disabled:opacity-40 sm:mt-4 sm:p-2"
+          type="button"
+          className="grid h-8 w-8 place-items-center rounded-[10px] text-white/40 transition-colors duration-200 hover:bg-red-500/10 hover:text-red-300 disabled:opacity-30"
           title="Eliminar producto del pedido"
+          aria-label={`Eliminar ${item.productName} del pedido`}
           onClick={() => setConfirmRemoveOpen(true)}
-          aria-label="Eliminar item"
           disabled={removing}
         >
-          <Trash2 size={17} />
+          <Trash2 size={16} strokeWidth={1.7} />
         </button>
       </div>
+
+      {editingNote ? (
+        <div className="mt-3 space-y-2 pl-0 sm:pl-[76px]">
+          <label htmlFor={`note-${item.id}`} className="block text-[11px] font-medium text-white/65">Aclaración del producto</label>
+          <textarea
+            id={`note-${item.id}`}
+            autoFocus
+            rows={2}
+            maxLength={180}
+            value={draftNote}
+            onChange={(event) => setDraftNote(event.target.value)}
+            onKeyDown={(event) => {
+              if (event.key === 'Escape') cancelNoteEdit();
+              if ((event.ctrlKey || event.metaKey) && event.key === 'Enter') saveNote();
+            }}
+            placeholder="Ej.: sin cebolla, poco queso..."
+            className="lcb-cart-note-input custom-scrollbar min-h-[80px] w-full resize-y rounded-[12px] border border-white/10 bg-white/[.055] px-3 py-2.5 text-[12px] leading-5 text-white outline-none placeholder:text-white/35 focus:border-central-orange/60"
+          />
+          <div className="flex justify-end gap-2">
+            <button type="button" onClick={cancelNoteEdit} className="inline-flex h-9 items-center gap-1.5 rounded-[10px] px-3 text-[11px] font-medium text-white/60 transition-colors duration-200 hover:bg-white/[.07] hover:text-white">
+              <X size={14} /> Cancelar
+            </button>
+            <button type="button" onClick={saveNote} className="inline-flex h-9 items-center gap-1.5 rounded-[10px] bg-central-orange px-3 text-[11px] font-semibold text-[#171717] transition-colors duration-200 hover:bg-[#ffc04a]">
+              <Check size={14} /> Guardar
+            </button>
+          </div>
+        </div>
+      ) : (
+        <button
+          type="button"
+          className="mt-2.5 flex w-full min-w-0 items-center gap-2 rounded-[9px] py-1 text-left text-[11px] leading-[1.5] text-white/45 transition-colors duration-200 hover:text-white/80"
+          title={item.note ? 'Editar aclaración' : 'Agregar aclaración'}
+          onClick={() => setEditingNote(true)}
+          disabled={removing}
+        >
+          <Pencil size={13} strokeWidth={1.7} className="shrink-0 text-[#f0b45c]" />
+          <span className={cn('min-w-0 flex-1 break-words', item.note && 'text-white/65')}>
+            {item.note || 'Agregar aclaración'}
+          </span>
+        </button>
+      )}
+
+      <div className="mt-3 flex min-w-0 items-center justify-between gap-2">
+        <div className="lcb-cart-quantity-control inline-flex h-10 shrink-0 items-center gap-1 rounded-[12px] bg-white/[.055] p-1">
+          <button
+            type="button"
+            onClick={() => onUpdateQuantity(item.id, item.quantity - 1)}
+            disabled={item.quantity <= 1 || removing}
+            title="Disminuir cantidad"
+            aria-label={`Disminuir cantidad de ${item.productName}`}
+            className="grid h-8 w-8 place-items-center rounded-[9px] text-white/75 transition-colors duration-200 hover:bg-white/10 hover:text-white disabled:cursor-not-allowed disabled:opacity-30"
+          >
+            <Minus size={16} strokeWidth={1.8} />
+          </button>
+          <output className="min-w-7 text-center text-[14px] font-semibold tabular-nums text-white" aria-live="polite">
+            {item.quantity}
+          </output>
+          <button
+            type="button"
+            onClick={() => onUpdateQuantity(item.id, item.quantity + 1)}
+            disabled={removing}
+            title="Aumentar cantidad"
+            aria-label={`Aumentar cantidad de ${item.productName}`}
+            className="grid h-8 w-8 place-items-center rounded-[9px] text-white/75 transition-colors duration-200 hover:bg-white/10 hover:text-white disabled:cursor-not-allowed disabled:opacity-30"
+          >
+            <Plus size={16} strokeWidth={1.8} />
+          </button>
+        </div>
+        <span className="min-w-0 text-right text-[16px] font-semibold tracking-[-.035em] tabular-nums text-[#f7f5f2] sm:text-[17px]">
+          {formatCurrency(item.unitPrice * item.quantity)}
+        </span>
+      </div>
+
       <ConfirmDialog
         open={confirmRemoveOpen}
         title="Eliminar del pedido"
@@ -150,6 +164,6 @@ export function CartItemRow({ item, onUpdateQuantity, onUpdateNote, onRemove, fo
         onCancel={() => setConfirmRemoveOpen(false)}
         onConfirm={removeWithAnimation}
       />
-    </div>
+    </article>
   );
 }
