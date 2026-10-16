@@ -173,6 +173,10 @@ export async function restoreAccessUser(userId: string) {
   return invokeUserAction({ action: 'restore', userId });
 }
 
+export async function activatePendingDeliveryUser(userId: string, password: string) {
+  return invokeUserAction({ action: 'activatePendingDelivery', userId, password });
+}
+
 export async function resetAccessUserPassword(userId: string, password: string) {
   return invokeUserAction({ action: 'resetPassword', userId, password });
 }

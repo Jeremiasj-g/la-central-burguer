@@ -385,6 +385,36 @@ Deno.serve(async (req: Request) => {
       return json({ ok: true, userId });
     }
 
+    if (action === 'activatePendingDelivery') {
+      const userId = required(body.userId, 'Usuario');
+      const password = required(body.password, 'Contraseña inicial', 12);
+      const { data: role, error: roleError } = await admin.from('roles').select('id').eq('code', 'delivery').eq('active', true).maybeSingle();
+      if (roleError) throw roleError;
+      if (!role) throw new Error('El rol Delivery no está disponible.');
+      const { data: membership, error: memberError } = await admin.from('user_roles').select('user_id').eq('user_id', userId).eq('role_id', role.id).maybeSingle();
+      if (memberError) throw memberError;
+      if (!membership) throw new Error('El usuario no tiene asignado el rol Delivery.');
+      const { data: profile, error: profileError } = await admin.from('profiles').select('id,archived_at').eq('id', userId).maybeSingle();
+      if (profileError) throw profileError;
+      if (!profile || profile.archived_at) throw new Error('El usuario no está disponible para activar.');
+      const { data: authResult, error: authReadError } = await admin.auth.admin.getUserById(userId);
+      if (authReadError || !authResult.user) throw authReadError ?? new Error('Cuenta no encontrada.');
+      const authUser = authResult.user;
+      if (!authUser.invited_at || authUser.email_confirmed_at) throw new Error('Esta invitación ya no está pendiente.');
+      const { error: profileActivateError } = await admin.from('profiles').update({ active: true }).eq('id', userId).is('archived_at', null);
+      if (profileActivateError) throw profileActivateError;
+      const { error: deliveryActivateError } = await admin.from('delivery_drivers').update({ active: true }).eq('profile_id', userId);
+      if (deliveryActivateError) throw deliveryActivateError;
+      const { error } = await admin.auth.admin.updateUserById(userId, {
+        password,
+        email_confirm: true,
+        user_metadata: { ...(authUser.user_metadata ?? {}), onboarding_required: false, onboarding_completed_at: new Date().toISOString() },
+        app_metadata: { ...(authUser.app_metadata ?? {}), manual_activation_by: actorId },
+      });
+      if (error) throw error;
+      return json({ ok: true, userId });
+    }
+
     if (action === 'resetPassword') {
       const userId = required(body.userId, 'Usuario');
       const password = required(body.password, 'Contraseña', 8);

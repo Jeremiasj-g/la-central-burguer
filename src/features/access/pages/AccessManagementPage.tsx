@@ -28,6 +28,7 @@ import { AccessManagementSkeleton } from '../components/AccessManagementSkeleton
 import { AccessRoleModal } from '../components/AccessRoleModal';
 import { AccessUserModal } from '../components/AccessUserModal';
 import {
+  activatePendingDeliveryUser,
   archiveAccessUser,
   deleteAccessRole,
   getAccessManagementDashboard,
@@ -150,6 +151,7 @@ function UserCard({ user, onEdit, onPassword, onConfirm }: {
 
       <div className="mt-4 flex flex-wrap gap-2">
         <Button size="sm" variant="secondary" onClick={onEdit}><Edit3 size={14} /> Editar</Button>
+        {pending && user.roles.some((role) => role.code === 'delivery') ? <Button size="sm" variant="secondary" onClick={onPassword}><KeyRound size={14} /> Activar sin correo</Button> : null}
         {!pending && user.accessStatus !== 'archived' ? <Button size="sm" variant="secondary" onClick={onPassword}><KeyRound size={14} /> Clave</Button> : null}
         {!pending && user.accessStatus !== 'archived' ? <Button size="sm" variant={active ? 'secondary' : 'dark'} onClick={() => onConfirm({ type: 'set-active', user, active: !active })}>{active ? <UserRoundX size={14} /> : <UserRoundCheck size={14} />}{active ? 'Desactivar' : 'Activar'}</Button> : null}
         {user.accessStatus !== 'archived' ? <Button size="sm" variant="danger" onClick={() => onConfirm({ type: 'archive', user })}><Archive size={14} /> Archivar</Button> : <Button size="sm" variant="dark" onClick={() => onConfirm({ type: 'restore', user })}><RotateCcw size={14} /> Restaurar</Button>}
@@ -244,6 +246,7 @@ function UserTableRow({ user, onEdit, onPassword, onConfirm }: {
         <p className="mb-1.5 text-[10px] font-medium uppercase tracking-wide text-neutral-400 xl:hidden">Acciones</p>
         <div className="flex min-w-0 flex-wrap items-center gap-1.5 xl:justify-end">
           <TableActionButton label="Editar" onClick={onEdit}><Edit3 size={14} /></TableActionButton>
+          {pending && user.roles.some((role) => role.code === 'delivery') ? <TableActionButton label="Activar sin correo" onClick={onPassword}><KeyRound size={14} /></TableActionButton> : null}
           {!pending && user.accessStatus !== 'archived' ? <TableActionButton label="Cambiar clave" onClick={onPassword}><KeyRound size={14} /></TableActionButton> : null}
           {!pending && user.accessStatus !== 'archived' ? (
             <TableActionButton label={active ? 'Desactivar' : 'Activar'} tone={active ? 'default' : 'dark'} onClick={() => onConfirm({ type: 'set-active', user, active: !active })}>
@@ -286,6 +289,7 @@ export function AccessManagementPage() {
   const [roleModal, setRoleModal] = useState<AccessRole | 'new' | null>(null);
   const [passwordUser, setPasswordUser] = useState<AccessUser | null>(null);
   const [newPassword, setNewPassword] = useState('');
+  const [identityAcknowledged, setIdentityAcknowledged] = useState(false);
   const [confirmState, setConfirmState] = useState<ConfirmState | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -344,13 +348,23 @@ export function AccessManagementPage() {
 
   async function resetPassword() {
     if (!passwordUser) return;
-    if (newPassword.length < 8) return toast.warning('La contraseña debe tener al menos 8 caracteres.');
+    const pendingDelivery = passwordUser.accessStatus === 'pending_activation' && passwordUser.roles.some((role) => role.code === 'delivery');
+    const minLength = pendingDelivery ? 12 : 8;
+    if (newPassword.length < minLength) return toast.warning(`La contraseña debe tener al menos ${minLength} caracteres.`);
+    if (pendingDelivery && !identityAcknowledged) return toast.warning('Confirmá que verificaste la identidad del repartidor.');
     setBusy(true);
     try {
-      await resetAccessUserPassword(passwordUser.id, newPassword);
-      toast.success('Contraseña actualizada.');
+      if (pendingDelivery) {
+        await activatePendingDeliveryUser(passwordUser.id, newPassword);
+        toast.success('Repartidor habilitado. Ya puede ingresar sin invitación.');
+        await load(true);
+      } else {
+        await resetAccessUserPassword(passwordUser.id, newPassword);
+        toast.success('Contraseña actualizada.');
+      }
       setPasswordUser(null);
       setNewPassword('');
+      setIdentityAcknowledged(false);
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'No se pudo actualizar la contraseña.');
     } finally {
@@ -480,10 +494,21 @@ export function AccessManagementPage() {
       {userModal ? <AccessUserModal user={userModal === 'new' ? undefined : userModal} roles={data.roles} onClose={() => setUserModal(null)} onSaved={() => void load(true)} /> : null}
       {roleModal ? <AccessRoleModal role={roleModal === 'new' ? undefined : roleModal} permissions={data.permissions} onClose={() => setRoleModal(null)} onSaved={() => void load(true)} /> : null}
 
-      <Modal open={Boolean(passwordUser)} onClose={() => { setPasswordUser(null); setNewPassword(''); }} title="Cambiar contraseña" size="sm" theme="light">
-        <p className="mb-4 text-sm leading-6 text-neutral-600">Definí una nueva contraseña para <strong>{passwordUser?.fullName}</strong>. El cambio se aplica inmediatamente.</p>
-        <label><span className={labelClass}>Nueva contraseña</span><PasswordInput variant="light" minLength={8} value={newPassword} onChange={(event) => setNewPassword(event.target.value)} autoFocus autoComplete="new-password" /></label>
-        <div className="mt-5 flex justify-end gap-2"><Button variant="secondary" onClick={() => { setPasswordUser(null); setNewPassword(''); }}>Cancelar</Button><Button onClick={() => void resetPassword()} disabled={busy}>Guardar contraseña</Button></div>
+      <Modal open={Boolean(passwordUser)} onClose={() => { if (!busy) { setPasswordUser(null); setNewPassword(''); setIdentityAcknowledged(false); } }} title={passwordUser?.accessStatus === 'pending_activation' ? 'Activar repartidor sin correo' : 'Cambiar contraseña'} size="sm" theme="light">
+        {passwordUser?.accessStatus === 'pending_activation' ? (
+          <>
+            <p className="mb-3 text-[12px] leading-5 text-neutral-600">Definí una contraseña inicial para <strong>{passwordUser.fullName}</strong> ({passwordUser.email}). Podrá ingresar a Delivery sin usar el correo de invitación.</p>
+            <p className="mb-4 rounded-[11px] bg-amber-50 px-3 py-2.5 text-[11px] leading-5 text-amber-800">Esto marcará su email como confirmado administrativamente, sin verificar que el destinatario controle ese correo. Solo habilitalo si verificaste personalmente su identidad.</p>
+          </>
+        ) : <p className="mb-4 text-sm leading-6 text-neutral-600">Definí una nueva contraseña para <strong>{passwordUser?.fullName}</strong>. El cambio se aplica inmediatamente.</p>}
+        <label><span className={labelClass}>{passwordUser?.accessStatus === 'pending_activation' ? 'Contraseña inicial (mínimo 12 caracteres)' : 'Nueva contraseña'}</span><PasswordInput variant="light" minLength={passwordUser?.accessStatus === 'pending_activation' ? 12 : 8} value={newPassword} onChange={(event) => setNewPassword(event.target.value)} autoFocus autoComplete="new-password" /></label>
+        {passwordUser?.accessStatus === 'pending_activation' ? (
+          <label className="mt-3 flex cursor-pointer items-start gap-2.5 text-[11px] leading-5 text-neutral-600">
+            <input type="checkbox" checked={identityAcknowledged} onChange={(event) => setIdentityAcknowledged(event.target.checked)} className="mt-1 h-4 w-4 shrink-0 accent-central-orange" />
+            Confirmo que verifiqué la identidad del repartidor y que le entregaré la contraseña por un canal seguro.
+          </label>
+        ) : null}
+        <div className="mt-5 flex justify-end gap-2"><Button variant="secondary" onClick={() => { setPasswordUser(null); setNewPassword(''); setIdentityAcknowledged(false); }} disabled={busy}>Cancelar</Button><Button onClick={() => void resetPassword()} disabled={busy || (passwordUser?.accessStatus === 'pending_activation' && (newPassword.length < 12 || !identityAcknowledged))}>{busy ? 'Guardando...' : passwordUser?.accessStatus === 'pending_activation' ? 'Habilitar acceso' : 'Guardar contraseña'}</Button></div>
       </Modal>
 
       <ConfirmDialog open={Boolean(confirmState)} title={confirmCopy.title} description={confirmCopy.description} confirmLabel={confirmCopy.label} tone={confirmCopy.tone} isLoading={busy} onConfirm={executeConfirm} onCancel={() => setConfirmState(null)} />
