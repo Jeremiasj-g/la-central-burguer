@@ -20,15 +20,6 @@ function splitBusinessName(name?: string) {
   };
 }
 
-function formatNavbarName(name?: string) {
-  const safeName = name?.trim() || 'La Central Burger';
-  return safeName
-    .toLocaleLowerCase('es-AR')
-    .replace(/(^|\s)(\p{L})/gu, (_match, separator: string, letter: string) => {
-      return `${separator}${letter.toLocaleUpperCase('es-AR')}`;
-    });
-}
-
 export function BusinessLogo({
   logoUrl,
   businessName,
@@ -36,7 +27,7 @@ export function BusinessLogo({
   className,
   loading = false,
 }: BusinessLogoProps) {
-  const name = splitBusinessName(mode === 'navbar' ? formatNavbarName(businessName) : businessName);
+  const name = splitBusinessName(businessName);
 
   if (loading) {
     if (mode === 'navbar') {
@@ -44,10 +35,6 @@ export function BusinessLogo({
         <>
           <span className="skeleton-dark grid h-11 w-11 shrink-0 place-items-center overflow-hidden rounded-full sm:h-12 sm:w-12">
             <Skeleton width="100%" height="100%" borderRadius="50%" />
-          </span>
-          <span className="skeleton-dark min-w-0">
-            <span className="block"><Skeleton width={138} height={15} /></span>
-            <span className="mt-1 block"><Skeleton width={82} height={9} /></span>
           </span>
         </>
       );
@@ -78,10 +65,6 @@ export function BusinessLogo({
             className="h-full w-full rounded-full object-contain"
           />
         </span>
-        <span className="min-w-0">
-          <span className="block truncate text-[15px] font-semibold leading-tight tracking-tight text-central-cream sm:text-[17px]">{name.first}</span>
-          <span className="mt-0.5 block truncate text-[13px] font-semibold leading-tight tracking-normal text-central-orange sm:text-[14px]">{name.second}</span>
-        </span>
       </>
     );
   }
@@ -106,10 +89,6 @@ export function BusinessLogo({
       <>
         <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full border-2 border-central-cream bg-central-cream text-central-carbon shadow-soft sm:h-12 sm:w-12">
           <ShoppingBag size={24} />
-        </span>
-        <span className="min-w-0">
-          <span className="block truncate text-[15px] font-semibold leading-tight tracking-tight text-central-cream sm:text-[17px]">{name.first}</span>
-          <span className="mt-0.5 block truncate text-[13px] font-semibold leading-tight tracking-normal text-central-orange sm:text-[14px]">{name.second}</span>
         </span>
       </>
     );
