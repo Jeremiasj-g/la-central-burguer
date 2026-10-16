@@ -70,7 +70,7 @@ export function OrderingMenuSection() {
 
         <div className="relative min-h-[calc(100dvh-72px)] lg:grid lg:min-h-[calc(100dvh+420px)] lg:grid-cols-[minmax(0,1fr)_390px] lg:gap-6 xl:grid-cols-[minmax(0,1fr)_430px]">
           <div className="min-w-0">
-            <div className="menu-ordering-tools sticky top-[72px] z-30 rounded-[16px] p-1 lg:py-6">
+            <div className="menu-ordering-tools sticky top-[72px] z-30 rounded-[16px] px-1 py-0 lg:top-[92px]">
               <MenuSearchBar value={search} onChange={setSearch} />
               <div className="">
                 {loadingCategories ? (
