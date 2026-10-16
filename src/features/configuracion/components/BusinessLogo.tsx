@@ -20,6 +20,15 @@ function splitBusinessName(name?: string) {
   };
 }
 
+function formatNavbarName(name?: string) {
+  const safeName = name?.trim() || 'La Central Burger';
+  return safeName
+    .toLocaleLowerCase('es-AR')
+    .replace(/(^|\s)(\p{L})/gu, (_match, separator: string, letter: string) => {
+      return `${separator}${letter.toLocaleUpperCase('es-AR')}`;
+    });
+}
+
 export function BusinessLogo({
   logoUrl,
   businessName,
@@ -27,14 +36,14 @@ export function BusinessLogo({
   className,
   loading = false,
 }: BusinessLogoProps) {
-  const name = splitBusinessName(businessName);
+  const name = splitBusinessName(mode === 'navbar' ? formatNavbarName(businessName) : businessName);
 
   if (loading) {
     if (mode === 'navbar') {
       return (
         <>
-          <span className="skeleton-dark grid h-11 w-11 shrink-0 place-items-center overflow-hidden rounded-sm sm:h-12 sm:w-12">
-            <Skeleton width="100%" height="100%" borderRadius={2} />
+          <span className="skeleton-dark grid h-11 w-11 shrink-0 place-items-center overflow-hidden rounded-full sm:h-12 sm:w-12">
+            <Skeleton width="100%" height="100%" borderRadius="50%" />
           </span>
           <span className="skeleton-dark min-w-0">
             <span className="block"><Skeleton width={138} height={15} /></span>
@@ -62,16 +71,16 @@ export function BusinessLogo({
   if (logoUrl?.trim() && mode === 'navbar') {
     return (
       <>
-        <span className="grid h-11 w-11 shrink-0 place-items-center overflow-hidden rounded-sm border border-central-cream/35 bg-central-cream/95 p-1 shadow-soft sm:h-12 sm:w-12">
+        <span className="grid h-11 w-11 shrink-0 place-items-center overflow-hidden rounded-full border border-central-cream/35 bg-central-cream/95 p-1 shadow-soft sm:h-12 sm:w-12">
           <img
             src={logoUrl}
             alt={`Logo de ${businessName?.trim() || 'La Central Burger'}`}
-            className="h-full w-full object-contain"
+            className="h-full w-full rounded-full object-contain"
           />
         </span>
         <span className="min-w-0">
-          <span className="block truncate font-display text-lg uppercase leading-none tracking-wide text-central-cream sm:text-xl">{name.first}</span>
-          <span className="block truncate text-xs font-black uppercase tracking-[.32em] text-central-orange">{name.second}</span>
+          <span className="block truncate text-[15px] font-semibold leading-tight tracking-tight text-central-cream sm:text-[17px]">{name.first}</span>
+          <span className="mt-0.5 block truncate text-[13px] font-semibold leading-tight tracking-normal text-central-orange sm:text-[14px]">{name.second}</span>
         </span>
       </>
     );
@@ -95,12 +104,12 @@ export function BusinessLogo({
   if (mode === 'navbar') {
     return (
       <>
-        <span className="grid h-11 w-11 place-items-center rounded-sm border-2 border-central-cream bg-central-cream text-central-carbon shadow-soft sm:h-12 sm:w-12">
+        <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full border-2 border-central-cream bg-central-cream text-central-carbon shadow-soft sm:h-12 sm:w-12">
           <ShoppingBag size={24} />
         </span>
-        <span>
-          <span className="block font-display text-lg uppercase leading-none tracking-wide text-central-cream sm:text-xl">{name.first}</span>
-          <span className="block text-xs font-black uppercase tracking-[.32em] text-central-orange">{name.second}</span>
+        <span className="min-w-0">
+          <span className="block truncate text-[15px] font-semibold leading-tight tracking-tight text-central-cream sm:text-[17px]">{name.first}</span>
+          <span className="mt-0.5 block truncate text-[13px] font-semibold leading-tight tracking-normal text-central-orange sm:text-[14px]">{name.second}</span>
         </span>
       </>
     );
