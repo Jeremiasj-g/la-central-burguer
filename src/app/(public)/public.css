@@ -324,3 +324,10 @@ body.lcb-public-typography .Toastify__progress-bar {background:var(--lcb-accent)
     scroll-behavior:auto!important;animation-duration:.01ms!important;transition-duration:.01ms!important;
   }
 }
+
+/* Los controles compactos de navegación se ocultan explícitamente en escritorio.
+   Su especificidad debe superar la presentación local de la barra. */
+@media (min-width: 768px) {
+  .public-site .lcb-header-mobile-menu,
+  .public-site .lcb-mobile-nav { display: none; }
+}
