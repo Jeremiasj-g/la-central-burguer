@@ -331,3 +331,15 @@ body.lcb-public-typography .Toastify__progress-bar {background:var(--lcb-accent)
   .public-site .lcb-header-mobile-menu,
   .public-site .lcb-mobile-nav { display: none; }
 }
+
+/* Contraste correcto en formularios y controles portaleados con tema claro. */
+body.lcb-public-typography[data-public-theme="light"] [data-lcb-scroll-lock-overlay="true"]
+  :is(.lcb-product-detail-modal,.lcb-public-checkout,.lcb-public-cart-drawer)
+  :is(button,a,div)[class*="text-white"],
+body.lcb-public-typography[data-public-theme="light"] [data-lcb-scroll-lock-overlay="true"]
+  :is(.lcb-product-detail-modal,.lcb-public-checkout,.lcb-public-cart-drawer)
+  :is(button,a,div)[class*="text-central-cream"] {color:var(--lcb-text)!important;}
+body.lcb-public-typography[data-public-theme="light"] [data-lcb-scroll-lock-overlay="true"]
+  :is(.lcb-product-detail-modal,.lcb-public-checkout) input::placeholder,
+body.lcb-public-typography[data-public-theme="light"] [data-lcb-scroll-lock-overlay="true"]
+  :is(.lcb-product-detail-modal,.lcb-public-checkout) textarea::placeholder {color:var(--lcb-muted);}
