@@ -1,4 +1,4 @@
-import { ShoppingBag } from 'lucide-react';
+import { ArrowRight, ShoppingBag } from 'lucide-react';
 import { formatCurrency } from '@/shared/utils/format.utils';
 
 interface CartFloatingButtonProps {
@@ -9,12 +9,12 @@ interface CartFloatingButtonProps {
 
 export function CartFloatingButton({ count, total, onClick }: CartFloatingButtonProps) {
   return (
-    <button onClick={onClick} className="fixed bottom-4 right-4 z-30 flex items-center gap-2.5 rounded-sm border border-central-orange/40 bg-[#11100f] px-3.5 py-3 text-central-cream shadow-dark transition hover:-translate-y-1 hover:border-central-orange lg:hidden">
-      <span className="relative grid h-10 w-10 place-items-center rounded-sm bg-central-orange text-black">
-        <ShoppingBag />
-        {count > 0 ? <span className="absolute -right-2 -top-2 grid h-5 w-5 place-items-center rounded-full bg-central-cream text-[10px] font-black text-black">{count}</span> : null}
+    <button type="button" onClick={onClick} className="lcb-floating-cart fixed inset-x-4 bottom-[max(1rem,env(safe-area-inset-bottom))] z-[35] flex items-center justify-between gap-4 px-4 py-3 lg:hidden" aria-label={`Ver mi pedido de ${count} productos, total ${formatCurrency(total)}`}>
+      <span className="flex min-w-0 items-center gap-3">
+        <span className="grid h-10 w-10 shrink-0 place-items-center rounded-[11px] bg-white/15"><ShoppingBag size={19}/></span>
+        <span className="min-w-0 text-left"><span className="block text-[11px] text-white/65">{count} {count===1?'producto':'productos'}</span><span className="block text-[15px] font-semibold">{formatCurrency(total)}</span></span>
       </span>
-      <span className="text-left text-xs font-black leading-tight">Mi pedido<br /><span className="text-central-orange">{formatCurrency(total)}</span></span>
+      <span className="flex items-center gap-2 text-[12px] font-semibold">Ver pedido <ArrowRight size={16}/></span>
     </button>
   );
 }
