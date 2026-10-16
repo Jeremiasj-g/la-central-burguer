@@ -51,3 +51,7 @@ export function PublicThemeSwitch() {
     </button>
   );
 }
+
+export function usePublicTheme(): PublicTheme {
+  return useContext(PublicThemeContext)?.theme ?? 'dark';
+}

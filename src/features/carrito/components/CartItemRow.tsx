@@ -51,7 +51,7 @@ export function CartItemRow({ item, onUpdateQuantity, onUpdateNote, onRemove, fo
   return (
     <div
       className={cn(
-        'grid grid-cols-[48px_1fr_auto] gap-3 py-3 transition-[opacity,transform] duration-200 ease-in-out motion-reduce:transition-none sm:grid-cols-[58px_1fr_auto] sm:gap-4 sm:py-4',
+        'lcb-cart-item grid min-w-0 grid-cols-[48px_minmax(0,1fr)_auto] gap-2.5 py-3 transition-[opacity,transform] duration-200 ease-in-out motion-reduce:transition-none sm:grid-cols-[58px_minmax(0,1fr)_auto] sm:gap-3 sm:py-4',
         removing ? 'pointer-events-none -translate-x-4 opacity-0' : 'translate-x-0 opacity-100',
       )}
     >
@@ -59,15 +59,15 @@ export function CartItemRow({ item, onUpdateQuantity, onUpdateNote, onRemove, fo
         imageUrl={item.imageUrl}
         productName={item.productName}
         categoryName={item.categoryName}
-        className="h-12 w-12 rounded-sm border border-central-orange/20 bg-black sm:h-14 sm:w-14"
+        className="h-12 w-12 rounded-[12px] border border-[var(--lcb-border)] bg-[var(--lcb-image-bg)] sm:h-14 sm:w-14"
         compact
       />
       <div className="min-w-0">
-        <h4 className="text-sm font-black leading-tight text-central-cream sm:text-base">{item.productName}</h4>
-        <p className="mt-0.5 text-xs font-black text-central-cream/52 sm:mt-1 sm:text-sm">{formatCurrency(item.unitPrice)}</p>
+        <h4 className="text-[12px] font-semibold leading-tight text-[var(--lcb-text)] sm:text-[13px]">{item.productName}</h4>
+        <p className="mt-1 text-[11px] font-medium text-[var(--lcb-muted)]">{formatCurrency(item.unitPrice)}</p>
 
         {editingNote ? (
-          <div className="mt-2 rounded-sm border border-central-orange/25 bg-black/35 p-2 transition duration-200">
+          <div className="mt-2 rounded-[10px] border border-central-orange/25 bg-black/35 p-2 transition duration-200">
             <textarea
               autoFocus
               rows={2}
@@ -84,7 +84,7 @@ export function CartItemRow({ item, onUpdateQuantity, onUpdateNote, onRemove, fo
             <div className="mt-2 flex justify-end gap-2">
               <button
                 type="button"
-                className="grid h-7 w-7 place-items-center rounded-sm border border-white/10 text-white/60 transition duration-200 hover:bg-white/10 hover:text-white"
+                className="grid h-7 w-7 place-items-center rounded-[10px] border border-white/10 text-white/60 transition duration-200 hover:bg-white/10 hover:text-white"
                 title="Cancelar edición"
                 aria-label="Cancelar edición de aclaración"
                 onClick={cancelNoteEdit}
@@ -93,7 +93,7 @@ export function CartItemRow({ item, onUpdateQuantity, onUpdateNote, onRemove, fo
               </button>
               <button
                 type="button"
-                className="grid h-7 w-7 place-items-center rounded-sm border border-central-orange/35 bg-central-orange text-black transition duration-200 hover:bg-central-cream"
+                className="grid h-7 w-7 place-items-center rounded-[10px] border border-central-orange/35 bg-central-orange text-black transition duration-200 hover:bg-central-cream"
                 title="Guardar aclaración"
                 aria-label="Guardar aclaración"
                 onClick={saveNote}
@@ -105,7 +105,7 @@ export function CartItemRow({ item, onUpdateQuantity, onUpdateNote, onRemove, fo
         ) : (
           <div className="mt-2 flex min-w-0 items-start gap-2">
             {item.note ? (
-              <p className="min-w-0 flex-1 break-words rounded-sm border border-central-orange/20 bg-black/35 px-2.5 py-1.5 text-xs leading-5 text-central-cream/70">
+              <p className="min-w-0 flex-1 break-words rounded-[10px] border border-central-orange/20 bg-black/35 px-2.5 py-1.5 text-xs leading-5 text-central-cream/70">
                 {item.note}
               </p>
             ) : (
@@ -113,7 +113,7 @@ export function CartItemRow({ item, onUpdateQuantity, onUpdateNote, onRemove, fo
             )}
             <button
               type="button"
-              className="grid h-7 w-7 shrink-0 place-items-center rounded-sm border border-central-orange/20 text-central-cream/60 transition duration-200 hover:bg-central-orange hover:text-black"
+              className="grid h-7 w-7 shrink-0 place-items-center rounded-[10px] border border-central-orange/20 text-central-cream/60 transition duration-200 hover:bg-central-orange hover:text-black"
               title={item.note ? 'Editar aclaración' : 'Agregar aclaración'}
               aria-label={item.note ? 'Editar aclaración' : 'Agregar aclaración'}
               onClick={() => setEditingNote(true)}
@@ -124,15 +124,15 @@ export function CartItemRow({ item, onUpdateQuantity, onUpdateNote, onRemove, fo
         )}
 
         <div className="mt-2 flex items-center gap-2 sm:mt-3 sm:gap-3">
-          <button className="grid h-7 w-7 place-items-center rounded-sm border border-central-orange/20 text-central-cream/70 transition duration-200 hover:bg-central-orange hover:text-black sm:h-8 sm:w-8" title="Disminuir cantidad" onClick={() => onUpdateQuantity(item.id, item.quantity - 1)}><Minus size={14} /></button>
+          <button className="grid h-7 w-7 place-items-center rounded-[10px] border border-central-orange/20 text-central-cream/70 transition duration-200 hover:bg-central-orange hover:text-black sm:h-8 sm:w-8" title="Disminuir cantidad" onClick={() => onUpdateQuantity(item.id, item.quantity - 1)}><Minus size={14} /></button>
           <span className="w-5 text-center font-black">{item.quantity}</span>
-          <button className="grid h-7 w-7 place-items-center rounded-sm border border-central-orange/20 text-central-cream/70 transition duration-200 hover:bg-central-orange hover:text-black sm:h-8 sm:w-8" title="Aumentar cantidad" onClick={() => onUpdateQuantity(item.id, item.quantity + 1)}><Plus size={14} /></button>
+          <button className="grid h-7 w-7 place-items-center rounded-[10px] border border-central-orange/20 text-central-cream/70 transition duration-200 hover:bg-central-orange hover:text-black sm:h-8 sm:w-8" title="Aumentar cantidad" onClick={() => onUpdateQuantity(item.id, item.quantity + 1)}><Plus size={14} /></button>
         </div>
       </div>
       <div className="text-right">
-        <p className="text-sm font-black text-central-cream sm:text-base">{formatCurrency(item.unitPrice * item.quantity)}</p>
+        <p className="text-[12px] font-semibold tabular-nums text-[var(--lcb-text)] sm:text-[13px]">{formatCurrency(item.unitPrice * item.quantity)}</p>
         <button
-          className="mt-3 rounded-sm p-1.5 text-red-400 transition duration-200 hover:bg-red-500/10 disabled:cursor-default disabled:opacity-40 sm:mt-4 sm:p-2"
+          className="mt-3 rounded-[10px] p-1.5 text-red-400 transition duration-200 hover:bg-red-500/10 disabled:cursor-default disabled:opacity-40 sm:mt-4 sm:p-2"
           title="Eliminar producto del pedido"
           onClick={() => setConfirmRemoveOpen(true)}
           aria-label="Eliminar item"
