@@ -318,3 +318,89 @@ body.lcb-public-typography [data-lcb-scroll-lock-overlay="true"] .lcb-product-de
     flex-shrink: 0;
   }
 }
+
+
+/* Mi pedido — el mismo lenguaje visual que la modal de producto.
+   Se limita al carrito público; el Drawer compartido y Admin quedan intactos. */
+body.lcb-public-typography [data-lcb-scroll-lock-overlay="true"] aside.lcb-cart-drawer {
+  background: #171717 !important;
+  color: #f6f5f2 !important;
+  border-color: rgba(255,255,255,.085) !important;
+  box-shadow: 0 24px 90px rgba(0,0,0,.34);
+}
+body.lcb-public-typography [data-lcb-scroll-lock-overlay="true"] .lcb-cart-drawer > header {
+  padding: 18px 20px;
+  border-bottom: 1px solid rgba(255,255,255,.075);
+}
+body.lcb-public-typography [data-lcb-scroll-lock-overlay="true"] .lcb-cart-drawer > header h2 {
+  font-size: 21px;
+  font-weight: 600 !important;
+  letter-spacing: -.035em;
+  line-height: 1.3;
+  color: #f6f5f2;
+}
+body.lcb-public-typography [data-lcb-scroll-lock-overlay="true"] .lcb-cart-drawer > header button {
+  display: grid;
+  height: 35px;
+  width: 35px;
+  place-items: center;
+  border-radius: 11px;
+  background: rgba(255,255,255,.055);
+  color: rgba(255,255,255,.66);
+  padding: 0;
+}
+body.lcb-public-typography [data-lcb-scroll-lock-overlay="true"] .lcb-cart-drawer > header button:hover {
+  background: rgba(255,255,255,.10);
+  color: #fff;
+}
+body.lcb-public-typography [data-lcb-scroll-lock-overlay="true"] .lcb-cart-drawer > .keyboard-aware-scroll {
+  padding: 0 20px 16px;
+  scrollbar-color: rgba(255,255,255,.23) transparent;
+}
+body.lcb-public-typography [data-lcb-scroll-lock-overlay="true"] .lcb-cart-drawer > footer {
+  padding: 17px 20px calc(17px + env(safe-area-inset-bottom, 0px));
+  border-top: 1px solid rgba(255,255,255,.075);
+  background: #171717;
+  box-shadow: 0 -12px 22px rgba(0,0,0,.075);
+}
+body.lcb-public-typography [data-lcb-scroll-lock-overlay="true"] .lcb-cart-item-row .lcb-cart-note-input {
+  background: rgba(255,255,255,.055) !important;
+  color: #f6f5f2 !important;
+  border-color: rgba(255,255,255,.10) !important;
+}
+body.lcb-public-typography [data-lcb-scroll-lock-overlay="true"] .lcb-cart-item-row .lcb-cart-note-input::placeholder {
+  color: rgba(255,255,255,.36);
+}
+body.lcb-public-typography [data-lcb-scroll-lock-overlay="true"] .lcb-cart-drawer button:focus-visible,
+body.lcb-public-typography .lcb-cart-item-row button:focus-visible {
+  outline: 2px solid #ffb21a;
+  outline-offset: 2px;
+}
+@media (max-width: 639px) {
+  /* Bottom sheet de altura natural: sin el gran espacio vacío del drawer original. */
+  body.lcb-public-typography [data-lcb-scroll-lock-overlay="true"] aside.lcb-cart-drawer {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: 100% !important;
+    max-width: none !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: calc(100% - 10px) !important;
+    margin: 0 !important;
+    border-radius: 22px 22px 0 0 !important;
+    border-bottom: 0 !important;
+  }
+  body.lcb-public-typography [data-lcb-scroll-lock-overlay="true"] .lcb-cart-drawer > .keyboard-aware-scroll {
+    flex: 0 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+  }
+}
+@media (min-width: 640px) {
+  body.lcb-public-typography [data-lcb-scroll-lock-overlay="true"] aside.lcb-cart-drawer {
+    width: min(100%, 465px) !important;
+    max-width: 465px !important;
+    border-radius: 20px 0 0 20px !important;
+  }
+}
