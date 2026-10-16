@@ -259,3 +259,52 @@ body.lcb-public-typography .Toastify__toast-container :is(strong, b) {
 .public-site .watermark-text {
   font-weight: 600 !important;
 }
+
+
+/*
+ * Modal de producto: superficies limpias y esquinas suaves sin afectar
+ * otros modales del sitio, ni paneles del administrador.
+ */
+body.lcb-public-typography [data-lcb-scroll-lock-overlay="true"] section.lcb-product-detail {
+  background: #191b20 !important;
+  color: #f5f4f2 !important;
+  border-color: rgba(255,255,255,.10) !important;
+  border-radius: 22px !important;
+}
+body.lcb-public-typography [data-lcb-scroll-lock-overlay="true"] .lcb-product-detail > div:first-child {
+  border-bottom-color: rgba(255,255,255,.085);
+  padding: 18px 20px;
+}
+body.lcb-public-typography [data-lcb-scroll-lock-overlay="true"] .lcb-product-detail > div:first-child h2 {
+  color: #f8f7f5;
+  font-size: clamp(16px, 2.3vw, 20px);
+  line-height: 1.32;
+  font-weight: 600 !important;
+  letter-spacing: -.028em;
+  overflow-wrap: anywhere;
+}
+body.lcb-public-typography [data-lcb-scroll-lock-overlay="true"] .lcb-product-detail > div:first-child button {
+  background: rgba(255,255,255,.055);
+  border-radius: 11px;
+}
+body.lcb-public-typography [data-lcb-scroll-lock-overlay="true"] .lcb-product-detail .lcb-detail-stepper button:focus-visible,
+body.lcb-public-typography [data-lcb-scroll-lock-overlay="true"] .lcb-product-detail button:focus-visible {
+  outline: 2px solid #ffb21a;
+  outline-offset: 2px;
+}
+body.lcb-public-typography [data-lcb-scroll-lock-overlay="true"] .lcb-product-detail textarea {
+  background: rgba(255,255,255,.055) !important;
+  color: #f5f4f2 !important;
+  border-color: rgba(255,255,255,.10) !important;
+}
+body.lcb-public-typography [data-lcb-scroll-lock-overlay="true"] .lcb-product-detail textarea::placeholder {
+  color: rgba(255,255,255,.36);
+}
+@media (max-width: 640px) {
+  body.lcb-public-typography [data-lcb-scroll-lock-overlay="true"] .lcb-product-detail > div:first-child {
+    padding: 14px 16px;
+  }
+  body.lcb-public-typography [data-lcb-scroll-lock-overlay="true"] .lcb-product-detail > div:nth-child(2) {
+    padding-top: 12px;
+  }
+}
