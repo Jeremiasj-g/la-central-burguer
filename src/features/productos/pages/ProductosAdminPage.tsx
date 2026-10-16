@@ -41,14 +41,14 @@ type PendingAction = {
 export function ProductosAdminPage() {
   const [search, setSearch] = useState('');
   const [categoryId, setCategoryId] = useState('all');
-  const [activeStatus, setActiveStatus] = useState<'all' | 'active' | 'inactive'>('all');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive' | 'disabled' | 'unavailable'>('all');
   const [editing, setEditing] = useState<Product | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [pendingAction, setPendingAction] = useState<PendingAction | null>(null);
   const [pendingFormValues, setPendingFormValues] = useState<ProductFormValues | null>(null);
   const { categorias, error: categoriesError, refresh: refreshCategories } = useCategorias({ active: 'all' });
   const { ingredientes, error: ingredientsError, refresh: refreshIngredients } = useIngredientes({ active: 'active' });
-  const { productos, isLoading, error: productsError, refresh } = useProductos({ search, categoryId, active: activeStatus, available: 'all' });
+  const { productos, isLoading, error: productsError, refresh } = useProductos({ search, categoryId, active: 'all', available: 'all' });
   const mutations = useProductoMutations(refresh);
 
   useEffect(() => {
@@ -74,10 +74,18 @@ export function ProductosAdminPage() {
     setModalOpen(false);
   }
 
-  const activeCount = productos.filter((product) => product.active).length;
-  const availableCount = productos.filter((product) => product.available).length;
-  const featuredCount = productos.filter((product) => product.featured).length;
-  const hasFilters = Boolean(search.trim()) || categoryId !== 'all' || activeStatus !== 'all';
+  // Inactivos incluye tanto los desactivados como los que no se pueden pedir.
+  const filteredProducts = productos.filter((product) => {
+    if (statusFilter === 'active') return product.active && product.available;
+    if (statusFilter === 'inactive') return !product.active || !product.available;
+    if (statusFilter === 'disabled') return !product.active;
+    if (statusFilter === 'unavailable') return !product.available;
+    return true;
+  });
+  const activeCount = filteredProducts.filter((product) => product.active).length;
+  const availableCount = filteredProducts.filter((product) => product.available).length;
+  const featuredCount = filteredProducts.filter((product) => product.featured).length;
+  const hasFilters = Boolean(search.trim()) || categoryId !== 'all' || statusFilter !== 'all';
 
   return (
     <div className="products-wallet min-w-0 pb-8">
@@ -120,9 +128,9 @@ export function ProductosAdminPage() {
           </div>
           <p className="mt-5 text-[12px] text-white/60">Productos en la vista actual</p>
           <p className="mt-1 text-[clamp(2.5rem,5vw,3.5rem)] font-semibold leading-none tracking-[-.055em] tabular-nums">
-            {isLoading ? '—' : productos.length.toLocaleString('es-AR')}
+            {isLoading ? '—' : filteredProducts.length.toLocaleString('es-AR')}
           </p>
-          <p className="mt-2 text-[11px] text-white/40">Los indicadores reflejan la búsqueda, categoría y estado seleccionados.</p>
+          <p className="mt-2 text-[11px] text-white/40">Los indicadores reflejan los filtros seleccionados.</p>
         </div>
         <div className="relative mt-6 grid min-w-0 grid-cols-3 gap-2 border-t border-white/10 pt-5 sm:max-w-[520px] sm:gap-4 xl:mt-0 xl:w-[52%] xl:border-l xl:border-t-0 xl:pl-6 xl:pt-0">
           <div className="min-w-0">
@@ -187,13 +195,15 @@ export function ProductosAdminPage() {
             <Select
               aria-label="Filtrar productos por estado"
               variant="light"
-              value={activeStatus}
+              value={statusFilter}
               options={[
                 { value: 'all', label: 'Todos los estados' },
-                { value: 'active', label: 'Activos' },
-                { value: 'inactive', label: 'Inactivos' },
+                { value: 'active', label: 'Activos y disponibles' },
+                { value: 'inactive', label: 'Inactivos / no disponibles' },
+                { value: 'disabled', label: 'Solo desactivados' },
+                { value: 'unavailable', label: 'Solo no disponibles' },
               ]}
-              onValueChange={(value) => setActiveStatus(value as 'all' | 'active' | 'inactive')}
+              onValueChange={(value) => setStatusFilter(value as 'all' | 'active' | 'inactive' | 'disabled' | 'unavailable')}
               className="!h-10 !rounded-[11px] !border-neutral-200/80 !bg-[#f7f7f9] !text-[12px] !font-normal !shadow-none"
               contentClassName="!rounded-[13px]"
             />
@@ -205,7 +215,7 @@ export function ProductosAdminPage() {
         <div>
           <h2 className="text-[20px] font-semibold tracking-[-.035em] text-neutral-950">Listado de productos</h2>
           <p className="mt-0.5 text-[11px] text-neutral-500">
-            {isLoading ? 'Actualizando datos…' : `${productos.length.toLocaleString('es-AR')} ${productos.length === 1 ? 'resultado' : 'resultados'}`}
+            {isLoading ? 'Actualizando datos…' : `${filteredProducts.length.toLocaleString('es-AR')} ${filteredProducts.length === 1 ? 'resultado' : 'resultados'}`}
           </p>
         </div>
         {!isLoading && hasFilters ? (
@@ -223,7 +233,7 @@ export function ProductosAdminPage() {
           }}
         />
       ) : isLoading ? <ProductoTableSkeleton /> : <ProductoTable
-        products={productos}
+        products={filteredProducts}
         categories={categorias}
         ingredients={ingredientes}
         onEdit={(product) => { setEditing(product); setModalOpen(true); }}
