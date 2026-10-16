@@ -41,13 +41,14 @@ type PendingAction = {
 export function ProductosAdminPage() {
   const [search, setSearch] = useState('');
   const [categoryId, setCategoryId] = useState('all');
+  const [activeStatus, setActiveStatus] = useState<'all' | 'active' | 'inactive'>('all');
   const [editing, setEditing] = useState<Product | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [pendingAction, setPendingAction] = useState<PendingAction | null>(null);
   const [pendingFormValues, setPendingFormValues] = useState<ProductFormValues | null>(null);
   const { categorias, error: categoriesError, refresh: refreshCategories } = useCategorias({ active: 'all' });
   const { ingredientes, error: ingredientsError, refresh: refreshIngredients } = useIngredientes({ active: 'active' });
-  const { productos, isLoading, error: productsError, refresh } = useProductos({ search, categoryId, active: 'all', available: 'all' });
+  const { productos, isLoading, error: productsError, refresh } = useProductos({ search, categoryId, active: activeStatus, available: 'all' });
   const mutations = useProductoMutations(refresh);
 
   useEffect(() => {
@@ -76,7 +77,7 @@ export function ProductosAdminPage() {
   const activeCount = productos.filter((product) => product.active).length;
   const availableCount = productos.filter((product) => product.available).length;
   const featuredCount = productos.filter((product) => product.featured).length;
-  const hasFilters = Boolean(search.trim()) || categoryId !== 'all';
+  const hasFilters = Boolean(search.trim()) || categoryId !== 'all' || activeStatus !== 'all';
 
   return (
     <div className="products-wallet min-w-0 pb-8">
@@ -121,7 +122,7 @@ export function ProductosAdminPage() {
           <p className="mt-1 text-[clamp(2.5rem,5vw,3.5rem)] font-semibold leading-none tracking-[-.055em] tabular-nums">
             {isLoading ? '—' : productos.length.toLocaleString('es-AR')}
           </p>
-          <p className="mt-2 text-[11px] text-white/40">Los indicadores reflejan la búsqueda y categoría seleccionadas.</p>
+          <p className="mt-2 text-[11px] text-white/40">Los indicadores reflejan la búsqueda, categoría y estado seleccionados.</p>
         </div>
         <div className="relative mt-6 grid min-w-0 grid-cols-3 gap-2 border-t border-white/10 pt-5 sm:max-w-[520px] sm:gap-4 xl:mt-0 xl:w-[52%] xl:border-l xl:border-t-0 xl:pl-6 xl:pt-0">
           <div className="min-w-0">
@@ -151,10 +152,10 @@ export function ProductosAdminPage() {
       <section aria-label="Filtros de productos" className="mb-5 min-w-0 rounded-[20px] border border-neutral-200/70 bg-white p-4 shadow-soft sm:p-5">
         <div className="mb-4">
           <h2 className="text-[15px] font-semibold tracking-[-.025em] text-neutral-900">Encontrá un producto</h2>
-          <p className="mt-0.5 text-[11px] leading-5 text-neutral-500">Buscá por nombre o filtrá por categoría.</p>
+          <p className="mt-0.5 text-[11px] leading-5 text-neutral-500">Buscá por nombre o filtrá por categoría y estado.</p>
         </div>
-        <div className="grid min-w-0 gap-3 md:grid-cols-[minmax(0,1fr)_240px]">
-          <label className="min-w-0">
+        <div className="grid min-w-0 gap-3 md:grid-cols-2 xl:grid-cols-[minmax(0,1fr)_220px_200px]">
+          <label className="min-w-0 md:col-span-2 xl:col-span-1">
             <span className="mb-1.5 block text-[11px] font-medium text-neutral-500">Buscar</span>
             <span className="relative block">
               <Search className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" size={16} strokeWidth={1.8} />
@@ -177,6 +178,22 @@ export function ProductosAdminPage() {
                 ...categorias.map((category) => ({ value: category.id, label: category.name })),
               ]}
               onValueChange={setCategoryId}
+              className="!h-10 !rounded-[11px] !border-neutral-200/80 !bg-[#f7f7f9] !text-[12px] !font-normal !shadow-none"
+              contentClassName="!rounded-[13px]"
+            />
+          </div>
+          <div className="min-w-0">
+            <span className="mb-1.5 block text-[11px] font-medium text-neutral-500">Estado</span>
+            <Select
+              aria-label="Filtrar productos por estado"
+              variant="light"
+              value={activeStatus}
+              options={[
+                { value: 'all', label: 'Todos los estados' },
+                { value: 'active', label: 'Activos' },
+                { value: 'inactive', label: 'Inactivos' },
+              ]}
+              onValueChange={(value) => setActiveStatus(value as 'all' | 'active' | 'inactive')}
               className="!h-10 !rounded-[11px] !border-neutral-200/80 !bg-[#f7f7f9] !text-[12px] !font-normal !shadow-none"
               contentClassName="!rounded-[13px]"
             />
