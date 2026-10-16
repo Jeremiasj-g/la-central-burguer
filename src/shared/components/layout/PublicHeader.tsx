@@ -1,59 +1,73 @@
 'use client';
 
 import Link from 'next/link';
-import { Menu, ShoppingCart, X } from 'lucide-react';
-import { useState } from 'react';
+import { ShoppingCart } from 'lucide-react';
 import { useCarrito } from '@/features/carrito/hooks/useCarrito';
 import { useBusinessConfig } from '@/features/configuracion/hooks/useBusinessConfig';
 import { ROUTES } from '@/shared/constants/routes';
 import { BusinessLogo } from '@/features/configuracion/components/BusinessLogo';
-import { useAnimatedPresence } from '@/shared/hooks/useAnimatedPresence';
 import { PublicThemeToggle } from './PublicThemeProvider';
 
+const navigation = [
+  { label: 'Inicio', href: ROUTES.home },
+  { label: 'Menú', href: '#menu' },
+];
+
 export function PublicHeader() {
-  const [open, setOpen] = useState(false);
-  const navMounted = useAnimatedPresence(open);
   const { config, isLoading } = useBusinessConfig();
   const cart = useCarrito();
   const businessName = config?.businessName ?? 'La Central Burger';
   const cartCount = cart.items.reduce((total, item) => total + item.quantity, 0);
 
-  const nav = [
-    { label: 'Inicio', href: ROUTES.home },
-    { label: 'Menú', href: '#menu' },
-  ];
-
   function handleCartClick() {
-    setOpen(false);
     window.dispatchEvent(new CustomEvent('central-cart-open'));
   }
 
   return (
-    <header className="sticky top-0 z-40 min-h-[68px] sm:min-h-[72px] border-b border-central-orange/25 bg-[#0d0c0b]/88 text-central-cream shadow-dark backdrop-blur-xl">
-      <div className="mx-auto flex max-w-7xl items-center justify-between px-5 py-2.5 sm:px-6 sm:py-3 lg:px-8">
-        <Link href="/" className="flex min-w-0 items-center gap-3" aria-label={`Ir al inicio de ${businessName}`}>
+    <header className="sticky top-0 z-40 border-b border-central-orange/25 bg-[#0d0c0b]/88 text-central-cream shadow-dark backdrop-blur-xl">
+      <div className="mx-auto flex min-h-[68px] w-full max-w-[1440px] items-center justify-between gap-3 px-4 py-2 sm:min-h-[72px] sm:px-6 lg:grid lg:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] lg:gap-8 lg:px-8">
+        <Link
+          href={ROUTES.home}
+          className="inline-flex shrink-0 items-center rounded-full focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-central-orange"
+          aria-label={`Ir al inicio de ${businessName}`}
+          title="Ir al inicio"
+        >
           <BusinessLogo logoUrl={config?.logoUrl} businessName={businessName} mode="navbar" loading={isLoading} />
         </Link>
 
-        <nav className="hidden items-center gap-2 md:flex">
-          {nav.map((item) => (
-            <Link key={item.href} href={item.href} className="rounded-[11px] px-4 py-2 text-[12px] font-medium tracking-normal text-central-cream/72 transition hover:bg-central-orange/10 hover:text-central-orange">
+        <nav aria-label="Navegación principal" className="hidden items-center justify-center gap-1 md:flex lg:gap-2">
+          {navigation.map((item) => (
+            <Link
+              key={item.href}
+              href={item.href}
+              className="inline-flex h-10 items-center rounded-[11px] px-4 text-[13px] font-medium tracking-normal text-central-cream/75 transition-colors duration-200 hover:bg-central-orange/10 hover:text-central-orange focus-visible:outline focus-visible:outline-2 focus-visible:outline-central-orange"
+            >
               {item.label}
             </Link>
           ))}
         </nav>
 
-        <Link href="#menu" className="hidden rounded-[11px] bg-central-orange px-5 py-3 text-[12px] font-semibold tracking-normal text-black shadow-orange transition hover:bg-central-cream md:inline-flex">
-          Pedir ahora
-        </Link>
+        <div className="ml-auto flex shrink-0 items-center gap-1.5 sm:gap-2 lg:ml-0 lg:justify-self-end">
+          <Link
+            href="#menu"
+            className="inline-flex h-10 items-center rounded-[11px] border border-white/10 bg-white/[.035] px-3 text-[12px] font-semibold text-central-cream transition-colors duration-200 hover:border-central-orange/50 hover:text-central-orange md:hidden"
+          >
+            Menú
+          </Link>
 
-        <div className="flex items-center gap-2">
+          <Link
+            href="#menu"
+            className="hidden h-10 items-center justify-center rounded-[11px] bg-central-orange px-5 text-[12px] font-semibold text-black shadow-orange transition-colors duration-200 hover:bg-central-cream lg:inline-flex"
+          >
+            Pedir ahora
+          </Link>
+
           <PublicThemeToggle />
-          <div className="flex items-center gap-2 md:hidden">
+
           <button
             type="button"
             onClick={handleCartClick}
-            className="relative grid h-10 w-10 place-items-center rounded-sm border border-central-orange/30 text-central-cream transition hover:border-central-orange hover:text-central-orange"
+            className="relative grid h-10 w-10 shrink-0 place-items-center rounded-[11px] border border-central-orange/30 text-central-cream transition-colors duration-200 hover:border-central-orange hover:text-central-orange lg:hidden"
             aria-label={cartCount > 0 ? `Abrir carrito, ${cartCount} productos` : 'Abrir carrito'}
             title="Carrito"
           >
@@ -64,30 +78,8 @@ export function PublicHeader() {
               </span>
             ) : null}
           </button>
-
-          <button
-            type="button"
-            className="grid h-10 w-10 place-items-center rounded-sm border border-central-orange/30 text-central-cream transition hover:border-central-orange hover:text-central-orange"
-            onClick={() => setOpen((value) => !value)}
-            aria-label={open ? 'Cerrar menú' : 'Abrir menú'}
-          >
-            {open ? <X size={22} /> : <Menu size={22} />}
-          </button>
-          </div>
         </div>
       </div>
-
-      {navMounted ? (
-        <div data-state={open ? 'open' : 'closed'} aria-hidden={!open} className={`lcb-mobile-nav overflow-hidden border-t border-central-orange/20 bg-[#11100f] px-4 py-4 md:hidden ${!open ? 'pointer-events-none' : ''}`}>
-          <nav className="grid gap-2">
-            {nav.map((item) => (
-              <Link key={item.href} href={item.href} className="rounded-[11px] px-4 py-3 text-[13px] font-medium tracking-normal text-central-cream/80 hover:bg-central-orange/10" onClick={() => setOpen(false)}>
-                {item.label}
-              </Link>
-            ))}
-          </nav>
-        </div>
-      ) : null}
     </header>
   );
 }
