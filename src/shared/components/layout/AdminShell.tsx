@@ -5,6 +5,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { ChevronRight, LogOut, Menu, X } from 'lucide-react';
 import { AdminNotifications } from './AdminNotifications';
 import { AdminMaintenanceControl } from './AdminMaintenanceControl';
+import { AdminInstallButton } from './AdminPwaProvider';
 import { useEffect, useState } from 'react';
 import { ADMIN_NAVIGATION } from '@/shared/constants/navigation';
 import { ROUTES } from '@/shared/constants/routes';
@@ -158,6 +159,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
       </nav>
 
       <div className="border-t border-white/10 p-3">
+        <AdminInstallButton />
         <button
           onClick={handleLogout}
           className="flex min-h-10 w-full items-center gap-3 rounded-sm px-3 py-2 text-left text-[13px] font-bold text-white/55 transition hover:bg-white/10 hover:text-white"

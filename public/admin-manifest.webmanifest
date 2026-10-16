@@ -1,0 +1,52 @@
+{
+  "name": "La Central Burger Admin",
+  "short_name": "Central Admin",
+  "description": "Administración de La Central Burger: pedidos, catálogo, ventas y reportes.",
+  "id": "/admin-app-v1",
+  "start_url": "/admin/dashboard",
+  "scope": "/admin/",
+  "display": "standalone",
+  "display_override": [
+    "standalone",
+    "minimal-ui"
+  ],
+  "orientation": "any",
+  "background_color": "#F5F5F5",
+  "theme_color": "#F5F5F5",
+  "lang": "es-AR",
+  "categories": [
+    "business",
+    "productivity"
+  ],
+  "icons": [
+    {
+      "src": "/icons/admin-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/admin-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Pedidos",
+      "short_name": "Pedidos",
+      "url": "/admin/pedidos"
+    },
+    {
+      "name": "Productos",
+      "short_name": "Productos",
+      "url": "/admin/productos"
+    },
+    {
+      "name": "Reportes",
+      "short_name": "Reportes",
+      "url": "/admin/reportes"
+    }
+  ]
+}
