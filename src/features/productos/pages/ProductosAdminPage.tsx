@@ -1,4 +1,5 @@
 'use client';
+// Verificación CI temporal del filtro de inactivos y no disponibles.
 
 import { useEffect, useState } from 'react';
 import { CheckCircle2, Eye, Package, Plus, RefreshCw, Search, Star, XCircle } from 'lucide-react';
