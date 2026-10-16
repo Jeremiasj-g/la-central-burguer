@@ -97,6 +97,7 @@ function mapConfig(row: ConfigRow, paymentMethods: PaymentMethod[]): BusinessCon
     address: row.address,
     specialty: row.specialty,
     isOpen: row.is_open,
+    maintenanceMode: row.maintenance_mode,
     autoScheduleEnabled: row.auto_schedule_enabled,
     autoOpenTime: row.auto_open_time.slice(0, 5),
     autoCloseTime: row.auto_close_time.slice(0, 5),
@@ -185,6 +186,7 @@ export async function updateBusinessConfig(input: Partial<BusinessConfig>): Prom
     ...(input.address !== undefined ? { address: input.address } : {}),
     ...(input.specialty !== undefined ? { specialty: input.specialty } : {}),
     ...(input.isOpen !== undefined ? { is_open: input.isOpen } : {}),
+    ...(input.maintenanceMode !== undefined ? { maintenance_mode: input.maintenanceMode } : {}),
     ...(input.autoScheduleEnabled !== undefined
       ? { auto_schedule_enabled: input.autoScheduleEnabled }
       : {}),

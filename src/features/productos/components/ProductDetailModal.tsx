@@ -167,11 +167,11 @@ export function ProductDetailModal({ product, open, onClose, onAddToCart, disabl
               <Button
                 size="sm"
                 className="min-w-0 bg-central-orange px-3 text-black transition duration-200 hover:bg-central-cream disabled:cursor-not-allowed sm:h-11 sm:px-5"
-                                title={disabled ? 'Local cerrado, intente más tarde' : 'Agregar al carrito'}
+                                title={!currentProduct.available ? 'Producto no disponible' : disabled ? 'Local cerrado, intentá más tarde' : 'Agregar al carrito'}
                 disabled={disabled || isAdding}
                 onClick={handleAdd}
               >
-                {disabled ? 'Local cerrado' : isAdding ? 'Verificando...' : 'Agregar al carrito'}
+                {!currentProduct.available ? 'No disponible' : disabled ? 'Local cerrado' : isAdding ? 'Verificando...' : 'Agregar al carrito'}
               </Button>
             </div>
           </div>

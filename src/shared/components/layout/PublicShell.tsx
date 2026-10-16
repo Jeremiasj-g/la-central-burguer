@@ -1,12 +1,13 @@
 import { PublicFooter } from './PublicFooter';
 import { PublicHeader } from './PublicHeader';
+import { PublicMaintenanceBoundary } from './PublicMaintenanceBoundary';
 
 export function PublicShell({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-h-dvh bg-central-carbon text-central-cream">
+    <PublicMaintenanceBoundary>
       <PublicHeader />
       {children}
       <PublicFooter />
-    </div>
+    </PublicMaintenanceBoundary>
   );
 }

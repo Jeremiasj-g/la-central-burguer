@@ -6,6 +6,7 @@ function minutesFromTime(value: string) {
 }
 
 export function isBusinessOpenBySchedule(config: BusinessConfig, date = new Date()) {
+  if (config.maintenanceMode) return false;
   if (!config.autoScheduleEnabled) return config.isOpen;
 
   const now = date.getHours() * 60 + date.getMinutes();
@@ -18,5 +19,6 @@ export function isBusinessOpenBySchedule(config: BusinessConfig, date = new Date
 }
 
 export function getBusinessStatusLabel(config: BusinessConfig) {
+  if (config.maintenanceMode) return 'Mantenimiento';
   return isBusinessOpenBySchedule(config) ? 'Abierto ahora' : 'Cerrado ahora';
 }

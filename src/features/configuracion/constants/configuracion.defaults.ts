@@ -15,6 +15,7 @@ export const BUSINESS_CONFIG_DEFAULTS: BusinessConfig = {
   specialty: 'Papas incluidas',
   timezone: 'America/Argentina/Cordoba',
   isOpen: true,
+  maintenanceMode: false,
   autoScheduleEnabled: true,
   autoOpenTime: '20:00',
   autoCloseTime: '00:00',

@@ -54,7 +54,7 @@ export interface Database {
       business_config: TableDefinition<
         {
           id: number; business_name: string; logo_url: string; logo_path: string | null; hero_description: string; whatsapp_number: string; facebook_url: string; instagram_url: string; whatsapp_url: string; transfer_alias: string;
-          transfer_cvu: string; address: string; specialty: string; timezone: string; is_open: boolean;
+          transfer_cvu: string; address: string; specialty: string; timezone: string; is_open: boolean; maintenance_mode: boolean;
           auto_schedule_enabled: boolean; auto_open_time: string; auto_close_time: string;
           store_latitude: number | null; store_longitude: number | null; delivery_base_fee: number;
           delivery_price_per_km: number; delivery_max_distance_km: number; delivery_rounding_value: number;
@@ -62,7 +62,7 @@ export interface Database {
         },
         {
           id?: number; business_name: string; logo_url?: string; logo_path?: string | null; hero_description?: string; whatsapp_number: string; facebook_url?: string; instagram_url?: string; whatsapp_url?: string; transfer_alias?: string;
-          transfer_cvu?: string; address?: string; specialty?: string; timezone?: string; is_open?: boolean;
+          transfer_cvu?: string; address?: string; specialty?: string; timezone?: string; is_open?: boolean; maintenance_mode?: boolean;
           auto_schedule_enabled?: boolean; auto_open_time?: string; auto_close_time?: string;
           store_latitude?: number | null; store_longitude?: number | null; delivery_base_fee?: number;
           delivery_price_per_km?: number; delivery_max_distance_km?: number; delivery_rounding_value?: number;
@@ -70,7 +70,7 @@ export interface Database {
         },
         {
           business_name?: string; logo_url?: string; logo_path?: string | null; hero_description?: string; whatsapp_number?: string; facebook_url?: string; instagram_url?: string; whatsapp_url?: string; transfer_alias?: string;
-          transfer_cvu?: string; address?: string; specialty?: string; timezone?: string; is_open?: boolean;
+          transfer_cvu?: string; address?: string; specialty?: string; timezone?: string; is_open?: boolean; maintenance_mode?: boolean;
           auto_schedule_enabled?: boolean; auto_open_time?: string; auto_close_time?: string;
           store_latitude?: number | null; store_longitude?: number | null; delivery_base_fee?: number;
           delivery_price_per_km?: number; delivery_max_distance_km?: number; delivery_rounding_value?: number;

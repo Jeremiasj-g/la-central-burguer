@@ -216,10 +216,10 @@ export function ConfiguracionAdminPage() {
         <div className="min-w-0 rounded-[18px] border border-neutral-200/70 bg-[#fcfbf8] p-4 shadow-[0_8px_22px_rgba(15,23,42,.03)]">
           <div className="flex items-center gap-2 text-[11px] font-medium text-neutral-500"><Clock3 size={14} className="text-neutral-400" /> Estado del local</div>
           <div className="mt-2 flex items-center gap-2">
-            <span className={cn('h-2 w-2 shrink-0 rounded-full', effectiveOpen ? 'bg-emerald-500' : 'bg-rose-400')} aria-hidden="true" />
-            <p className={cn('min-w-0 truncate text-[19px] font-semibold tracking-tight', effectiveOpen ? 'text-emerald-700' : 'text-neutral-900')}>{getBusinessStatusLabel(previewConfig!)}</p>
+            <span className={cn('h-2 w-2 shrink-0 rounded-full', previewConfig?.maintenanceMode ? 'bg-central-orange' : effectiveOpen ? 'bg-emerald-500' : 'bg-rose-400')} aria-hidden="true" />
+            <p className={cn('min-w-0 truncate text-[19px] font-semibold tracking-tight', previewConfig?.maintenanceMode ? 'text-central-ember' : effectiveOpen ? 'text-emerald-700' : 'text-neutral-900')}>{getBusinessStatusLabel(previewConfig!)}</p>
           </div>
-          <p className="mt-1 text-[11px] text-neutral-400">{values.autoScheduleEnabled ? 'Según horario automático' : 'Control manual'}</p>
+          <p className="mt-1 text-[11px] text-neutral-400">{previewConfig?.maintenanceMode ? 'El sitio no recibe pedidos' : values.autoScheduleEnabled ? 'Según horario automático' : 'Control manual'}</p>
         </div>
       </div>
 
@@ -441,7 +441,7 @@ export function ConfiguracionAdminPage() {
           </div>
 
           <p className="mt-4 rounded-[13px] border border-neutral-200/70 bg-[#f8f8fa] p-3 text-[12px] leading-5 text-neutral-600">
-            Con la configuración actual, el sitio muestra el local como <strong className={effectiveOpen ? 'text-emerald-700' : 'text-red-700'}>{effectiveOpen ? 'abierto' : 'cerrado'}</strong>.
+            Con la configuración actual, el sitio muestra el local como <strong className={previewConfig?.maintenanceMode ? 'text-central-ember' : effectiveOpen ? 'text-emerald-700' : 'text-red-700'}>{previewConfig?.maintenanceMode ? 'en mantenimiento' : effectiveOpen ? 'abierto' : 'cerrado'}</strong>.
           </p>
         </section>
       </div>

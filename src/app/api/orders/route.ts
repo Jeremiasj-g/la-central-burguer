@@ -78,6 +78,19 @@ export async function POST(request: Request) {
     delete serverPayload.deliveryQuoteToken;
 
     const supabase = getSupabaseAdminClient();
+    const { data: business, error: businessError } = await supabase
+      .from('business_config')
+      .select('maintenance_mode')
+      .eq('id', 1)
+      .single();
+    if (businessError) throw new Error('No pudimos verificar el estado del local.');
+    if (business?.maintenance_mode) {
+      return NextResponse.json(
+        { error: 'Estamos en mantenimiento y no podemos recibir pedidos por ahora.' },
+        { status: 503, headers: { 'Cache-Control': 'no-store' } },
+      );
+    }
+
     const { data, error } = await supabase.rpc('create_public_order_from_route', {
       payload: serverPayload as unknown as Json,
     });

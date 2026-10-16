@@ -33,7 +33,7 @@ export function OrderingMenuSection() {
   const { productos, isLoading: loadingProducts, error: productsError, refresh: refreshProducts } = useProductos({
     search,
     categoryId: selectedCategoryId,
-    available: 'available',
+    available: 'all',
     active: 'active',
   });
   const cart = useCarrito();
@@ -51,7 +51,7 @@ export function OrderingMenuSection() {
   }, []);
 
   useEffect(() => {
-    if (!loadingProducts && selectedProduct && !productos.some((item) => item.id === selectedProduct.id)) {
+    if (!loadingProducts && selectedProduct && !productos.some((item) => item.id === selectedProduct.id && item.available)) {
       setSelectedProduct(null);
     }
   }, [loadingProducts, productos, selectedProduct]);
@@ -122,12 +122,12 @@ export function OrderingMenuSection() {
       <ProductDetailModal
         product={selectedProduct}
         open={Boolean(selectedProduct)}
-        disabled={!isBusinessOpen}
+        disabled={!isBusinessOpen || !selectedProduct?.available}
         onClose={() => setSelectedProduct(null)}
         onPreviewImage={setPreviewProduct}
         categoryName={selectedProduct ? categoryById[selectedProduct.categoryId] : undefined}
         onAddToCart={async ({ product, quantity, note }) => {
-          if (!isBusinessOpen) return false;
+          if (!isBusinessOpen || !product.available) return false;
           try {
             const orderableIds = await getOrderableProductIds([product.id]);
             if (!orderableIds.has(product.id)) {

@@ -14,29 +14,36 @@ interface ProductoCardProps {
 }
 
 export function ProductoCard({ product, categoryName, disabled = false, onSelect, onPreviewImage }: ProductoCardProps) {
+  const unavailable = !product.available;
+  const blocked = disabled || unavailable;
+
   return (
     <article className={cn(
       'group relative min-h-[160px] overflow-hidden rounded-sm bg-[#20201f] shadow-2xl transition-all duration-200 ease-out motion-reduce:transition-none hover:scale-[1.035] hover:border-central-orange/65 sm:min-h-[170px]',
-      disabled && 'opacity-70',
+      blocked && 'opacity-70 hover:scale-100',
     )}>
       <button
         type="button"
-        className={cn('absolute inset-0 z-20', disabled ? 'cursor-not-allowed' : 'cursor-pointer')}
+        className={cn('absolute inset-0 z-20', blocked ? 'cursor-not-allowed' : 'cursor-pointer')}
         onClick={() => {
-          if (disabled) {
-            toast.warning('Local cerrado, intente más tarde.');
+          if (blocked) {
+            toast.warning(unavailable ? 'Este producto no está disponible por el momento.' : 'Local cerrado, intentá más tarde.');
             return;
           }
           onSelect(product);
         }}
-        title={disabled ? 'Local cerrado, intente más tarde' : `Ver ${product.name}`}
-        aria-label={disabled ? 'Local cerrado, intente más tarde' : `Ver ${product.name}`}
+        title={unavailable ? 'Producto no disponible' : disabled ? 'Local cerrado, intentá más tarde' : `Ver ${product.name}`}
+        aria-label={unavailable ? 'Producto no disponible' : disabled ? 'Local cerrado, intentá más tarde' : `Ver ${product.name}`}
       />
 
-      {disabled ? (
-        <div className="pointer-events-none absolute right-3 top-3 z-30 inline-flex items-center gap-1.5 rounded-sm border border-red-400/40 bg-black/75 px-2.5 py-1 text-[10px] font-black uppercase tracking-wider text-red-300">
-          <Ban size={12} /> Local cerrado
-        </div>
+      {unavailable ? (
+        <span className="pointer-events-none absolute right-3 top-3 z-30 inline-flex items-center gap-1 rounded-[9px] border border-central-orange/25 bg-[#191b20]/90 px-2.5 py-1 text-[10px] font-medium text-[#f2b77e]">
+          <Ban size={12} strokeWidth={1.8} /> No disponible
+        </span>
+      ) : disabled ? (
+        <span className="pointer-events-none absolute right-3 top-3 z-30 inline-flex items-center gap-1 rounded-[9px] border border-white/15 bg-black/70 px-2.5 py-1 text-[10px] font-medium text-white/70">
+          <Ban size={12} strokeWidth={1.8} /> Local cerrado
+        </span>
       ) : null}
 
       <div className="absolute inset-y-0 right-0 w-[40%] overflow-hidden bg-black sm:w-[38%]">
@@ -51,7 +58,7 @@ export function ProductoCard({ product, categoryName, disabled = false, onSelect
         <div className="absolute inset-0 bg-gradient-to-t from-black/38 via-transparent to-transparent" />
       </div>
 
-      {onPreviewImage ? (
+      {onPreviewImage && !unavailable ? (
         <button
           type="button"
           className="absolute bottom-2.5 right-2.5 z-40 grid h-8 w-8 place-items-center rounded-sm border border-central-orange/35 bg-black/75 text-central-cream/80 backdrop-blur transition hover:border-central-orange hover:bg-central-orange hover:text-black focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-central-orange"

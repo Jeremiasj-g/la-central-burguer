@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import Skeleton from 'react-loading-skeleton';
-import { ArrowDown, Flame, MapPin } from 'lucide-react';
+import { ArrowDown, Flame, MapPin, Wrench } from 'lucide-react';
 import { useBusinessConfig } from '@/features/configuracion/hooks/useBusinessConfig';
 import { isBusinessOpenBySchedule } from '@/features/configuracion/utils/businessStatus.utils';
 import { BusinessLogo } from '@/features/configuracion/components/BusinessLogo';
@@ -15,6 +15,7 @@ function formatPhoneForDisplay(phone?: string) {
 export function BurgerHero() {
   const { config, isLoading } = useBusinessConfig();
   const isOpen = config ? isBusinessOpenBySchedule(config) : false;
+  const isMaintenance = Boolean(config?.maintenanceMode);
   const businessName = config?.businessName ?? 'La Central Burger';
   const words = businessName.trim().split(/\s+/);
   const lastWord = words.pop() ?? '';
@@ -44,8 +45,8 @@ export function BurgerHero() {
             <Skeleton width={175} height={38} borderRadius={2} />
           </div>
         ) : (
-          <div className={`mt-12 inline-flex items-center gap-2 rounded-sm border-2 bg-black/45 px-5 py-2.5 text-xs font-black uppercase tracking-[.28em] shadow-dark backdrop-blur ${isOpen ? 'border-emerald-400/80 text-emerald-300 shadow-[0_0_28px_rgba(52,211,153,.18)]' : 'border-red-400/80 text-red-300 shadow-[0_0_28px_rgba(248,113,113,.15)]'}`}>
-            <Flame size={15} /> {isOpen ? 'Abierto ahora' : 'Cerrado ahora'}
+          <div className={`mt-12 inline-flex items-center gap-2 rounded-sm border-2 bg-black/45 px-5 py-2.5 text-xs font-black uppercase tracking-[.28em] shadow-dark backdrop-blur ${isMaintenance ? 'border-central-orange/70 text-central-orange shadow-[0_0_28px_rgba(228,87,18,.12)]' : isOpen ? 'border-emerald-400/80 text-emerald-300 shadow-[0_0_28px_rgba(52,211,153,.18)]' : 'border-red-400/80 text-red-300 shadow-[0_0_28px_rgba(248,113,113,.15)]'}`}>
+            {isMaintenance ? <Wrench size={15} strokeWidth={1.8} /> : <Flame size={15} />} {isMaintenance ? 'Mantenimiento' : isOpen ? 'Abierto ahora' : 'Cerrado ahora'}
           </div>
         )}
 

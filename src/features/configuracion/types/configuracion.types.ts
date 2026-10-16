@@ -20,6 +20,7 @@ export interface BusinessConfig {
   specialty: string;
   timezone: string;
   isOpen: boolean;
+  maintenanceMode: boolean;
   autoScheduleEnabled: boolean;
   autoOpenTime: string;
   autoCloseTime: string;

@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { ChevronRight, LogOut, Menu, X } from 'lucide-react';
 import { AdminNotifications } from './AdminNotifications';
+import { AdminMaintenanceControl } from './AdminMaintenanceControl';
 import { useEffect, useState } from 'react';
 import { ADMIN_NAVIGATION } from '@/shared/constants/navigation';
 import { ROUTES } from '@/shared/constants/routes';
@@ -187,6 +188,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
           </button>
           <div className="ml-auto flex items-center gap-3">
             <AdminNotifications />
+            <AdminMaintenanceControl />
             <Link href={ROUTES.menu} className="inline-flex min-h-10 items-center justify-center whitespace-nowrap rounded-[11px] bg-central-orange/10 px-4 py-2 text-[12px] font-semibold text-central-ember transition-[background-color,color,transform] duration-200 hover:bg-central-orange hover:text-white active:scale-[.98]">Ver sitio</Link>
           </div>
         </header>
