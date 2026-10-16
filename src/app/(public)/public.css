@@ -332,13 +332,17 @@ body.lcb-public-typography .lcb-drawer-overlay:has(> aside.lcb-cart-drawer)[data
     transform: translate3d(0, 105%, 0) scaleY(1);
     animation-timing-function: cubic-bezier(.2, .78, .26, 1);
   }
-  70% {
+  68% {
     transform: translate3d(0, 0, 0) scaleY(1);
     animation-timing-function: ease-out;
   }
-  84% {
-    transform: translate3d(0, 0, 0) scaleY(1.012);
+  79% {
+    transform: translate3d(0, 0, 0) scaleY(1.04);
     animation-timing-function: ease-in-out;
+  }
+  91% {
+    transform: translate3d(0, 0, 0) scaleY(.99);
+    animation-timing-function: ease-out;
   }
   100% {
     transform: translate3d(0, 0, 0) scaleY(1);
