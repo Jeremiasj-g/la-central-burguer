@@ -174,6 +174,18 @@ body.lcb-public-typography [class~="bg-[#0d0c0b]/96"] {
   background-color: rgba(16, 16, 16, .96) !important;
 }
 
+/* El buscador del menú conserva la superficie de los inputs públicos
+   y el borde neutro del panel «Mi pedido» en el tema oscuro. */
+body.lcb-public-typography[data-public-theme="dark"] .lcb-menu-search-input {
+  background-color: #222222 !important;
+  border-color: rgba(255, 255, 255, .085) !important;
+  box-shadow: none !important;
+}
+body.lcb-public-typography[data-public-theme="dark"] .lcb-menu-search-input:focus {
+  border-color: #efa83e !important;
+  box-shadow: 0 0 0 3px rgba(239, 168, 62, .13) !important;
+}
+
 /* Modales, drawers y confirmaciones públicas. */
 body.lcb-public-typography [data-lcb-scroll-lock-overlay="true"] {
   font-family: var(--lcb-public-font-family, system-ui, sans-serif) !important;
