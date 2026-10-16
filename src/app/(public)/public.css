@@ -321,7 +321,7 @@ body.lcb-public-typography [data-lcb-scroll-lock-overlay="true"] .lcb-product-de
 
 
 /* Entrada inferior del carrito público: ascenso, leve estiramiento y asentamiento
-   de 200 ms. El resto de drawers conserva la animación lateral compartida.
+   de 300 ms. El resto de drawers conserva la animación lateral compartida.
    El fondo del carrito aparece sin desvanecerse. */
 body.lcb-public-typography .lcb-drawer-overlay:has(> aside.lcb-cart-drawer)[data-state="open"],
 body.lcb-public-typography .lcb-drawer-overlay:has(> aside.lcb-cart-drawer)[data-state="closed"] {
@@ -359,11 +359,11 @@ body.lcb-public-typography [data-lcb-scroll-lock-overlay="true"] aside.lcb-cart-
 }
 
 body.lcb-public-typography [data-lcb-scroll-lock-overlay="true"] aside.lcb-cart-drawer[data-state="open"] {
-  animation: lcb-cart-sheet-enter 200ms linear both;
+  animation: lcb-cart-sheet-enter 300ms linear both;
 }
 
 body.lcb-public-typography [data-lcb-scroll-lock-overlay="true"] aside.lcb-cart-drawer[data-state="closed"] {
-  animation: lcb-cart-sheet-exit 200ms ease-in both;
+  animation: lcb-cart-sheet-exit 300ms ease-in both;
 }
 
 /* Mi pedido — el mismo lenguaje visual que la modal de producto.
