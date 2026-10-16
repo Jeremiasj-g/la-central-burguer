@@ -84,7 +84,7 @@ function getCategoryAsset(categoryName: string) {
 
 function tabClasses(active: boolean) {
   return cn(
-    'group flex h-[92px] w-full min-w-0 flex-col overflow-hidden rounded-[14px] border px-2 py-2 text-center transition sm:h-[108px] sm:px-3 sm:py-2.5',
+    'group flex h-[78px] w-full min-w-0 flex-col overflow-hidden rounded-[14px] border px-1.5 py-1.5 text-center transition sm:h-[108px] sm:px-3 sm:py-2.5',
     active
       ? 'border-central-orange bg-central-orange text-black shadow-orange'
       : 'border-white/10 bg-[#20201f] text-central-cream/70 hover:border-central-orange/60 hover:text-central-orange',
@@ -107,15 +107,15 @@ function CategoryIcon({
   }, [src]);
 
   return (
-    <span className="flex h-[70%] w-full min-h-0 items-center justify-center overflow-hidden" aria-hidden="true">
+    <span className="flex h-9 w-full shrink-0 items-center justify-center overflow-hidden sm:h-[70%] sm:shrink" aria-hidden="true">
       {failed ? (
-        <FallbackIcon className="h-8 w-8 sm:h-10 sm:w-10" strokeWidth={1.8} />
+        <FallbackIcon className="h-7 w-7 sm:h-10 sm:w-10" strokeWidth={1.8} />
       ) : (
         <img
           src={src}
           alt=""
           className={cn(
-            'h-full max-h-[44px] w-full max-w-[58px] object-contain sm:max-h-[52px] sm:max-w-[66px]',
+            'h-full max-h-[33px] w-full max-w-[44px] object-contain sm:max-h-[52px] sm:max-w-[66px]',
             active ? 'brightness-0' : 'lcb-category-unselected-icon brightness-0 invert opacity-75',
           )}
           onError={() => setFailed(true)}
@@ -127,7 +127,7 @@ function CategoryIcon({
 
 function CategoryLabel({ children }: { children: string }) {
   return (
-    <span className="flex h-[30%] w-full min-w-0 items-center justify-center overflow-hidden">
+    <span className="flex min-h-0 w-full min-w-0 flex-1 items-center justify-center overflow-hidden sm:h-[30%] sm:flex-none">
       <span className="line-clamp-2 w-full min-w-0 text-[10px] font-semibold leading-[1.12] tracking-normal [overflow-wrap:anywhere] hyphens-auto sm:text-[11px] sm:leading-[1.18]">
         {formatMenuLabel(children)}
       </span>
@@ -153,14 +153,15 @@ export function CategoryTabs({ categories, selectedCategoryId, onSelect }: Categ
   }, [swiper, categories.length]);
 
   return (
-    <div className="category-tabs-swiper lcb-category-swiper relative rounded-[14px] py-2 backdrop-blur-xl">
+    <div className="category-tabs-swiper lcb-category-swiper relative rounded-[14px] py-1.5 backdrop-blur-xl sm:py-2">
       <Swiper
         modules={[FreeMode, Mousewheel]}
         freeMode
         mousewheel={{ forceToAxis: true, sensitivity: 0.75 }}
         grabCursor
         slidesPerView="auto"
-        spaceBetween={8}
+        spaceBetween={6}
+        breakpoints={{ 640: { spaceBetween: 8 } }}
         className="!overflow-hidden"
         onSwiper={(instance) => {
           setSwiper(instance);
@@ -171,7 +172,7 @@ export function CategoryTabs({ categories, selectedCategoryId, onSelect }: Categ
         onSlideChange={syncNavigationState}
         onTransitionEnd={syncNavigationState}
       >
-        <SwiperSlide className="!w-[96px] sm:!w-[132px]">
+        <SwiperSlide className="!w-[80px] sm:!w-[132px]">
           <button type="button" onClick={() => onSelect('all')} className={cn(tabClasses(selectedCategoryId === 'all'), 'lcb-category-tab')}>
             <CategoryIcon src={categoryAssets.utensils} fallback={Utensils} active={selectedCategoryId === 'all'} />
             <CategoryLabel>Todo</CategoryLabel>
@@ -182,7 +183,7 @@ export function CategoryTabs({ categories, selectedCategoryId, onSelect }: Categ
           const FallbackIcon = icons[(category.iconName ?? 'Utensils') as keyof typeof icons] ?? Utensils;
           const active = selectedCategoryId === category.id;
           return (
-            <SwiperSlide key={category.id} className="!w-[96px] sm:!w-[132px]">
+            <SwiperSlide key={category.id} className="!w-[80px] sm:!w-[132px]">
               <button type="button" onClick={() => onSelect(category.id)} className={cn(tabClasses(active), 'lcb-category-tab')} title={category.name}>
                 <CategoryIcon src={getCategoryAsset(category.name)} fallback={FallbackIcon} active={active} />
                 <CategoryLabel>{category.name}</CategoryLabel>
