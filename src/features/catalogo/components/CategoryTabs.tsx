@@ -83,10 +83,10 @@ function getCategoryAsset(categoryName: string) {
 
 function tabClasses(active: boolean) {
   return cn(
-    'group flex h-[92px] w-full min-w-0 flex-col overflow-hidden rounded-sm border px-2 py-2 text-center uppercase transition sm:h-[108px] sm:px-3 sm:py-2.5',
+    'group flex h-[98px] w-full min-w-0 flex-col overflow-hidden rounded-[14px] border px-2 py-2.5 text-center transition-all duration-200 sm:h-[108px] sm:px-3 sm:py-3',
     active
-      ? 'border-central-orange bg-central-orange text-black shadow-orange'
-      : 'border-white/10 bg-[#20201f] text-central-cream/70 hover:border-central-orange/60 hover:text-central-orange',
+      ? 'lcb-polished-category-active'
+      : 'lcb-polished-category',
   );
 }
 
@@ -115,7 +115,7 @@ function CategoryIcon({
           alt=""
           className={cn(
             'h-full max-h-[44px] w-full max-w-[58px] object-contain sm:max-h-[52px] sm:max-w-[66px]',
-            active ? 'brightness-0' : 'brightness-0 invert opacity-75',
+            active ? 'brightness-0' : 'lcb-polished-category-image opacity-75',
           )}
           onError={() => setFailed(true)}
         />
@@ -152,7 +152,7 @@ export function CategoryTabs({ categories, selectedCategoryId, onSelect }: Categ
   }, [swiper, categories.length]);
 
   return (
-    <div className="category-tabs-swiper relative rounded-sm py-2 backdrop-blur-xl">
+    <div className="lcb-polished-category-container category-tabs-swiper relative rounded-[14px] py-2">
       <Swiper
         modules={[FreeMode, Mousewheel]}
         freeMode
@@ -170,7 +170,7 @@ export function CategoryTabs({ categories, selectedCategoryId, onSelect }: Categ
         onSlideChange={syncNavigationState}
         onTransitionEnd={syncNavigationState}
       >
-        <SwiperSlide className="!w-[96px] sm:!w-[132px]">
+        <SwiperSlide className="!w-[96px] sm:!w-[128px]">
           <button type="button" onClick={() => onSelect('all')} className={tabClasses(selectedCategoryId === 'all')}>
             <CategoryIcon src={categoryAssets.utensils} fallback={Utensils} active={selectedCategoryId === 'all'} />
             <CategoryLabel>Todo</CategoryLabel>
@@ -181,7 +181,7 @@ export function CategoryTabs({ categories, selectedCategoryId, onSelect }: Categ
           const FallbackIcon = icons[(category.iconName ?? 'Utensils') as keyof typeof icons] ?? Utensils;
           const active = selectedCategoryId === category.id;
           return (
-            <SwiperSlide key={category.id} className="!w-[96px] sm:!w-[132px]">
+            <SwiperSlide key={category.id} className="!w-[96px] sm:!w-[128px]">
               <button type="button" onClick={() => onSelect(category.id)} className={tabClasses(active)} title={category.name}>
                 <CategoryIcon src={getCategoryAsset(category.name)} fallback={FallbackIcon} active={active} />
                 <CategoryLabel>{category.name}</CategoryLabel>
@@ -193,14 +193,14 @@ export function CategoryTabs({ categories, selectedCategoryId, onSelect }: Categ
 
       <div
         className={cn(
-          'pointer-events-none absolute inset-y-2 left-0 z-20 w-10 bg-gradient-to-r from-[#0d0d0d] via-[#0d0d0d]/80 to-transparent transition-opacity duration-200 sm:w-14',
+          'pointer-events-none absolute inset-y-2 left-0 z-20 w-10 bg-gradient-to-r from-[var(--lcb-polish-surface)] via-[var(--lcb-polish-surface)] to-transparent transition-opacity duration-200 sm:w-14',
           canScrollPrev ? 'opacity-100' : 'opacity-0',
         )}
         aria-hidden="true"
       />
       <div
         className={cn(
-          'pointer-events-none absolute inset-y-2 right-0 z-20 w-10 bg-gradient-to-l from-[#0d0d0d] via-[#0d0d0d]/80 to-transparent transition-opacity duration-200 sm:w-14',
+          'pointer-events-none absolute inset-y-2 right-0 z-20 w-10 bg-gradient-to-l from-[var(--lcb-polish-surface)] via-[var(--lcb-polish-surface)] to-transparent transition-opacity duration-200 sm:w-14',
           canScrollNext ? 'opacity-100' : 'opacity-0',
         )}
         aria-hidden="true"
