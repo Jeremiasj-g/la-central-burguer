@@ -311,18 +311,24 @@ export function CheckoutModal({ open, onClose, items, onOrderCreated }: Checkout
                   <label htmlFor="checkout-customer-name" className="mb-2 block text-[12px] font-medium text-white/75">
                     Nombre completo<RequiredMark />
                   </label>
-                  <Input id="checkout-customer-name" autoComplete="name" enterKeyHint="next"
-                    className="lcb-checkout-input !h-11 !rounded-[12px] !border-white/10 !bg-white/[.045] !px-3.5 !text-[14px] !font-normal !text-white placeholder:!text-white/35"
-                    value={values.customerName} onChange={(event) => update('customerName', event.target.value)} placeholder="Tu nombre" />
+                  <div className="lcb-public-field-shell" data-field-theme={theme}>
+                    <Input id="checkout-customer-name" autoComplete="name" enterKeyHint="next"
+                      className={cn('lcb-public-field-input !h-11 !rounded-[11px] !border-0 !bg-transparent !px-3.5 !text-[14px] !font-normal',
+                        theme === 'light' ? '!text-[#292d32] placeholder:!text-[#7e858c]' : '!text-white placeholder:!text-white/40')}
+                      value={values.customerName} onChange={(event) => update('customerName', event.target.value)} placeholder="Tu nombre" />
+                  </div>
                   {errors.customerName ? <p className="mt-1.5 text-[11px] text-red-300" role="alert">{errors.customerName}</p> : null}
                 </div>
                 <div className="min-w-0">
                   <label htmlFor="checkout-customer-phone" className="mb-2 block text-[12px] font-medium text-white/75">
                     Teléfono<RequiredMark />
                   </label>
-                  <Input id="checkout-customer-phone" type="tel" inputMode="tel" autoComplete="tel" enterKeyHint="next"
-                    className="lcb-checkout-input !h-11 !rounded-[12px] !border-white/10 !bg-white/[.045] !px-3.5 !text-[14px] !font-normal !text-white placeholder:!text-white/35"
-                    value={values.customerPhone} onChange={(event) => update('customerPhone', event.target.value)} placeholder="Tu número de WhatsApp"/>
+                  <div className="lcb-public-field-shell" data-field-theme={theme}>
+                    <Input id="checkout-customer-phone" type="tel" inputMode="tel" autoComplete="tel" enterKeyHint="next"
+                      className={cn('lcb-public-field-input !h-11 !rounded-[11px] !border-0 !bg-transparent !px-3.5 !text-[14px] !font-normal',
+                        theme === 'light' ? '!text-[#292d32] placeholder:!text-[#7e858c]' : '!text-white placeholder:!text-white/40')}
+                      value={values.customerPhone} onChange={(event) => update('customerPhone', event.target.value)} placeholder="Tu número de WhatsApp"/>
+                  </div>
                   {errors.customerPhone ? <p className="mt-1.5 text-[11px] text-red-300" role="alert">{errors.customerPhone}</p> : null}
                 </div>
               </div>
@@ -444,13 +450,16 @@ export function CheckoutModal({ open, onClose, items, onOrderCreated }: Checkout
                 <h3 id="checkout-notes-title" className="text-[14px] font-medium text-white/85">Observaciones</h3>
                 <span className="text-[11px] text-white/40">Opcional</span>
               </div>
-              <Textarea
-                className="lcb-checkout-notes !min-h-[82px] !w-full !rounded-[12px] !border-white/10 !bg-white/[.045] !px-3.5 !py-3 !text-[13px] !font-normal !leading-5 !text-white placeholder:!text-white/35 focus:!border-central-orange/60"
-                enterKeyHint="done"
-                value={values.notes}
-                onChange={(event) => update('notes', event.target.value)}
-                placeholder="¿Algo más que debamos saber?"
-              />
+              <div className="lcb-public-field-shell" data-field-theme={theme}>
+                <Textarea
+                  className={cn('lcb-public-field-input !min-h-[82px] !w-full !resize-y !rounded-[11px] !border-0 !bg-transparent !px-3.5 !py-3 !text-[13px] !font-normal !leading-5',
+                    theme === 'light' ? '!text-[#292d32] placeholder:!text-[#7e858c]' : '!text-white placeholder:!text-white/40')}
+                  enterKeyHint="done"
+                  value={values.notes}
+                  onChange={(event) => update('notes', event.target.value)}
+                  placeholder="¿Algo más que debamos saber?"
+                />
+              </div>
             </section>
           </div>
 

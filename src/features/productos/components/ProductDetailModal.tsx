@@ -195,14 +195,17 @@ export function ProductDetailModal({
               )}
             >
               <div className="min-h-0 overflow-hidden">
-                <Textarea
-                  className="!min-h-[88px] !w-full !rounded-[12px] !border-white/10 !bg-white/[.055] !px-3.5 !py-3 !text-[13px] !font-normal !leading-6 !text-white placeholder:!text-white/35 focus:!border-central-orange/60"
-                  value={note}
-                  onChange={(event) => setNote(event.target.value)}
-                  placeholder="Ej.: sin cebolla, poco queso, sin tomate..."
-                  tabIndex={withNote ? 0 : -1}
-                  disabled={isAdding}
-                />
+                <div className="lcb-public-field-shell" data-field-theme={theme}>
+                  <Textarea
+                    className={cn('lcb-public-field-input !min-h-[88px] !w-full !rounded-[11px] !border-0 !bg-transparent !px-3.5 !py-3 !text-[13px] !font-normal !leading-6',
+                      theme === 'light' ? '!text-[#292d32] placeholder:!text-[#7e858c]' : '!text-white placeholder:!text-white/40')}
+                    value={note}
+                    onChange={(event) => setNote(event.target.value)}
+                    placeholder="Ej.: sin cebolla, poco queso, sin tomate..."
+                    tabIndex={withNote ? 0 : -1}
+                    disabled={isAdding}
+                  />
+                </div>
               </div>
             </div>
           </div>

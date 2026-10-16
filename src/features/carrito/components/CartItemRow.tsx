@@ -88,6 +88,7 @@ export function CartItemRow({ item, onUpdateQuantity, onUpdateNote, onRemove, fo
       {editingNote ? (
         <div className="mt-3 space-y-2 pl-0 sm:pl-[76px]">
           <label htmlFor={`note-${item.id}`} className="block text-[11px] font-medium text-white/65">Aclaración del producto</label>
+          <div className="lcb-public-field-shell" data-field-theme={theme}>
           <textarea
             id={`note-${item.id}`}
             autoFocus
@@ -100,8 +101,10 @@ export function CartItemRow({ item, onUpdateQuantity, onUpdateNote, onRemove, fo
               if ((event.ctrlKey || event.metaKey) && event.key === 'Enter') saveNote();
             }}
             placeholder="Ej.: sin cebolla, poco queso..."
-            className="lcb-cart-note-input custom-scrollbar min-h-[80px] w-full resize-y rounded-[12px] border border-white/10 bg-white/[.055] px-3 py-2.5 text-[12px] leading-5 text-white outline-none placeholder:text-white/35 focus:border-central-orange/60"
+            className={cn('lcb-public-field-input custom-scrollbar min-h-[80px] w-full resize-y rounded-[11px] border-0 bg-transparent px-3 py-2.5 text-[12px] leading-5 outline-none',
+              theme === 'light' ? 'text-[#292d32] placeholder:text-[#7e858c]' : 'text-white placeholder:text-white/40')}
           />
+          </div>
           <div className="flex justify-end gap-2">
             <button type="button" onClick={cancelNoteEdit} className="inline-flex h-9 items-center gap-1.5 rounded-[10px] px-3 text-[11px] font-medium text-white/60 transition-colors duration-200 hover:bg-white/[.07] hover:text-white">
               <X size={14} /> Cancelar

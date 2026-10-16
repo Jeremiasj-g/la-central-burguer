@@ -478,3 +478,70 @@ body.lcb-public-typography [data-lcb-scroll-lock-overlay="true"] .lcb-checkout-m
     padding: 10px 15px calc(10px + env(safe-area-inset-bottom,0px));
   }
 }
+
+
+/* Inputs públicos: el borde pertenece al contenedor y NO al control.
+   Evita que las reglas dark/light del input oculten su silueta sin foco.
+   Solo se utiliza en las modales del sitio cliente. */
+.lcb-public-field-shell {
+  width: 100%;
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,.18);
+  border-radius: 12px;
+  background: #222222;
+  transition: border-color 200ms ease, background-color 200ms ease, box-shadow 200ms ease;
+}
+.lcb-public-field-shell[data-field-theme="light"] {
+  border-color: #b9c1c6;
+  background: #f0f2f2;
+}
+.lcb-public-field-shell[data-field-theme="dark"] {
+  border-color: rgba(255,255,255,.18);
+  background: #222222;
+}
+.lcb-public-field-shell[data-field-theme="light"]:hover {
+  border-color: #a5afb5;
+  background: #f4f5f4;
+}
+.lcb-public-field-shell:focus-within {
+  border-color: #efa83e;
+  box-shadow: 0 0 0 3px rgba(239,168,62,.13);
+}
+.lcb-public-field-shell[data-field-theme="light"]:focus-within {
+  border-color: #c18430;
+  background: #fff;
+  box-shadow: 0 0 0 3px rgba(193,132,48,.13);
+}
+/* Reinicia sólo el fondo/borde interior. El contorno real sigue visible
+   aunque la aplicación cambie de tema o Tailwind altere las utilities. */
+body.lcb-public-typography [data-lcb-scroll-lock-overlay="true"]
+ .lcb-public-field-shell :is(input.lcb-public-field-input,textarea.lcb-public-field-input) {
+  display: block;
+  width: 100%;
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  outline: 0 !important;
+}
+body.lcb-public-typography [data-lcb-scroll-lock-overlay="true"]
+ .lcb-public-field-shell[data-field-theme="light"] :is(input.lcb-public-field-input,textarea.lcb-public-field-input) {
+  color: #292d32 !important;
+}
+body.lcb-public-typography [data-lcb-scroll-lock-overlay="true"]
+ .lcb-public-field-shell[data-field-theme="dark"] :is(input.lcb-public-field-input,textarea.lcb-public-field-input) {
+  color: #f6f5f2 !important;
+}
+body.lcb-public-typography [data-lcb-scroll-lock-overlay="true"]
+ .lcb-public-field-shell[data-field-theme="light"] :is(input.lcb-public-field-input,textarea.lcb-public-field-input)::placeholder {
+  color: #7e858c !important;
+  opacity: 1;
+}
+body.lcb-public-typography [data-lcb-scroll-lock-overlay="true"]
+ .lcb-public-field-shell[data-field-theme="dark"] :is(input.lcb-public-field-input,textarea.lcb-public-field-input)::placeholder {
+  color: rgba(255,255,255,.42) !important;
+  opacity: 1;
+}
+@media (prefers-reduced-motion: reduce) {
+  .lcb-public-field-shell { transition: none; }
+}
