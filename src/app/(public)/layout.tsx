@@ -1,6 +1,7 @@
 import { Oswald, Outfit } from 'next/font/google';
 import './public.css';
 import './display.css';
+import './polish.css';
 import { PublicTypographyPortalSync } from './PublicTypographyPortalSync';
 import { CustomerThemeProvider } from '@/shared/components/layout/CustomerThemeProvider';
 
