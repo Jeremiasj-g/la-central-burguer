@@ -1,261 +1,326 @@
+/* La Central Burger — experiencia pública 2026.
+   Tema encapsulado: no modifica el panel administrativo ni Delivery. */
 .public-site {
-  /* Paleta pública: negro carbón profundo y amarillo cálido más cercano al naranja. */
-  --lcb-public-bg: #111111;
-  --lcb-public-surface: #171717;
-  --lcb-public-surface-soft: #1d1d1d;
-  --lcb-public-surface-deep: #0d0d0d;
-  --lcb-public-orange: #ffb21a;
-  --lcb-public-orange-dark: #f28a0a;
+  --lcb-page: #121418;
+  --lcb-surface: #1c1e23;
+  --lcb-surface-alt: #24262c;
+  --lcb-hover: #292b31;
+  --lcb-text: #f6f5f3;
+  --lcb-muted: #a3a5ab;
+  --lcb-border: rgba(255,255,255,.10);
+  --lcb-accent: #f6a22a;
+  --lcb-accent-text: #e8a84e;
+  --lcb-image-bg: #26221e;
+  --lcb-header-bg: rgba(20,22,26,.81);
+  --lcb-shadow: 0 16px 46px rgba(0,0,0,.14);
+  color: var(--lcb-text);
   min-height: 100dvh;
-  background:
-    radial-gradient(circle at 18% 0%, rgba(255, 178, 26, .12), transparent 30rem),
-    linear-gradient(180deg, #141414 0%, #181818 48%, #111111 100%);
+  background: var(--lcb-page);
   font-weight: 400;
+  transition: background-color .2s, color .2s;
 }
 
-/* El body también recibe la paleta mientras una ruta pública está montada.
- * Esto cubre modales, drawers, confirmaciones y toasts renderizados con portal.
- */
+.public-site[data-public-theme="light"] {
+  --lcb-page: #f5f5f3;
+  --lcb-surface: #ffffff;
+  --lcb-surface-alt: #f0f0ee;
+  --lcb-hover: #eaeae7;
+  --lcb-text: #24262b;
+  --lcb-muted: #737780;
+  --lcb-border: rgba(31,34,40,.10);
+  --lcb-accent: #ef8b18;
+  --lcb-accent-text: #ab5f08;
+  --lcb-image-bg: #ece9e3;
+  --lcb-header-bg: rgba(248,248,246,.84);
+  --lcb-shadow: 0 15px 45px rgba(39,42,47,.065);
+}
+
 body.lcb-public-typography {
-  --lcb-public-bg: #111111;
-  --lcb-public-surface: #171717;
-  --lcb-public-surface-soft: #1d1d1d;
-  --lcb-public-surface-deep: #0d0d0d;
-  --lcb-public-orange: #ffb21a;
-  --lcb-public-orange-dark: #f28a0a;
-  background:
-    radial-gradient(circle at 18% 0%, rgba(255, 178, 26, .10), transparent 30rem),
-    linear-gradient(180deg, #141414 0%, #181818 48%, #111111 100%);
+  --lcb-page: #121418;
+  --lcb-surface: #1c1e23;
+  --lcb-surface-alt: #24262c;
+  --lcb-hover: #292b31;
+  --lcb-text: #f6f5f3;
+  --lcb-muted: #a3a5ab;
+  --lcb-border: rgba(255,255,255,.10);
+  --lcb-accent: #f6a22a;
+  --lcb-accent-text: #e8a84e;
+  --lcb-image-bg: #26221e;
+  background: var(--lcb-page);
 }
+body.lcb-public-typography[data-public-theme="light"] {
+  --lcb-page: #f5f5f3;
+  --lcb-surface: #ffffff;
+  --lcb-surface-alt: #f0f0ee;
+  --lcb-hover: #eaeae7;
+  --lcb-text: #24262b;
+  --lcb-muted: #737780;
+  --lcb-border: rgba(31,34,40,.10);
+  --lcb-accent: #ef8b18;
+  --lcb-accent-text: #ab5f08;
+  --lcb-image-bg: #ece9e3;
+  background: var(--lcb-page);
+}
+.public-site .lcb-public-shell { background: var(--lcb-page); color: var(--lcb-text); }
+.public-site :is(button, a, input, textarea) { transition-duration: .2s; }
+.public-site :is(button, a):focus-visible { outline: 2px solid var(--lcb-accent); outline-offset: 3px; }
+.public-site ::selection { background: rgba(246,162,42,.26); }
 
-/* Hero y fondos principales. */
+/* Se conserva deliberadamente el carácter original del hero. */
 .public-site .brick-wall {
   background-color: #121212;
   background-image:
-    linear-gradient(rgba(255, 255, 255, .045) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, .035) 1px, transparent 1px),
-    radial-gradient(circle at 20% 18%, rgba(255, 178, 26, .18), transparent 26rem),
-    radial-gradient(circle at 84% 18%, rgba(255, 255, 255, .075), transparent 22rem),
-    linear-gradient(180deg, #181818, #0d0d0d 72%);
+    linear-gradient(rgba(255,255,255,.045) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(255,255,255,.035) 1px,transparent 1px),
+    radial-gradient(circle at 20% 18%,rgba(255,178,26,.18),transparent 26rem),
+    radial-gradient(circle at 84% 18%,rgba(255,255,255,.075),transparent 22rem),
+    linear-gradient(180deg,#181818,#0d0d0d 72%);
 }
-
-.public-site .grunge-border::before {
-  border-color: rgba(255, 178, 26, .82);
-}
-
 .public-site .brush-line {
-  background: linear-gradient(90deg, transparent, #ffb21a 18%, #ffd05c 50%, #f28a0a 82%, transparent);
-  box-shadow: 0 0 24px rgba(255, 178, 26, .28);
+  background:linear-gradient(90deg, transparent, #ffb21a 18%, #ffd05c 50%, #f28a0a 82%, transparent);
+  box-shadow:0 0 24px rgba(255,178,26,.28);
 }
+.public-site .menu-title-shadow { text-shadow:0 2px 0 rgba(0,0,0,.78),0 0 18px rgba(255,178,26,.16); }
+.public-site .grunge-border::before {border-color:rgba(255,178,26,.82);}
+.public-site .hero-brand-title,.public-site .hero-brand-title * {font-weight:800 !important;}
+.public-site .watermark-text {font-weight:600 !important;}
 
-.public-site .menu-title-shadow {
-  text-shadow:
-    0 2px 0 rgba(0, 0, 0, .78),
-    0 0 18px rgba(255, 178, 26, .16);
+/* Navegación con efecto vidrio, legible en ambos temas. */
+.public-site .lcb-public-header {
+  background:var(--lcb-header-bg);
+  color:var(--lcb-text);
+  border-bottom:1px solid var(--lcb-border);
+  backdrop-filter:blur(12px);
+  -webkit-backdrop-filter:blur(12px);
 }
-
-.public-site .menu-card-texture {
-  background:
-    radial-gradient(circle at 12% 10%, rgba(255, 178, 26, .12), transparent 18rem),
-    linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.012)),
-    #171717;
+.public-site .lcb-header-brand {color:var(--lcb-text);}
+.public-site .lcb-header-link {
+  display:inline-flex;align-items:center;justify-content:center;
+  padding:10px 18px;border-radius:11px;
+  color:var(--lcb-muted);font-size:12px;font-weight:500;
+  transition:color .2s,background-color .2s;
 }
-
-/*
- * Tailwind genera estos colores como valores resueltos; por eso la paleta pública
- * los sobreescribe explícitamente y no modifica Admin ni Delivery.
- */
-body.lcb-public-typography .text-central-orange {
-  color: #ffb21a !important;
+.public-site .lcb-header-link:hover {background:var(--lcb-hover);color:var(--lcb-text);}
+.public-site .lcb-theme-switch {
+  display:inline-flex;align-items:center;justify-content:center;
+  height:40px;min-width:40px;gap:8px;padding:0 11px;
+  border-radius:12px;border:1px solid var(--lcb-border);
+  background:var(--lcb-surface);color:var(--lcb-text);
+  font-size:11px;font-weight:500;cursor:pointer;
 }
-
-body.lcb-public-typography .bg-central-orange {
-  background-color: #ffb21a !important;
+.public-site .lcb-theme-switch:hover,.public-site .lcb-header-mobile-menu:hover {background:var(--lcb-hover);}
+.public-site .lcb-cart-header-button {
+  position:relative;display:inline-flex;height:40px;align-items:center;
+  justify-content:center;gap:9px;padding:0 11px;border:1px solid var(--lcb-border);
+  border-radius:12px;color:var(--lcb-text);background:var(--lcb-surface);
+  font-size:12px;font-weight:600;cursor:pointer;
 }
-
-body.lcb-public-typography .border-central-orange {
-  border-color: #ffb21a !important;
+.public-site .lcb-cart-quantity {
+  display:grid;min-width:19px;height:19px;place-items:center;padding:0 5px;
+  border-radius:99px;background:var(--lcb-accent);color:#151515;
+  font-size:10px;font-weight:600;
 }
-
-body.lcb-public-typography .outline-central-orange {
-  outline-color: #ffb21a !important;
+.public-site .lcb-header-cta {
+  height:40px;align-items:center;justify-content:center;gap:8px;padding:0 16px;
+  background:var(--lcb-accent);color:#1b1c1e;border-radius:12px;
+  font-size:12px;font-weight:600;transition:filter .2s,transform .2s;
 }
-
-body.lcb-public-typography .accent-central-orange {
-  accent-color: #ffb21a !important;
+.public-site .lcb-header-cta:hover {filter:brightness(1.08);transform:translateY(-1px);}
+.public-site .lcb-header-mobile-menu {
+  display:grid;height:40px;width:40px;place-items:center;border:1px solid var(--lcb-border);
+  border-radius:12px;background:var(--lcb-surface);color:var(--lcb-text);
 }
-
-body.lcb-public-typography .bg-central-ink {
-  background-color: #171717 !important;
+.public-site .lcb-mobile-nav {
+  display:grid;gap:3px;overflow:hidden;
+  padding:12px 20px 18px;border-top:1px solid var(--lcb-border);
+  background:var(--lcb-surface);
+  transition:opacity .2s,transform .2s,max-height .2s;
 }
-
-body.lcb-public-typography .bg-central-carbon {
-  background-color: #111111 !important;
+.public-site .lcb-mobile-nav[data-state="closed"]{max-height:0;padding-top:0;padding-bottom:0;opacity:0;transform:translateY(-8px);}
+.public-site .lcb-mobile-nav[data-state="open"]{max-height:250px;opacity:1;transform:translateY(0);}
+.public-site .lcb-mobile-nav :is(a,button) {
+  display:flex;justify-content:space-between;align-items:center;
+  width:100%;padding:13px;border-radius:10px;color:var(--lcb-text);
+  font-size:13px;text-align:left;
 }
+.public-site .lcb-mobile-nav :is(a,button):hover {background:var(--lcb-hover);}
 
-body.lcb-public-typography .text-central-carbon {
-  color: #111111 !important;
+/* Carta: tipografía editorial y superficies tranquilas. */
+.public-site .lcb-menu-section {background:var(--lcb-page);color:var(--lcb-text);}
+.public-site .lcb-section-eyebrow {
+  display:inline-flex;align-items:center;gap:7px;
+  color:var(--lcb-accent-text);font-size:10px;font-weight:600;
+  letter-spacing:.14em;text-transform:uppercase;
 }
-
-body.lcb-public-typography .shadow-orange {
-  --tw-shadow-color: rgba(255, 178, 26, .24) !important;
-  box-shadow: 0 18px 40px rgba(255, 178, 26, .24) !important;
+.public-site .lcb-menu-main-heading {
+  font-size:clamp(3.2rem,7.4vw,6.5rem);
+  line-height:.98;font-weight:600;letter-spacing:-.073em;
 }
-
-/* Variantes del acento usadas actualmente en menú, carrito y checkout. */
-body.lcb-public-typography :is(
-  [class~="text-central-orange/70"],
-  [class~="text-central-orange/75"],
-  [class~="text-central-orange/80"]
-) {
-  color: rgba(255, 178, 26, .80) !important;
+.public-site .lcb-menu-meta-number {font-size:52px;line-height:1;font-weight:600;letter-spacing:-.06em;}
+.public-site .lcb-menu-tools {border-bottom:1px solid var(--lcb-border);padding-bottom:19px;}
+.public-site .lcb-menu-search {
+  border:1px solid var(--lcb-border);
+  border-radius:13px;background:var(--lcb-surface);color:var(--lcb-text);
+  box-shadow:0 2px 8px rgba(0,0,0,.015);
+  transition:border-color .2s,box-shadow .2s;
 }
-
-body.lcb-public-typography :is(
-  [class~="border-central-orange/18"],
-  [class~="border-central-orange/20"],
-  [class~="border-central-orange/25"],
-  [class~="border-central-orange/30"],
-  [class~="border-central-orange/35"],
-  [class~="border-central-orange/40"],
-  [class~="border-central-orange/45"],
-  [class~="border-central-orange/50"],
-  [class~="border-central-orange/65"]
-) {
-  border-color: rgba(255, 178, 26, .34) !important;
+.public-site .lcb-menu-search:focus-within {border-color:var(--lcb-accent);box-shadow:0 0 0 3px rgba(246,162,42,.08);}
+.public-site .lcb-menu-search input::-webkit-search-cancel-button {display:none;}
+.public-site .lcb-category-scroll {
+  display:flex;align-items:center;gap:8px;max-width:100%;
+  overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;
+  padding:3px 1px 5px;
 }
-
-body.lcb-public-typography :is(
-  [class~="bg-central-orange/10"],
-  [class~="bg-central-orange/12"]
-) {
-  background-color: rgba(255, 178, 26, .12) !important;
+.public-site .lcb-category-scroll::-webkit-scrollbar {display:none;}
+.public-site .lcb-category-pill {
+  flex-shrink:0;display:inline-flex;align-items:center;gap:9px;white-space:nowrap;
+  min-height:43px;max-width:225px;padding:0 15px;border:1px solid var(--lcb-border);
+  border-radius:12px;background:var(--lcb-surface);color:var(--lcb-muted);
+  font-size:11px;font-weight:500;
+  transition:background-color .2s,border-color .2s,color .2s,transform .2s;
 }
-
-body.lcb-public-typography [class~="hover:bg-central-orange"]:hover,
-body.lcb-public-typography .group:hover [class~="group-hover:bg-central-orange"] {
-  background-color: #ffb21a !important;
+.public-site .lcb-category-pill span {max-width:168px;overflow:hidden;text-overflow:ellipsis;}
+.public-site .lcb-category-pill:hover {border-color:var(--lcb-accent);color:var(--lcb-text);}
+.public-site .lcb-category-pill.is-selected {
+  background:var(--lcb-accent);border-color:var(--lcb-accent);
+  color:#201a13;font-weight:600;
 }
-
-body.lcb-public-typography [class~="hover:border-central-orange"]:hover,
-body.lcb-public-typography .group:hover [class~="group-hover:border-central-orange"] {
-  border-color: #ffb21a !important;
+.public-site .lcb-category-loading {background:var(--lcb-surface-alt);}
+.public-site .lcb-results-count {
+  padding:8px 10px;border-radius:10px;background:var(--lcb-surface);
+  color:var(--lcb-muted);font-size:11px;border:1px solid var(--lcb-border);
 }
-
-body.lcb-public-typography [class~="focus:border-central-orange"]:focus {
-  border-color: #ffb21a !important;
+.public-site .lcb-menu-error {
+  padding:16px;border-radius:14px;color:#c74337;
+  background:rgba(217,65,47,.07);border:1px solid rgba(217,65,47,.2);font-size:13px;
 }
-
-body.lcb-public-typography [class~="focus-visible:outline-central-orange"]:focus-visible {
-  outline-color: #ffb21a !important;
+.public-site .lcb-menu-empty {
+  border:1px dashed var(--lcb-border);background:var(--lcb-surface);border-radius:19px;
 }
+.public-site .lcb-clear-search {padding:9px 14px;color:var(--lcb-accent-text);background:var(--lcb-surface-alt);border-radius:10px;font-size:12px;font-weight:600;}
 
-/* Superficies que antes tenían negros/marrones hardcodeados. */
-body.lcb-public-typography :is(
-  [class~="bg-[#171514]"],
-  [class~="bg-[#151311]"],
-  [class~="bg-[#191919]"]
-) {
-  background-color: #171717 !important;
+/* Productos: fotografía al frente, sin bloques superpuestos ni exceso decorativo. */
+.public-site .lcb-menu-product {
+  color:var(--lcb-text);background:var(--lcb-surface);
+  border:1px solid var(--lcb-border);border-radius:20px;
+  box-shadow:var(--lcb-shadow);
+  transition:border-color .2s,box-shadow .2s,transform .2s;
 }
-
-body.lcb-public-typography :is(
-  [class~="bg-[#24211f]"],
-  [class~="bg-[#1b1b1b]"]
-) {
-  background-color: #1d1d1d !important;
+.public-site .lcb-menu-product:hover {
+  border-color:rgba(246,162,42,.38);
+  box-shadow:0 18px 40px rgba(0,0,0,.11);transform:translateY(-2px);
 }
-
-body.lcb-public-typography [class~="bg-[#11100f]"] {
-  background-color: #101010 !important;
+.public-site .lcb-menu-product.is-unavailable {opacity:.74;}
+.public-site .lcb-menu-product.is-unavailable:hover {transform:none;box-shadow:var(--lcb-shadow);border-color:var(--lcb-border);}
+.public-site .lcb-product-featured,.public-site .lcb-product-state {
+  padding:7px 10px;border-radius:10px;font-size:10px;font-weight:600;letter-spacing:.01em;
+  backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
 }
-
-body.lcb-public-typography [class~="bg-[#0d0c0b]/96"] {
-  background-color: rgba(16, 16, 16, .96) !important;
+.public-site .lcb-product-featured {background:rgba(22,23,27,.84);color:#ffc576;}
+.public-site .lcb-product-state {background:rgba(22,23,27,.88);color:#f5bea1;}
+.public-site .lcb-product-zoom {
+  display:grid;height:33px;width:33px;place-items:center;border-radius:10px;
+  background:rgba(25,27,32,.72);color:white;backdrop-filter:blur(6px);
 }
+.public-site .lcb-product-arrow {background:var(--lcb-surface-alt);color:var(--lcb-text);}
+.public-site .lcb-menu-product:not(.is-unavailable):hover .lcb-product-arrow {background:var(--lcb-accent);color:#191919;}
+.public-site .lcb-menu-product:focus-within {outline:2px solid var(--lcb-accent);outline-offset:2px;}
 
-/* Modales, drawers y confirmaciones públicas. */
+/* Carrito visual, se conserva lógica y controles originales. */
+.public-site .lcb-cart-sidebar {
+  background:var(--lcb-surface);color:var(--lcb-text);
+  border:1px solid var(--lcb-border);border-radius:20px;
+  padding:21px;box-shadow:var(--lcb-shadow);
+}
+.public-site .lcb-cart-icon,.public-site .lcb-empty-cart-icon {background:var(--lcb-surface-alt);color:var(--lcb-accent-text);}
+.public-site .lcb-cart-clear {color:var(--lcb-muted);}
+.public-site .lcb-cart-clear:hover {color:#e66c63;}
+.public-site .lcb-cart-checkout {
+  background:var(--lcb-accent)!important;color:#1d1c19!important;
+  border:0!important;font-weight:600!important;
+}
+.public-site .lcb-cart-checkout:hover {filter:brightness(1.075);}
+.public-site .lcb-cart-checkout:disabled {opacity:.43;cursor:not-allowed;}
+.public-site .lcb-cart-item + .lcb-cart-item {border-top:1px solid var(--lcb-border);}
+.public-site .lcb-cart-item {color:var(--lcb-text);}
+.public-site .lcb-cart-item :is(button,[type="button"]){border-radius:9px;}
+.public-site .lcb-cart-item [class*="text-central-cream"] {color:var(--lcb-text)!important;}
+.public-site .lcb-cart-item [class*="bg-black"] {background:var(--lcb-surface-alt)!important;}
+.public-site .lcb-cart-item [class*="border-central-orange"] {border-color:var(--lcb-border)!important;}
+.public-site .lcb-floating-cart {
+  border:1px solid rgba(255,255,255,.16);border-radius:17px;
+  background:#202228;color:white;
+  box-shadow:0 16px 60px rgba(0,0,0,.26);
+}
+.public-site .lcb-floating-cart:hover {background:#2b2e35;}
+
+/* Footer: jerarquía más clara y sin textura de ladrillos. */
+.public-site .lcb-public-footer {
+  border-top:1px solid var(--lcb-border);
+  background:var(--lcb-surface);color:var(--lcb-text);
+}
+.public-site .lcb-footer-heading {
+  color:var(--lcb-text);font-size:12px;font-weight:600;letter-spacing:.005em;
+}
+.public-site .lcb-footer-social {
+  display:flex;align-items:center;gap:9px;padding:7px 0;
+  color:var(--lcb-muted);font-size:12px;
+}
+.public-site .lcb-footer-social:hover {color:var(--lcb-accent-text);}
+.public-site .lcb-footer-order {
+  padding:11px 15px;border-radius:11px;border:1px solid var(--lcb-border);
+  color:var(--lcb-text);font-size:12px;font-weight:600;background:var(--lcb-surface-alt);
+}
+.public-site .lcb-footer-order:hover {background:var(--lcb-hover);}
+
+/* Overlays renderizados en body: comparten el tema que seleccionó el cliente. */
 body.lcb-public-typography [data-lcb-scroll-lock-overlay="true"] {
-  font-family: var(--lcb-public-font-family, system-ui, sans-serif) !important;
-  font-weight: 400;
+  font-family:var(--lcb-public-font-family,system-ui,sans-serif);
+  font-weight:400;
 }
-
-body.lcb-public-typography [data-lcb-scroll-lock-overlay="true"] :is(section, aside)[role="dialog"] {
-  background-color: #171717 !important;
-  border-color: rgba(255, 255, 255, .12) !important;
+body.lcb-public-typography [data-lcb-scroll-lock-overlay="true"] :is(.lcb-modal-panel,.lcb-drawer-panel) {
+  background:var(--lcb-surface)!important;
+  color:var(--lcb-text)!important;
+  border-color:var(--lcb-border)!important;
+  border-radius:20px!important;
 }
-
-body.lcb-public-typography [data-lcb-scroll-lock-overlay="true"] input:not([type="radio"]):not([type="checkbox"]),
-body.lcb-public-typography [data-lcb-scroll-lock-overlay="true"] textarea,
-body.lcb-public-typography [data-lcb-scroll-lock-overlay="true"] select {
-  background-color: #1d1d1d !important;
+body.lcb-public-typography [data-lcb-scroll-lock-overlay="true"] :is(.lcb-modal-panel,.lcb-drawer-panel) :is(input:not([type="radio"]):not([type="checkbox"]),textarea,select) {
+  border-radius:11px!important;
+  background:var(--lcb-surface-alt)!important;
+  color:var(--lcb-text)!important;
+  border-color:var(--lcb-border)!important;
 }
-
-body.lcb-public-typography .Toastify__toast-container {
-  font-family: var(--lcb-public-font-family, system-ui, sans-serif) !important;
-  font-weight: 400;
+body.lcb-public-typography [data-lcb-scroll-lock-overlay="true"] :is(.lcb-modal-panel,.lcb-drawer-panel) [class*="rounded-sm"] {border-radius:11px!important;}
+body.lcb-public-typography [data-lcb-scroll-lock-overlay="true"] .lcb-public-cart-drawer .lcb-cart-item {color:var(--lcb-text);}
+body.lcb-public-typography [data-lcb-scroll-lock-overlay="true"] .lcb-public-cart-drawer .lcb-cart-item [class*="text-central-cream"] {color:var(--lcb-text)!important;}
+body.lcb-public-typography [data-lcb-scroll-lock-overlay="true"] .lcb-public-cart-drawer .lcb-cart-checkout {background:var(--lcb-accent)!important;color:#1d1c19!important;}
+body.lcb-public-typography [data-lcb-scroll-lock-overlay="true"] :is(.lcb-product-detail-modal,.lcb-public-checkout) [class*="border-white"] {border-color:var(--lcb-border)!important;}
+body.lcb-public-typography [data-lcb-scroll-lock-overlay="true"] :is(.lcb-product-detail-modal,.lcb-public-checkout) [class*="bg-[#24211f]"],
+body.lcb-public-typography [data-lcb-scroll-lock-overlay="true"] :is(.lcb-product-detail-modal,.lcb-public-checkout) [class*="bg-white/"] {background:var(--lcb-surface-alt)!important;}
+body.lcb-public-typography[data-public-theme="light"] [data-lcb-scroll-lock-overlay="true"] :is(.lcb-product-detail-modal,.lcb-public-checkout,.lcb-public-cart-drawer) :is(p,span,label,h2,h3,h4,strong)[class*="text-white"],
+body.lcb-public-typography[data-public-theme="light"] [data-lcb-scroll-lock-overlay="true"] :is(.lcb-product-detail-modal,.lcb-public-checkout,.lcb-public-cart-drawer) :is(p,span,label,h2,h3,h4,strong)[class*="text-central-cream"] {
+  color:var(--lcb-text)!important;
 }
+body.lcb-public-typography[data-public-theme="light"] [data-lcb-scroll-lock-overlay="true"] :is(.lcb-product-detail-modal,.lcb-public-checkout,.lcb-public-cart-drawer) [class*="bg-black/"] {background:var(--lcb-surface-alt)!important;}
+body.lcb-public-typography [data-lcb-scroll-lock-overlay="true"] :is(.lcb-product-detail-modal,.lcb-public-checkout,.lcb-public-cart-drawer) button[class*="bg-central-orange"] {background:var(--lcb-accent)!important;color:#1c1b18!important;}
+body.lcb-public-typography [data-lcb-scroll-lock-overlay="true"] .lcb-public-checkout aside {border-radius:15px;background:var(--lcb-surface-alt);border-color:var(--lcb-border);}
+body.lcb-public-typography .Toastify__toast-container {font-family:var(--lcb-public-font-family,system-ui,sans-serif);font-weight:400;}
+body.lcb-public-typography .Toastify__toast {background:var(--lcb-surface)!important;color:var(--lcb-text)!important;border:1px solid var(--lcb-border)!important;}
+body.lcb-public-typography .Toastify__progress-bar {background:var(--lcb-accent)!important;}
 
-body.lcb-public-typography .Toastify__toast {
-  background: #171717 !important;
-  border-color: rgba(255, 178, 26, .30) !important;
+/* Los elementos del hero y los overlays mantienen la fuente definida en display.css */
+.public-site :is(.font-light,.font-normal) {font-weight:400;}
+.public-site .font-medium {font-weight:500;}
+.public-site :is(.font-semibold,.font-bold,.font-black):not(.font-display):not(.hero-brand-title) {font-weight:600;}
+.public-site .hero-brand-title {font-weight:800;}
+.public-site .custom-scrollbar {scrollbar-color:rgba(150,150,150,.3) transparent;}
+@media (max-width:767px) {
+  .public-site .lcb-menu-main-heading {font-size:clamp(3.4rem,15vw,5.5rem);}
+  .public-site .lcb-public-header {backdrop-filter:blur(9px);}
 }
-
-body.lcb-public-typography .Toastify__toast--warning {
-  border-color: rgba(255, 178, 26, .58) !important;
-}
-
-body.lcb-public-typography .Toastify__progress-bar {
-  background: linear-gradient(90deg, #ffb21a, #ffd05c) !important;
-}
-
-/* Scrollbars de la experiencia pública. */
-body.lcb-public-typography .custom-scrollbar {
-  scrollbar-color: rgba(255, 178, 26, .62) rgba(255, 255, 255, .08);
-}
-
-body.lcb-public-typography .custom-scrollbar::-webkit-scrollbar-thumb {
-  background: linear-gradient(180deg, rgba(255, 178, 26, .94), rgba(242, 138, 10, .9));
-  border-color: #101010;
-}
-
-.public-site ::selection,
-body.lcb-public-typography [data-lcb-scroll-lock-overlay="true"] ::selection {
-  background: rgba(255, 178, 26, .34);
-}
-
-/*
- * La experiencia pública usa Outfit entre 400 y 600.
- * Los modales y otros overlays se renderizan con portals fuera de .public-site,
- * por eso también se normalizan mientras la ruta pública está montada.
- */
-.public-site :is(.font-thin, .font-extralight, .font-light),
-body.lcb-public-typography [data-lcb-scroll-lock-overlay="true"] :is(.font-thin, .font-extralight, .font-light),
-body.lcb-public-typography .Toastify__toast-container :is(.font-thin, .font-extralight, .font-light) {
-  font-weight: 400 !important;
-}
-
-.public-site .font-medium,
-body.lcb-public-typography [data-lcb-scroll-lock-overlay="true"] .font-medium,
-body.lcb-public-typography .Toastify__toast-container .font-medium {
-  font-weight: 500 !important;
-}
-
-.public-site :is(.font-semibold, .font-bold, .font-extrabold, .font-black):not(.font-display),
-body.lcb-public-typography [data-lcb-scroll-lock-overlay="true"] :is(.font-semibold, .font-bold, .font-extrabold, .font-black):not(.font-display),
-body.lcb-public-typography .Toastify__toast-container :is(.font-semibold, .font-bold, .font-extrabold, .font-black):not(.font-display),
-.public-site :is(strong, b),
-body.lcb-public-typography [data-lcb-scroll-lock-overlay="true"] :is(strong, b),
-body.lcb-public-typography .Toastify__toast-container :is(strong, b) {
-  font-weight: 600 !important;
-}
-
-/* El nombre principal del HERO conserva el display en 800. */
-.public-site .hero-brand-title,
-.public-site .hero-brand-title * {
-  font-weight: 800 !important;
-}
-
-.public-site .watermark-text {
-  font-weight: 600 !important;
+@media (prefers-reduced-motion:reduce) {
+  .public-site *, .public-site *::before, .public-site *::after,
+  body.lcb-public-typography [data-lcb-scroll-lock-overlay="true"] * {
+    scroll-behavior:auto!important;animation-duration:.01ms!important;transition-duration:.01ms!important;
+  }
 }
