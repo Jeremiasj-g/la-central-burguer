@@ -25,17 +25,18 @@ export function PublicHeader() {
 
   return (
     <header className="sticky top-0 z-40 border-b border-central-orange/25 bg-[#0d0c0b]/88 text-central-cream shadow-dark backdrop-blur-xl">
-      <div className="mx-auto flex min-h-[68px] w-full max-w-[1440px] items-center justify-between gap-3 px-4 py-2 sm:min-h-[72px] sm:px-6 lg:grid lg:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] lg:gap-8 lg:px-8">
-        <Link
+      <div className="mx-auto flex min-h-[68px] w-full max-w-[1120px] items-center justify-between gap-3 px-4 py-2 sm:min-h-[72px] sm:px-6 lg:px-8">
+        <div className="flex min-w-0 items-center gap-5 lg:gap-8">
+          <Link
           href={ROUTES.home}
           className="inline-flex shrink-0 items-center rounded-full focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-central-orange"
           aria-label={`Ir al inicio de ${businessName}`}
           title="Ir al inicio"
         >
           <BusinessLogo logoUrl={config?.logoUrl} businessName={businessName} mode="navbar" loading={isLoading} />
-        </Link>
+          </Link>
 
-        <nav aria-label="Navegación principal" className="hidden items-center justify-center gap-1 md:flex lg:gap-2">
+          <nav aria-label="Navegación principal" className="hidden items-center gap-1 border-l border-white/10 pl-5 md:flex lg:pl-8">
           {navigation.map((item) => (
             <Link
               key={item.href}
@@ -45,9 +46,10 @@ export function PublicHeader() {
               {item.label}
             </Link>
           ))}
-        </nav>
+          </nav>
+        </div>
 
-        <div className="ml-auto flex shrink-0 items-center gap-1.5 sm:gap-2 lg:ml-0 lg:justify-self-end">
+        <div className="flex shrink-0 items-center gap-1.5 sm:gap-2 lg:gap-3">
           <Link
             href="#menu"
             className="inline-flex h-10 items-center rounded-[11px] border border-white/10 bg-white/[.035] px-3 text-[12px] font-semibold text-central-cream transition-colors duration-200 hover:border-central-orange/50 hover:text-central-orange md:hidden"
