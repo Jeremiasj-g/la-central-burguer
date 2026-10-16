@@ -256,7 +256,7 @@ export function CheckoutModal({ open, onClose, items, onOrderCreated }: Checkout
       title={createdOrder ? 'Pedido creado' : 'Finalizá tu pedido'}
       theme={theme}
       size="lg"
-      panelClassName="lcb-checkout-panel !max-w-[920px] !rounded-[22px] !border-white/10 !bg-[#171717] !text-[#f6f5f2] max-sm:!max-w-[calc(100vw-1rem)]"
+      panelClassName="lcb-checkout-panel !max-w-[920px] !rounded-[22px] max-sm:!max-w-[calc(100vw-1rem)]"
       footer={!createdOrder ? (
         <div className="lcb-checkout-footer flex items-center justify-between gap-3 lg:hidden">
           <div className="min-w-0">

@@ -108,6 +108,7 @@ export function Modal({ open, title, children, footer, footerClassName, onClose,
   return createPortal(
     <div
       data-lcb-scroll-lock-overlay="true"
+      data-theme={theme}
       data-state={open ? 'open' : 'closed'}
       aria-hidden={!open}
       className={cn('lcb-modal-overlay fixed z-[100] flex items-start justify-center overflow-hidden bg-black/70 p-3 backdrop-blur-sm sm:items-center sm:p-4', !open && 'pointer-events-none', className)}

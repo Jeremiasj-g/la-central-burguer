@@ -205,3 +205,155 @@ body.lcb-public-typography[data-public-theme="light"] .Toastify__toast{
 body.lcb-public-typography[data-public-theme="light"] .Toastify__toast-body{color:#34363b!important;}
 body.lcb-public-typography[data-public-theme="light"] .Toastify__close-button{color:#676b72!important;}
 @media(prefers-reduced-motion:reduce){.public-site .lcb-theme-toggle{transition:none!important;}}
+
+
+
+/* CORRECCIONES CLARAS — Skeletons que utilizan skeleton-dark y loaders manuales. */
+.public-site[data-public-theme="light"] .skeleton-dark,
+.public-site[data-public-theme="light"] .lcb-product-skeleton,
+.public-site[data-public-theme="light"] .lcb-category-skeleton {
+ --base-color:#e9e9e6 !important;
+ --highlight-color:#fafaf8 !important;
+}
+.public-site[data-public-theme="light"] .skeleton-dark .react-loading-skeleton,
+.public-site[data-public-theme="light"] .react-loading-skeleton {
+ --base-color:#e8e8e5 !important;
+ --highlight-color:#faf9f7 !important;
+ background-color:#e8e8e5;
+}
+.public-site[data-public-theme="light"] .lcb-product-skeleton {
+ background:#ffffff !important;
+ border:1px solid rgba(35,40,45,.085) !important;
+ box-shadow:0 12px 33px rgba(36,39,43,.045) !important;
+}
+.public-site[data-public-theme="light"] .lcb-category-skeleton {
+ background:linear-gradient(110deg,#eeeeec 8%,#f9f9f7 35%,#eeeeec 60%) !important;
+ background-size:200% 100% !important;
+ animation:lcb-light-skeleton-shimmer 1.6s ease-in-out infinite;
+}
+@keyframes lcb-light-skeleton-shimmer {
+ from {background-position-x:100%}
+ to {background-position-x:-100%}
+}
+@media(prefers-reduced-motion:reduce){
+ .public-site[data-public-theme="light"] .lcb-category-skeleton{animation:none;}
+}
+
+/* El portal de cada modal/drawer declara explícitamente data-theme.
+   Así los estados claro/oscuro no dependen del tema heredado ni de las
+   clases de fondo oscuras que se usan en el resto del administrador. */
+body[data-public-theme="light"] .lcb-modal-overlay[data-theme="light"] .lcb-modal-panel,
+body[data-public-theme="light"] .lcb-drawer-overlay[data-theme="light"] .lcb-drawer-panel {
+ --lcb-dialog-surface:#fff;
+ --lcb-dialog-ink:#25272c;
+ --lcb-dialog-muted:#757a83;
+ --lcb-dialog-border:rgba(37,41,47,.12);
+ background:#fff !important;
+ color:#25272c !important;
+ border-color:var(--lcb-dialog-border) !important;
+ box-shadow:0 24px 80px rgba(27,29,33,.17) !important;
+}
+body[data-public-theme="light"] .lcb-modal-overlay[data-theme="light"] :is(.lcb-product-detail,.lcb-checkout-panel,.lcb-image-lightbox),
+body[data-public-theme="light"] .lcb-drawer-overlay[data-theme="light"] .lcb-cart-drawer {
+ background:#fff !important;
+ color:#25272c !important;
+ border-color:rgba(37,41,47,.12) !important;
+}
+/* Titulares y textos de precios: los valores de Tailwind heredados del
+   modo oscuro quedan reemplazados con un texto suficientemente contrastado. */
+body[data-public-theme="light"] :is(.lcb-modal-overlay,.lcb-drawer-overlay)[data-theme="light"]
+ :is([class~="text-white"],[class~="text-central-cream"],[class*="text-[#f"]) {
+ color:#25272c !important;
+}
+body[data-public-theme="light"] :is(.lcb-modal-overlay,.lcb-drawer-overlay)[data-theme="light"]
+ :is([class*="text-white/"],[class*="text-central-cream/"]) {
+ color:#767b84 !important;
+}
+body[data-public-theme="light"] :is(.lcb-modal-overlay,.lcb-drawer-overlay)[data-theme="light"]
+ :is([class*="border-white/"],[class*="border-current/"]) {
+ border-color:rgba(35,39,44,.12) !important;
+}
+body[data-public-theme="light"] :is(.lcb-modal-overlay,.lcb-drawer-overlay)[data-theme="light"]
+ [class*="divide-white/"] > :not([hidden])~:not([hidden]) {
+ border-color:rgba(35,39,44,.12) !important;
+}
+/* Campos, opciones, cantidad y aclaraciones con gris de superficie suave. */
+body[data-public-theme="light"] :is(.lcb-modal-overlay,.lcb-drawer-overlay)[data-theme="light"]
+ :is(input:not([type="checkbox"]):not([type="radio"]),textarea,select) {
+ background:#f6f6f4 !important;
+ color:#25272c !important;
+ border-color:rgba(35,39,44,.14) !important;
+}
+body[data-public-theme="light"] :is(.lcb-modal-overlay,.lcb-drawer-overlay)[data-theme="light"]
+ :is(input,textarea,select)::placeholder { color:#92969c !important; }
+body[data-public-theme="light"] :is(.lcb-modal-overlay,.lcb-drawer-overlay)[data-theme="light"] [class*="bg-white/"] {
+ background:rgba(36,39,44,.055) !important;
+}
+body[data-public-theme="light"] :is(.lcb-modal-overlay,.lcb-drawer-overlay)[data-theme="light"]
+ :is(.lcb-detail-stepper,.lcb-cart-quantity-control) {
+ background:#f1f1ef !important;
+}
+body[data-public-theme="light"] :is(.lcb-modal-overlay,.lcb-drawer-overlay)[data-theme="light"]
+ :is(.lcb-detail-stepper,.lcb-cart-quantity-control) button:hover {
+ background:rgba(38,41,47,.08) !important;
+}
+body[data-public-theme="light"] .lcb-modal-overlay[data-theme="light"] .lcb-detail-summary,
+body[data-public-theme="light"] .lcb-modal-overlay[data-theme="light"] .lcb-checkout-modal-footer,
+body[data-public-theme="light"] .lcb-drawer-overlay[data-theme="light"] .lcb-cart-drawer>footer {
+ background:#fff !important;
+ color:#25272c !important;
+ border-color:rgba(37,41,47,.12) !important;
+}
+/* Encabezados/íconos de cierre: nunca blancos sobre superficie blanca. */
+body[data-public-theme="light"] .lcb-modal-overlay[data-theme="light"] .lcb-modal-panel>div:first-child h2,
+body[data-public-theme="light"] .lcb-drawer-overlay[data-theme="light"] .lcb-drawer-panel>header h2 {
+ color:#25272c !important;
+}
+body[data-public-theme="light"] .lcb-modal-overlay[data-theme="light"] .lcb-modal-panel>div:first-child>button,
+body[data-public-theme="light"] .lcb-drawer-overlay[data-theme="light"] .lcb-drawer-panel>header>button {
+ color:#6f737b !important;
+ background:#f3f3f1 !important;
+}
+/* Opciones de pago y entrega en modo claro. */
+body[data-public-theme="light"] .lcb-modal-overlay[data-theme="light"] .lcb-checkout-choice {
+ background:#f6f6f4 !important;
+ color:#555962 !important;
+ border-color:rgba(37,41,47,.14) !important;
+}
+body[data-public-theme="light"] .lcb-modal-overlay[data-theme="light"] .lcb-checkout-choice:has(input:checked) {
+ background:#fff0d8 !important;
+ color:#413428 !important;
+ border-color:rgba(171,103,15,.65) !important;
+}
+body[data-public-theme="light"] .lcb-modal-overlay[data-theme="light"] .lcb-checkout-choice span.border {
+ border-color:#959aa1 !important;
+}
+/* Colores de acciones; el texto oscuro sobre naranja mantiene contraste.
+   No sustituir la intención de botones rojos de confirmación destructiva. */
+body[data-public-theme="light"] :is(.lcb-modal-overlay,.lcb-drawer-overlay)[data-theme="light"] .text-central-orange {
+ color:#a7620c !important;
+}
+body[data-public-theme="light"] :is(.lcb-modal-overlay,.lcb-drawer-overlay)[data-theme="light"]
+ :is(button[class*="bg-central-orange"],button[class*="bg-[#"]) {
+ color:#231e17 !important;
+}
+body[data-public-theme="light"] :is(.lcb-modal-overlay,.lcb-drawer-overlay)[data-theme="light"]
+ button[class*="bg-central-orange"] {
+ background:#f0a52e !important;
+ color:#231e17 !important;
+}
+/* No se altera la fotografía, pero sí el lienzo de la vista ampliada. */
+body[data-public-theme="light"] .lcb-modal-overlay[data-theme="light"] .lcb-image-lightbox [class*="bg-black"] {
+ background:#f0f0ed !important;
+}
+body[data-public-theme="light"] .lcb-modal-overlay[data-theme="light"] .lcb-detail-expand {
+ color:#fff !important;
+ background:rgba(30,31,34,.8) !important;
+}
+body[data-public-theme="light"] .lcb-modal-overlay[data-theme="light"] .lcb-detail-expand * { color:#fff !important; }
+/* Spinner/skeleton dentro de portal claro, si hay productos o datos cargando. */
+body[data-public-theme="light"] :is(.lcb-modal-overlay,.lcb-drawer-overlay)[data-theme="light"]
+ .react-loading-skeleton {
+ --base-color:#e8e8e5 !important;
+ --highlight-color:#faf9f7 !important;
+}

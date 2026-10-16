@@ -50,6 +50,7 @@ export function CartDrawer({ open, onClose, items, total, checkoutDisabled = fal
         onClose={onClose}
         title="Mi pedido"
         className="lcb-cart-drawer"
+        theme={theme}
         footer={
           <div className="space-y-4">
             <div className="flex min-w-0 items-center justify-between gap-4">

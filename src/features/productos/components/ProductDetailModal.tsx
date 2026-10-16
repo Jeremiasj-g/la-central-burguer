@@ -89,7 +89,7 @@ export function ProductDetailModal({
       title={currentProduct.name}
       theme={theme}
       size="lg"
-      panelClassName="lcb-product-detail !rounded-[22px] !border-white/10 !bg-[#171717] !text-[#f5f4f2] !shadow-[0_25px_85px_rgba(0,0,0,.35)]"
+      panelClassName="lcb-product-detail !rounded-[22px] !shadow-[0_25px_85px_rgba(0,0,0,.25)]"
     >
       <div className="lcb-product-detail-content grid min-w-0 gap-5 sm:gap-6 md:grid-cols-[minmax(0,.92fr)_minmax(0,1.08fr)] md:items-start md:gap-7">
         <div className="min-w-0">

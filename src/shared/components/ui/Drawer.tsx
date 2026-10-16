@@ -14,9 +14,10 @@ interface DrawerProps {
   children: React.ReactNode;
   footer?: React.ReactNode;
   className?: string;
+  theme?: 'dark' | 'light';
 }
 
-export function Drawer({ open, onClose, title, children, footer, className }: DrawerProps) {
+export function Drawer({ open, onClose, title, children, footer, className, theme = 'dark' }: DrawerProps) {
   const viewport = useSmartModalViewport(0);
   const mounted = useAnimatedPresence(open);
 
@@ -27,6 +28,7 @@ export function Drawer({ open, onClose, title, children, footer, className }: Dr
   return createPortal(
     <div
       data-lcb-scroll-lock-overlay="true"
+      data-theme={theme}
       data-state={open ? 'open' : 'closed'}
       aria-hidden={!open}
       className={cn('lcb-drawer-overlay fixed z-[90] bg-black/60 backdrop-blur-sm', !open && 'pointer-events-none')}
@@ -38,7 +40,7 @@ export function Drawer({ open, onClose, title, children, footer, className }: Dr
         data-state={open ? 'open' : 'closed'}
         aria-modal="true"
         aria-label={title}
-        className={cn('lcb-drawer-panel my-2 mr-2 ml-auto flex h-[calc(100%-1rem)] max-h-[calc(100dvh-1rem)] w-[calc(100%-1rem)] max-w-md flex-col overflow-hidden rounded-sm border border-white/10 bg-central-ink text-white shadow-dark skeleton-dark sm:my-0 sm:mr-0 sm:h-full sm:max-h-dvh sm:w-full sm:rounded-none sm:border-0', className)}
+        className={cn('lcb-drawer-panel my-2 mr-2 ml-auto flex h-[calc(100%-1rem)] max-h-[calc(100dvh-1rem)] w-[calc(100%-1rem)] max-w-md flex-col overflow-hidden rounded-sm border shadow-dark sm:my-0 sm:mr-0 sm:h-full sm:max-h-dvh sm:w-full sm:rounded-none sm:border-0', theme === 'light' ? 'border-neutral-200 bg-white text-neutral-900' : 'border-white/10 bg-central-ink text-white skeleton-dark', className)}
         onMouseDown={(event) => event.stopPropagation()}
       >
         <header className="flex shrink-0 items-center justify-between px-4 py-3.5 sm:px-6 sm:py-5">

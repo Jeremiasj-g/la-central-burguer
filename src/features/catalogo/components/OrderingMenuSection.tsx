@@ -74,7 +74,7 @@ export function OrderingMenuSection() {
               <MenuSearchBar value={search} onChange={setSearch} />
               <div className="">
                 {loadingCategories ? (
-                  <div className="skeleton-dark h-[92px] rounded-sm bg-black/35 sm:h-28" />
+                  <div className="lcb-category-skeleton skeleton-dark h-[92px] rounded-[14px] bg-black/35 sm:h-28" />
                 ) : (
                   <CategoryTabs categories={categorias} selectedCategoryId={selectedCategoryId} onSelect={setSelectedCategoryId} />
                 )}
