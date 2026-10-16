@@ -70,7 +70,7 @@ export function OrderingMenuSection() {
 
         <div className="relative min-h-[calc(100dvh-72px)] lg:grid lg:min-h-[calc(100dvh+420px)] lg:grid-cols-[minmax(0,1fr)_390px] lg:gap-6 xl:grid-cols-[minmax(0,1fr)_430px]">
           <div className="min-w-0">
-            <div className="menu-ordering-tools sticky top-[72px] z-30 rounded-sm p-1 lg:py-6">
+            <div className="menu-ordering-tools sticky top-[72px] z-30 rounded-[16px] p-1 lg:py-6">
               <MenuSearchBar value={search} onChange={setSearch} />
               <div className="">
                 {loadingCategories ? (
@@ -81,7 +81,7 @@ export function OrderingMenuSection() {
               </div>
             </div>
 
-            <div className="mt-4 rounded-sm p-1 backdrop-blur sm:mt-5">
+            <div className="mt-4 rounded-[16px] p-1 backdrop-blur sm:mt-5">
               {categoriesError || productsError ? (
                 <div className="rounded-sm border border-red-400/30 bg-red-500/10 p-5 text-sm text-red-100">
                   {productsError ?? categoriesError}

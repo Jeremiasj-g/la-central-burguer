@@ -20,7 +20,7 @@ export function ProductoCard({ product, categoryName, disabled = false, onSelect
 
   return (
     <article className={cn(
-      'group relative min-h-[160px] overflow-hidden rounded-sm bg-[#20201f] shadow-2xl transition-all duration-200 ease-out motion-reduce:transition-none hover:scale-[1.035] hover:border-central-orange/65 sm:min-h-[170px]',
+      'group relative min-h-[160px] overflow-hidden rounded-[17px] bg-[#20201f] shadow-2xl transition-all duration-200 ease-out motion-reduce:transition-none hover:scale-[1.035] hover:border-central-orange/65 sm:min-h-[170px]',
       blocked && 'opacity-70 hover:scale-100',
     )}>
       <button
@@ -62,7 +62,7 @@ export function ProductoCard({ product, categoryName, disabled = false, onSelect
       {onPreviewImage && !unavailable ? (
         <button
           type="button"
-          className="absolute bottom-2.5 right-2.5 z-40 grid h-8 w-8 place-items-center rounded-sm border border-central-orange/35 bg-black/75 text-central-cream/80 backdrop-blur transition hover:border-central-orange hover:bg-central-orange hover:text-black focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-central-orange"
+          className="absolute bottom-2.5 right-2.5 z-40 grid h-8 w-8 place-items-center rounded-[10px] border border-central-orange/35 bg-black/75 text-central-cream/80 backdrop-blur transition hover:border-central-orange hover:bg-central-orange hover:text-black focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-central-orange"
           onClick={() => onPreviewImage(product)}
           title={`Ampliar imagen de ${product.name}`}
           aria-label={`Ampliar imagen de ${product.name}`}

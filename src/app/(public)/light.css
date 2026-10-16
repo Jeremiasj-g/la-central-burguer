@@ -357,3 +357,70 @@ body[data-public-theme="light"] :is(.lcb-modal-overlay,.lcb-drawer-overlay)[data
  --base-color:#e8e8e5 !important;
  --highlight-color:#faf9f7 !important;
 }
+
+
+/* Inputs legibles en el checkout claro.
+   Selectores específicos para prevalecer sobre las reglas históricas del
+   checkout oscuro y sobre las utilities !important del componente Input. */
+body.lcb-public-typography[data-public-theme="light"]
+ .lcb-modal-overlay[data-theme="light"] section.lcb-checkout-panel
+ input.lcb-checkout-input,
+body.lcb-public-typography[data-public-theme="light"]
+ .lcb-modal-overlay[data-theme="light"] section.lcb-checkout-panel
+ textarea.lcb-checkout-notes {
+  display:block;
+  background-color:#f2f3f1 !important;
+  color:#26292e !important;
+  border:1px solid #cbd0d2 !important;
+  border-radius:12px !important;
+  box-shadow:0 1px 2px rgba(27,33,38,.025) !important;
+  opacity:1 !important;
+  transition:background-color .2s,border-color .2s,box-shadow .2s;
+}
+body.lcb-public-typography[data-public-theme="light"]
+ .lcb-modal-overlay[data-theme="light"] section.lcb-checkout-panel
+ input.lcb-checkout-input {
+  height:44px !important;
+  min-height:44px !important;
+}
+body.lcb-public-typography[data-public-theme="light"]
+ .lcb-modal-overlay[data-theme="light"] section.lcb-checkout-panel
+ :is(input.lcb-checkout-input,textarea.lcb-checkout-notes)::placeholder {
+  color:#81868e !important;
+  opacity:1 !important;
+}
+body.lcb-public-typography[data-public-theme="light"]
+ .lcb-modal-overlay[data-theme="light"] section.lcb-checkout-panel
+ :is(input.lcb-checkout-input,textarea.lcb-checkout-notes):hover:not(:disabled) {
+  background-color:#f6f7f5 !important;
+  border-color:#abb1b4 !important;
+}
+body.lcb-public-typography[data-public-theme="light"]
+ .lcb-modal-overlay[data-theme="light"] section.lcb-checkout-panel
+ :is(input.lcb-checkout-input,textarea.lcb-checkout-notes):focus {
+  outline:none !important;
+  background-color:#fff !important;
+  border-color:#ca882f !important;
+  box-shadow:0 0 0 3px rgba(233,165,66,.13) !important;
+}
+/* Mismo tratamiento sobrio para las aclaraciones editables. */
+body.lcb-public-typography[data-public-theme="light"]
+ .lcb-modal-overlay[data-theme="light"] .lcb-product-detail textarea,
+body.lcb-public-typography[data-public-theme="light"]
+ .lcb-drawer-overlay[data-theme="light"] .lcb-cart-note-input {
+  background:#f2f3f1 !important;
+  border:1px solid #cbd0d2 !important;
+  border-radius:12px;
+  color:#26292e !important;
+}
+body.lcb-public-typography[data-public-theme="light"]
+ .lcb-modal-overlay[data-theme="light"] .lcb-product-detail textarea:focus,
+body.lcb-public-typography[data-public-theme="light"]
+ .lcb-drawer-overlay[data-theme="light"] .lcb-cart-note-input:focus {
+  background:#fff !important;
+  border-color:#ca882f !important;
+  box-shadow:0 0 0 3px rgba(233,165,66,.13) !important;
+}
+/* Bordes y radios son ahora los mismos en los dos temas. */
+.public-site[data-public-theme="light"] .lcb-category-tab {border-radius:14px;}
+.public-site[data-public-theme="light"] article.group[class*="bg-[#20201f]"] {border-radius:17px;}

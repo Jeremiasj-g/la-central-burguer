@@ -84,7 +84,7 @@ function getCategoryAsset(categoryName: string) {
 
 function tabClasses(active: boolean) {
   return cn(
-    'group flex h-[92px] w-full min-w-0 flex-col overflow-hidden rounded-sm border px-2 py-2 text-center transition sm:h-[108px] sm:px-3 sm:py-2.5',
+    'group flex h-[92px] w-full min-w-0 flex-col overflow-hidden rounded-[14px] border px-2 py-2 text-center transition sm:h-[108px] sm:px-3 sm:py-2.5',
     active
       ? 'border-central-orange bg-central-orange text-black shadow-orange'
       : 'border-white/10 bg-[#20201f] text-central-cream/70 hover:border-central-orange/60 hover:text-central-orange',
@@ -153,7 +153,7 @@ export function CategoryTabs({ categories, selectedCategoryId, onSelect }: Categ
   }, [swiper, categories.length]);
 
   return (
-    <div className="category-tabs-swiper lcb-category-swiper relative rounded-sm py-2 backdrop-blur-xl">
+    <div className="category-tabs-swiper lcb-category-swiper relative rounded-[14px] py-2 backdrop-blur-xl">
       <Swiper
         modules={[FreeMode, Mousewheel]}
         freeMode
