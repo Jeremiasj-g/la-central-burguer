@@ -1,4 +1,5 @@
 'use client';
+// Verificación CI temporal del filtro de estado de productos.
 
 import { useEffect, useState } from 'react';
 import { CheckCircle2, Eye, Package, Plus, RefreshCw, Search, Star, XCircle } from 'lucide-react';
