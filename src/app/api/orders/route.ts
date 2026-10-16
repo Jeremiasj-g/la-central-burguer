@@ -1,6 +1,7 @@
-import { NextResponse } from 'next/server';
+import { after, NextResponse } from 'next/server';
 import { getSupabaseAdminClient } from '@/lib/supabase/admin';
 import { verifyDeliveryQuote } from '@/features/delivery/server/route-quote.server';
+import { notifyAdminNewOrder } from '@/features/pedidos/server/admin-push.server';
 import type { Json } from '@/lib/supabase/database.types';
 
 export const runtime = 'nodejs';
@@ -96,6 +97,20 @@ export async function POST(request: Request) {
     });
 
     if (error) throw new Error(error.message);
+
+    // El pedido ya está confirmado en PostgreSQL. El Push no debe bloquear
+    // la respuesta del cliente ni provocar un segundo pedido si falla.
+    const newOrderId = data && typeof data === 'object' && !Array.isArray(data) && 'id' in data
+      ? (data as { id?: unknown }).id
+      : null;
+    if (typeof newOrderId === 'string') {
+      after(async () => {
+        try { await notifyAdminNewOrder(newOrderId); }
+        catch (pushError) {
+          console.error('[admin-push] No se pudo notificar el pedido:', pushError instanceof Error ? pushError.message : 'Error desconocido');
+        }
+      });
+    }
 
     return NextResponse.json(
       { order: data },
