@@ -1,4 +1,4 @@
-const DELIVERY_ICON = '/icons/app-icon.png?v=20261014-2';
+const DELIVERY_ICON = '/api/pwa/icon/192';
 
 function deliveryNotificationOptions(data = {}) {
   return {

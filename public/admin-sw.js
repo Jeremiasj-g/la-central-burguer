@@ -1,7 +1,7 @@
 /* Web Push de La Central Admin. Scope exclusivo /admin/.
    No guarda ni cachea datos privados. Delivery conserva /sw.js. */
-const ICON = '/icons/admin-192.png';
-const BADGE = '/icons/admin-192.png';
+const ICON = '/api/pwa/icon/192';
+const BADGE = '/api/pwa/icon/192';
 const ORDER_PATH = '/admin/pedidos';
 
 self.addEventListener('install', () => self.skipWaiting());

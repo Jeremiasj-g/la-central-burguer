@@ -9,8 +9,8 @@ export const metadata: Metadata = {
   applicationName: 'La Central Burger Admin',
   appleWebApp: { capable: true, title: 'Central Admin', statusBarStyle: 'default' },
   icons: {
-    icon: [{ url: '/icons/admin-192.png', sizes: '192x192', type: 'image/png' }],
-    apple: [{ url: '/icons/admin-192.png', sizes: '192x192', type: 'image/png' }],
+    icon: [{ url: '/api/pwa/icon/192', sizes: '192x192', type: 'image/png' }],
+    apple: [{ url: '/api/pwa/icon/512', sizes: '512x512', type: 'image/png' }],
   },
 };
 

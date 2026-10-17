@@ -6,9 +6,9 @@ export const metadata: Metadata = {
   description: 'Panel de reparto de La Central Burger',
   manifest: '/delivery-manifest-v2.webmanifest',
   icons: {
-    icon: [{ url: '/icons/app-icon.png?v=20261014-2', type: 'image/png' }],
-    shortcut: [{ url: '/icons/app-icon.png?v=20261014-2', type: 'image/png' }],
-    apple: [{ url: '/icons/app-icon.png?v=20261014-2', type: 'image/png' }],
+    icon: [{ url: '/api/pwa/icon/192', type: 'image/png' }],
+    shortcut: [{ url: '/api/pwa/icon/192', type: 'image/png' }],
+    apple: [{ url: '/api/pwa/icon/512', sizes: '512x512', type: 'image/png' }],
   },
 };
 
