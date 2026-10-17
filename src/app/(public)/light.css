@@ -432,3 +432,28 @@ body.lcb-public-typography[data-public-theme="light"]
   border-color: #c98b31;
 }
 .public-site[data-public-theme="light"] .lcb-food-gallery > div:first-child { opacity: .65; }
+
+
+/* Galería en tema claro: continúa la superficie de hero y menú,
+   sin el bloque negro ni un contenedor visual independiente. */
+.public-site[data-public-theme="light"] section.lcb-food-gallery {
+  color: var(--lcb-light-text) !important;
+  background-color: #f6f4f1 !important;
+  background-image:
+    linear-gradient(rgba(35,37,41,.032) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(35,37,41,.028) 1px, transparent 1px),
+    radial-gradient(circle at 20% 18%, rgba(239,166,58,.08), transparent 26rem),
+    linear-gradient(180deg, #f6f4f1, #f6f4f1) !important;
+  background-size: 76px 38px, 76px 38px, auto, auto;
+}
+
+/* Fotografía sin contorno: solo una elevación leve en modo claro.
+   No se modifica la tarjeta, el fondo ni las flechas del modo oscuro. */
+.public-site[data-public-theme="light"] .lcb-food-gallery .lcb-food-swiper button[title="Ver fotografía en pantalla completa"] {
+  border: 0 !important;
+  box-shadow: 0 5px 15px rgba(30, 32, 36, .095), 0 1px 4px rgba(30, 32, 36, .035) !important;
+}
+.public-site[data-public-theme="light"] .lcb-food-gallery .lcb-food-swiper {
+  padding-top: 3px;
+  padding-bottom: 10px;
+}
