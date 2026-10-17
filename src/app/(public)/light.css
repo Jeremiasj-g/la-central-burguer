@@ -418,3 +418,17 @@ body.lcb-public-typography[data-public-theme="light"]
 /* Bordes y radios son ahora los mismos en los dos temas. */
 .public-site[data-public-theme="light"] .lcb-category-tab {border-radius:14px;}
 .public-site[data-public-theme="light"] article.group[class*="bg-[#20201f]"] {border-radius:17px;}
+
+
+/* Controles de la galería diferenciados sobre fondos claros. */
+.public-site[data-public-theme="light"] .lcb-gallery-arrow {
+  background: #fff;
+  color: #292b30;
+  border-color: rgba(35, 38, 42, .23);
+  box-shadow: 0 2px 10px rgba(25,29,33,.09);
+}
+.public-site[data-public-theme="light"] .lcb-gallery-arrow:not(:disabled):hover {
+  background: #f6f1e7;
+  border-color: #c98b31;
+}
+.public-site[data-public-theme="light"] .lcb-food-gallery > div:first-child { opacity: .65; }

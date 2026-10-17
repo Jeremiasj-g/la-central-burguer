@@ -603,3 +603,53 @@ body.lcb-public-typography [data-lcb-scroll-lock-overlay="true"]
 @media (prefers-reduced-motion: reduce) {
   .lcb-public-field-shell { transition: none; }
 }
+
+
+/* Galería integrada: fondo transparente, resplandor y controles legibles.
+   El visor en portal conserva siempre un fondo oscuro, sin importar el tema. */
+.public-site .lcb-gallery-arrow {
+  display: grid;
+  height: 42px;
+  width: 42px;
+  flex-shrink: 0;
+  place-items: center;
+  border: 1px solid rgba(255, 255, 255, .26);
+  border-radius: 999px;
+  background: #262626;
+  color: #f7f5f1;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, .16);
+  transition: background-color .2s, border-color .2s, opacity .2s, transform .2s;
+}
+.public-site .lcb-gallery-arrow:not(:disabled):hover {
+  transform: translateY(-1px);
+  border-color: #ffb21a;
+  background: #37312a;
+}
+.public-site .lcb-gallery-arrow:disabled { cursor: not-allowed; opacity: .42; }
+.public-site .lcb-gallery-expand-icon { color: #fff !important; }
+body.lcb-public-typography .lcb-gallery-lightbox {
+  background: rgba(9, 9, 11, .97) !important;
+  color: #fff !important;
+}
+body.lcb-public-typography .lcb-gallery-lightbox .lcb-gallery-viewer-control {
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(255,255,255,.17);
+  border-radius: 999px;
+  background: rgba(255,255,255,.11);
+  color: #fff !important;
+  transition: background-color .2s, opacity .2s;
+}
+body.lcb-public-typography .lcb-gallery-lightbox .lcb-gallery-viewer-control:hover:not(:disabled) {
+  background: rgba(255,255,255,.21);
+}
+body.lcb-public-typography .lcb-gallery-lightbox .lcb-gallery-viewer-control:disabled {
+  opacity: .32;
+  cursor: not-allowed;
+}
+@media (prefers-reduced-motion: reduce) {
+  .public-site .lcb-gallery-arrow,
+  body.lcb-public-typography .lcb-gallery-lightbox .lcb-gallery-viewer-control {
+    transition: none;
+  }
+}
