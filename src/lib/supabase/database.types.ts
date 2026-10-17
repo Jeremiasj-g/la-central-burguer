@@ -51,6 +51,16 @@ export interface Database {
         { user_id: string; role_id: string; assigned_by?: string | null; assigned_at?: string },
         { user_id?: string; role_id?: string; assigned_by?: string | null; assigned_at?: string }
       >;
+      gallery_settings: TableDefinition<
+        { id: number; enabled: boolean; updated_at: string },
+        { id?: number; enabled?: boolean; updated_at?: string },
+        { enabled?: boolean; updated_at?: string }
+      >;
+      gallery_images: TableDefinition<
+        { id: string; image_url: string; image_path: string; alt_text: string; display_order: number; created_at: string },
+        { id?: string; image_url: string; image_path: string; alt_text?: string; display_order?: number; created_at?: string },
+        { image_url?: string; image_path?: string; alt_text?: string; display_order?: number }
+      >;
       business_config: TableDefinition<
         {
           id: number; business_name: string; logo_url: string; logo_path: string | null; hero_description: string; whatsapp_number: string; facebook_url: string; instagram_url: string; whatsapp_url: string; transfer_alias: string;

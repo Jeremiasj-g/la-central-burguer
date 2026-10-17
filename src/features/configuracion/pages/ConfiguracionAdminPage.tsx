@@ -15,6 +15,7 @@ import { buildGoogleMapsUrl } from '@/features/delivery/utils/delivery.utils';
 import { cn } from '@/shared/utils/cn';
 import { DataLoadError } from '@/shared/components/feedback/DataLoadError';
 import { BusinessLogo } from '../components/BusinessLogo';
+import { GalleryAdmin } from '@/features/galeria/components/GalleryAdmin';
 import { toast } from 'react-toastify';
 
 const adminInputClass = 'min-w-0 !rounded-[11px] !border-neutral-200/80 !bg-[#f7f7f9] !px-3 !pr-10 !text-[13px] !font-normal !text-neutral-800 !shadow-none !placeholder:text-neutral-400 transition-all duration-200 hover:!border-neutral-300 focus:!border-central-orange/40 focus:!bg-white focus:!ring-2 focus:!ring-central-orange/10';
@@ -445,6 +446,8 @@ export function ConfiguracionAdminPage() {
           </p>
         </section>
       </div>
+
+      <GalleryAdmin />
 
       <section className={cn(panelClass, 'mt-4')}>
         <div>
