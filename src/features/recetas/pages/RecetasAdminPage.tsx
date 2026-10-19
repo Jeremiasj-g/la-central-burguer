@@ -27,6 +27,7 @@ import { cn } from '@/shared/utils/cn';
 import { useRecetas } from '../hooks/useRecetas';
 import { updateProductoReceta } from '../services/recetas.service';
 import type { RecipeIngredient } from '../types/receta.types';
+import styles from './RecetasAdminPage.module.css';
 
 const adminInputClass = '!h-10 !rounded-[11px] !border-neutral-200/80 !bg-[#f7f7f9] !px-3 !text-[13px] !font-normal !text-neutral-800 !shadow-none !placeholder:text-neutral-400 transition-all duration-200 hover:!border-neutral-300 focus:!border-[#d99536]/40 focus:!bg-white focus:!ring-2 focus:!ring-[#d99536]/10';
 
@@ -392,60 +393,77 @@ export function RecetasAdminPage() {
                 </div>
 
                 {draftIngredients.length ? (
-                  <div className="space-y-2">
-                    {draftIngredients.map((row) => {
-                      const ingredient = ingredientById.get(row.ingredientId);
-                      const lineCost = ingredientLineCost(row, ingredient);
-                      const unitOptions = compatibleUnits(ingredient?.unit ?? row.unit).map((unit) => ({ value: unit, label: unit }));
-                      return (
-                        <div key={row.id} className="min-w-0 rounded-[14px] border border-neutral-200/70 bg-[#fafafb] p-3 sm:p-4">
-                          <div className="flex min-w-0 items-start justify-between gap-3">
-                            <div className="min-w-0">
-                              <p className="break-words text-[13px] font-semibold text-neutral-900">{ingredient?.name ?? 'Ingrediente no disponible'}</p>
-                              <p className="mt-1 text-[11px] text-neutral-400">{ingredient ? formatCurrency(ingredient.unitCost) + ' por ' + ingredient.unit : 'Sin costo base'}</p>
+                  <div className={styles.recipeLedger}>
+                    <div aria-hidden="true" className={styles.recipeHeader}>
+                      <span>Ingrediente</span>
+                      <span>Cantidad</span>
+                      <span>Unidad</span>
+                      <span>Costo base</span>
+                      <span>Costo en receta</span>
+                      <span />
+                    </div>
+                    <div className={styles.recipeRows}>
+                      {draftIngredients.map((row) => {
+                        const ingredient = ingredientById.get(row.ingredientId);
+                        const lineCost = ingredientLineCost(row, ingredient);
+                        const unitOptions = compatibleUnits(ingredient?.unit ?? row.unit).map((unit) => ({ value: unit, label: unit }));
+                        const ingredientName = ingredient?.name ?? 'Ingrediente no disponible';
+
+                        return (
+                          <div key={row.id} className={styles.recipeRow}>
+                            <div className={styles.ingredient}>
+                              <p className={styles.ingredientName} title={ingredientName}>{ingredientName}</p>
+                              <p className={styles.ingredientHint}>
+                                {ingredient ? formatCurrency(ingredient.unitCost) + ' / ' + ingredient.unit : 'Sin costo base'}
+                              </p>
                             </div>
-                            <button type="button" onClick={() => setDraftIngredients((current) => current.filter((item) => item.id !== row.id))}
-                              aria-label={'Quitar ' + (ingredient?.name ?? 'ingrediente')}
-                              className="grid h-8 w-8 shrink-0 place-items-center rounded-[9px] text-neutral-400 transition-colors duration-200 hover:bg-red-50 hover:text-red-600 focus-visible:outline-2 focus-visible:outline-red-400">
+
+                            <div className={styles.recipeFields}>
+                              <label className={styles.quantityField}>
+                                <span className={styles.fieldLabel}>Cantidad</span>
+                                <Input
+                                  aria-label={'Cantidad de ' + ingredientName}
+                                  type="number" min="0" step="0.001" inputMode="decimal"
+                                  value={row.quantity || ''}
+                                  onChange={(event) => updateDraftIngredient(row.id, { quantity: Number(event.target.value) })}
+                                  placeholder="0"
+                                  className={adminInputClass + ' !h-9 !bg-white'}
+                                />
+                              </label>
+                              <div className={styles.unitField}>
+                                <span className={styles.fieldLabel}>Unidad</span>
+                                <Select
+                                  aria-label={'Unidad para ' + ingredientName}
+                                  variant="light" value={row.unit} options={unitOptions}
+                                  className="!h-9 !rounded-[10px] !border-neutral-200/80 !bg-white !text-[12px] !font-normal !shadow-none"
+                                  onValueChange={(unit) => updateDraftIngredient(row.id, { unit: unit as IngredientUnit })}
+                                />
+                              </div>
+                              <div className={styles.baseCostField}>
+                                <span className={styles.fieldLabel}>Costo base</span>
+                                <p className={styles.baseCostValue}>
+                                  {ingredient ? formatCurrency(ingredient.unitCost) + ' / ' + ingredient.unit : '—'}
+                                </p>
+                              </div>
+                              <div className={styles.lineCostField}>
+                                <span className={styles.fieldLabel}>Costo en receta</span>
+                                <p className={cn(styles.lineCostValue, !(lineCost !== null && lineCost > 0) && styles.pendingCost)}>
+                                  {lineCost !== null && lineCost > 0 ? formatCurrency(lineCost) : 'A definir'}
+                                </p>
+                              </div>
+                            </div>
+
+                            <button type="button"
+                              onClick={() => setDraftIngredients((current) => current.filter((item) => item.id !== row.id))}
+                              aria-label={'Quitar ' + ingredientName}
+                              title={'Quitar ' + ingredientName}
+                              className={styles.removeButton}>
                               <Trash2 size={15} strokeWidth={1.8} />
                             </button>
                           </div>
-                          <div className="mt-3 grid min-w-0 grid-cols-2 gap-x-3 gap-y-3 sm:grid-cols-4">
-                            <label className="min-w-0">
-                              <span className="mb-1.5 block text-[10px] font-medium text-neutral-500">Cantidad</span>
-                              <Input
-                                type="number" min="0" step="0.001" inputMode="decimal"
-                                value={row.quantity || ''}
-                                onChange={(event) => updateDraftIngredient(row.id, { quantity: Number(event.target.value) })}
-                                placeholder="0"
-                                className={adminInputClass}
-                              />
-                            </label>
-                            <div className="min-w-0">
-                              <span className="mb-1.5 block text-[10px] font-medium text-neutral-500">Unidad</span>
-                              <Select
-                                aria-label={'Unidad para ' + (ingredient?.name ?? 'ingrediente')}
-                                variant="light" value={row.unit} options={unitOptions}
-                                className="!h-10 !rounded-[11px] !border-neutral-200/80 !bg-white !text-[12px] !font-normal !shadow-none"
-                                onValueChange={(unit) => updateDraftIngredient(row.id, { unit: unit as IngredientUnit })}
-                              />
-                            </div>
-                            <div className="min-w-0">
-                              <p className="mb-1.5 text-[10px] font-medium text-neutral-500">Costo base</p>
-                              <p className="flex min-h-10 items-center break-words text-[12px] font-medium leading-4 text-neutral-600">
-                                {ingredient ? formatCurrency(ingredient.unitCost) + ' / ' + ingredient.unit : '—'}
-                              </p>
-                            </div>
-                            <div className="min-w-0">
-                              <p className="mb-1.5 text-[10px] font-medium text-neutral-500">Costo en receta</p>
-                              <p className={cn('flex min-h-10 items-center break-words text-[13px] font-semibold tabular-nums', lineCost !== null && lineCost > 0 ? 'text-neutral-900' : 'text-amber-600')}>
-                                {lineCost !== null && lineCost > 0 ? formatCurrency(lineCost) : 'A definir'}
-                              </p>
-                            </div>
-                          </div>
-                        </div>
-                      );
-                    })}
+                        );
+                      })}
+                    </div>
                   </div>
                 ) : (
                   <div className="rounded-[15px] border border-dashed border-neutral-200 bg-[#fafafb] px-5 py-10 text-center">
