@@ -6,7 +6,6 @@ import {
   BadgeDollarSign,
   Beef,
   CheckCircle2,
-  CircleDollarSign,
   Plus,
   Save,
   Search,
@@ -18,19 +17,18 @@ import { useProductos } from '@/features/productos/hooks/useProductos';
 import { useIngredientes } from '@/features/ingredientes/hooks/useIngredientes';
 import type { Ingredient, IngredientUnit } from '@/features/ingredientes/types/ingrediente.types';
 import { useCategorias } from '@/features/categorias/hooks/useCategorias';
-import { AdminPageHeader } from '@/shared/components/layout/AdminPageHeader';
 import { SearchableSelect } from '@/shared/components/ui/SearchableSelect';
 import { Select } from '@/shared/components/ui/Select';
 import { Input } from '@/shared/components/ui/Input';
 import { Button } from '@/shared/components/ui/Button';
-import { Badge } from '@/shared/components/ui/Badge';
 import { DataLoadError } from '@/shared/components/feedback/DataLoadError';
 import { formatCurrency } from '@/shared/utils/format.utils';
+import { cn } from '@/shared/utils/cn';
 import { useRecetas } from '../hooks/useRecetas';
 import { updateProductoReceta } from '../services/recetas.service';
 import type { RecipeIngredient } from '../types/receta.types';
 
-const adminInputClass = '!bg-white !text-central-carbon !placeholder:text-neutral-500 border-neutral-200';
+const adminInputClass = '!h-10 !rounded-[11px] !border-neutral-200/80 !bg-[#f7f7f9] !px-3 !text-[13px] !font-normal !text-neutral-800 !shadow-none !placeholder:text-neutral-400 transition-all duration-200 hover:!border-neutral-300 focus:!border-[#d99536]/40 focus:!bg-white focus:!ring-2 focus:!ring-[#d99536]/10';
 
 function compatibleUnits(unit: IngredientUnit): IngredientUnit[] {
   if (unit === 'kg' || unit === 'gr') return ['kg', 'gr'];
@@ -203,136 +201,193 @@ export function RecetasAdminPage() {
   const error = productsError ?? ingredientsError ?? categoriesError ?? recipesError;
 
   return (
-    <div>
-      <AdminPageHeader
-        eyebrow="Recetas · Rentabilidad"
-        title="Costos y rentabilidad por producto"
-        description="Componé cada receta con cantidades reales y compará automáticamente el costo de ingredientes contra el precio de venta."
-      />
+    <div className="min-w-0 pb-8">
+      <header className="mb-6 flex flex-col gap-3 sm:mb-7 sm:flex-row sm:items-end sm:justify-between">
+        <div className="min-w-0">
+          <p className="mb-2 text-[10px] font-semibold uppercase tracking-[.2em] text-[#bd7e26]">Recetas / Análisis</p>
+          <h1 className="text-[clamp(1.7rem,3vw,2.25rem)] font-semibold leading-[1.14] tracking-[-.055em] text-neutral-950">
+            Costos y rentabilidad
+          </h1>
+          <p className="mt-2 max-w-2xl text-[13px] leading-5 text-neutral-500">
+            Gestioná las cantidades de cada receta y analizá sus costos frente al precio de venta.
+          </p>
+        </div>
+        <div className="inline-flex w-fit shrink-0 items-center gap-2 rounded-full border border-neutral-200/80 bg-white px-3 py-2 text-[11px] font-medium text-neutral-500 shadow-[0_2px_8px_rgba(17,24,39,.025)]">
+          <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+          Análisis por producto
+        </div>
+      </header>
 
-      <div className="mb-6 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-        <MetricCard label="Productos costeados" value={`${completeAnalytics.length} / ${productos.length}`} helper="con cantidades y costos completos" icon={CheckCircle2} />
-        <MetricCard label="Margen bruto promedio" value={completeAnalytics.length ? percent(averageMargin) : '—'} helper="precio menos ingredientes" icon={TrendingUp} />
-        <MetricCard label="Food cost promedio" value={completeAnalytics.length ? percent(averageFoodCost) : '—'} helper="ingredientes sobre precio de venta" icon={Beef} />
+      <section aria-label="Indicadores de rentabilidad" className="mb-5 grid min-w-0 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        <div className="relative flex min-h-[156px] min-w-0 flex-col justify-between overflow-hidden rounded-[20px] bg-[#191b20] p-5 text-white shadow-[0_12px_30px_rgba(17,24,39,.10)]">
+          <div className="pointer-events-none absolute -right-14 -top-16 h-48 w-48 rounded-full bg-[#e9a349]/[.13] blur-[38px]" aria-hidden="true" />
+          <div className="relative flex items-start justify-between gap-3">
+            <p className="text-[12px] font-medium text-white/60">Margen bruto promedio</p>
+            <span className="grid h-9 w-9 shrink-0 place-items-center rounded-[11px] bg-white/[.075] text-[#f5b55a]">
+              <TrendingUp size={17} strokeWidth={1.8} />
+            </span>
+          </div>
+          <div className="relative mt-3">
+            <p className="break-words text-[clamp(2rem,3vw,2.5rem)] font-semibold leading-none tracking-[-.055em] tabular-nums">
+              {completeAnalytics.length ? percent(averageMargin) : '—'}
+            </p>
+            <p className="mt-2 text-[11px] leading-4 text-white/45">Precio de venta menos costo de ingredientes</p>
+          </div>
+        </div>
+        <MetricCard label="Productos costeados" value={String(completeAnalytics.length) + ' / ' + String(productos.length)} helper="Con cantidades y costos completos" icon={CheckCircle2} />
+        <MetricCard label="Food cost promedio" value={completeAnalytics.length ? percent(averageFoodCost) : '—'} helper="Participación de ingredientes en el precio" icon={Beef} />
         <MetricCard label="Mejor margen" value={bestMargin ? percent(bestMargin.marginPercent) : '—'} helper={bestMargin?.product.name ?? 'Sin recetas completas'} icon={BadgeDollarSign} />
+      </section>
+
+      <div className="mb-6 flex items-start gap-2.5 rounded-[13px] border border-[#eedfc6] bg-[#fbf7ef] px-3.5 py-3 text-[#806135] sm:px-4">
+        <AlertCircle className="mt-0.5 shrink-0" size={16} strokeWidth={1.8} />
+        <p className="text-[11px] leading-[1.65]">
+          <strong className="font-semibold">Los márgenes son brutos.</strong> Solo contemplan ingredientes; no incluyen mano de obra,
+          gas, electricidad, impuestos, comisiones, packaging ni otros gastos indirectos.
+        </p>
       </div>
 
-      <div className="mb-6 flex items-start gap-3 rounded-sm border border-amber-200 bg-amber-50 px-4 py-3 text-amber-800">
-        <AlertCircle className="mt-0.5 shrink-0" size={18} />
-        <p className="text-xs leading-5"><strong>Rentabilidad bruta sobre ingredientes.</strong> El cálculo todavía no descuenta mano de obra, gas, electricidad, impuestos, comisiones de cobro, packaging ni otros costos indirectos.</p>
-      </div>
-
-      <div className="mb-5 grid gap-3 rounded-sm border border-neutral-200 bg-white p-4 shadow-soft md:grid-cols-[1fr_260px]">
-        <label className="relative">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-neutral-400" size={18} />
-          <Input className={`pl-11 ${adminInputClass}`} value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Buscar producto" />
-        </label>
-        <Select
-          aria-label="Filtrar rentabilidad por categoría"
-          variant="light"
-          value={categoryId}
-          options={[{ value: 'all', label: 'Todas las categorías' }, ...categorias.map((category) => ({ value: category.id, label: category.name }))]}
-          onValueChange={setCategoryId}
-        />
+      <div className="mb-5 flex min-w-0 flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="relative min-w-0 flex-1 sm:max-w-[440px]">
+          <Search className="pointer-events-none absolute left-3.5 top-1/2 z-10 -translate-y-1/2 text-neutral-400" size={17} strokeWidth={1.8} />
+          <Input
+            aria-label="Buscar producto"
+            className={adminInputClass + ' !pl-10'}
+            value={search}
+            onChange={(event) => setSearch(event.target.value)}
+            placeholder="Buscar productos..."
+          />
+        </div>
+        <div className="w-full min-w-0 sm:w-[240px]">
+          <Select
+            aria-label="Filtrar rentabilidad por categoría"
+            variant="light"
+            className="!h-10 !rounded-[11px] !border-neutral-200/80 !bg-[#f7f7f9] !text-[13px] !font-normal !shadow-none"
+            value={categoryId}
+            options={[{ value: 'all', label: 'Todas las categorías' }, ...categorias.map((category) => ({ value: category.id, label: category.name }))]}
+            onValueChange={setCategoryId}
+          />
+        </div>
       </div>
 
       {error ? (
-        <DataLoadError message={error} onRetry={async () => { await Promise.all([refreshProducts(), refreshIngredients(), refreshCategories(), refreshRecipes()]); }} />
+        <DataLoadError
+          message={error}
+          onRetry={async () => { await Promise.all([refreshProducts(), refreshIngredients(), refreshCategories(), refreshRecipes()]); }}
+        />
       ) : loading ? (
-        <div className="grid gap-4 xl:grid-cols-[380px_minmax(0,1fr)]">
-          <div className="h-[560px] animate-pulse rounded-sm border border-neutral-200 bg-neutral-100" />
-          <div className="h-[560px] animate-pulse rounded-sm border border-neutral-200 bg-neutral-100" />
+        <div className="grid min-w-0 gap-4 xl:grid-cols-[330px_minmax(0,1fr)]">
+          <div className="h-[440px] animate-pulse rounded-[20px] border border-neutral-200/70 bg-white/80" />
+          <div className="h-[540px] animate-pulse rounded-[20px] border border-neutral-200/70 bg-white/80" />
         </div>
       ) : (
-        <div className="grid min-w-0 items-start gap-4 xl:grid-cols-[380px_minmax(0,1fr)]">
-          <section className="overflow-hidden rounded-sm border border-neutral-200 bg-white shadow-soft">
-            <div className="border-b border-neutral-100 px-4 py-3">
-              <p className="text-sm font-black text-central-carbon">Productos</p>
-              <p className="mt-0.5 text-xs text-neutral-500">Seleccioná uno para editar su receta.</p>
+        <div className="grid min-w-0 items-start gap-4 xl:grid-cols-[330px_minmax(0,1fr)] 2xl:grid-cols-[350px_minmax(0,1fr)]">
+          <section aria-label="Listado de productos" className="min-w-0 overflow-hidden rounded-[20px] border border-neutral-200/70 bg-white shadow-[0_8px_24px_rgba(15,23,42,.035)]">
+            <div className="flex items-center justify-between gap-2 border-b border-neutral-100 px-4 py-4 sm:px-5">
+              <div className="min-w-0">
+                <h2 className="text-[15px] font-semibold tracking-[-.025em] text-neutral-900">Productos</h2>
+                <p className="mt-0.5 text-[11px] text-neutral-400">Seleccioná una receta para editarla</p>
+              </div>
+              <span className="shrink-0 rounded-full bg-[#f4f4f5] px-2.5 py-1 text-[11px] font-semibold tabular-nums text-neutral-500">
+                {filteredProducts.length}
+              </span>
             </div>
-            <div className="max-h-[720px] space-y-2 overflow-y-auto p-3 custom-scrollbar">
+            <div className="custom-scrollbar max-h-[600px] space-y-1 overflow-y-auto p-2.5 xl:max-h-[800px]">
               {filteredProducts.length ? filteredProducts.map((product) => {
                 const analytics = analyticsByProductId.get(product.id);
                 const active = product.id === productId;
                 return (
-                  <button
-                    key={product.id}
-                    type="button"
+                  <button key={product.id} type="button" aria-pressed={active}
                     onClick={() => setProductId(product.id)}
-                    className={`w-full rounded-sm border p-3 text-left transition ${active ? 'border-central-orange bg-central-orange/[.06] shadow-sm' : 'border-neutral-200 bg-white hover:border-central-orange/35 hover:bg-neutral-50'}`}
-                  >
-                    <div className="flex min-w-0 items-start gap-3">
-                      <div className="h-12 w-12 shrink-0 overflow-hidden rounded-sm bg-neutral-100">
+                    className={cn(
+                      'group relative block w-full min-w-0 rounded-[13px] px-3 py-3 text-left outline-offset-2 transition-[background-color,box-shadow] duration-200 focus-visible:outline-2 focus-visible:outline-[#d99536]',
+                      active ? 'bg-[#fcf5e9]' : 'hover:bg-[#f7f7f8]',
+                    )}>
+                    {active ? <span aria-hidden="true" className="absolute bottom-3 left-0 top-3 w-[3px] rounded-r-full bg-[#d99536]" /> : null}
+                    <div className="flex min-w-0 gap-3">
+                      <div className="h-12 w-12 shrink-0 overflow-hidden rounded-[11px] bg-neutral-100">
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img src={product.imageUrl} alt="" className="h-full w-full object-cover" />
                       </div>
                       <div className="min-w-0 flex-1">
-                        <div className="flex items-start justify-between gap-2">
-                          <div className="min-w-0">
-                            <p className="truncate text-sm font-black text-central-carbon">{product.name}</p>
-                            <p className="truncate text-xs text-neutral-500">{categoryById.get(product.categoryId)?.name ?? 'Sin categoría'}</p>
-                          </div>
-                          <Badge tone={analytics?.complete ? 'success' : 'neutral'}>{analytics?.complete ? 'Costeado' : 'Pendiente'}</Badge>
-                        </div>
-                        <div className="mt-3 grid grid-cols-3 gap-2 text-xs">
-                          <SmallValue label="Venta" value={formatCurrency(product.currentPrice)} />
-                          <SmallValue label="Costo" value={analytics?.cost ? formatCurrency(analytics.cost) : '—'} />
-                          <SmallValue label="Margen" value={analytics?.complete ? percent(analytics.marginPercent) : '—'} />
+                        <p className="truncate text-[12px] font-semibold leading-5 text-neutral-900">{product.name}</p>
+                        <p className="mt-0.5 truncate text-[11px] text-neutral-400">{categoryById.get(product.categoryId)?.name ?? 'Sin categoría'}</p>
+                        <div className="mt-2 flex flex-wrap items-center gap-x-2.5 gap-y-1">
+                          <span className={cn('inline-flex items-center gap-1.5 text-[10px] font-medium', analytics?.complete ? 'text-emerald-700' : 'text-amber-700')}>
+                            <span className={cn('h-1.5 w-1.5 rounded-full', analytics?.complete ? 'bg-emerald-500' : 'bg-amber-400')} />
+                            {analytics?.complete ? 'Costeado' : 'Pendiente'}
+                          </span>
+                          {analytics?.complete ? <span className="text-[10px] font-medium text-neutral-500">Margen {percent(analytics.marginPercent)}</span> : null}
                         </div>
                       </div>
                     </div>
+                    <div className="mt-3 grid grid-cols-2 gap-3 border-t border-neutral-200/60 pt-2.5">
+                      <SmallValue label="Precio de venta" value={formatCurrency(product.currentPrice)} />
+                      <SmallValue label="Costo receta" value={analytics?.cost ? formatCurrency(analytics.cost) : '—'} />
+                    </div>
                   </button>
                 );
-              }) : <div className="p-8 text-center text-sm text-neutral-500">No hay productos que coincidan con los filtros.</div>}
+              }) : (
+                <div className="px-4 py-12 text-center">
+                  <Search size={23} className="mx-auto text-neutral-300" />
+                  <p className="mt-3 text-[13px] font-medium text-neutral-700">Sin coincidencias</p>
+                  <p className="mt-1 text-[11px] text-neutral-400">Probá con otro nombre o categoría.</p>
+                </div>
+              )}
             </div>
           </section>
 
           {selectedProduct ? (
-            <section className="min-w-0 overflow-hidden rounded-sm border border-neutral-200 bg-white shadow-soft">
-              <div className="border-b border-neutral-100 p-4 sm:p-5">
-                <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-                  <div className="flex min-w-0 items-center gap-4">
-                    <div className="h-16 w-16 shrink-0 overflow-hidden rounded-sm bg-neutral-100">
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={selectedProduct.imageUrl} alt="" className="h-full w-full object-cover" />
-                    </div>
-                    <div className="min-w-0">
-                      <p className="text-xs font-black uppercase tracking-[.12em] text-central-orange">{categoryById.get(selectedProduct.categoryId)?.name ?? 'Producto'}</p>
-                      <h2 className="mt-1 truncate text-xl font-black text-central-carbon">{selectedProduct.name}</h2>
-                      <p className="mt-1 text-xs text-neutral-500">Definí cantidades y unidades para obtener un costo preciso.</p>
-                    </div>
+            <section aria-label="Editor de rentabilidad de receta" className="min-w-0 overflow-hidden rounded-[20px] border border-neutral-200/70 bg-white shadow-[0_8px_24px_rgba(15,23,42,.035)]">
+              <div className="flex min-w-0 flex-col gap-4 border-b border-neutral-100 px-4 py-4 sm:px-6 sm:py-5 lg:flex-row lg:items-center lg:justify-between">
+                <div className="flex min-w-0 items-center gap-3.5">
+                  <div className="h-[58px] w-[58px] shrink-0 overflow-hidden rounded-[13px] bg-neutral-100">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={selectedProduct.imageUrl} alt="" className="h-full w-full object-cover" />
                   </div>
-                  <Button onClick={() => void saveRecipe()} disabled={saving}><Save size={16} /> {saving ? 'Guardando…' : 'Guardar receta'}</Button>
+                  <div className="min-w-0">
+                    <p className="text-[10px] font-medium text-[#bd7e26]">{categoryById.get(selectedProduct.categoryId)?.name ?? 'Producto'}</p>
+                    <h2 className="mt-0.5 break-words text-[18px] font-semibold leading-[1.2] tracking-[-.035em] text-neutral-950 sm:text-[20px]">{selectedProduct.name}</h2>
+                    <p className="mt-1 text-[11px] text-neutral-400">Editá cantidades y unidades de la receta</p>
+                  </div>
                 </div>
+                <Button type="button" onClick={() => void saveRecipe()} disabled={saving}
+                  className="!h-10 !w-full !rounded-[11px] !bg-[#eaa42f] !px-4 !text-[12px] !font-semibold !text-[#211a12] !shadow-none hover:!bg-[#f0b64d] sm:!w-auto">
+                  <Save size={15} strokeWidth={1.9} /> {saving ? 'Guardando...' : 'Guardar receta'}
+                </Button>
               </div>
 
-              <div className="grid gap-px border-b border-neutral-100 bg-neutral-100 sm:grid-cols-2 xl:grid-cols-5">
+              <div className="grid min-w-0 grid-cols-2 gap-px border-b border-neutral-100 bg-neutral-100 md:grid-cols-3 2xl:grid-cols-5">
                 <ProfitCell label="Precio de venta" value={formatCurrency(selectedProduct.currentPrice)} />
                 <ProfitCell label="Costo ingredientes" value={formatCurrency(currentCost)} helper={currentComplete ? 'Costo completo' : 'Faltan datos'} />
-                <ProfitCell label="Ganancia bruta/u." value={formatCurrency(currentProfitability.grossProfit)} />
-                <ProfitCell label="Margen bruto" value={currentComplete ? percent(currentProfitability.marginPercent) : '—'} />
-                <ProfitCell label="Food cost" value={currentComplete ? percent(currentProfitability.foodCostPercent) : '—'} helper={currentComplete && currentProfitability.markup ? `${currentProfitability.markup.toFixed(2)}x sobre costo` : undefined} />
+                <ProfitCell label="Ganancia bruta / u." value={formatCurrency(currentProfitability.grossProfit)} />
+                <ProfitCell label="Margen bruto" value={currentComplete ? percent(currentProfitability.marginPercent) : '—'} highlight />
+                <ProfitCell label="Food cost" value={currentComplete ? percent(currentProfitability.foodCostPercent) : '—'} helper={currentComplete && currentProfitability.markup ? currentProfitability.markup.toFixed(2) + 'x sobre costo' : undefined} />
               </div>
 
-              <div className="p-4 sm:p-5">
-                <div className="mb-4 flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
-                  <div>
-                    <h3 className="text-sm font-black text-central-carbon">Composición de la receta</h3>
-                    <p className="mt-1 text-xs text-neutral-500">El costo de cada línea se recalcula usando el costo base del ingrediente.</p>
+              <div className="px-4 py-5 sm:px-6 sm:py-6">
+                <div className="mb-4 flex min-w-0 flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+                  <div className="min-w-0">
+                    <h3 className="text-[15px] font-semibold tracking-[-.025em] text-neutral-900">Ingredientes de la receta</h3>
+                    <p className="mt-1 text-[11px] leading-5 text-neutral-500">Los costos se actualizan al cambiar cantidades y unidades.</p>
                   </div>
-                  <div className="flex min-w-0 flex-col gap-2 sm:flex-row">
-                    <div className="min-w-0 sm:w-64">
+                  <div className="flex min-w-0 flex-col gap-2 sm:flex-row sm:items-center">
+                    <div className="min-w-0 sm:w-[210px]">
                       <SearchableSelect
                         aria-label="Agregar ingrediente a la receta"
+                        className="!h-10 !rounded-[11px] !border-neutral-200/80 !bg-[#f7f7f9] !text-[13px] !font-normal !shadow-none"
                         value={ingredientToAdd}
                         options={addableIngredients.map((ingredient) => ({ value: ingredient.id, label: ingredient.name }))}
                         onValueChange={setIngredientToAdd}
-                        placeholder="Agregar ingrediente"
-                        searchPlaceholder="Buscar ingrediente…"
+                        placeholder="Elegir ingrediente"
+                        searchPlaceholder="Buscar ingrediente..."
                         emptyMessage="No quedan ingredientes disponibles."
                       />
                     </div>
-                    <Button type="button" variant="secondary" onClick={addIngredient} disabled={!ingredientToAdd}><Plus size={16} /> Agregar</Button>
+                    <Button type="button" variant="secondary" onClick={addIngredient} disabled={!ingredientToAdd}
+                      className="!h-10 !rounded-[11px] !border-neutral-200 !px-3 !text-[12px] !font-medium !shadow-none">
+                      <Plus size={15} strokeWidth={1.9} /> Agregar
+                    </Button>
                   </div>
                 </div>
 
@@ -343,67 +398,92 @@ export function RecetasAdminPage() {
                       const lineCost = ingredientLineCost(row, ingredient);
                       const unitOptions = compatibleUnits(ingredient?.unit ?? row.unit).map((unit) => ({ value: unit, label: unit }));
                       return (
-                        <div key={row.id} className="grid min-w-0 gap-3 rounded-sm border border-neutral-200 bg-neutral-50/50 p-3 md:grid-cols-[minmax(180px,1.4fr)_120px_120px_minmax(140px,.8fr)_minmax(120px,.7fr)_40px] md:items-center">
-                          <div className="min-w-0">
-                            <p className="truncate text-sm font-black text-central-carbon">{ingredient?.name ?? 'Ingrediente no disponible'}</p>
-                            <p className="mt-0.5 text-xs text-neutral-500">{ingredient ? `${formatCurrency(ingredient.unitCost)} por ${ingredient.unit}` : 'Sin costo base'}</p>
+                        <div key={row.id} className="min-w-0 rounded-[14px] border border-neutral-200/70 bg-[#fafafb] p-3 sm:p-4">
+                          <div className="flex min-w-0 items-start justify-between gap-3">
+                            <div className="min-w-0">
+                              <p className="break-words text-[13px] font-semibold text-neutral-900">{ingredient?.name ?? 'Ingrediente no disponible'}</p>
+                              <p className="mt-1 text-[11px] text-neutral-400">{ingredient ? formatCurrency(ingredient.unitCost) + ' por ' + ingredient.unit : 'Sin costo base'}</p>
+                            </div>
+                            <button type="button" onClick={() => setDraftIngredients((current) => current.filter((item) => item.id !== row.id))}
+                              aria-label={'Quitar ' + (ingredient?.name ?? 'ingrediente')}
+                              className="grid h-8 w-8 shrink-0 place-items-center rounded-[9px] text-neutral-400 transition-colors duration-200 hover:bg-red-50 hover:text-red-600 focus-visible:outline-2 focus-visible:outline-red-400">
+                              <Trash2 size={15} strokeWidth={1.8} />
+                            </button>
                           </div>
-                          <label>
-                            <span className="mb-1 block text-[10px] font-black uppercase tracking-wide text-neutral-400 md:hidden">Cantidad</span>
-                            <input
-                              type="number"
-                              min="0"
-                              step="0.001"
-                              inputMode="decimal"
-                              value={row.quantity || ''}
-                              onChange={(event) => updateDraftIngredient(row.id, { quantity: Number(event.target.value) })}
-                              placeholder="0"
-                              className="h-10 w-full rounded-sm border border-neutral-200 bg-white px-3 text-sm outline-none focus:border-central-orange focus:ring-2 focus:ring-central-orange/10"
-                            />
-                          </label>
-                          <div>
-                            <span className="mb-1 block text-[10px] font-black uppercase tracking-wide text-neutral-400 md:hidden">Unidad</span>
-                            <Select
-                              aria-label={`Unidad para ${ingredient?.name ?? 'ingrediente'}`}
-                              variant="light"
-                              value={row.unit}
-                              options={unitOptions}
-                              onValueChange={(unit) => updateDraftIngredient(row.id, { unit: unit as IngredientUnit })}
-                            />
+                          <div className="mt-3 grid min-w-0 grid-cols-2 gap-x-3 gap-y-3 sm:grid-cols-4">
+                            <label className="min-w-0">
+                              <span className="mb-1.5 block text-[10px] font-medium text-neutral-500">Cantidad</span>
+                              <Input
+                                type="number" min="0" step="0.001" inputMode="decimal"
+                                value={row.quantity || ''}
+                                onChange={(event) => updateDraftIngredient(row.id, { quantity: Number(event.target.value) })}
+                                placeholder="0"
+                                className={adminInputClass}
+                              />
+                            </label>
+                            <div className="min-w-0">
+                              <span className="mb-1.5 block text-[10px] font-medium text-neutral-500">Unidad</span>
+                              <Select
+                                aria-label={'Unidad para ' + (ingredient?.name ?? 'ingrediente')}
+                                variant="light" value={row.unit} options={unitOptions}
+                                className="!h-10 !rounded-[11px] !border-neutral-200/80 !bg-white !text-[12px] !font-normal !shadow-none"
+                                onValueChange={(unit) => updateDraftIngredient(row.id, { unit: unit as IngredientUnit })}
+                              />
+                            </div>
+                            <div className="min-w-0">
+                              <p className="mb-1.5 text-[10px] font-medium text-neutral-500">Costo base</p>
+                              <p className="flex min-h-10 items-center break-words text-[12px] font-medium leading-4 text-neutral-600">
+                                {ingredient ? formatCurrency(ingredient.unitCost) + ' / ' + ingredient.unit : '—'}
+                              </p>
+                            </div>
+                            <div className="min-w-0">
+                              <p className="mb-1.5 text-[10px] font-medium text-neutral-500">Costo en receta</p>
+                              <p className={cn('flex min-h-10 items-center break-words text-[13px] font-semibold tabular-nums', lineCost !== null && lineCost > 0 ? 'text-neutral-900' : 'text-amber-600')}>
+                                {lineCost !== null && lineCost > 0 ? formatCurrency(lineCost) : 'A definir'}
+                              </p>
+                            </div>
                           </div>
-                          <div className="min-w-0">
-                            <p className="text-[10px] font-black uppercase tracking-wide text-neutral-400">Costo base</p>
-                            <p className="mt-1 truncate text-sm font-bold text-neutral-700">{ingredient ? `${formatCurrency(ingredient.unitCost)} / ${ingredient.unit}` : '—'}</p>
-                          </div>
-                          <div className="min-w-0">
-                            <p className="text-[10px] font-black uppercase tracking-wide text-neutral-400">Costo en receta</p>
-                            <p className={`mt-1 truncate text-sm font-black ${lineCost !== null && lineCost > 0 ? 'text-central-carbon' : 'text-amber-600'}`}>{lineCost !== null && lineCost > 0 ? formatCurrency(lineCost) : 'A definir'}</p>
-                          </div>
-                          <button type="button" onClick={() => setDraftIngredients((current) => current.filter((item) => item.id !== row.id))} className="grid h-9 w-9 place-items-center rounded-sm text-red-500 transition hover:bg-red-50" aria-label={`Quitar ${ingredient?.name ?? 'ingrediente'}`}><Trash2 size={16} /></button>
                         </div>
                       );
                     })}
                   </div>
                 ) : (
-                  <div className="rounded-sm border border-dashed border-neutral-300 px-5 py-10 text-center">
-                    <Beef className="mx-auto text-neutral-300" size={30} />
-                    <p className="mt-3 text-sm font-black text-neutral-600">Este producto todavía no tiene receta</p>
-                    <p className="mt-1 text-xs text-neutral-400">Agregá ingredientes y sus cantidades para comenzar el análisis.</p>
+                  <div className="rounded-[15px] border border-dashed border-neutral-200 bg-[#fafafb] px-5 py-10 text-center">
+                    <Beef className="mx-auto text-neutral-300" size={28} strokeWidth={1.7} />
+                    <p className="mt-3 text-[13px] font-semibold text-neutral-700">Este producto todavía no tiene receta</p>
+                    <p className="mt-1 text-[11px] text-neutral-400">Agregá ingredientes para comenzar el cálculo.</p>
                   </div>
                 )}
 
-                <div className="mt-6 grid gap-3 lg:grid-cols-3">
-                  {[40, 50, 60].map((target) => (
-                    <div key={target} className="rounded-sm border border-neutral-200 bg-neutral-50 p-4">
-                      <p className="text-[10px] font-black uppercase tracking-[.12em] text-neutral-400">Precio para {target}% de margen</p>
-                      <p className="mt-2 text-xl font-black text-central-carbon">{currentComplete ? formatCurrency(targetPrice(currentCost, target)) : '—'}</p>
-                      <p className="mt-1 text-xs text-neutral-500">Referencia calculada sólo sobre ingredientes.</p>
+                <div className="mt-7 border-t border-neutral-100 pt-5">
+                  <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+                    <div>
+                      <h3 className="text-[14px] font-semibold text-neutral-900">Precios de referencia</h3>
+                      <p className="mt-1 text-[11px] text-neutral-500">Precio sugerido para distintos márgenes brutos</p>
                     </div>
-                  ))}
+                    <span className="rounded-full bg-[#f7f7f8] px-2.5 py-1 text-[10px] font-medium text-neutral-500">Solo ingredientes</span>
+                  </div>
+                  <div className="grid min-w-0 gap-2.5 sm:grid-cols-3">
+                    {[40, 50, 60].map((target) => (
+                      <div key={target} className="min-w-0 rounded-[13px] bg-[#f6f6f7] p-3.5 sm:p-4">
+                        <p className="text-[11px] font-medium text-neutral-500">{target}% de margen</p>
+                        <p className="mt-2 break-words text-[clamp(1rem,2vw,1.3rem)] font-semibold leading-tight tracking-[-.035em] tabular-nums text-neutral-900">
+                          {currentComplete ? formatCurrency(targetPrice(currentCost, target)) : '—'}
+                        </p>
+                        <p className="mt-2 text-[10px] text-neutral-400">Precio orientativo</p>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </div>
             </section>
-          ) : null}
+          ) : (
+            <div className="rounded-[20px] border border-neutral-200/70 bg-white px-6 py-14 text-center">
+              <Beef className="mx-auto text-neutral-300" size={27} />
+              <p className="mt-3 text-[13px] font-medium text-neutral-700">Seleccioná un producto</p>
+              <p className="mt-1 text-[11px] text-neutral-400">Elegí una receta del listado para ver sus costos.</p>
+            </div>
+          )}
         </div>
       )}
     </div>
@@ -412,29 +492,36 @@ export function RecetasAdminPage() {
 
 function MetricCard({ label, value, helper, icon: Icon }: { label: string; value: string; helper: string; icon: React.ComponentType<{ size?: number; className?: string }> }) {
   return (
-    <div className="rounded-sm border border-neutral-200 bg-white p-4 shadow-soft">
-      <div className="flex items-start justify-between gap-3">
-        <div>
-          <p className="text-[10px] font-black uppercase tracking-[.12em] text-neutral-400">{label}</p>
-          <p className="mt-2 text-2xl font-black tracking-tight text-central-carbon">{value}</p>
-          <p className="mt-1 text-xs text-neutral-500">{helper}</p>
-        </div>
-        <span className="grid h-9 w-9 place-items-center rounded-sm bg-central-orange/10 text-central-orange"><Icon size={17} /></span>
+    <article className="flex min-h-[156px] min-w-0 flex-col justify-between rounded-[20px] border border-neutral-200/70 bg-white p-5 shadow-[0_8px_24px_rgba(15,23,42,.035)]">
+      <div className="flex items-start justify-between gap-2">
+        <p className="min-w-0 text-[12px] font-medium text-neutral-500">{label}</p>
+        <span className="grid h-9 w-9 shrink-0 place-items-center rounded-[11px] bg-[#f6f6f7] text-[#b47a31]">
+          <Icon size={17} strokeWidth={1.8} />
+        </span>
       </div>
-    </div>
+      <div className="mt-3 min-w-0">
+        <p className="break-words text-[clamp(1.5rem,2.25vw,1.95rem)] font-semibold leading-none tracking-[-.05em] tabular-nums text-neutral-950">{value}</p>
+        <p className="mt-2 truncate text-[11px] leading-4 text-neutral-400" title={helper}>{helper}</p>
+      </div>
+    </article>
   );
 }
 
 function SmallValue({ label, value }: { label: string; value: string }) {
-  return <div className="min-w-0"><p className="text-[9px] font-black uppercase tracking-wide text-neutral-400">{label}</p><p className="mt-0.5 truncate font-bold text-neutral-700">{value}</p></div>;
+  return (
+    <div className="min-w-0">
+      <p className="text-[10px] font-medium text-neutral-400">{label}</p>
+      <p className="mt-1 truncate text-[12px] font-semibold tabular-nums text-neutral-800" title={value}>{value}</p>
+    </div>
+  );
 }
 
-function ProfitCell({ label, value, helper }: { label: string; value: string; helper?: string }) {
+function ProfitCell({ label, value, helper, highlight = false }: { label: string; value: string; helper?: string; highlight?: boolean }) {
   return (
-    <div className="bg-white px-4 py-4">
-      <p className="text-[10px] font-black uppercase tracking-[.12em] text-neutral-400">{label}</p>
-      <p className="mt-1.5 text-lg font-black text-central-carbon">{value}</p>
-      {helper ? <p className="mt-0.5 text-[11px] text-neutral-400">{helper}</p> : null}
+    <div className={cn('min-w-0 bg-white px-3 py-4 sm:px-4', highlight && 'bg-[#fffaf1]')}>
+      <p className="text-[10px] font-medium leading-4 text-neutral-500">{label}</p>
+      <p className={cn('mt-1.5 break-words text-[clamp(1rem,1.45vw,1.3rem)] font-semibold leading-tight tracking-[-.035em] tabular-nums', highlight ? 'text-[#b77922]' : 'text-neutral-900')}>{value}</p>
+      {helper ? <p className="mt-1 text-[10px] leading-4 text-neutral-400">{helper}</p> : null}
     </div>
   );
 }
