@@ -496,7 +496,7 @@ function MetricCard({ label, value, helper, icon: Icon }: { label: string; value
       <div className="flex items-start justify-between gap-2">
         <p className="min-w-0 text-[12px] font-medium text-neutral-500">{label}</p>
         <span className="grid h-9 w-9 shrink-0 place-items-center rounded-[11px] bg-[#f6f6f7] text-[#b47a31]">
-          <Icon size={17} strokeWidth={1.8} />
+          <Icon size={17} />
         </span>
       </div>
       <div className="mt-3 min-w-0">
