@@ -1,12 +1,13 @@
 'use client';
 
-import { Edit3, Package, Power, Trash2 } from 'lucide-react';
+import { Edit3, History, Package, Power, Trash2 } from 'lucide-react';
 import type { Ingredient } from '../types/ingrediente.types';
 import { formatCurrency, formatDateTime } from '@/shared/utils/format.utils';
 
 type IngredienteTableProps = {
   ingredients: Ingredient[];
   onEdit: (ingredient: Ingredient) => void;
+  onHistory: (ingredient: Ingredient) => void;
   onDelete: (id: string) => void;
   onToggleActive: (id: string) => void;
 };
@@ -28,6 +29,9 @@ function IngredientActions({ ingredient, onEdit, onDelete, onToggleActive }: { i
       <button type="button" aria-label={ingredient.active ? 'Desactivar ingrediente' : 'Activar ingrediente'} title={ingredient.active ? 'Desactivar ingrediente' : 'Activar ingrediente'} className={iconButtonClass} onClick={() => onToggleActive(ingredient.id)}>
         <Power size={15} strokeWidth={1.8} />
       </button>
+      <button type="button" aria-label={'Ver historial de costos de ' + ingredient.name} title="Historial de costos" className={iconButtonClass} onClick={() => onHistory(ingredient)}>
+        <History size={15} strokeWidth={1.8} />
+      </button>
       <button type="button" aria-label="Editar ingrediente" title="Editar ingrediente" className={iconButtonClass} onClick={() => onEdit(ingredient)}>
         <Edit3 size={15} strokeWidth={1.8} />
       </button>
@@ -38,7 +42,7 @@ function IngredientActions({ ingredient, onEdit, onDelete, onToggleActive }: { i
   );
 }
 
-export function IngredienteTable({ ingredients, onEdit, onDelete, onToggleActive }: IngredienteTableProps) {
+export function IngredienteTable({ ingredients, onEdit, onHistory, onDelete, onToggleActive }: IngredienteTableProps) {
   if (ingredients.length === 0) {
     return (
       <div className="flex min-h-[230px] flex-col items-center justify-center rounded-[20px] border border-neutral-200/70 bg-white p-6 text-center shadow-soft">
@@ -79,7 +83,7 @@ export function IngredienteTable({ ingredients, onEdit, onDelete, onToggleActive
                 <p className="text-[10px] text-neutral-400">Actualización</p>
                 <p className="mt-1 truncate text-[11px] text-neutral-500" title={formatDateTime(ingredient.lastUpdatedAt)}>{formatDateTime(ingredient.lastUpdatedAt)}</p>
               </div>
-              <IngredientActions ingredient={ingredient} onEdit={onEdit} onDelete={onDelete} onToggleActive={onToggleActive} />
+              <IngredientActions ingredient={ingredient} onEdit={onEdit} onHistory={onHistory} onDelete={onDelete} onToggleActive={onToggleActive} />
             </div>
           </article>
         ))}
@@ -128,7 +132,7 @@ export function IngredienteTable({ ingredients, onEdit, onDelete, onToggleActive
                 <td className="px-4 py-4">
                   <p className="truncate text-[11px] text-neutral-500" title={formatDateTime(ingredient.lastUpdatedAt)}>{formatDateTime(ingredient.lastUpdatedAt)}</p>
                 </td>
-                <td className="px-3 py-4"><IngredientActions ingredient={ingredient} onEdit={onEdit} onDelete={onDelete} onToggleActive={onToggleActive} /></td>
+                <td className="px-3 py-4"><IngredientActions ingredient={ingredient} onEdit={onEdit} onHistory={onHistory} onDelete={onDelete} onToggleActive={onToggleActive} /></td>
               </tr>
             ))}
           </tbody>

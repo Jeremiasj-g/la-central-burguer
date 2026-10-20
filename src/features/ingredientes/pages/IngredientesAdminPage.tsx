@@ -6,6 +6,7 @@ import type { Ingredient } from '../types/ingrediente.types';
 import { IngredienteForm } from '../components/IngredienteForm';
 import { IngredienteTable } from '../components/IngredienteTable';
 import { IngredienteTableSkeleton } from '../components/IngredienteTableSkeleton';
+import { IngredientCostHistoryModal } from '../components/IngredientCostHistoryModal';
 import { useIngredienteMutations } from '../hooks/useIngredienteMutations';
 import { useIngredientes } from '../hooks/useIngredientes';
 import { Button } from '@/shared/components/ui/Button';
@@ -20,6 +21,7 @@ type PendingAction = { title: string; description: string; confirmLabel: string;
 export function IngredientesAdminPage() {
   const [search, setSearch] = useState('');
   const [editing, setEditing] = useState<Ingredient | null>(null);
+  const [historyIngredient, setHistoryIngredient] = useState<Ingredient | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [pendingAction, setPendingAction] = useState<PendingAction | null>(null);
   const [pendingFormValues, setPendingFormValues] = useState<IngredientFormValues | null>(null);
@@ -121,10 +123,12 @@ export function IngredientesAdminPage() {
           : <IngredienteTable
               ingredients={ingredientes}
               onEdit={(ing) => { setEditing(ing); setModalOpen(true); }}
+              onHistory={setHistoryIngredient}
               onDelete={(id) => setPendingAction({ title: 'Eliminar ingrediente', description: '¿Seguro que querés eliminar este ingrediente? Ya no aparecerá como chip disponible para nuevos productos.', confirmLabel: 'Eliminar', tone: 'danger', run: () => mutations.remove(id) })}
               onToggleActive={(id) => setPendingAction({ title: 'Cambiar estado de ingrediente', description: '¿Seguro que querés activar o desactivar este ingrediente?', confirmLabel: 'Confirmar cambio', run: () => mutations.toggleActive(id) })}
             />}
 
+      <IngredientCostHistoryModal ingredient={historyIngredient} onClose={() => setHistoryIngredient(null)} />
       <Modal open={modalOpen} onClose={() => setModalOpen(false)} title={editing ? 'Editar ingrediente' : 'Nuevo ingrediente'} theme="light" panelClassName="!rounded-[20px] !border-neutral-200/80 !bg-white">
         <IngredienteForm key={editing?.id ?? 'new'} ingredient={editing} isSaving={mutations.isSaving} onCancel={() => setModalOpen(false)} onSubmit={(values) => setPendingFormValues(values)} />
       </Modal>
