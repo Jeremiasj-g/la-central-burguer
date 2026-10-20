@@ -69,14 +69,19 @@ body.lcb-public-typography[data-public-theme="light"] .bg-central-orange,
 .public-site[data-public-theme="light"] .brick-wall .text-red-300{color:#b03d3c!important;}
 .public-site[data-public-theme="light"] a.bg-central-orange{color:#201c17!important;}
 /* Menú, buscador, carrusel y productos mantienen sus proporciones. */
-.public-site[data-public-theme="light"] .lcb-ordering-section{color:var(--lcb-light-text);}
+/* Los controles del menú comparten la superficie de las tarjetas de producto. */
+.public-site[data-public-theme="light"] .lcb-ordering-section{
+ --lcb-menu-card-surface:#fff;
+ color:var(--lcb-light-text);
+}
 .public-site[data-public-theme="light"] .menu-ordering-tools input[type="search"]{
- background:#f7f7f5!important;color:var(--lcb-light-text)!important;border-color:var(--lcb-light-border)!important;
- box-shadow:none!important;border-radius:12px!important;
+ background:var(--lcb-menu-card-surface)!important;color:var(--lcb-light-text)!important;border-color:var(--lcb-light-border)!important;
+ box-shadow:0 5px 18px rgba(30,32,36,.045)!important;border-radius:12px!important;
 }
 .public-site[data-public-theme="light"] .menu-ordering-tools input[type="search"]::placeholder{color:#888b91!important;}
 .public-site[data-public-theme="light"] .lcb-category-tab:not(.bg-central-orange){
- color:#565d67!important;background:#f5f5f3!important;border-color:var(--lcb-light-border)!important;
+ color:#565d67!important;background:var(--lcb-menu-card-surface)!important;border-color:var(--lcb-light-border)!important;
+ box-shadow:0 5px 18px rgba(30,32,36,.045)!important;
 }
 .public-site[data-public-theme="light"] .lcb-category-tab:not(.bg-central-orange):hover{
  background:#fff!important;border-color:rgba(186,113,20,.43)!important;color:#a7620c!important;
@@ -92,7 +97,7 @@ body.lcb-public-typography[data-public-theme="light"] .bg-central-orange,
  background:#fff!important;color:var(--lcb-light-text)!important;border-color:var(--lcb-light-border)!important;
 }
 .public-site[data-public-theme="light"] article.group[class*="bg-[#20201f]"]{
- background:#fff!important;border:1px solid rgba(40,43,48,.075);border-radius:17px;
+ background:var(--lcb-menu-card-surface)!important;border:1px solid rgba(40,43,48,.075);border-radius:17px;
  box-shadow:0 13px 35px rgba(30,32,36,.07)!important;
 }
 .public-site[data-public-theme="light"] article.group [class*="bg-gradient-to-r"]{
