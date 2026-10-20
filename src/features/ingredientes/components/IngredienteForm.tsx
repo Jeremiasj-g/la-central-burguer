@@ -5,6 +5,7 @@ import type { Ingredient } from '../types/ingrediente.types';
 import { Button } from '@/shared/components/ui/Button';
 import { Input } from '@/shared/components/ui/Input';
 import { Select } from '@/shared/components/ui/Select';
+import { SupplierCombobox } from './SupplierCombobox';
 import { formatCurrency } from '@/shared/utils/format.utils';
 
 const labelClass = 'mb-1.5 block text-[11px] font-medium text-neutral-500';
@@ -30,18 +31,28 @@ const INGREDIENT_UNIT_OPTIONS = [
 ] as const;
 
 type IngredientFormValues = { name: string; type: Ingredient['type']; unit: Ingredient['unit']; unitCost: number; supplier?: string; active: boolean };
-export function IngredienteForm({ ingredient, isSaving, onSubmit, onCancel }: { ingredient?: Ingredient | null; isSaving?: boolean; onSubmit: (values: IngredientFormValues) => void; onCancel: () => void }) {
+export function IngredienteForm({ ingredient, suppliers, isSaving, onSubmit, onCancel }: { ingredient?: Ingredient | null; suppliers: string[]; isSaving?: boolean; onSubmit: (values: IngredientFormValues) => void; onCancel: () => void }) {
   const [values, setValues] = useState<IngredientFormValues>({ name: ingredient?.name ?? '', type: ingredient?.type ?? 'otros', unit: ingredient?.unit ?? 'unidad', unitCost: ingredient?.unitCost ?? 0, supplier: ingredient?.supplier ?? '', active: ingredient?.active ?? true });
 
   return (
-    <form className="space-y-4" onSubmit={(event) => { event.preventDefault(); if (Number.isFinite(values.unitCost) && values.unitCost >= 0) onSubmit(values); }}>
+    <form className="space-y-4" onSubmit={(event) => {
+      event.preventDefault();
+      if (Number.isFinite(values.unitCost) && values.unitCost >= 0) {
+        const supplied = (values.supplier ?? '').trim().replace(/\s+/g, ' ');
+        const matched = suppliers.find(option => option.toLocaleLowerCase('es') === supplied.toLocaleLowerCase('es'));
+        onSubmit({ ...values, supplier: matched ?? supplied });
+      }
+    }}>
       <div>
         <label htmlFor="ingredient-name" className={labelClass}>Nombre del ingrediente</label>
         <Input id="ingredient-name" className={inputClass} value={values.name} onChange={(event) => setValues({ ...values, name: event.target.value })} placeholder="Ej. Pan de hamburguesa" required />
       </div>
       <div>
         <label htmlFor="ingredient-supplier" className={labelClass}>Proveedor</label>
-        <Input id="ingredient-supplier" className={inputClass} value={values.supplier} onChange={(event) => setValues({ ...values, supplier: event.target.value })} placeholder="Opcional" />
+        <SupplierCombobox id="ingredient-supplier" value={values.supplier ?? ''} suppliers={suppliers}
+          onChange={supplier => setValues(current => ({ ...current, supplier }))}
+          placeholder="Buscar o escribir un proveedor..." />
+        <p className="mt-1.5 text-[10px] text-neutral-400">Seleccioná un proveedor existente o escribí uno nuevo. Es opcional.</p>
       </div>
       <div className="grid min-w-0 gap-3 sm:grid-cols-2">
         <div className="min-w-0">
