@@ -27,6 +27,7 @@ import { cn } from '@/shared/utils/cn';
 import { useRecetas } from '../hooks/useRecetas';
 import { updateProductoReceta } from '../services/recetas.service';
 import type { RecipeIngredient } from '../types/receta.types';
+import { RentabilidadOverview } from '../components/RentabilidadOverview';
 import styles from './RecetasAdminPage.module.css';
 
 const adminInputClass = '!h-10 !rounded-[11px] !border-neutral-200/80 !bg-[#f7f7f9] !px-3 !text-[13px] !font-normal !text-neutral-800 !shadow-none !placeholder:text-neutral-400 transition-all duration-200 hover:!border-neutral-300 focus:!border-[#d99536]/40 focus:!bg-white focus:!ring-2 focus:!ring-[#d99536]/10';
@@ -81,6 +82,7 @@ function targetPrice(cost: number, targetMargin: number) {
 }
 
 export function RecetasAdminPage() {
+  const [activeTab, setActiveTab] = useState<'overview' | 'editor'>('overview');
   const [search, setSearch] = useState('');
   const [categoryId, setCategoryId] = useState('all');
   const [productId, setProductId] = useState('');
@@ -150,6 +152,8 @@ export function RecetasAdminPage() {
   }), [ingredientById, productos, recipeByProductId]);
 
   const analyticsByProductId = useMemo(() => new Map(productAnalytics.map((item) => [item.product.id, item])), [productAnalytics]);
+  const filteredProductIds = useMemo(() => new Set(filteredProducts.map((product) => product.id)), [filteredProducts]);
+  const overviewRows = useMemo(() => productAnalytics.filter(({ product }) => filteredProductIds.has(product.id)), [productAnalytics, filteredProductIds]);
   const completeAnalytics = productAnalytics.filter((item) => item.complete);
   const averageMargin = completeAnalytics.length ? completeAnalytics.reduce((sum, item) => sum + item.marginPercent, 0) / completeAnalytics.length : 0;
   const averageFoodCost = completeAnalytics.length ? completeAnalytics.reduce((sum, item) => sum + item.foodCostPercent, 0) / completeAnalytics.length : 0;
@@ -219,6 +223,25 @@ export function RecetasAdminPage() {
         </div>
       </header>
 
+      <nav aria-label="Vistas de recetas y rentabilidad" className="mb-6 flex w-fit max-w-full flex-wrap items-center gap-1 rounded-[13px] border border-neutral-200/80 bg-white p-1 shadow-[0_3px_12px_rgba(17,24,39,.035)]">
+        <button
+          type="button"
+          aria-current={activeTab === 'overview' ? 'page' : undefined}
+          onClick={() => setActiveTab('overview')}
+          className={cn('inline-flex h-10 items-center gap-2 rounded-[10px] px-3.5 text-[12px] font-semibold transition-colors duration-200 sm:px-4', activeTab === 'overview' ? 'bg-[#191b20] text-white shadow-[0_3px_8px_rgba(0,0,0,.12)]' : 'text-neutral-500 hover:bg-neutral-100 hover:text-neutral-900')}
+        >
+          Análisis general
+        </button>
+        <button
+          type="button"
+          aria-current={activeTab === 'editor' ? 'page' : undefined}
+          onClick={() => setActiveTab('editor')}
+          className={cn('inline-flex h-10 items-center gap-2 rounded-[10px] px-3.5 text-[12px] font-semibold transition-colors duration-200 sm:px-4', activeTab === 'editor' ? 'bg-[#191b20] text-white shadow-[0_3px_8px_rgba(0,0,0,.12)]' : 'text-neutral-500 hover:bg-neutral-100 hover:text-neutral-900')}
+        >
+          Editor de recetas
+        </button>
+      </nav>
+
       <section aria-label="Indicadores de rentabilidad" className="mb-5 grid min-w-0 gap-3 sm:grid-cols-2 xl:grid-cols-4">
         <div className="relative flex min-h-[156px] min-w-0 flex-col justify-between overflow-hidden rounded-[20px] bg-[#191b20] p-5 text-white shadow-[0_12px_30px_rgba(17,24,39,.10)]">
           <div className="pointer-events-none absolute -right-14 -top-16 h-48 w-48 rounded-full bg-[#e9a349]/[.13] blur-[38px]" aria-hidden="true" />
@@ -277,10 +300,19 @@ export function RecetasAdminPage() {
           onRetry={async () => { await Promise.all([refreshProducts(), refreshIngredients(), refreshCategories(), refreshRecipes()]); }}
         />
       ) : loading ? (
-        <div className="grid min-w-0 gap-4 xl:grid-cols-[330px_minmax(0,1fr)]">
-          <div className="h-[440px] animate-pulse rounded-[20px] border border-neutral-200/70 bg-white/80" />
-          <div className="h-[540px] animate-pulse rounded-[20px] border border-neutral-200/70 bg-white/80" />
+        <div className={cn('grid min-w-0 gap-4', activeTab === 'editor' && 'xl:grid-cols-[330px_minmax(0,1fr)]')}>
+          <div className="h-[390px] animate-pulse rounded-[20px] border border-neutral-200/70 bg-white/80" />
+          {activeTab === 'editor' ? <div className="h-[540px] animate-pulse rounded-[20px] border border-neutral-200/70 bg-white/80" /> : null}
         </div>
+      ) : activeTab === 'overview' ? (
+        <RentabilidadOverview
+          items={overviewRows}
+          categoryById={categoryById}
+          onEdit={(id) => {
+            setProductId(id);
+            setActiveTab('editor');
+          }}
+        />
       ) : (
         <div className="grid min-w-0 items-start gap-4 xl:grid-cols-[330px_minmax(0,1fr)] 2xl:grid-cols-[350px_minmax(0,1fr)]">
           <section aria-label="Listado de productos" className="min-w-0 overflow-hidden rounded-[20px] border border-neutral-200/70 bg-white shadow-[0_8px_24px_rgba(15,23,42,.035)]">
