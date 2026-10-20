@@ -123,22 +123,22 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
                     href={item.href}
                     onClick={() => setMobileOpen(false)}
                     className={cn(
-                      'group flex min-h-10 items-center gap-3 rounded-sm px-3 py-2 text-[13px] font-bold transition',
+                      'group flex min-h-10 items-center gap-3 rounded-[11px] px-3 py-2 text-[13px] font-semibold outline-none transition-[background-color,color,box-shadow] duration-200 ease-out focus-visible:ring-2 focus-visible:ring-white/25',
                       item.development
-                        ? 'border border-red-500/35 bg-red-500/10 text-red-300 hover:border-red-400/65 hover:bg-red-500/20 hover:text-red-200'
-                        : 'text-white/65 hover:bg-white/10 hover:text-white',
-                      active && !item.development && 'bg-central-orange text-white shadow-orange',
-                      active && item.development && 'border-red-400 bg-red-500/25 text-red-100 shadow-[0_12px_30px_rgba(239,68,68,.14)]',
+                        ? 'border border-red-500/25 bg-red-500/[.08] text-red-300/90 hover:border-red-400/40 hover:bg-red-500/[.13] hover:text-red-200'
+                        : 'text-white/60 hover:bg-white/[.055] hover:text-white/90',
+                      active && !item.development && 'bg-[#303238] text-white shadow-[0_4px_14px_rgba(0,0,0,.12),inset_0_1px_0_rgba(255,255,255,.035)] hover:bg-[#35373d]',
+                      active && item.development && 'border-red-400/45 bg-red-500/[.17] text-red-100 shadow-[0_4px_14px_rgba(0,0,0,.09)]',
                     )}
                   >
                     <span
                       className={cn(
-                        'grid h-7 w-7 shrink-0 place-items-center rounded-sm transition-colors',
+                        'grid h-7 w-7 shrink-0 place-items-center rounded-[8px] transition-colors duration-200',
                         active && !item.development
-                          ? 'bg-white/15 text-white'
+                          ? 'bg-white/[.09] text-white/95'
                           : item.development
                             ? 'bg-red-500/10 text-red-300'
-                            : 'bg-white/[.06] text-white/55 group-hover:bg-white/10 group-hover:text-white',
+                            : 'bg-white/[.05] text-white/55 group-hover:bg-white/[.085] group-hover:text-white/85',
                       )}
                     >
                       <Icon size={15.5} strokeWidth={2.1} />
@@ -149,7 +149,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
                         Dev
                       </span>
                     ) : active ? (
-                      <ChevronRight size={13} className="text-white/70" />
+                      <ChevronRight size={13} className="text-white/45" />
                     ) : null}
                   </Link>
                 );
@@ -164,9 +164,9 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
         <AdminPushControls />
         <button
           onClick={handleLogout}
-          className="flex min-h-10 w-full items-center gap-3 rounded-sm px-3 py-2 text-left text-[13px] font-bold text-white/55 transition hover:bg-white/10 hover:text-white"
+          className="flex min-h-10 w-full items-center gap-3 rounded-[11px] px-3 py-2 text-left text-[13px] font-semibold text-white/55 transition-[background-color,color] duration-200 hover:bg-white/[.055] hover:text-white/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/25"
         >
-          <span className="grid h-7 w-7 place-items-center rounded-sm bg-white/[.06]">
+          <span className="grid h-7 w-7 place-items-center rounded-[8px] bg-white/[.05]">
             <LogOut size={15} />
           </span>
           Cerrar sesión

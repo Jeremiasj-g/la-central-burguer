@@ -209,7 +209,6 @@ export function RecetasAdminPage() {
     <div className="catalog-wallet min-w-0 pb-8">
       <header className="mb-6 flex flex-col gap-3 sm:mb-7 sm:flex-row sm:items-end sm:justify-between">
         <div className="min-w-0">
-          <p className="mb-2 text-[10px] font-semibold uppercase tracking-[.2em] text-[#bd7e26]">Recetas / Análisis</p>
           <h1 className="text-[28px] font-semibold leading-tight tracking-[-.045em] text-neutral-950 sm:text-[34px]">
             Costos y rentabilidad
           </h1>
