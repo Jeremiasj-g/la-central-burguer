@@ -1,6 +1,7 @@
 'use client';
 
-import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
+import { Bar, BarChart, CartesianGrid, ResponsiveContainer, XAxis, YAxis } from 'recharts';
+import { ChartValueTooltip } from './ChartValueTooltip';
 import type { ChartPoint } from '../types/dashboard.types';
 import { DashboardPeriodNote } from './DashboardPeriodNote';
 
@@ -20,7 +21,7 @@ export function SalesByHourChart({ data, periodLabel }: { data: ChartPoint[]; pe
             <CartesianGrid stroke={gridStroke} strokeDasharray="4 4" />
             <XAxis dataKey="name" tickLine={false} axisLine={false} />
             <YAxis tickLine={false} axisLine={false} />
-            <Tooltip />
+            <ChartValueTooltip metric="count" metricName="Pedidos" />
             <Bar dataKey="value" fill={ember} radius={[12, 12, 0, 0]} />
           </BarChart>
         </ResponsiveContainer>

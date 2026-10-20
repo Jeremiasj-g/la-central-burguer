@@ -1,6 +1,7 @@
 'use client';
 
-import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
+import { Area, AreaChart, CartesianGrid, ResponsiveContainer, XAxis, YAxis } from 'recharts';
+import { ChartValueTooltip, formatChartCurrencyAxis } from './ChartValueTooltip';
 import type { ChartPoint } from '../types/dashboard.types';
 import { DashboardPeriodNote } from './DashboardPeriodNote';
 
@@ -24,9 +25,9 @@ export function RevenueAreaChart({ data, periodLabel, title = 'Ingresos por día
               </linearGradient>
             </defs>
             <CartesianGrid stroke={gridStroke} strokeDasharray="4 4" />
-            <XAxis dataKey="name" tickLine={false} axisLine={false} />
-            <YAxis tickLine={false} axisLine={false} />
-            <Tooltip formatter={(value) => `$${Number(value).toLocaleString('es-AR')}`} />
+            <XAxis dataKey="name" tickLine={false} axisLine={false} tick={{ fontSize: 11, fill: "#737373" }} minTickGap={15} />
+            <YAxis tickLine={false} axisLine={false} tickFormatter={formatChartCurrencyAxis} width={72} tick={{ fontSize: 11, fill: "#737373" }} />
+            <ChartValueTooltip metric="currency" metricName="Ingresos" />
             <Area type="monotone" dataKey="revenue" stroke={orange} fill="url(#revenue)" strokeWidth={3} />
           </AreaChart>
         </ResponsiveContainer>

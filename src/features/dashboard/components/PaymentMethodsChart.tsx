@@ -1,6 +1,7 @@
 'use client';
 
-import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from 'recharts';
+import { Cell, Pie, PieChart, ResponsiveContainer } from 'recharts';
+import { ChartValueTooltip } from './ChartValueTooltip';
 import type { ChartPoint } from '../types/dashboard.types';
 import { DashboardPeriodNote } from './DashboardPeriodNote';
 const colors = ['#E45712', '#151515', '#C7440B'];
@@ -15,7 +16,7 @@ export function PaymentMethodsChart({ data, periodLabel }: { data: ChartPoint[];
             <Pie data={data} dataKey="value" nameKey="name" innerRadius={58} outerRadius={88} paddingAngle={4}>
               {data.map((_, index) => <Cell key={index} fill={colors[index % colors.length]} />)}
             </Pie>
-            <Tooltip />
+            <ChartValueTooltip metric="count" />
           </PieChart>
         </ResponsiveContainer>
       </div>

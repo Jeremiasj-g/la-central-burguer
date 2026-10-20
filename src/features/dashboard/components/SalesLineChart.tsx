@@ -1,6 +1,7 @@
 'use client';
 
-import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
+import { CartesianGrid, Line, LineChart, ResponsiveContainer, XAxis, YAxis } from 'recharts';
+import { ChartValueTooltip, formatChartCurrencyAxis } from './ChartValueTooltip';
 import type { ChartPoint } from '../types/dashboard.types';
 import { DashboardPeriodNote } from './DashboardPeriodNote';
 
@@ -18,9 +19,9 @@ export function SalesLineChart({ data, periodLabel }: { data: ChartPoint[]; peri
         <ResponsiveContainer width="100%" height="100%">
           <LineChart data={data} margin={chartMargins}>
             <CartesianGrid stroke={gridStroke} strokeDasharray="4 4" />
-            <XAxis dataKey="name" tickLine={false} axisLine={false} />
-            <YAxis tickLine={false} axisLine={false} />
-            <Tooltip formatter={(value) => `$${Number(value).toLocaleString('es-AR')}`} />
+            <XAxis dataKey="name" tickLine={false} axisLine={false} tick={{ fontSize: 11, fill: "#737373" }} minTickGap={15} />
+            <YAxis tickLine={false} axisLine={false} tickFormatter={formatChartCurrencyAxis} width={72} tick={{ fontSize: 11, fill: "#737373" }} />
+            <ChartValueTooltip metric="currency" metricName="Ventas" />
             <Line type="monotone" dataKey="value" stroke={orange} strokeWidth={3} dot={{ r: 4, fill: orange }} />
           </LineChart>
         </ResponsiveContainer>

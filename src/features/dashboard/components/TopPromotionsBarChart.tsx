@@ -1,6 +1,7 @@
 'use client';
 
-import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
+import { Bar, BarChart, CartesianGrid, ResponsiveContainer, XAxis, YAxis } from 'recharts';
+import { ChartValueTooltip } from './ChartValueTooltip';
 import type { ChartPoint } from '../types/dashboard.types';
 import { DashboardPeriodNote } from './DashboardPeriodNote';
 
@@ -12,9 +13,9 @@ export function TopPromotionsBarChart({ data, periodLabel }: { data: ChartPoint[
         <ResponsiveContainer width="100%" height="100%">
           <BarChart data={data} margin={{ top: 10, right: 20, left: 0, bottom: 0 }}>
             <CartesianGrid stroke="#ece7df" strokeDasharray="4 4" />
-            <XAxis dataKey="name" tickLine={false} axisLine={false} tick={{ fontSize: 12 }} />
+            <XAxis dataKey="name" tickLine={false} axisLine={false} interval={0} height={76} angle={-28} textAnchor="end" tick={{ fontSize: 10, fill: "#737373" }} tickFormatter={(name: string) => name.length > 13 ? name.slice(0, 12) + "…" : name} />
             <YAxis tickLine={false} axisLine={false} />
-            <Tooltip />
+            <ChartValueTooltip metric="count" metricName="Unidades vendidas" />
             <Bar dataKey="value" fill="#D88918" radius={[2, 2, 0, 0]} />
           </BarChart>
         </ResponsiveContainer>

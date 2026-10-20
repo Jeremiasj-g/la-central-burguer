@@ -33,6 +33,15 @@ function normalizePoints(points?: ChartPoint[]) {
   }));
 }
 
+const weekdaysEsAr: Record<string, string> = {
+  mon: 'Lun', tue: 'Mar', wed: 'Mié', thu: 'Jue',
+  fri: 'Vie', sat: 'Sáb', sun: 'Dom',
+};
+
+function localizeDashboardWeekday(label: string) {
+  return weekdaysEsAr[label.trim().slice(0, 3).toLowerCase()] ?? label;
+}
+
 function normalizeMetrics(metrics?: DashboardRpc['metrics']): MetricSummary[] {
   return (metrics ?? []).map((metric) => {
     const isDailySales = metric.label === 'Ventas del día';
@@ -65,7 +74,7 @@ export async function getDashboardStats(): Promise<DashboardStats> {
   const stats = (data ?? {}) as unknown as DashboardRpc;
   return {
     metrics: normalizeMetrics(stats.metrics),
-    salesEvolution: normalizePoints(stats.salesEvolution),
+    salesEvolution: normalizePoints(stats.salesEvolution).map((point) => ({ ...point, name: localizeDashboardWeekday(point.name) })),
     revenueByDay: normalizePoints(stats.revenueByDay),
     topProducts: normalizePoints(stats.topProducts),
     salesByCategory: normalizePoints(stats.salesByCategory),

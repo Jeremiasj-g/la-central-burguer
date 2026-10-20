@@ -1,6 +1,7 @@
 'use client';
 
-import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from 'recharts';
+import { Cell, Pie, PieChart, ResponsiveContainer } from 'recharts';
+import { ChartValueTooltip } from './ChartValueTooltip';
 import type { ChartPoint } from '../types/dashboard.types';
 import { DashboardPeriodNote } from './DashboardPeriodNote';
 
@@ -20,7 +21,7 @@ export function DeliveryMethodChart({ data, periodLabel }: { data: ChartPoint[];
             <Pie data={data} dataKey="value" nameKey="name" innerRadius={55} outerRadius={90} paddingAngle={4}>
               {data.map((entry, index) => <Cell key={entry.name} fill={colors[index % colors.length]} />)}
             </Pie>
-            <Tooltip />
+            <ChartValueTooltip metric="percent" />
           </PieChart>
         </ResponsiveContainer>
       </div>
