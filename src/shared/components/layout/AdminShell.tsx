@@ -159,18 +159,25 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
         ))}
       </nav>
 
-      <div className="border-t border-white/10 p-3">
-        <AdminInstallButton />
-        <AdminPushControls />
-        <button
-          onClick={handleLogout}
-          className="flex min-h-10 w-full items-center gap-3 rounded-[11px] px-3 py-2 text-left text-[13px] font-semibold text-white/55 transition-[background-color,color] duration-200 hover:bg-white/[.055] hover:text-white/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/25"
-        >
-          <span className="grid h-7 w-7 place-items-center rounded-[8px] bg-white/[.05]">
-            <LogOut size={15} />
-          </span>
-          Cerrar sesión
-        </button>
+      <div className="relative z-10 shrink-0 bg-[#191b20] p-3">
+        {/* Difuminado progresivo sobre el final del menú, sin corte o borde rígido. */}
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-x-0 -top-10 h-10 bg-gradient-to-t from-[#191b20] via-[#191b20]/65 to-transparent backdrop-blur-[6px] [mask-image:linear-gradient(to_top,black_0%,transparent_100%)]"
+        />
+        <div className="relative z-[1]">
+          <AdminInstallButton />
+          <AdminPushControls />
+          <button
+            onClick={handleLogout}
+            className="flex min-h-10 w-full items-center gap-3 rounded-[11px] px-3 py-2 text-left text-[13px] font-semibold text-white/55 transition-[background-color,color] duration-200 hover:bg-white/[.055] hover:text-white/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/25"
+          >
+            <span className="grid h-7 w-7 place-items-center rounded-[8px] bg-white/[.05]">
+              <LogOut size={15} />
+            </span>
+            Cerrar sesión
+          </button>
+        </div>
       </div>
     </aside>
   );
