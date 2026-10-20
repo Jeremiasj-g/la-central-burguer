@@ -23,7 +23,7 @@ function IngredientStatus({ active }: { active: boolean }) {
   );
 }
 
-function IngredientActions({ ingredient, onEdit, onDelete, onToggleActive }: { ingredient: Ingredient } & Omit<IngredienteTableProps, 'ingredients'>) {
+function IngredientActions({ ingredient, onEdit, onHistory, onDelete, onToggleActive }: { ingredient: Ingredient } & Omit<IngredienteTableProps, 'ingredients'>) {
   return (
     <div className="flex items-center justify-end gap-1.5">
       <button type="button" aria-label={ingredient.active ? 'Desactivar ingrediente' : 'Activar ingrediente'} title={ingredient.active ? 'Desactivar ingrediente' : 'Activar ingrediente'} className={iconButtonClass} onClick={() => onToggleActive(ingredient.id)}>
