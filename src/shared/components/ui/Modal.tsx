@@ -17,6 +17,10 @@ interface ModalProps {
   onClose: () => void;
   className?: string;
   panelClassName?: string;
+  headerClassName?: string;
+  titleClassName?: string;
+  bodyClassName?: string;
+  closeButtonClassName?: string;
   size?: 'sm' | 'md' | 'lg' | 'xl';
   theme?: 'light' | 'dark';
 }
@@ -32,7 +36,7 @@ function isFormControl(element: Element | null): element is HTMLElement {
   return Boolean(element?.matches('input, textarea, select, [role="combobox"], [contenteditable="true"]'));
 }
 
-export function Modal({ open, title, children, footer, footerClassName, onClose, className, panelClassName, size = 'md', theme = 'light' }: ModalProps) {
+export function Modal({ open, title, children, footer, footerClassName, onClose, className, panelClassName, headerClassName, titleClassName, bodyClassName, closeButtonClassName, size = 'md', theme = 'light' }: ModalProps) {
   const viewport = useSmartModalViewport(16);
   const mounted = useAnimatedPresence(open);
   const panelRef = useRef<HTMLElement>(null);
@@ -135,15 +139,15 @@ export function Modal({ open, title, children, footer, footerClassName, onClose,
         style={{ maxHeight: viewport.maxHeight }}
         onMouseDown={(event) => event.stopPropagation()}
       >
-        <div className="flex shrink-0 items-start justify-between gap-4 border-b border-current/10 px-3.5 py-3 sm:px-5 sm:py-4">
-          {title ? <h2 className="min-w-0 text-base font-black tracking-tight sm:text-xl">{title}</h2> : <span />}
-          <button className="shrink-0 rounded-full p-2 text-current/70 transition duration-200 hover:bg-current/10 hover:text-current" onClick={onClose} aria-label="Cerrar modal">
+        <div className={cn("flex shrink-0 items-start justify-between gap-4 border-b border-current/10 px-3.5 py-3 sm:px-5 sm:py-4", headerClassName)}>
+          {title ? <h2 className={cn("min-w-0 text-base font-black tracking-tight sm:text-xl", titleClassName)}>{title}</h2> : <span />}
+          <button className={cn("shrink-0 rounded-full p-2 text-current/70 transition duration-200 hover:bg-current/10 hover:text-current", closeButtonClassName)} onClick={onClose} aria-label="Cerrar modal">
             <X size={20} />
           </button>
         </div>
         <div
           ref={scrollAreaRef}
-          className="keyboard-aware-scroll custom-scrollbar min-h-0 min-w-0 flex-1 overflow-y-auto overflow-x-hidden px-3.5 py-3.5 pb-[calc(.875rem+env(safe-area-inset-bottom))] sm:px-5 sm:py-4"
+          className={cn("keyboard-aware-scroll custom-scrollbar min-h-0 min-w-0 flex-1 overflow-y-auto overflow-x-hidden px-3.5 py-3.5 pb-[calc(.875rem+env(safe-area-inset-bottom))] sm:px-5 sm:py-4", bodyClassName)}
         >
           {children}
         </div>

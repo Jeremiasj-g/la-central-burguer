@@ -297,7 +297,7 @@ export function ReportesAdminPage() {
             size="sm"
             onClick={() => setExportDialogOpen(true)}
             disabled={isLoading || exportingMode !== null}
-            className="!h-9 !rounded-[11px] !px-3 !text-[12px] !font-semibold !shadow-none"
+            className="!h-9 !rounded-[11px] !bg-[#188650] !px-3.5 !text-[12px] !font-semibold !text-white !shadow-[0_3px_10px_rgba(24,134,80,.14)] transition-[background-color,box-shadow,transform] duration-200 hover:!bg-[#136d41] hover:!shadow-[0_4px_13px_rgba(24,134,80,.18)] focus:!ring-[#188650]/30 active:scale-[.98]"
           >
             <Download size={14} />
             {exportingMode ? 'Generando…' : 'Exportar Excel'}
