@@ -2,7 +2,7 @@
 
 import { Edit3, Package, Power, Trash2 } from 'lucide-react';
 import type { Ingredient } from '../types/ingrediente.types';
-import { formatDateTime } from '@/shared/utils/format.utils';
+import { formatCurrency, formatDateTime } from '@/shared/utils/format.utils';
 
 type IngredienteTableProps = {
   ingredients: Ingredient[];
@@ -70,6 +70,10 @@ export function IngredienteTable({ ingredients, onEdit, onDelete, onToggleActive
                 <p className="mt-0.5 truncate text-[12px] font-medium text-neutral-700" title={ingredient.unit}>{ingredient.unit}</p>
               </div>
             </div>
+            <div className="mt-3 flex min-w-0 items-center justify-between gap-2 rounded-[10px] bg-[#f7f7f9] px-3 py-2">
+              <span className="text-[10px] text-neutral-500">Costo base / {ingredient.unit}</span>
+              <span className="truncate text-[12px] font-semibold tabular-nums text-neutral-800">{ingredient.unitCost > 0 ? formatCurrency(ingredient.unitCost) : 'Pendiente'}</span>
+            </div>
             <div className="mt-auto flex items-end justify-between gap-2 border-t border-neutral-100 pt-3">
               <div className="min-w-0">
                 <p className="text-[10px] text-neutral-400">Actualización</p>
@@ -84,18 +88,20 @@ export function IngredienteTable({ ingredients, onEdit, onDelete, onToggleActive
       <div className="hidden min-w-0 overflow-hidden rounded-[20px] border border-neutral-200/75 bg-white shadow-soft xl:block">
         <table className="w-full table-fixed text-left text-[12px] text-neutral-700">
           <colgroup>
-            <col className="w-[27%]" />
-            <col className="w-[16%]" />
-            <col className="w-[10%]" />
+            <col className="w-[23%]" />
+            <col className="w-[13%]" />
+            <col className="w-[9%]" />
             <col className="w-[14%]" />
-            <col className="w-[17%]" />
-            <col className="w-[16%]" />
+            <col className="w-[12%]" />
+            <col className="w-[15%]" />
+            <col className="w-[14%]" />
           </colgroup>
           <thead className="border-b border-neutral-100 bg-[#f8f8f9] text-[10px] font-medium uppercase tracking-[.08em] text-neutral-500">
             <tr>
               <th className="px-4 py-3.5 font-medium">Ingrediente</th>
               <th className="px-4 py-3.5 font-medium">Tipo</th>
               <th className="px-3 py-3.5 font-medium">Unidad</th>
+              <th className="px-3 py-3.5 font-medium">Costo base</th>
               <th className="px-3 py-3.5 font-medium">Estado</th>
               <th className="px-4 py-3.5 font-medium">Actualización</th>
               <th className="px-3 py-3.5 text-right font-medium">Acciones</th>
@@ -112,6 +118,12 @@ export function IngredienteTable({ ingredients, onEdit, onDelete, onToggleActive
                   <span className="inline-flex max-w-full truncate rounded-full bg-neutral-100 px-2.5 py-1 text-[11px] font-medium capitalize text-neutral-600">{ingredient.type}</span>
                 </td>
                 <td className="px-3 py-4 text-[11px] text-neutral-600">{ingredient.unit}</td>
+                <td className="px-3 py-4">
+                  <p className="truncate text-[12px] font-semibold tabular-nums text-neutral-800" title={ingredient.unitCost > 0 ? formatCurrency(ingredient.unitCost) : 'Pendiente'}>
+                    {ingredient.unitCost > 0 ? formatCurrency(ingredient.unitCost) : '—'}
+                  </p>
+                  <p className="mt-0.5 text-[10px] text-neutral-400">por {ingredient.unit}</p>
+                </td>
                 <td className="px-3 py-4"><IngredientStatus active={ingredient.active} /></td>
                 <td className="px-4 py-4">
                   <p className="truncate text-[11px] text-neutral-500" title={formatDateTime(ingredient.lastUpdatedAt)}>{formatDateTime(ingredient.lastUpdatedAt)}</p>

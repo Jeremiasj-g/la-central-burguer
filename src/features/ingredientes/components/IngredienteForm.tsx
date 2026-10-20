@@ -5,6 +5,7 @@ import type { Ingredient } from '../types/ingrediente.types';
 import { Button } from '@/shared/components/ui/Button';
 import { Input } from '@/shared/components/ui/Input';
 import { Select } from '@/shared/components/ui/Select';
+import { formatCurrency } from '@/shared/utils/format.utils';
 
 const labelClass = 'mb-1.5 block text-[11px] font-medium text-neutral-500';
 const inputClass = '!h-10 !rounded-[11px] !border-neutral-200/80 !bg-[#f7f7f9] !px-3 !text-[13px] !font-normal !text-neutral-900 !shadow-none placeholder:!text-neutral-400 focus:!border-central-orange/45 focus:!bg-white focus:!ring-central-orange/10';
@@ -28,11 +29,12 @@ const INGREDIENT_UNIT_OPTIONS = [
   { value: 'paquete', label: 'paquete' },
 ] as const;
 
-export function IngredienteForm({ ingredient, isSaving, onSubmit, onCancel }: { ingredient?: Ingredient | null; isSaving?: boolean; onSubmit: (values: { name: string; type: Ingredient['type']; unit: Ingredient['unit']; supplier?: string; active: boolean }) => void; onCancel: () => void }) {
-  const [values, setValues] = useState({ name: ingredient?.name ?? '', type: ingredient?.type ?? 'otros', unit: ingredient?.unit ?? 'unidad', supplier: ingredient?.supplier ?? '', active: ingredient?.active ?? true });
+type IngredientFormValues = { name: string; type: Ingredient['type']; unit: Ingredient['unit']; unitCost: number; supplier?: string; active: boolean };
+export function IngredienteForm({ ingredient, isSaving, onSubmit, onCancel }: { ingredient?: Ingredient | null; isSaving?: boolean; onSubmit: (values: IngredientFormValues) => void; onCancel: () => void }) {
+  const [values, setValues] = useState<IngredientFormValues>({ name: ingredient?.name ?? '', type: ingredient?.type ?? 'otros', unit: ingredient?.unit ?? 'unidad', unitCost: ingredient?.unitCost ?? 0, supplier: ingredient?.supplier ?? '', active: ingredient?.active ?? true });
 
   return (
-    <form className="space-y-4" onSubmit={(event) => { event.preventDefault(); onSubmit(values); }}>
+    <form className="space-y-4" onSubmit={(event) => { event.preventDefault(); if (Number.isFinite(values.unitCost) && values.unitCost >= 0) onSubmit(values); }}>
       <div>
         <label htmlFor="ingredient-name" className={labelClass}>Nombre del ingrediente</label>
         <Input id="ingredient-name" className={inputClass} value={values.name} onChange={(event) => setValues({ ...values, name: event.target.value })} placeholder="Ej. Pan de hamburguesa" required />
@@ -66,6 +68,17 @@ export function IngredienteForm({ ingredient, isSaving, onSubmit, onCancel }: { 
             contentClassName="!rounded-[13px]"
           />
         </div>
+      </div>
+      <div className="min-w-0">
+        <label htmlFor="ingredient-unit-cost" className={labelClass}>Costo por {values.unit}</label>
+        <Input id="ingredient-unit-cost" type="number" min="0" step="0.01" inputMode="decimal" required
+          className={inputClass + ' !border-neutral-300 !bg-white hover:!border-neutral-400'}
+          value={values.unitCost}
+          onChange={(event) => setValues({ ...values, unitCost: Number(event.target.value) })}
+        />
+        <p className="mt-1.5 text-[11px] leading-5 text-neutral-500">
+          Costo por unidad base de compra. {values.unitCost > 0 ? 'Costo actual: ' + formatCurrency(values.unitCost) + ' / ' + values.unit : 'Cargá un costo mayor que cero para completar los análisis de recetas.'}
+        </p>
       </div>
       <div className="rounded-[13px] border border-neutral-200/80 bg-[#fafafa] p-3">
         <label className="flex cursor-pointer items-center justify-between gap-3">

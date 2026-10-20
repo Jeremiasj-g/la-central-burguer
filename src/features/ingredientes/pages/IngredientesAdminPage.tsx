@@ -14,7 +14,7 @@ import { Input } from '@/shared/components/ui/Input';
 import { Modal } from '@/shared/components/ui/Modal';
 import { DataLoadError } from '@/shared/components/feedback/DataLoadError';
 
-type IngredientFormValues = { name: string; type: Ingredient['type']; unit: Ingredient['unit']; supplier?: string; active: boolean };
+type IngredientFormValues = { name: string; type: Ingredient['type']; unit: Ingredient['unit']; unitCost: number; supplier?: string; active: boolean };
 type PendingAction = { title: string; description: string; confirmLabel: string; tone?: 'default' | 'danger'; run: () => Promise<unknown> | unknown };
 
 export function IngredientesAdminPage() {
@@ -142,7 +142,7 @@ export function IngredientesAdminPage() {
       <ConfirmDialog
         open={Boolean(pendingFormValues)}
         title={editing ? 'Guardar cambios de ingrediente' : 'Crear ingrediente'}
-        description={editing ? '¿Seguro que querés guardar los cambios de este ingrediente?' : '¿Seguro que querés crear este ingrediente?'}
+        description={editing ? '¿Seguro que querés guardar los cambios? El costo base se reflejará en las recetas asociadas, pero no cambiará los precios de venta.' : '¿Seguro que querés crear este ingrediente?'}
         confirmLabel={editing ? 'Guardar cambios' : 'Crear ingrediente'}
         theme="light"
         isLoading={mutations.isSaving}

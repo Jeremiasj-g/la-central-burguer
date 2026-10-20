@@ -42,6 +42,7 @@ export async function createIngrediente(input: CreateIngredientInput): Promise<I
       name: input.name,
       type: input.type,
       unit: input.unit,
+      unit_cost: input.unitCost,
       supplier: input.supplier || null,
       active: input.active ?? true,
     })
@@ -59,6 +60,7 @@ export async function updateIngrediente(input: UpdateIngredientInput): Promise<I
     ...(input.name !== undefined ? { name: input.name } : {}),
     ...(input.type !== undefined ? { type: input.type } : {}),
     ...(input.unit !== undefined ? { unit: input.unit } : {}),
+    ...(input.unitCost !== undefined ? { unit_cost: input.unitCost } : {}),
     ...(input.supplier !== undefined ? { supplier: input.supplier || null } : {}),
     ...(input.active !== undefined ? { active: input.active } : {}),
     last_updated_at: new Date().toISOString(),

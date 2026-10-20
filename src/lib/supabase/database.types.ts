@@ -103,9 +103,9 @@ export interface Database {
         { name?: string; slug?: string; description?: string | null; icon_name?: string | null; image_url?: string | null; display_order?: number; active?: boolean; deleted_at?: string | null; updated_at?: string }
       >;
       ingredients: TableDefinition<
-        { id: string; name: string; type: IngredientType; unit: IngredientUnit; supplier: string | null; active: boolean; last_updated_at: string; deleted_at: string | null; created_at: string; updated_at: string },
-        { id?: string; name: string; type?: IngredientType; unit?: IngredientUnit; supplier?: string | null; active?: boolean; last_updated_at?: string; deleted_at?: string | null; created_at?: string; updated_at?: string },
-        { name?: string; type?: IngredientType; unit?: IngredientUnit; supplier?: string | null; active?: boolean; last_updated_at?: string; deleted_at?: string | null; updated_at?: string }
+        { id: string; name: string; type: IngredientType; unit: IngredientUnit; unit_cost: number; supplier: string | null; active: boolean; last_updated_at: string; deleted_at: string | null; created_at: string; updated_at: string },
+        { id?: string; name: string; type?: IngredientType; unit?: IngredientUnit; unit_cost?: number; supplier?: string | null; active?: boolean; last_updated_at?: string; deleted_at?: string | null; created_at?: string; updated_at?: string },
+        { name?: string; type?: IngredientType; unit?: IngredientUnit; unit_cost?: number; supplier?: string | null; active?: boolean; last_updated_at?: string; deleted_at?: string | null; updated_at?: string }
       >;
       products: TableDefinition<
         { id: string; category_id: string; name: string; slug: string; description: string; image_url: string; image_path: string | null; current_price: number; active: boolean; available: boolean; featured: boolean; is_promotion: boolean; display_order: number; deleted_at: string | null; created_at: string; updated_at: string },

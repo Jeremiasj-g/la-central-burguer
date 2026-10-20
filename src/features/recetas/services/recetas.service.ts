@@ -1,5 +1,6 @@
 import type { ProductRecipe, RecipeIngredient, UpdateRecipeInput } from '../types/receta.types';
-import { requireSupabaseConfigured } from '@/lib/config/env';
+import { isSupabaseConfigured, requireSupabaseConfigured } from '@/lib/config/env';
+import { createSharedRealtimeSubscription } from '@/lib/supabase/realtime-subscription';
 import { getSupabaseBrowserClient } from '@/lib/supabase/client';
 import type { IngredientUnit } from '@/features/ingredientes/types/ingrediente.types';
 
@@ -106,4 +107,15 @@ export async function ensureRecipeFromIngredientIds(
     packagingCost: existing?.packagingCost ?? 0,
     extraCost: existing?.extraCost ?? 0,
   });
+}
+
+const subscribeRecipesRealtime = createSharedRealtimeSubscription(
+  'catalog-product-ingredients',
+  (channel, notifyListeners) =>
+    channel.on('postgres_changes', { event: '*', schema: 'public', table: 'product_ingredients' }, notifyListeners),
+);
+
+export function subscribeToRecipes(onChange: () => void) {
+  if (!isSupabaseConfigured()) return () => undefined;
+  return subscribeRecipesRealtime(onChange);
 }
