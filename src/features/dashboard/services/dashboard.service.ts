@@ -42,6 +42,22 @@ function localizeDashboardWeekday(label: string) {
   return weekdaysEsAr[label.trim().slice(0, 3).toLowerCase()] ?? label;
 }
 
+/**
+ * get_dashboard_stats entrega cantidades absolutas en deliveryMethods.
+ * El donut necesita porcentajes, pero conserva también el conteo real en orders.
+ * No afecta las ventas ni actualiza datos en Supabase.
+ */
+function normalizeDeliveryMethods(points?: ChartPoint[]): ChartPoint[] {
+  const rows = normalizePoints(points);
+  const totalOrders = rows.reduce((total, row) => total + row.value, 0);
+
+  return rows.map((row) => ({
+    ...row,
+    orders: row.value,
+    value: totalOrders > 0 ? Math.round((row.value / totalOrders) * 1000) / 10 : 0,
+  }));
+}
+
 function normalizeMetrics(metrics?: DashboardRpc['metrics']): MetricSummary[] {
   return (metrics ?? []).map((metric) => {
     const isDailySales = metric.label === 'Ventas del día';
@@ -78,7 +94,7 @@ export async function getDashboardStats(): Promise<DashboardStats> {
     revenueByDay: normalizePoints(stats.revenueByDay),
     topProducts: normalizePoints(stats.topProducts),
     salesByCategory: normalizePoints(stats.salesByCategory),
-    deliveryMethods: normalizePoints(stats.deliveryMethods),
+    deliveryMethods: normalizeDeliveryMethods(stats.deliveryMethods),
     topPromotions: normalizePoints(stats.topPromotions),
     paymentMethods: normalizePoints(stats.paymentMethods),
     salesByHour: normalizePoints(stats.salesByHour),
