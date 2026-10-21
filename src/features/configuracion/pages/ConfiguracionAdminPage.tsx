@@ -178,12 +178,12 @@ export function ConfiguracionAdminPage() {
 
   return (
     <div className="config-wallet min-w-0 pb-8">
-      <div className="sticky top-[72px] z-20 -mx-4 mb-6 flex flex-col gap-4 border-b border-neutral-200/50 bg-[#f5f5f5]/90 px-4 py-3 backdrop-blur-xl sm:top-[76px] sm:-mx-6 sm:px-6 lg:-mx-8 lg:flex-row lg:items-center lg:justify-between lg:px-8">
-        <div className="min-w-0">
-          <h1 className="text-[28px] font-semibold leading-tight tracking-[-.045em] text-neutral-950 sm:text-[34px]">Configuración del negocio</h1>
-          <p className="mt-1 max-w-2xl text-[13px] leading-5 text-neutral-500">Administrá la identidad, los horarios, los cobros y el delivery de La Central.</p>
-        </div>
-        <div className="flex w-full flex-wrap items-center gap-2 lg:w-auto lg:justify-end">
+      <div className="mb-5 min-w-0">
+        <h1 className="text-[28px] font-semibold leading-tight tracking-[-.045em] text-neutral-950 sm:text-[34px]">Configuración del negocio</h1>
+        <p className="mt-1 max-w-2xl text-[13px] leading-5 text-neutral-500">Administrá la identidad, los horarios, los cobros y el delivery de La Central.</p>
+      </div>
+      <div className="sticky top-[72px] z-20 -mx-4 mb-6 border-b border-neutral-200/50 bg-[#f5f5f5]/90 px-4 py-2.5 backdrop-blur-xl sm:top-[76px] sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8">
+        <div className="flex w-full flex-wrap items-center gap-2 sm:justify-end">
           <Button type="button" size="sm" variant="secondary" className={actionClass} title="Cambiar estado manualmente" disabled={values.autoScheduleEnabled} onClick={() => setConfirmStatusOpen(true)}>
             {values.isOpen ? 'Cerrar local' : 'Abrir local'}
           </Button>
