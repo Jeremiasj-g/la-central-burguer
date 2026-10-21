@@ -14,6 +14,7 @@ import { cn } from '@/shared/utils/cn';
 import { getAdminSession, logoutAdmin, type AdminSession } from '@/features/auth/services/auth.service';
 import { BurgerLoader } from '@/shared/components/ui/BurgerLoader';
 import { useAnimatedPresence } from '@/shared/hooks/useAnimatedPresence';
+import { AdminUnsavedChangesProvider, useGuardedNavigation } from './AdminUnsavedChanges';
 
 const ADMIN_NAV_GROUPS = [
   { label: 'Resumen', items: ADMIN_NAVIGATION.slice(0, 1) },
@@ -23,6 +24,10 @@ const ADMIN_NAV_GROUPS = [
 ] as const;
 
 export function AdminShell({ children }: { children: React.ReactNode }) {
+  return <AdminUnsavedChangesProvider><AdminShellContent>{children}</AdminShellContent></AdminUnsavedChangesProvider>;
+}
+function AdminShellContent({ children }: { children: React.ReactNode }) {
+  const requestNavigation = useGuardedNavigation();
   const pathname = usePathname();
   const router = useRouter();
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -121,7 +126,11 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
                   <Link
                     key={item.href}
                     href={item.href}
-                    onClick={() => setMobileOpen(false)}
+                    onClick={(event) => {
+                      if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+                      event.preventDefault();
+                      requestNavigation(() => { setMobileOpen(false); router.push(item.href); });
+                    }}
                     className={cn(
                       'group flex min-h-10 items-center gap-3 rounded-[11px] px-3 py-2 text-[13px] font-semibold outline-none transition-[background-color,color,box-shadow] duration-200 ease-out focus-visible:ring-2 focus-visible:ring-white/25',
                       item.development
@@ -169,7 +178,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
           <AdminInstallButton />
           <AdminPushControls />
           <button
-            onClick={handleLogout}
+            onClick={() => requestNavigation(() => { void handleLogout(); })}
             className="flex min-h-10 w-full items-center gap-3 rounded-[11px] px-3 py-2 text-left text-[13px] font-semibold text-white/55 transition-[background-color,color] duration-200 hover:bg-white/[.055] hover:text-white/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/25"
           >
             <span className="grid h-7 w-7 place-items-center rounded-[8px] bg-white/[.05]">
@@ -200,7 +209,11 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
           <div className="ml-auto flex items-center gap-3">
             <AdminNotifications />
             <AdminMaintenanceControl />
-            <Link href={ROUTES.menu} className="inline-flex min-h-10 items-center justify-center whitespace-nowrap rounded-[11px] bg-central-orange/10 px-4 py-2 text-[12px] font-semibold text-central-ember transition-[background-color,color,transform] duration-200 hover:bg-central-orange hover:text-white active:scale-[.98]">Ver sitio</Link>
+            <Link href={ROUTES.menu} onClick={(event) => {
+              if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+              event.preventDefault();
+              requestNavigation(() => router.push(ROUTES.menu));
+            }} className="inline-flex min-h-10 items-center justify-center whitespace-nowrap rounded-[11px] bg-central-orange/10 px-4 py-2 text-[12px] font-semibold text-central-ember transition-[background-color,color,transform] duration-200 hover:bg-central-orange hover:text-white active:scale-[.98]">Ver sitio</Link>
           </div>
         </header>
         <main className="p-4 sm:p-6 lg:p-8">{children}</main>

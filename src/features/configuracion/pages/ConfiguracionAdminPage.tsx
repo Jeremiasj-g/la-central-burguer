@@ -17,6 +17,7 @@ import { DataLoadError } from '@/shared/components/feedback/DataLoadError';
 import { BusinessLogo } from '../components/BusinessLogo';
 import { GalleryAdmin } from '@/features/galeria/components/GalleryAdmin';
 import { toast } from 'react-toastify';
+import { useAdminUnsavedChanges } from '@/shared/components/layout/AdminUnsavedChanges';
 
 const adminInputClass = 'min-w-0 !rounded-[11px] !border-neutral-200/80 !bg-[#f7f7f9] !px-3 !pr-10 !text-[13px] !font-normal !text-neutral-800 !shadow-none !placeholder:text-neutral-400 transition-all duration-200 hover:!border-neutral-300 focus:!border-central-orange/40 focus:!bg-white focus:!ring-2 focus:!ring-central-orange/10';
 const labelClass = 'mb-1.5 block text-[11px] font-medium text-neutral-500';
@@ -68,6 +69,21 @@ type ConfigFormValues = Pick<
   | 'paymentMethods'
 >;
 
+function editableConfig(config: BusinessConfig): ConfigFormValues {
+  return {
+    businessName: config.businessName, logoUrl: config.logoUrl, logoPath: config.logoPath,
+    heroDescription: config.heroDescription, whatsappNumber: config.whatsappNumber,
+    facebookUrl: config.facebookUrl, instagramUrl: config.instagramUrl, whatsappUrl: config.whatsappUrl,
+    transferAlias: config.transferAlias, transferCvu: config.transferCvu,
+    address: config.address, specialty: config.specialty,
+    storeLatitude: config.storeLatitude, storeLongitude: config.storeLongitude,
+    deliveryBaseFee: config.deliveryBaseFee, deliveryPricePerKm: config.deliveryPricePerKm,
+    deliveryMaxDistanceKm: config.deliveryMaxDistanceKm, deliveryRoundingValue: config.deliveryRoundingValue,
+    isOpen: config.isOpen, autoScheduleEnabled: config.autoScheduleEnabled,
+    autoOpenTime: config.autoOpenTime, autoCloseTime: config.autoCloseTime,
+    closedWeekdays: config.closedWeekdays, paymentMethods: config.paymentMethods,
+  };
+}
 export function ConfiguracionAdminPage() {
   const { config, isLoading, error, refresh, update } = useBusinessConfig();
   const { isLoading: isGettingLocation, requestLocation } = useCurrentLocation();
@@ -83,39 +99,16 @@ export function ConfiguracionAdminPage() {
 
   useEffect(() => {
     if (!config) return;
-    setValues({
-      businessName: config.businessName,
-      logoUrl: config.logoUrl,
-      logoPath: config.logoPath,
-      heroDescription: config.heroDescription,
-      whatsappNumber: config.whatsappNumber,
-      facebookUrl: config.facebookUrl,
-      instagramUrl: config.instagramUrl,
-      whatsappUrl: config.whatsappUrl,
-      transferAlias: config.transferAlias,
-      transferCvu: config.transferCvu,
-      address: config.address,
-      specialty: config.specialty,
-      storeLatitude: config.storeLatitude,
-      storeLongitude: config.storeLongitude,
-      deliveryBaseFee: config.deliveryBaseFee,
-      deliveryPricePerKm: config.deliveryPricePerKm,
-      deliveryMaxDistanceKm: config.deliveryMaxDistanceKm,
-      deliveryRoundingValue: config.deliveryRoundingValue,
-      isOpen: config.isOpen,
-      autoScheduleEnabled: config.autoScheduleEnabled,
-      autoOpenTime: config.autoOpenTime,
-      autoCloseTime: config.autoCloseTime,
-      closedWeekdays: config.closedWeekdays,
-      paymentMethods: config.paymentMethods,
-    });
+    setValues(editableConfig(config));
   }, [config]);
 
+  const hasChanges = Boolean(config && values && JSON.stringify(editableConfig(config)) !== JSON.stringify(values));
+  useAdminUnsavedChanges(hasChanges);
   const previewConfig = useMemo(() => (config && values ? { ...config, ...values } : config), [config, values]);
   const effectiveOpen = useMemo(() => (previewConfig ? isBusinessOpenBySchedule(previewConfig) : false), [previewConfig]);
 
   async function saveConfig() {
-    if (!values) return;
+    if (!values || !hasChanges || isSaving) return;
     setIsSaving(true);
     try {
       await update(values);
@@ -185,7 +178,7 @@ export function ConfiguracionAdminPage() {
 
   return (
     <div className="config-wallet min-w-0 pb-8">
-      <div className="mb-6 flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+      <div className="sticky top-[72px] z-20 -mx-4 mb-6 flex flex-col gap-4 border-b border-neutral-200/50 bg-[#f5f5f5]/90 px-4 py-3 backdrop-blur-xl sm:top-[76px] sm:-mx-6 sm:px-6 lg:-mx-8 lg:flex-row lg:items-center lg:justify-between lg:px-8">
         <div className="min-w-0">
           <h1 className="text-[28px] font-semibold leading-tight tracking-[-.045em] text-neutral-950 sm:text-[34px]">Configuración del negocio</h1>
           <p className="mt-1 max-w-2xl text-[13px] leading-5 text-neutral-500">Administrá la identidad, los horarios, los cobros y el delivery de La Central.</p>
@@ -194,7 +187,7 @@ export function ConfiguracionAdminPage() {
           <Button type="button" size="sm" variant="secondary" className={actionClass} title="Cambiar estado manualmente" disabled={values.autoScheduleEnabled} onClick={() => setConfirmStatusOpen(true)}>
             {values.isOpen ? 'Cerrar local' : 'Abrir local'}
           </Button>
-          <Button type="button" size="sm" className={actionClass} title="Guardar configuración" onClick={() => setConfirmSaveOpen(true)} disabled={isSaving}>
+          <Button type="button" size="sm" className={cn(actionClass, "!disabled:opacity-45 !disabled:cursor-not-allowed")} title="Guardar configuración" onClick={() => setConfirmSaveOpen(true)} disabled={isSaving || !hasChanges}>
             <Save size={14} /> {isSaving ? 'Guardando…' : 'Guardar cambios'}
           </Button>
         </div>

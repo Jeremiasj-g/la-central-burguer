@@ -29,6 +29,7 @@ import { updateProductoReceta } from '../services/recetas.service';
 import type { RecipeIngredient } from '../types/receta.types';
 import { RentabilidadOverview } from '../components/RentabilidadOverview';
 import styles from './RecetasAdminPage.module.css';
+import { useAdminUnsavedChanges } from '@/shared/components/layout/AdminUnsavedChanges';
 
 const adminInputClass = '!h-10 !rounded-[11px] !border-neutral-300 !bg-white !px-3 !text-[13px] !font-normal !text-neutral-800 !shadow-none !placeholder:text-neutral-400 transition-all duration-200 hover:!border-neutral-400 focus:!border-[#d99536] focus:!bg-white focus:!ring-2 focus:!ring-[#d99536]/10';
 
@@ -162,6 +163,15 @@ export function RecetasAdminPage() {
   const currentCost = recipeCost(draftIngredients, ingredientById);
   const currentComplete = isRecipeCostComplete(draftIngredients, ingredientById);
   const currentProfitability = profitability(selectedProduct?.currentPrice ?? 0, currentCost);
+  const savedRows = selectedRecipe?.ingredients?.length
+    ? selectedRecipe.ingredients
+    : (selectedProduct?.ingredientIds ?? []).map(id => ({
+        ingredientId: id, quantity: 0, unit: ingredientById.get(id)?.unit ?? 'unidad',
+      }));
+  const fingerprint = (rows: { ingredientId: string; quantity: number; unit: IngredientUnit }[]) =>
+    JSON.stringify(rows.map(row => ({ ingredientId: row.ingredientId, quantity: row.quantity, unit: row.unit })).sort((a,b) => a.ingredientId.localeCompare(b.ingredientId)));
+  const hasRecipeChanges = Boolean(selectedProduct && fingerprint(draftIngredients) !== fingerprint(savedRows));
+  const requestNavigation = useAdminUnsavedChanges(hasRecipeChanges);
   const selectedIngredientIds = new Set(draftIngredients.map((item) => item.ingredientId));
   const addableIngredients = ingredientes.filter((item) => item.active && !selectedIngredientIds.has(item.id));
 
@@ -184,7 +194,7 @@ export function RecetasAdminPage() {
   }
 
   async function saveRecipe() {
-    if (!selectedProduct) return;
+    if (!selectedProduct || !hasRecipeChanges || saving) return;
     setSaving(true);
     try {
       await updateProductoReceta({
@@ -226,7 +236,7 @@ export function RecetasAdminPage() {
         <button
           type="button"
           aria-current={activeTab === 'overview' ? 'page' : undefined}
-          onClick={() => setActiveTab('overview')}
+          onClick={() => requestNavigation(() => setActiveTab('overview'))}
           className={cn('inline-flex h-10 items-center gap-2 rounded-[10px] px-3.5 text-[12px] font-semibold transition-colors duration-200 sm:px-4', activeTab === 'overview' ? 'bg-[#191b20] text-white shadow-[0_3px_8px_rgba(0,0,0,.12)]' : 'text-neutral-500 hover:bg-neutral-100 hover:text-neutral-900')}
         >
           Análisis general
@@ -308,8 +318,7 @@ export function RecetasAdminPage() {
           items={overviewRows}
           categoryById={categoryById}
           onEdit={(id) => {
-            setProductId(id);
-            setActiveTab('editor');
+            requestNavigation(() => { setProductId(id); setActiveTab('editor'); });
           }}
         />
       ) : (
@@ -330,7 +339,7 @@ export function RecetasAdminPage() {
                 const active = product.id === productId;
                 return (
                   <button key={product.id} type="button" aria-pressed={active}
-                    onClick={() => setProductId(product.id)}
+                    onClick={() => requestNavigation(() => setProductId(product.id))}
                     className={cn(
                       'group relative block w-full min-w-0 rounded-[13px] px-3 py-3 text-left outline-offset-2 transition-[background-color,box-shadow] duration-200 focus-visible:outline-2 focus-visible:outline-[#d99536]',
                       active ? 'bg-[#fcf5e9]' : 'hover:bg-[#f7f7f8]',
@@ -383,7 +392,7 @@ export function RecetasAdminPage() {
                     <p className="mt-1 text-[11px] text-neutral-400">Editá cantidades y unidades de la receta</p>
                   </div>
                 </div>
-                <Button type="button" onClick={() => void saveRecipe()} disabled={saving}
+                <Button type="button" onClick={() => void saveRecipe()} disabled={saving || !hasRecipeChanges}
                   className="!h-10 !w-full !rounded-[11px] !bg-[#eaa42f] !px-4 !text-[12px] !font-semibold !text-[#211a12] !shadow-none hover:!bg-[#f0b64d] sm:!w-auto">
                   <Save size={15} strokeWidth={1.9} /> {saving ? 'Guardando...' : 'Guardar receta'}
                 </Button>
