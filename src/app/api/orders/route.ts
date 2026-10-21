@@ -81,10 +81,15 @@ export async function POST(request: Request) {
     const supabase = getSupabaseAdminClient();
     const { data: business, error: businessError } = await supabase
       .from('business_config')
-      .select('maintenance_mode')
+      .select('maintenance_mode,closed_weekdays,timezone')
       .eq('id', 1)
       .single();
     if (businessError) throw new Error('No pudimos verificar el estado del local.');
+    const localWeekday=new Intl.DateTimeFormat('en-US',{timeZone:business?.timezone||'America/Argentina/Cordoba',weekday:'short'}).format(new Date()).slice(0,3).toLowerCase();
+    const weekday=({sun:0,mon:1,tue:2,wed:3,thu:4,fri:5,sat:6} as Record<string,number>)[localWeekday];
+    if((business?.closed_weekdays??[]).includes(weekday)){
+      return NextResponse.json({error:'Hoy el local permanece cerrado. Volvé a visitarnos otro día.'},{status:503,headers:{'Cache-Control':'no-store'}});
+    }
     if (business?.maintenance_mode) {
       return NextResponse.json(
         { error: 'Estamos en mantenimiento y no podemos recibir pedidos por ahora.' },

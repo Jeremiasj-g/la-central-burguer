@@ -24,6 +24,7 @@ export interface BusinessConfig {
   autoScheduleEnabled: boolean;
   autoOpenTime: string;
   autoCloseTime: string;
+  closedWeekdays: number[];
   storeLatitude?: number;
   storeLongitude?: number;
   deliveryBaseFee: number;

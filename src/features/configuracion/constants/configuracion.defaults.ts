@@ -19,6 +19,7 @@ export const BUSINESS_CONFIG_DEFAULTS: BusinessConfig = {
   autoScheduleEnabled: true,
   autoOpenTime: '20:00',
   autoCloseTime: '00:00',
+  closedWeekdays: [],
   storeLatitude: -27.4692,
   storeLongitude: -58.8306,
   deliveryBaseFee: 800,

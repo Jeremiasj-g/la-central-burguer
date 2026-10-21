@@ -1,0 +1,2 @@
+alter table public.business_config add column if not exists closed_weekdays integer[] not null default '{}';
+alter table public.business_config add constraint business_config_closed_weekdays_valid check (closed_weekdays <@ array[0,1,2,3,4,5,6]::integer[]);

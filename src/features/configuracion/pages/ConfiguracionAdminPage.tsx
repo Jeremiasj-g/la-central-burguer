@@ -64,6 +64,7 @@ type ConfigFormValues = Pick<
   | 'autoScheduleEnabled'
   | 'autoOpenTime'
   | 'autoCloseTime'
+  | 'closedWeekdays'
   | 'paymentMethods'
 >;
 
@@ -105,6 +106,7 @@ export function ConfiguracionAdminPage() {
       autoScheduleEnabled: config.autoScheduleEnabled,
       autoOpenTime: config.autoOpenTime,
       autoCloseTime: config.autoCloseTime,
+      closedWeekdays: config.closedWeekdays,
       paymentMethods: config.paymentMethods,
     });
   }, [config]);
@@ -441,6 +443,19 @@ export function ConfiguracionAdminPage() {
             </div>
           </div>
 
+          <div className="mt-5 border-t border-neutral-100 pt-5">
+            <h3 className="text-[13px] font-semibold text-neutral-900">Días de cierre semanal</h3>
+            <p className="mt-1 text-[11px] leading-5 text-neutral-500">Marcá los días en los que el local permanecerá cerrado, aunque esté habilitada la apertura automática o manual.</p>
+            <div className="mt-3 grid grid-cols-4 gap-2 sm:grid-cols-7">
+              {(['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'] as const).map((name,day) => {
+                const selected=values.closedWeekdays.includes(day);
+                return <button key={name} type="button" aria-pressed={selected}
+                  onClick={() => setValues(current=>current?{...current,closedWeekdays:selected?current.closedWeekdays.filter(value=>value!==day):[...current.closedWeekdays,day].sort((x,y)=>x-y)}:current)}
+                  className={cn('min-h-10 rounded-[11px] border px-2 text-[12px] font-semibold transition-[background-color,border-color,color,box-shadow] duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400/40',selected?'border-[#d4a15a] bg-[#fff4e5] text-[#945e17] shadow-[0_2px_8px_rgba(188,133,51,.09)]':'border-neutral-200 bg-[#f8f8fa] text-neutral-600 hover:border-neutral-300 hover:bg-white')}>{name}</button>;
+              })}
+            </div>
+            <p className="mt-2 text-[10px] text-neutral-400">{values.closedWeekdays.length?'Los días seleccionados quedan cerrados durante todo el día local.':'Ningún día de cierre seleccionado.'}</p>
+          </div>
           <p className="mt-4 rounded-[13px] border border-neutral-200/70 bg-[#f8f8fa] p-3 text-[12px] leading-5 text-neutral-600">
             Con la configuración actual, el sitio muestra el local como <strong className={previewConfig?.maintenanceMode ? 'text-central-ember' : effectiveOpen ? 'text-emerald-700' : 'text-red-700'}>{previewConfig?.maintenanceMode ? 'en mantenimiento' : effectiveOpen ? 'abierto' : 'cerrado'}</strong>.
           </p>
