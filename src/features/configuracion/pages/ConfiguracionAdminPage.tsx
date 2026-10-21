@@ -439,7 +439,7 @@ export function ConfiguracionAdminPage() {
           <div className="mt-5 border-t border-neutral-100 pt-5">
             <h3 className="text-[13px] font-semibold text-neutral-900">Días de cierre semanal</h3>
             <p className="mt-1 text-[11px] leading-5 text-neutral-500">Marcá los días en los que el local permanecerá cerrado, aunque esté habilitada la apertura automática o manual.</p>
-            <div className="mt-3 grid grid-cols-4 gap-2 sm:grid-cols-7">
+            <div className="mt-3 grid min-w-0 grid-cols-[repeat(auto-fit,minmax(64px,1fr))] gap-2">
               {(['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'] as const).map((name,day) => {
                 const selected=values.closedWeekdays.includes(day);
                 return <button key={name} type="button" aria-pressed={selected}
