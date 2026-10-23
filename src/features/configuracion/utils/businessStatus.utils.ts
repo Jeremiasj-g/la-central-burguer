@@ -47,5 +47,5 @@ export function getTodayBusinessHours(config: BusinessConfig, at = new Date()) {
   const day=businessWeekday(at,config.timezone);
   if(config.closedWeekdays?.includes(day)) return 'Cerrado';
   const hours=businessHoursForDay(config,day);
-  return hours.open+' a '+hours.close+(mins(hours.open)>mins(hours.close)?' (+1 día)':'');
+  return hours.open+' a '+hours.close;
 }

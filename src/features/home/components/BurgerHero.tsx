@@ -62,8 +62,6 @@ export function BurgerHero() {
                 Abre en <span className="font-semibold tabular-nums text-white">{remainingDays ? remainingDays+'d ' : ''}{clockText}</span>
               </div>
             ) : null}
-            <p className="text-[11px] text-central-cream/70">Horario de hoy: {getTodayBusinessHours(config,now)}</p>
-            <p className="text-[10px] text-central-cream/45">Horario habitual: {config.autoOpenTime}–{config.autoCloseTime} · puede variar por día</p>
           </div>
         ) : null}
 
@@ -97,7 +95,7 @@ export function BurgerHero() {
           </Link>
         </div>
 
-        <div className="mt-12 grid w-full max-w-4xl gap-3 sm:grid-cols-3">
+        <div className="mt-12 grid w-full max-w-5xl gap-3 sm:grid-cols-2 xl:grid-cols-4">
           <div className="rounded-[15px] border border-central-orange/25 bg-black/35 p-4 backdrop-blur">
             <p className="text-xs font-black uppercase tracking-[.25em] text-central-orange">WhatsApp</p>
             {isLoading ? (
@@ -120,6 +118,14 @@ export function BurgerHero() {
               <div className="skeleton-dark mt-2"><Skeleton width={140} height={24} /></div>
             ) : (
               <p className="mt-1 text-xl font-black">{config?.specialty ?? 'Papas incluidas'}</p>
+            )}
+          </div>
+          <div className="rounded-[15px] border border-central-orange/25 bg-black/35 p-4 backdrop-blur">
+            <p className="text-xs font-black uppercase tracking-[.25em] text-central-orange">Horarios</p>
+            {isLoading ? (
+              <div className="skeleton-dark mt-2"><Skeleton width={145} height={24} /></div>
+            ) : (
+              <p className="mt-1 text-xl font-black">{config ? getTodayBusinessHours(config,now) : '—'}</p>
             )}
           </div>
         </div>
