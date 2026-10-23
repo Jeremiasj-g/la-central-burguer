@@ -1,10 +1,12 @@
 'use client';
 
 import Link from 'next/link';
+import { useMemo } from 'react';
 import Skeleton from 'react-loading-skeleton';
 import { ArrowDown, Flame, MapPin, Wrench } from 'lucide-react';
 import { useBusinessConfig } from '@/features/configuracion/hooks/useBusinessConfig';
-import { isBusinessOpenBySchedule } from '@/features/configuracion/utils/businessStatus.utils';
+import { isBusinessOpenBySchedule, getNextBusinessOpening, getTodayBusinessHours } from '@/features/configuracion/utils/businessStatus.utils';
+import { useBusinessClock } from '@/features/configuracion/hooks/useBusinessClock';
 import { BusinessLogo } from '@/features/configuracion/components/BusinessLogo';
 
 function formatPhoneForDisplay(phone?: string) {
@@ -14,7 +16,13 @@ function formatPhoneForDisplay(phone?: string) {
 
 export function BurgerHero() {
   const { config, isLoading } = useBusinessConfig();
-  const isOpen = config ? isBusinessOpenBySchedule(config) : false;
+  const now = useBusinessClock();
+  const isOpen = config ? isBusinessOpenBySchedule(config,now) : false;
+  const minuteTick = Math.floor(now.getTime()/60000);
+  const nextOpening = useMemo(() => config && !isBusinessOpenBySchedule(config,new Date(minuteTick*60000)) ? getNextBusinessOpening(config,new Date(minuteTick*60000)) : null, [config,minuteTick]);
+  const remaining = nextOpening ? Math.max(0,Math.ceil((nextOpening.getTime()-now.getTime())/1000)) : 0;
+  const remainingDays=Math.floor(remaining/86400);
+  const clockText=[Math.floor(remaining%86400/3600),Math.floor(remaining%3600/60),remaining%60].map(n=>String(n).padStart(2,'0')).join(':');
   const isMaintenance = Boolean(config?.maintenanceMode);
   const businessName = config?.businessName ?? 'La Central Burger';
   const words = businessName.trim().split(/\s+/);
@@ -46,6 +54,18 @@ export function BurgerHero() {
             {isMaintenance ? <Wrench size={15} strokeWidth={1.8} /> : <Flame size={15} />} {isMaintenance ? 'Mantenimiento' : isOpen ? 'Abierto ahora' : 'Cerrado ahora'}
           </div>
         )}
+
+        {!isLoading && config ? (
+          <div className="mt-2 flex flex-col items-center gap-1.5 text-center">
+            {!isOpen && nextOpening ? (
+              <div className="rounded-full border border-white/15 bg-black/35 px-4 py-1.5 text-[11px] text-white/80 backdrop-blur" aria-live="off">
+                Abre en <span className="font-semibold tabular-nums text-white">{remainingDays ? remainingDays+'d ' : ''}{clockText}</span>
+              </div>
+            ) : null}
+            <p className="text-[11px] text-central-cream/70">Horario de hoy: {getTodayBusinessHours(config,now)}</p>
+            <p className="text-[10px] text-central-cream/45">Horario habitual: {config.autoOpenTime}–{config.autoCloseTime} · puede variar por día</p>
+          </div>
+        ) : null}
 
         {isLoading ? (
           <div className="skeleton-dark mt-7 w-full max-w-4xl">

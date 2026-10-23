@@ -66,6 +66,7 @@ type ConfigFormValues = Pick<
   | 'autoOpenTime'
   | 'autoCloseTime'
   | 'closedWeekdays'
+  | 'dailyHours'
   | 'paymentMethods'
 >;
 
@@ -81,7 +82,7 @@ function editableConfig(config: BusinessConfig): ConfigFormValues {
     deliveryMaxDistanceKm: config.deliveryMaxDistanceKm, deliveryRoundingValue: config.deliveryRoundingValue,
     isOpen: config.isOpen, autoScheduleEnabled: config.autoScheduleEnabled,
     autoOpenTime: config.autoOpenTime, autoCloseTime: config.autoCloseTime,
-    closedWeekdays: config.closedWeekdays, paymentMethods: config.paymentMethods,
+    closedWeekdays: config.closedWeekdays, dailyHours: config.dailyHours, paymentMethods: config.paymentMethods,
   };
 }
 export function ConfiguracionAdminPage() {
@@ -436,6 +437,41 @@ export function ConfiguracionAdminPage() {
             </div>
           </div>
 
+          <div className="mt-5 border-t border-neutral-100 pt-5">
+            <h3 className="text-[13px] font-semibold text-neutral-900">Horarios especiales por día</h3>
+            <p className="mt-1 text-[11px] leading-5 text-neutral-500">Se usa el horario general salvo que personalices uno de los días. Podés cerrar sábados y domingos a la 01:00.</p>
+            <div className="mt-3 space-y-2">
+              {(['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'] as const).map((name,day) => {
+                const custom = values.dailyHours[String(day)];
+                const hours = custom ?? { open: values.autoOpenTime, close: values.autoCloseTime };
+                const closed = values.closedWeekdays.includes(day);
+                return (
+                  <div key={name} className="flex min-w-0 flex-wrap items-center gap-2 rounded-[12px] border border-neutral-200/80 bg-[#fafafa] px-3 py-2">
+                    <span className="w-9 shrink-0 text-[12px] font-semibold text-neutral-700">{name}</span>
+                    <label className="flex min-w-0 flex-1 items-center gap-1.5 text-[10px] text-neutral-500">
+                      Abre
+                      <input aria-label={'Apertura ' + name} type="time" disabled={closed} value={hours.open}
+                        onChange={event => setValues(current => current ? {...current,dailyHours:{...current.dailyHours,[String(day)]:{...hours,open:event.target.value}}} : current)}
+                        className="h-9 w-full min-w-0 rounded-[9px] border border-neutral-300 bg-white px-1 text-[12px] text-neutral-800 disabled:opacity-40" />
+                    </label>
+                    <label className="flex min-w-0 flex-1 items-center gap-1.5 text-[10px] text-neutral-500">
+                      Cierra
+                      <input aria-label={'Cierre ' + name} type="time" disabled={closed} value={hours.close}
+                        onChange={event => setValues(current => current ? {...current,dailyHours:{...current.dailyHours,[String(day)]:{...hours,close:event.target.value}}} : current)}
+                        className="h-9 w-full min-w-0 rounded-[9px] border border-neutral-300 bg-white px-1 text-[12px] text-neutral-800 disabled:opacity-40" />
+                    </label>
+                    {custom ? <button type="button" onClick={() => setValues(current => {
+                      if (!current) return current;
+                      const days={...current.dailyHours}; delete days[String(day)];
+                      return {...current,dailyHours:days};
+                    })} className="rounded-[8px] px-2 py-1.5 text-[10px] font-medium text-neutral-500 hover:bg-neutral-200">Restablecer</button>
+                    : <span className="text-[10px] text-neutral-400">General</span>}
+                    {closed && <span className="w-full text-[10px] text-amber-700">Día cerrado</span>}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
           <div className="mt-5 border-t border-neutral-100 pt-5">
             <h3 className="text-[13px] font-semibold text-neutral-900">Días de cierre semanal</h3>
             <p className="mt-1 text-[11px] leading-5 text-neutral-500">Marcá los días en los que el local permanecerá cerrado, aunque esté habilitada la apertura automática o manual.</p>

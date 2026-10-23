@@ -64,6 +64,7 @@ function normalizeBusinessConfig(config: Partial<BusinessConfig>): BusinessConfi
     autoOpenTime: config.autoOpenTime ?? BUSINESS_CONFIG_DEFAULTS.autoOpenTime,
     autoCloseTime: config.autoCloseTime ?? BUSINESS_CONFIG_DEFAULTS.autoCloseTime,
     closedWeekdays: config.closedWeekdays ?? BUSINESS_CONFIG_DEFAULTS.closedWeekdays,
+    dailyHours: config.dailyHours ?? BUSINESS_CONFIG_DEFAULTS.dailyHours,
     storeLatitude: config.storeLatitude ?? BUSINESS_CONFIG_DEFAULTS.storeLatitude,
     storeLongitude: config.storeLongitude ?? BUSINESS_CONFIG_DEFAULTS.storeLongitude,
     deliveryBaseFee: config.deliveryBaseFee ?? BUSINESS_CONFIG_DEFAULTS.deliveryBaseFee,
@@ -103,6 +104,8 @@ function mapConfig(row: ConfigRow, paymentMethods: PaymentMethod[]): BusinessCon
     autoOpenTime: row.auto_open_time.slice(0, 5),
     autoCloseTime: row.auto_close_time.slice(0, 5),
     closedWeekdays: row.closed_weekdays ?? [],
+    dailyHours: (row.daily_hours ?? {}) as BusinessConfig['dailyHours'],
+    timezone: row.timezone,
     storeLatitude: row.store_latitude ?? undefined,
     storeLongitude: row.store_longitude ?? undefined,
     deliveryBaseFee: Number(row.delivery_base_fee),
@@ -195,6 +198,7 @@ export async function updateBusinessConfig(input: Partial<BusinessConfig>): Prom
     ...(input.autoOpenTime !== undefined ? { auto_open_time: input.autoOpenTime } : {}),
     ...(input.autoCloseTime !== undefined ? { auto_close_time: input.autoCloseTime } : {}),
     ...(input.closedWeekdays !== undefined ? { closed_weekdays: input.closedWeekdays } : {}),
+    ...(input.dailyHours !== undefined ? { daily_hours: input.dailyHours } : {}),
     ...(input.storeLatitude !== undefined
       ? { store_latitude: input.storeLatitude ?? null }
       : {}),

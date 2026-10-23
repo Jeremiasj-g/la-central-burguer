@@ -3,6 +3,8 @@ import { getSupabaseAdminClient } from '@/lib/supabase/admin';
 import { verifyDeliveryQuote } from '@/features/delivery/server/route-quote.server';
 import { notifyAdminNewOrder } from '@/features/pedidos/server/admin-push.server';
 import type { Json } from '@/lib/supabase/database.types';
+import { BUSINESS_CONFIG_DEFAULTS } from '@/features/configuracion/constants/configuracion.defaults';
+import { isBusinessOpenBySchedule } from '@/features/configuracion/utils/businessStatus.utils';
 
 export const runtime = 'nodejs';
 
@@ -81,20 +83,23 @@ export async function POST(request: Request) {
     const supabase = getSupabaseAdminClient();
     const { data: business, error: businessError } = await supabase
       .from('business_config')
-      .select('maintenance_mode,closed_weekdays,timezone')
+      .select('maintenance_mode,closed_weekdays,timezone,is_open,auto_schedule_enabled,auto_open_time,auto_close_time,daily_hours')
       .eq('id', 1)
       .single();
     if (businessError) throw new Error('No pudimos verificar el estado del local.');
-    const localWeekday=new Intl.DateTimeFormat('en-US',{timeZone:business?.timezone||'America/Argentina/Cordoba',weekday:'short'}).format(new Date()).slice(0,3).toLowerCase();
-    const weekday=({sun:0,mon:1,tue:2,wed:3,thu:4,fri:5,sat:6} as Record<string,number>)[localWeekday];
-    if((business?.closed_weekdays??[]).includes(weekday)){
-      return NextResponse.json({error:'Hoy el local permanece cerrado. Volvé a visitarnos otro día.'},{status:503,headers:{'Cache-Control':'no-store'}});
-    }
-    if (business?.maintenance_mode) {
-      return NextResponse.json(
-        { error: 'Estamos en mantenimiento y no podemos recibir pedidos por ahora.' },
-        { status: 503, headers: { 'Cache-Control': 'no-store' } },
-      );
+    if (!business || !isBusinessOpenBySchedule({
+      ...BUSINESS_CONFIG_DEFAULTS,
+      timezone: business.timezone,
+      isOpen: business.is_open,
+      maintenanceMode: business.maintenance_mode,
+      autoScheduleEnabled: business.auto_schedule_enabled,
+      autoOpenTime: business.auto_open_time.slice(0,5),
+      autoCloseTime: business.auto_close_time.slice(0,5),
+      closedWeekdays: business.closed_weekdays ?? [],
+      dailyHours: (business.daily_hours ?? {}) as Record<string,{open:string;close:string}>,
+    })) {
+      return NextResponse.json({error:'El local está cerrado en este momento. Consultá los horarios de atención.'},
+        {status:503,headers:{'Cache-Control':'no-store'}});
     }
 
     const { data, error } = await supabase.rpc('create_public_order_from_route', {

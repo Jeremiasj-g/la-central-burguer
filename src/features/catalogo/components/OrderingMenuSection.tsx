@@ -19,6 +19,7 @@ import { toast } from 'react-toastify';
 import { getOrderableProductIds } from '@/features/productos/services/productos.service';
 import { useBusinessConfig } from '@/features/configuracion/hooks/useBusinessConfig';
 import { isBusinessOpenBySchedule } from '@/features/configuracion/utils/businessStatus.utils';
+import { useBusinessClock } from '@/features/configuracion/hooks/useBusinessClock';
 import { formatMenuLabel } from '../utils/menuLabel';
 
 export function OrderingMenuSection() {
@@ -38,7 +39,8 @@ export function OrderingMenuSection() {
   });
   const cart = useCarrito();
   const { config } = useBusinessConfig();
-  const isBusinessOpen = config ? isBusinessOpenBySchedule(config) : false;
+  const now = useBusinessClock();
+  const isBusinessOpen = config ? isBusinessOpenBySchedule(config,now) : false;
 
   useEffect(() => {
     function handleCartOpen() {

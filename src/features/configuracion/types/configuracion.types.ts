@@ -25,6 +25,7 @@ export interface BusinessConfig {
   autoOpenTime: string;
   autoCloseTime: string;
   closedWeekdays: number[];
+  dailyHours: Record<string, { open: string; close: string }>;
   storeLatitude?: number;
   storeLongitude?: number;
   deliveryBaseFee: number;
