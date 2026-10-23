@@ -49,3 +49,22 @@ export function getTodayBusinessHours(config: BusinessConfig, at = new Date()) {
   const hours=businessHoursForDay(config,day);
   return hours.open+' a '+hours.close;
 }
+
+// Agrupa días consecutivos con exactamente el mismo horario, de lunes a domingo.
+export function getWeeklyBusinessHours(config: BusinessConfig): { label: string; hours: string }[] {
+  const days = [1, 2, 3, 4, 5, 6, 0];
+  const shortLabels = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+  const rows: { first: number; last: number; hours: string }[] = [];
+  for (const day of days) {
+    const hours = config.closedWeekdays?.includes(day)
+      ? 'Cerrado'
+      : (() => { const period = businessHoursForDay(config, day); return period.open + ' a ' + period.close; })();
+    const last = rows[rows.length - 1];
+    if (last && last.hours === hours) last.last = day;
+    else rows.push({ first: day, last: day, hours });
+  }
+  return rows.map(row => ({
+    label: row.first === row.last ? shortLabels[row.first] : shortLabels[row.first] + ' a ' + shortLabels[row.last],
+    hours: row.hours,
+  }));
+}

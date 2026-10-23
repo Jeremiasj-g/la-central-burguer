@@ -5,7 +5,7 @@ import { useMemo } from 'react';
 import Skeleton from 'react-loading-skeleton';
 import { ArrowDown, Flame, MapPin, Wrench } from 'lucide-react';
 import { useBusinessConfig } from '@/features/configuracion/hooks/useBusinessConfig';
-import { isBusinessOpenBySchedule, getNextBusinessOpening, getTodayBusinessHours } from '@/features/configuracion/utils/businessStatus.utils';
+import { isBusinessOpenBySchedule, getNextBusinessOpening, getWeeklyBusinessHours } from '@/features/configuracion/utils/businessStatus.utils';
 import { useBusinessClock } from '@/features/configuracion/hooks/useBusinessClock';
 import { BusinessLogo } from '@/features/configuracion/components/BusinessLogo';
 
@@ -124,9 +124,16 @@ export function BurgerHero() {
             <p className="text-xs font-black uppercase tracking-[.25em] text-central-orange">Horarios</p>
             {isLoading ? (
               <div className="skeleton-dark mt-2"><Skeleton width={145} height={24} /></div>
-            ) : (
-              <p className="mt-1 text-xl font-black">{config ? getTodayBusinessHours(config,now) : '—'}</p>
-            )}
+            ) : config ? (
+              <div className="mt-2 space-y-2">
+                {getWeeklyBusinessHours(config).map(row => (
+                  <div key={row.label} className="flex items-baseline justify-between gap-3 text-[12px] leading-5">
+                    <span className="shrink-0 font-semibold text-central-cream/70">{row.label}</span>
+                    <span className="text-right font-semibold tabular-nums text-white">{row.hours}</span>
+                  </div>
+                ))}
+              </div>
+            ) : <p className="mt-1 text-sm text-central-cream/70">—</p>}
           </div>
         </div>
       </div>

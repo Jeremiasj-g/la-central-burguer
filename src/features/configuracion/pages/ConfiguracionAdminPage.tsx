@@ -446,27 +446,41 @@ export function ConfiguracionAdminPage() {
                 const hours = custom ?? { open: values.autoOpenTime, close: values.autoCloseTime };
                 const closed = values.closedWeekdays.includes(day);
                 return (
-                  <div key={name} className="flex min-w-0 flex-wrap items-center gap-2 rounded-[12px] border border-neutral-200/80 bg-[#fafafa] px-3 py-2">
-                    <span className="w-9 shrink-0 text-[12px] font-semibold text-neutral-700">{name}</span>
-                    <label className="flex min-w-0 flex-1 items-center gap-1.5 text-[10px] text-neutral-500">
-                      Abre
-                      <input aria-label={'Apertura ' + name} type="time" disabled={closed} value={hours.open}
-                        onChange={event => setValues(current => current ? {...current,dailyHours:{...current.dailyHours,[String(day)]:{...hours,open:event.target.value}}} : current)}
-                        className="h-9 w-full min-w-0 rounded-[9px] border border-neutral-300 bg-white px-1 text-[12px] text-neutral-800 disabled:opacity-40" />
-                    </label>
-                    <label className="flex min-w-0 flex-1 items-center gap-1.5 text-[10px] text-neutral-500">
-                      Cierra
-                      <input aria-label={'Cierre ' + name} type="time" disabled={closed} value={hours.close}
-                        onChange={event => setValues(current => current ? {...current,dailyHours:{...current.dailyHours,[String(day)]:{...hours,close:event.target.value}}} : current)}
-                        className="h-9 w-full min-w-0 rounded-[9px] border border-neutral-300 bg-white px-1 text-[12px] text-neutral-800 disabled:opacity-40" />
-                    </label>
-                    {custom ? <button type="button" onClick={() => setValues(current => {
-                      if (!current) return current;
-                      const days={...current.dailyHours}; delete days[String(day)];
-                      return {...current,dailyHours:days};
-                    })} className="rounded-[8px] px-2 py-1.5 text-[10px] font-medium text-neutral-500 hover:bg-neutral-200">Restablecer</button>
-                    : <span className="text-[10px] text-neutral-400">General</span>}
-                    {closed && <span className="w-full text-[10px] text-amber-700">Día cerrado</span>}
+                  <div key={name} className="min-w-0 rounded-[14px] border border-neutral-200/80 bg-[#fafafa] p-3 sm:p-3.5">
+                    <div className="mb-3 flex items-center justify-between gap-2">
+                      <div className="flex min-w-0 items-center gap-2">
+                        <span className="text-[13px] font-semibold text-neutral-800">{name}</span>
+                        <span className={cn('rounded-full px-2 py-0.5 text-[10px] font-medium', closed ? 'bg-neutral-200/80 text-neutral-500' : custom ? 'bg-[#fff1de] text-[#9c651e]' : 'bg-neutral-100 text-neutral-500')}>
+                          {closed ? 'Cerrado' : custom ? 'Personalizado' : 'General'}
+                        </span>
+                      </div>
+                      {custom ? (
+                        <button type="button" aria-label={'Restablecer horario de ' + name}
+                          onClick={() => setValues(current => {
+                            if (!current) return current;
+                            const days = {...current.dailyHours};
+                            delete days[String(day)];
+                            return {...current, dailyHours: days};
+                          })}
+                          className="shrink-0 rounded-[9px] px-2 py-1.5 text-[10px] font-medium text-neutral-500 transition-colors duration-200 hover:bg-neutral-200/70 hover:text-neutral-800">
+                          ↺ Restablecer
+                        </button>
+                      ) : null}
+                    </div>
+                    <div className="grid min-w-0 grid-cols-2 gap-3">
+                      <label className="block min-w-0">
+                        <span className="mb-1.5 block text-[10px] font-medium text-neutral-500">Apertura</span>
+                        <input type="time" aria-label={'Apertura ' + name} disabled={closed} value={hours.open}
+                          onChange={event => setValues(current => current ? {...current, dailyHours: {...current.dailyHours, [String(day)]: {...hours, open: event.target.value}}} : current)}
+                          className="block h-10 w-full min-w-0 rounded-[10px] border border-neutral-300 bg-white px-2.5 text-[12px] text-neutral-800 outline-none transition-[border-color,box-shadow] duration-200 focus:border-[#dda041] focus:ring-2 focus:ring-[#dda041]/15 disabled:opacity-45" />
+                      </label>
+                      <label className="block min-w-0">
+                        <span className="mb-1.5 block text-[10px] font-medium text-neutral-500">Cierre</span>
+                        <input type="time" aria-label={'Cierre ' + name} disabled={closed} value={hours.close}
+                          onChange={event => setValues(current => current ? {...current, dailyHours: {...current.dailyHours, [String(day)]: {...hours, close: event.target.value}}} : current)}
+                          className="block h-10 w-full min-w-0 rounded-[10px] border border-neutral-300 bg-white px-2.5 text-[12px] text-neutral-800 outline-none transition-[border-color,box-shadow] duration-200 focus:border-[#dda041] focus:ring-2 focus:ring-[#dda041]/15 disabled:opacity-45" />
+                      </label>
+                    </div>
                   </div>
                 );
               })}
