@@ -8,7 +8,7 @@ import type { CheckoutFormValues } from '../types/checkout.types';
 import { useCheckout } from '../hooks/useCheckout';
 import { getDeliveryQuote } from '@/features/delivery/services/delivery.service';
 import type { DeliveryQuote } from '@/features/delivery/types/delivery.types';
-import { formatDistanceKm, formatRouteDuration } from '@/features/delivery/utils/delivery.utils';
+import { formatDistanceKm } from '@/features/delivery/utils/delivery.utils';
 import { useCurrentLocation } from '@/features/delivery/hooks/useCurrentLocation';
 import { ConfirmDialog } from '@/shared/components/ui/ConfirmDialog';
 import { Input } from '@/shared/components/ui/Input';
@@ -239,8 +239,8 @@ export function CheckoutModal({ open, onClose, items, onOrderCreated }: Checkout
 
   const deliveryHelperText = deliveryQuote
     ? deliveryQuote.isWithinRange
-      ? `Ruta en moto: ${formatDistanceKm(deliveryQuote.routeDistanceKm)} · ${formatRouteDuration(deliveryQuote.routeDurationSeconds)} · Envío: ${formatCurrency(deliveryQuote.deliveryCost)}`
-      : `Ruta en moto: ${formatDistanceKm(deliveryQuote.routeDistanceKm)} · Fuera del radio de entrega.`
+      ? `${formatDistanceKm(deliveryQuote.routeDistanceKm)} · Envío: ${formatCurrency(deliveryQuote.deliveryCost)}`
+      : `${formatDistanceKm(deliveryQuote.routeDistanceKm)} · Fuera del radio de entrega.`
     : 'Para solicitar delivery, activá el GPS y compartí tu ubicación actual. La utilizaremos para calcular el envío y localizar la entrega.';
 
   const canSendOrder = !isSubmitting
