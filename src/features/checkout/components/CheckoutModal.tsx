@@ -68,6 +68,7 @@ function isFreshQuote(expiresAt: string | undefined) {
 export function CheckoutModal({ open, onClose, items, onOrderCreated }: CheckoutModalProps) {
   const theme = usePublicTheme();
   const [confirmSendOpen, setConfirmSendOpen] = useState(false);
+  const [summaryExpanded, setSummaryExpanded] = useState(false);
   const [deliveryQuote, setDeliveryQuote] = useState<DeliveryQuote | null>(null);
   const [isQuotingDelivery, setIsQuotingDelivery] = useState(false);
   const [values, setValues] = useState<CheckoutFormValues>(EMPTY_CHECKOUT_VALUES);
@@ -437,11 +438,16 @@ export function CheckoutModal({ open, onClose, items, onOrderCreated }: Checkout
                   No hay métodos de pago habilitados. Contactá al local.
                 </p>
               )}
-              {values.paymentMethod === 'transferencia' ? (
-                <p className="mt-2.5 text-[11px] leading-5 text-white/45">
-                  Los datos de transferencia se enviarán automáticamente en el mensaje de WhatsApp.
-                </p>
-              ) : null}
+              <div aria-hidden={values.paymentMethod !== 'transferencia'} className={cn(
+                'grid transition-[grid-template-rows,opacity,margin-top] duration-200 ease-out motion-reduce:transition-none',
+                values.paymentMethod === 'transferencia' ? 'mt-2.5 grid-rows-[1fr] opacity-100' : 'mt-0 grid-rows-[0fr] opacity-0',
+              )}>
+                <div className="min-h-0 overflow-hidden">
+                  <p className="text-[11px] leading-5 text-white/45">
+                    Los datos de transferencia se enviarán automáticamente en el mensaje de WhatsApp.
+                  </p>
+                </div>
+              </div>
             </section>
 
             <section className="border-t border-white/[.085] pt-6" aria-labelledby="checkout-notes-title">
@@ -464,20 +470,29 @@ export function CheckoutModal({ open, onClose, items, onOrderCreated }: Checkout
           </div>
 
           <aside className="lcb-checkout-summary min-w-0 border-t border-white/[.085] pt-5 lg:sticky lg:top-0 lg:border-t-0 lg:pt-0">
-            <details className="group lg:hidden">
-              <summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-[12px] font-medium text-white/70 [&::-webkit-details-marker]:hidden">
+            <div className="lg:hidden">
+              <button type="button" aria-expanded={summaryExpanded} aria-controls="checkout-order-details"
+                onClick={() => setSummaryExpanded(current => !current)}
+                className="flex w-full items-center justify-between gap-3 text-left text-[12px] font-medium text-white/70">
                 <span className="flex items-center gap-2"><ShoppingBag size={17} className="text-central-orange"/> Ver detalle del pedido ({productCount})</span>
-                <ChevronDown size={17} className="transition-transform duration-200 group-open:rotate-180"/>
-              </summary>
-              <div className="mt-3 space-y-2.5 border-t border-white/[.085] pt-3">
-                {items.map((item) => (
-                  <div key={item.id} className="flex items-start justify-between gap-3 text-[12px] leading-5 text-white/60">
-                    <span className="min-w-0">{item.quantity} × {item.productName}</span>
-                    <span className="shrink-0 tabular-nums text-white/85">{formatCurrency(item.quantity * item.unitPrice)}</span>
+                <ChevronDown size={17} className={cn('shrink-0 transition-transform duration-200 motion-reduce:transition-none',summaryExpanded && 'rotate-180')}/>
+              </button>
+              <div id="checkout-order-details" aria-hidden={!summaryExpanded} className={cn(
+                'grid transition-[grid-template-rows,opacity,margin-top] duration-200 ease-out motion-reduce:transition-none',
+                summaryExpanded ? 'mt-3 grid-rows-[1fr] opacity-100' : 'mt-0 grid-rows-[0fr] opacity-0',
+              )}>
+                <div className="min-h-0 overflow-hidden">
+                  <div className="space-y-2.5 border-t border-white/[.085] pt-3">
+                    {items.map((item) => (
+                      <div key={item.id} className="flex items-start justify-between gap-3 text-[12px] leading-5 text-white/60">
+                        <span className="min-w-0">{item.quantity} × {item.productName}</span>
+                        <span className="shrink-0 tabular-nums text-white/85">{formatCurrency(item.quantity * item.unitPrice)}</span>
+                      </div>
+                    ))}
                   </div>
-                ))}
+                </div>
               </div>
-            </details>
+            </div>
             <div className="hidden lg:block">
               <div className="mb-5 flex items-center gap-2">
                 <ShoppingBag size={18} strokeWidth={1.75} className="text-central-orange"/>
@@ -494,20 +509,30 @@ export function CheckoutModal({ open, onClose, items, onOrderCreated }: Checkout
             </div>
             <div className="mt-4 hidden space-y-2.5 border-t border-white/[.085] pt-4 text-[12px] lg:block">
               <div className="flex justify-between text-white/55"><span>Subtotal</span><span>{formatCurrency(totals.subtotal)}</span></div>
-              {isDelivery ? (
-                <div className="flex justify-between gap-2 text-white/55">
-                  <span>Envío</span>
-                  <span>{hasValidDeliveryQuote ? formatCurrency(values.deliveryCost ?? 0) : 'Pendiente de GPS'}</span>
+              <div aria-hidden={!isDelivery} className={cn(
+                'grid transition-[grid-template-rows,opacity] duration-200 ease-out motion-reduce:transition-none',
+                isDelivery ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0',
+              )}>
+                <div className="min-h-0 overflow-hidden">
+                  <div className="flex justify-between gap-2 text-white/55">
+                    <span>Envío</span>
+                    <span>{hasValidDeliveryQuote ? formatCurrency(values.deliveryCost ?? 0) : 'Pendiente de GPS'}</span>
+                  </div>
                 </div>
-              ) : null}
+              </div>
               <div className="flex items-center justify-between gap-3 border-t border-white/[.085] pt-3">
                 <span className="text-[13px] font-medium text-white/80">{hasValidDeliveryQuote ? 'Total' : 'Subtotal sin envío'}</span>
                 <span className="text-[24px] font-semibold tracking-[-.045em] tabular-nums text-white">{formatCurrency(totals.total)}</span>
               </div>
             </div>
-            {isDelivery && !hasValidDeliveryQuote ? (
-              <p className="mt-3 text-[11px] leading-5 text-white/45 lg:mt-4">Compartí tu ubicación GPS para calcular el costo de envío antes de confirmar.</p>
-            ) : null}
+            <div aria-hidden={!isDelivery || hasValidDeliveryQuote} className={cn(
+              'grid transition-[grid-template-rows,opacity,margin-top] duration-200 ease-out motion-reduce:transition-none',
+              isDelivery && !hasValidDeliveryQuote ? 'mt-3 grid-rows-[1fr] opacity-100 lg:mt-4' : 'mt-0 grid-rows-[0fr] opacity-0',
+            )}>
+              <div className="min-h-0 overflow-hidden">
+                <p className="text-[11px] leading-5 text-white/45">Compartí tu ubicación GPS para calcular el costo de envío antes de confirmar.</p>
+              </div>
+            </div>
             <button type="button" onClick={() => setConfirmSendOpen(true)} disabled={!canSendOrder}
               className="mt-4 hidden h-12 w-full items-center justify-center gap-2 rounded-[13px] bg-central-orange px-4 text-[13px] font-semibold text-[#191919] transition-colors duration-200 hover:bg-[#ffc04a] disabled:cursor-not-allowed disabled:opacity-45 lg:flex">
               {isSubmitting ? 'Creando pedido...' : 'Enviar a WhatsApp'} <ArrowRight size={17}/>
