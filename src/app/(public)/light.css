@@ -88,10 +88,10 @@ body.lcb-public-typography[data-public-theme="light"] .bg-central-orange,
 }
 .public-site[data-public-theme="light"] .lcb-category-unselected-icon{filter:brightness(0);opacity:.66;}
 .public-site[data-public-theme="light"] .lcb-category-swiper>div[class*="bg-gradient-to-r"]{
- background-image:linear-gradient(to right,rgba(255,255,255,.72),rgba(255,255,255,.22),transparent)!important;
+ background-image:linear-gradient(to right,rgba(255,255,255,.88),rgba(255,255,255,.37),transparent)!important;
 }
 .public-site[data-public-theme="light"] .lcb-category-swiper>div[class*="bg-gradient-to-l"]{
- background-image:linear-gradient(to left,rgba(255,255,255,.72),rgba(255,255,255,.22),transparent)!important;
+ background-image:linear-gradient(to left,rgba(255,255,255,.88),rgba(255,255,255,.37),transparent)!important;
 }
 .public-site[data-public-theme="light"] .lcb-category-swiper>button[class*="bg-black/85"]{
  background:#fff!important;color:var(--lcb-light-text)!important;border-color:var(--lcb-light-border)!important;

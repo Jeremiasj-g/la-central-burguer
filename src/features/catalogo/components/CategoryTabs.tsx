@@ -195,14 +195,14 @@ export function CategoryTabs({ categories, selectedCategoryId, onSelect }: Categ
 
       <div
         className={cn(
-          'pointer-events-none absolute inset-y-2 left-0 z-20 w-6 bg-gradient-to-r from-[#20201f]/75 via-[#20201f]/25 to-transparent transition-opacity duration-300 sm:w-9',
+          'pointer-events-none absolute inset-y-2 left-0 z-20 w-8 bg-gradient-to-r from-[#20201f]/90 via-[#20201f]/40 to-transparent transition-opacity duration-300 sm:w-11',
           canScrollPrev ? 'opacity-100' : 'opacity-0',
         )}
         aria-hidden="true"
       />
       <div
         className={cn(
-          'pointer-events-none absolute inset-y-2 right-0 z-20 w-6 bg-gradient-to-l from-[#20201f]/75 via-[#20201f]/25 to-transparent transition-opacity duration-300 sm:w-9',
+          'pointer-events-none absolute inset-y-2 right-0 z-20 w-8 bg-gradient-to-l from-[#20201f]/90 via-[#20201f]/40 to-transparent transition-opacity duration-300 sm:w-11',
           canScrollNext ? 'opacity-100' : 'opacity-0',
         )}
         aria-hidden="true"
