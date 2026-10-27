@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { CheckCircle2, ChevronLeft, ChevronRight, Package, Plus, RefreshCw, RotateCcw, Search, XCircle } from 'lucide-react';
+import { CheckCircle2, ChevronLeft, ChevronRight, Package, Plus, RefreshCw, RotateCcw, Search, XCircle, CircleAlert } from 'lucide-react';
 import type { Ingredient } from '../types/ingrediente.types';
 import { IngredienteForm } from '../components/IngredienteForm';
 import { IngredienteTable } from '../components/IngredienteTable';
@@ -140,6 +140,7 @@ export function IngredientesAdminPage() {
 
   const activeCount = ingredientes.filter((ingredient) => ingredient.active).length;
   const inactiveCount = ingredientes.length - activeCount;
+  const withoutCostCount = ingredientes.filter((ingredient) => ingredient.unitCost <= 0).length;
   const totalPages = Math.max(1, Math.ceil(visibleIngredients.length / pageSize));
   const currentPage = Math.min(page, totalPages);
   const firstItem = visibleIngredients.length ? (currentPage - 1) * pageSize + 1 : 0;
@@ -198,7 +199,7 @@ export function IngredientesAdminPage() {
           <p className="mt-1 text-[clamp(2.5rem,5vw,3.5rem)] font-semibold leading-none tracking-[-.055em] tabular-nums">{isLoading ? '—' : ingredientes.length.toLocaleString('es-AR')}</p>
           <p className="mt-2 text-[11px] text-white/40">Total de ingredientes, sin aplicar filtros.</p>
         </div>
-        <div className="relative mt-6 grid min-w-0 grid-cols-2 gap-3 border-t border-white/10 pt-5 sm:max-w-[440px] lg:mt-0 lg:w-[44%] lg:border-l lg:border-t-0 lg:pl-6 lg:pt-0">
+        <div className="relative mt-6 grid min-w-0 grid-cols-3 gap-3 border-t border-white/10 pt-5 sm:max-w-[560px] lg:mt-0 lg:w-[52%] lg:border-l lg:border-t-0 lg:pl-6 lg:pt-0">
           <div>
             <div className="flex items-center gap-1.5 text-white/55"><CheckCircle2 size={14} strokeWidth={1.8} className="text-emerald-300" /><span className="text-[11px]">Activos</span></div>
             <p className="mt-2 text-[25px] font-semibold leading-none tracking-[-.045em] tabular-nums text-[#c7f0d7]">{isLoading ? '—' : activeCount}</p>
@@ -206,6 +207,10 @@ export function IngredientesAdminPage() {
           <div className="border-l border-white/10 pl-4">
             <div className="flex items-center gap-1.5 text-white/55"><XCircle size={14} strokeWidth={1.8} className="text-white/60" /><span className="text-[11px]">Inactivos</span></div>
             <p className="mt-2 text-[25px] font-semibold leading-none tracking-[-.045em] tabular-nums text-white/80">{isLoading ? '—' : inactiveCount}</p>
+          </div>
+          <div className="border-l border-white/10 pl-3 sm:pl-4">
+            <div className="flex items-center gap-1.5 text-white/55"><CircleAlert size={14} strokeWidth={1.8} className="shrink-0 text-amber-300" /><span className="text-[11px]">Sin costo</span></div>
+            <p className="mt-2 text-[25px] font-semibold leading-none tracking-[-.045em] tabular-nums text-amber-200">{isLoading ? '—' : withoutCostCount}</p>
           </div>
         </div>
       </section>
