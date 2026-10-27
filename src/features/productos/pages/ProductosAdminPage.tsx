@@ -85,6 +85,8 @@ export function ProductosAdminPage() {
   const activeCount = filteredProducts.filter((product) => product.active).length;
   const availableCount = filteredProducts.filter((product) => product.available).length;
   const featuredCount = filteredProducts.filter((product) => product.featured).length;
+  const withoutRecipeCount = filteredProducts.filter((product) => !(product.ingredientIds?.length)).length;
+  const withoutImageCount = filteredProducts.filter((product) => !product.imageUrl?.trim()).length;
   const hasFilters = Boolean(search.trim()) || categoryId !== 'all' || statusFilter !== 'all';
 
   return (
@@ -132,7 +134,7 @@ export function ProductosAdminPage() {
           </p>
           <p className="mt-2 text-[11px] text-white/40">Los indicadores reflejan los filtros seleccionados.</p>
         </div>
-        <div className="relative mt-6 grid min-w-0 grid-cols-3 gap-2 border-t border-white/10 pt-5 sm:max-w-[520px] sm:gap-4 xl:mt-0 xl:w-[52%] xl:border-l xl:border-t-0 xl:pl-6 xl:pt-0">
+        <div className="relative mt-6 grid min-w-0 grid-cols-2 gap-3 border-t border-white/10 pt-5 sm:max-w-[660px] sm:grid-cols-3 xl:mt-0 xl:w-[59%] xl:border-l xl:border-t-0 xl:pl-6 xl:pt-0">
           <div className="min-w-0">
             <div className="flex items-center gap-1.5 text-white/55">
               <CheckCircle2 size={14} strokeWidth={1.8} className="shrink-0 text-emerald-300" />
@@ -153,6 +155,14 @@ export function ProductosAdminPage() {
               <span className="text-[11px]">Destacados</span>
             </div>
             <p className="mt-2 text-[24px] font-semibold leading-none tracking-[-.045em] tabular-nums text-white/85">{isLoading ? '—' : featuredCount}</p>
+          </div>
+          <div className="min-w-0 border-l border-white/10 pl-3 sm:pl-4">
+            <div className="flex items-center gap-1.5 text-white/55"><span className="text-[13px] text-amber-300">!</span><span className="text-[11px]">Sin receta</span></div>
+            <p className="mt-2 text-[24px] font-semibold leading-none tabular-nums text-amber-200">{isLoading ? '—' : withoutRecipeCount}</p>
+          </div>
+          <div className="min-w-0 border-l border-white/10 pl-3 sm:pl-4">
+            <div className="flex items-center gap-1.5 text-white/55"><span className="text-[13px] text-amber-300">!</span><span className="text-[11px]">Sin imagen</span></div>
+            <p className="mt-2 text-[24px] font-semibold leading-none tabular-nums text-amber-200">{isLoading ? '—' : withoutImageCount}</p>
           </div>
         </div>
       </section>

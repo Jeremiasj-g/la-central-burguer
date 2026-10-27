@@ -8,6 +8,7 @@ import { CategoriaTable } from '../components/CategoriaTable';
 import { CategoriaTableSkeleton } from '../components/CategoriaTableSkeleton';
 import { useCategoriaMutations } from '../hooks/useCategoriaMutations';
 import { useCategorias } from '../hooks/useCategorias';
+import { useProductos } from '@/features/productos/hooks/useProductos';
 import { Button } from '@/shared/components/ui/Button';
 import { ConfirmDialog } from '@/shared/components/ui/ConfirmDialog';
 import { Modal } from '@/shared/components/ui/Modal';
@@ -23,6 +24,7 @@ export function CategoriasAdminPage() {
   const [pendingFormValues, setPendingFormValues] = useState<CategoryFormValues | null>(null);
   const { categorias, isLoading, error, refresh } = useCategorias({ active: 'all' });
   const mutations = useCategoriaMutations(refresh);
+  const { productos, isLoading: productsLoading, error: productsError } = useProductos({ active: 'all', available: 'all' });
 
   useEffect(() => {
     document.body.classList.add('catalog-wallet-active');
@@ -45,6 +47,8 @@ export function CategoriasAdminPage() {
 
   const activeCount = categorias.filter((category) => category.active).length;
   const inactiveCount = categorias.length - activeCount;
+  const categoriesWithProducts = new Set(productos.map((product) => product.categoryId));
+  const emptyCount = categorias.filter((category) => !categoriesWithProducts.has(category.id)).length;
 
   return (
     <div className="catalog-wallet min-w-0 pb-8">
@@ -85,7 +89,7 @@ export function CategoriasAdminPage() {
           <p className="mt-1 text-[clamp(2.5rem,5vw,3.5rem)] font-semibold leading-none tracking-[-.055em] tabular-nums">{isLoading ? '—' : categorias.length.toLocaleString('es-AR')}</p>
           <p className="mt-2 text-[11px] text-white/40">Organizá cómo se presenta el menú.</p>
         </div>
-        <div className="relative mt-6 grid min-w-0 grid-cols-2 gap-3 border-t border-white/10 pt-5 sm:max-w-[440px] lg:mt-0 lg:w-[44%] lg:border-l lg:border-t-0 lg:pl-6 lg:pt-0">
+        <div className="relative mt-6 grid min-w-0 grid-cols-3 gap-3 border-t border-white/10 pt-5 sm:max-w-[570px] lg:mt-0 lg:w-[52%] lg:border-l lg:border-t-0 lg:pl-6 lg:pt-0">
           <div>
             <div className="flex items-center gap-1.5 text-white/55"><CheckCircle2 size={14} strokeWidth={1.8} className="text-emerald-300" /><span className="text-[11px]">Activas</span></div>
             <p className="mt-2 text-[25px] font-semibold leading-none tracking-[-.045em] tabular-nums text-[#c7f0d7]">{isLoading ? '—' : activeCount}</p>
@@ -93,6 +97,10 @@ export function CategoriasAdminPage() {
           <div className="border-l border-white/10 pl-4">
             <div className="flex items-center gap-1.5 text-white/55"><XCircle size={14} strokeWidth={1.8} className="text-white/60" /><span className="text-[11px]">Inactivas</span></div>
             <p className="mt-2 text-[25px] font-semibold leading-none tracking-[-.045em] tabular-nums text-white/80">{isLoading ? '—' : inactiveCount}</p>
+          </div>
+          <div className="min-w-0 border-l border-white/10 pl-3 sm:pl-4">
+            <div className="flex items-center gap-1.5 text-white/55"><span className="text-[13px] text-amber-300">!</span><span className="text-[11px]">Vacías</span></div>
+            <p className="mt-2 text-[25px] font-semibold leading-none tabular-nums text-amber-200">{isLoading || productsLoading || productsError ? '—' : emptyCount}</p>
           </div>
         </div>
       </section>

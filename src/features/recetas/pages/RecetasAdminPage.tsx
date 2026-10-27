@@ -156,6 +156,7 @@ export function RecetasAdminPage() {
   const filteredProductIds = useMemo(() => new Set(filteredProducts.map((product) => product.id)), [filteredProducts]);
   const overviewRows = useMemo(() => productAnalytics.filter(({ product }) => filteredProductIds.has(product.id)), [productAnalytics, filteredProductIds]);
   const completeAnalytics = productAnalytics.filter((item) => item.complete);
+  const incompleteRecipes = productAnalytics.filter((item) => !item.complete).length;
   const averageMargin = completeAnalytics.length ? completeAnalytics.reduce((sum, item) => sum + item.marginPercent, 0) / completeAnalytics.length : 0;
   const averageFoodCost = completeAnalytics.length ? completeAnalytics.reduce((sum, item) => sum + item.foodCostPercent, 0) / completeAnalytics.length : 0;
   const bestMargin = completeAnalytics.length ? [...completeAnalytics].sort((a, b) => b.marginPercent - a.marginPercent)[0] : null;
@@ -251,7 +252,7 @@ export function RecetasAdminPage() {
         </button>
       </nav>
 
-      <section aria-label="Indicadores de rentabilidad" className="mb-5 grid min-w-0 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+      <section aria-label="Indicadores de rentabilidad" className="mb-5 grid min-w-0 gap-3 sm:grid-cols-2 xl:grid-cols-5">
         <div className="relative flex min-h-[156px] min-w-0 flex-col justify-between overflow-hidden rounded-[20px] bg-[#191b20] p-5 text-white shadow-[0_12px_30px_rgba(17,24,39,.10)]">
           <div className="pointer-events-none absolute -right-14 -top-16 h-48 w-48 rounded-full bg-[#e9a349]/[.13] blur-[38px]" aria-hidden="true" />
           <div className="relative flex items-start justify-between gap-3">
@@ -267,6 +268,7 @@ export function RecetasAdminPage() {
             <p className="mt-2 text-[11px] leading-4 text-white/45">Precio de venta menos costo de ingredientes</p>
           </div>
         </div>
+        <MetricCard label="Recetas incompletas" value={String(incompleteRecipes)} helper="Sin receta válida o con costos pendientes" icon={AlertCircle} />
         <MetricCard label="Productos costeados" value={String(completeAnalytics.length) + ' / ' + String(productos.length)} helper="Con cantidades y costos completos" icon={CheckCircle2} />
         <MetricCard label="Food cost promedio" value={completeAnalytics.length ? percent(averageFoodCost) : '—'} helper="Participación de ingredientes en el precio" icon={Beef} />
         <MetricCard label="Mejor margen" value={bestMargin ? percent(bestMargin.marginPercent) : '—'} helper={bestMargin?.product.name ?? 'Sin recetas completas'} icon={BadgeDollarSign} />

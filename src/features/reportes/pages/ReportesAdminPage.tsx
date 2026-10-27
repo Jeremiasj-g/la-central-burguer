@@ -61,12 +61,18 @@ function FinancialOverview({
   deliveryRevenue,
   settledDeliveryCommission,
   periodLabel,
+  cancelledCount,
+  cancelledAmount,
+  cancellationsLoading,
 }: {
   grossRevenue: number;
   netRevenue: number;
   deliveryRevenue: number;
   settledDeliveryCommission: number;
   periodLabel: string;
+  cancelledCount: number;
+  cancelledAmount: number;
+  cancellationsLoading: boolean;
 }) {
   const productRevenue = grossRevenue - deliveryRevenue;
 
@@ -111,6 +117,10 @@ function FinancialOverview({
             <p className="mt-1 break-words text-[15px] font-semibold tracking-tight [font-variant-numeric:tabular-nums]">{formatCurrency(deliveryRevenue)}</p>
           </div>
         </div>
+      </div>
+      <div className="relative mt-4 flex flex-wrap items-center justify-between gap-2 border-t border-white/10 pt-3">
+        <span className="inline-flex items-center gap-2 text-[11px] text-white/60"><Ban size={14} className="text-amber-300" /> Pedidos cancelados</span>
+        <span className="text-right text-[12px] font-semibold tabular-nums text-amber-200">{cancellationsLoading ? '—' : `${formatNumber(cancelledCount)} · ${formatCurrency(cancelledAmount)}`}</span>
       </div>
       <p className="relative mt-3 text-[10px] text-white/35">
         Neto = facturación bruta menos comisiones de delivery liquidadas ({formatCurrency(settledDeliveryCommission)}).
@@ -164,6 +174,10 @@ export function ReportesAdminPage() {
   const [detailRevision, setDetailRevision] = useState(0);
   const { config } = useBusinessConfig();
   const { data, isLoading, error, lastLoadedAt, refresh } = useReportes(appliedFilters);
+  const cancellationFilters = useMemo(() => ({ ...appliedFilters, status: 'cancelado' as const }), [appliedFilters]);
+  const { data: cancelledData, isLoading: cancellationsLoading, refresh: refreshCancelled } = useReportes(cancellationFilters);
+  const cancelledOrders = useMemo(() => cancelledData.orders.filter((order) => appliedFilters.source === 'all' || order.source === appliedFilters.source), [cancelledData.orders, appliedFilters.source]);
+  const cancelledAmount = useMemo(() => cancelledOrders.reduce((sum, order) => sum + order.total, 0), [cancelledOrders]);
   const filteredData = useMemo(() => {
     const source = appliedFilters.source ?? 'all';
     if (source === 'all') return data;
@@ -237,6 +251,7 @@ export function ReportesAdminPage() {
 
   function refreshAll() {
     refresh();
+    refreshCancelled();
     setDetailRevision((value) => value + 1);
   }
 
@@ -316,6 +331,9 @@ export function ReportesAdminPage() {
           deliveryRevenue={summary.deliveryRevenue}
           settledDeliveryCommission={summary.settledDeliveryCommission}
           periodLabel={periodDescription}
+          cancelledCount={cancelledOrders.length}
+          cancelledAmount={cancelledAmount}
+          cancellationsLoading={cancellationsLoading}
         />
         <ReportFilters
           filters={draftFilters}
