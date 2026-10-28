@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { AlertCircle, CheckCircle2, Eye, ImageOff, Package, Plus, RefreshCw, Search, Star, XCircle } from 'lucide-react';
+import { CheckCircle2, Eye, Package, Plus, RefreshCw, Search, Star, XCircle } from 'lucide-react';
 import type { Product } from '../types/producto.types';
 import { ProductoForm } from '../components/ProductoForm';
 import { ProductoTable } from '../components/ProductoTable';
@@ -119,33 +119,36 @@ export function ProductosAdminPage() {
         </div>
       </div>
 
-      <section aria-label="Resumen del catálogo" className="relative mb-5 min-w-0 overflow-hidden rounded-[23px] bg-[#191b20] p-5 text-white shadow-soft sm:p-6">
+      <section aria-label="Resumen del catálogo" className="relative mb-5 flex min-w-0 flex-col overflow-hidden rounded-[23px] bg-[#191b20] p-5 text-white shadow-soft sm:p-6 xl:flex-row xl:items-end xl:justify-between">
         <span className="pointer-events-none absolute -right-14 -top-16 h-56 w-56 rounded-full bg-central-orange/10 blur-[60px]" aria-hidden="true" />
-        <div className="relative flex items-center gap-2">
-          <span className="grid h-9 w-9 place-items-center rounded-[12px] border border-white/10 bg-white/[.08]">
-            <Package size={18} strokeWidth={1.7} className="text-white/80" />
-          </span>
-          <div>
-            <p className="text-[11px] font-medium uppercase tracking-[.12em] text-white/60">Tu catálogo</p>
-            <p className="mt-0.5 text-[11px] text-white/40">Los indicadores reflejan los filtros seleccionados</p>
+        <div className="relative min-w-0">
+          <div className="flex items-center gap-2">
+            <span className="grid h-9 w-9 place-items-center rounded-[12px] border border-white/10 bg-white/[.08]">
+              <Package size={18} strokeWidth={1.7} className="text-white/80" />
+            </span>
+            <span className="text-[11px] font-medium uppercase tracking-[.12em] text-white/45">Tu catálogo</span>
           </div>
+          <p className="mt-5 text-[12px] text-white/60">Productos en la vista actual</p>
+          <p className="mt-1 text-[clamp(2.5rem,5vw,3.5rem)] font-semibold leading-none tracking-[-.055em] tabular-nums">
+            {isLoading ? '—' : filteredProducts.length.toLocaleString('es-AR')}
+          </p>
+          <p className="mt-2 text-[11px] text-white/40">Los indicadores reflejan los filtros seleccionados.</p>
         </div>
-        <div className="relative mt-5 grid min-w-0 grid-cols-2 gap-px overflow-hidden rounded-[15px] border border-white/10 bg-white/10 sm:grid-cols-3 xl:grid-cols-6">
+        <div className="relative mt-6 grid min-w-0 grid-cols-2 gap-x-5 gap-y-5 border-t border-white/10 pt-5 sm:grid-cols-3 xl:mt-0 xl:w-[59%] xl:border-l xl:border-t-0 xl:pl-7 xl:pt-0">
           {([
-            { label: 'Productos en vista', value: filteredProducts.length, icon: Package, color: 'text-white' },
             { label: 'Activos', value: activeCount, icon: CheckCircle2, color: 'text-[#c7f0d7]' },
-            { label: 'Disponibles', value: availableCount, icon: Eye, color: 'text-sky-200' },
-            { label: 'Destacados', value: featuredCount, icon: Star, color: 'text-amber-200' },
-            { label: 'Sin receta', value: withoutRecipeCount, icon: AlertCircle, color: 'text-amber-200' },
-            { label: 'Sin imagen', value: withoutImageCount, icon: ImageOff, color: 'text-amber-200' },
+            { label: 'Disponibles', value: availableCount, icon: Eye, color: 'text-white/85' },
+            { label: 'Destacados', value: featuredCount, icon: Star, color: 'text-white/85' },
+            { label: 'Sin receta', value: withoutRecipeCount, icon: null, color: 'text-amber-200' },
+            { label: 'Sin imagen', value: withoutImageCount, icon: null, color: 'text-amber-200' },
           ] as const).map(({ label, value, icon: Icon, color }) => (
-            <div key={label} className="flex min-h-[112px] min-w-0 flex-col justify-between bg-[#202227] px-4 py-4 sm:px-5 xl:min-h-[120px]">
-              <div className="flex items-center gap-2 text-white/60">
-                <Icon size={15} strokeWidth={1.8} className="shrink-0" aria-hidden="true" />
-                <span className="text-[11px] font-medium leading-4">{label}</span>
+            <div key={label} className="flex min-h-[62px] min-w-0 flex-col justify-start border-l border-white/10 pl-3 sm:pl-4">
+              <div className="flex min-h-[17px] items-center gap-1.5 text-white/55">
+                {Icon ? <Icon size={14} strokeWidth={1.8} className="shrink-0" aria-hidden="true" /> : <span className="inline-flex w-[14px] shrink-0 justify-center text-[13px] leading-none text-amber-300">!</span>}
+                <span className="text-[11px] leading-4">{label}</span>
               </div>
-              <p className={`mt-4 text-[clamp(1.75rem,2.5vw,2.25rem)] font-semibold leading-none tracking-[-.045em] tabular-nums ${color}`}>
-                {isLoading ? '—' : value.toLocaleString('es-AR')}
+              <p className={`mt-2 text-[24px] font-semibold leading-none tracking-[-.045em] tabular-nums ${color}`}>
+                {isLoading ? '—' : value}
               </p>
             </div>
           ))}
