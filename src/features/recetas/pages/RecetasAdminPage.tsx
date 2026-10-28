@@ -86,6 +86,7 @@ export function RecetasAdminPage() {
   const [activeTab, setActiveTab] = useState<'overview' | 'editor'>('overview');
   const [search, setSearch] = useState('');
   const [categoryId, setCategoryId] = useState('all');
+  const [costStatus, setCostStatus] = useState<'all' | 'complete' | 'pending'>('all');
   const [productId, setProductId] = useState('');
   const [draftIngredients, setDraftIngredients] = useState<RecipeIngredient[]>([]);
   const [ingredientToAdd, setIngredientToAdd] = useState('');
@@ -104,15 +105,20 @@ export function RecetasAdminPage() {
     const normalized = search.trim().toLocaleLowerCase('es');
     return productos.filter((product) => {
       if (categoryId !== 'all' && product.categoryId !== categoryId) return false;
+      const recipe = recipeByProductId.get(product.id)?.ingredients;
+      const rows = recipe ?? (product.ingredientIds ?? []).map((ingredientId) => ({ ingredientId, quantity: 0, unit: ingredientById.get(ingredientId)?.unit ?? 'unidad' as IngredientUnit }));
+      const complete = isRecipeCostComplete(rows, ingredientById);
+      if (costStatus === 'complete' && !complete) return false;
+      if (costStatus === 'pending' && complete) return false;
       if (!normalized) return true;
       const category = categoryById.get(product.categoryId)?.name ?? '';
       return [product.name, product.description, category].some((value) => value.toLocaleLowerCase('es').includes(normalized));
     });
-  }, [categoryById, categoryId, productos, search]);
+  }, [categoryById, categoryId, costStatus, ingredientById, productos, recipeByProductId, search]);
 
   useEffect(() => {
     if (!productId && filteredProducts[0]) setProductId(filteredProducts[0].id);
-    if (productId && !productos.some((product) => product.id === productId)) setProductId(filteredProducts[0]?.id ?? '');
+    if (productId && !filteredProducts.some((product) => product.id === productId)) setProductId(filteredProducts[0]?.id ?? '');
   }, [filteredProducts, productId, productos]);
 
   const selectedProduct = productos.find((product) => product.id === productId) ?? null;
@@ -303,6 +309,19 @@ export function RecetasAdminPage() {
             onValueChange={setCategoryId}
           />
         </div>
+        <div className="flex w-full min-w-0 flex-wrap items-center gap-1 rounded-[11px] border border-neutral-200/80 bg-[#f6f6f7] p-1 sm:w-auto">
+          {([
+            { id: 'all', label: 'Todos' },
+            { id: 'complete', label: 'Costeados' },
+            { id: 'pending', label: 'Pendientes' },
+          ] as const).map(option => (
+            <button key={option.id} type="button" aria-pressed={costStatus === option.id}
+              onClick={() => setCostStatus(option.id)}
+              className={cn('min-h-9 flex-1 rounded-[9px] px-3 text-[11px] font-semibold transition-[color,background-color,box-shadow] duration-200 sm:flex-none', costStatus === option.id ? 'bg-white text-neutral-900 shadow-[0_1px_6px_rgba(0,0,0,.08)]' : 'text-neutral-500 hover:text-neutral-800')}>
+              {option.label}
+            </button>
+          ))}
+        </div>
       </div>
 
       {error ? (
@@ -490,7 +509,13 @@ export function RecetasAdminPage() {
                               <div className={styles.lineCostField}>
                                 <span className={styles.fieldLabel}>Costo en receta</span>
                                 <p className={cn(styles.lineCostValue, !(lineCost !== null && lineCost > 0) && styles.pendingCost)}>
-                                  {lineCost !== null && lineCost > 0 ? formatCurrency(lineCost) : 'A definir'}
+                                  {lineCost !== null && lineCost > 0 ? formatCurrency(lineCost) : ingredient ? (
+                                    <a href={`/admin/ingredientes?editar=${encodeURIComponent(ingredient.id)}`} target="_blank" rel="noopener noreferrer"
+                                      title={`Abrir ${ingredient.name} para definir su costo`}
+                                      className="inline-flex items-center rounded-[5px] underline decoration-current/40 underline-offset-2 transition-colors hover:text-[#9c5b10] hover:decoration-current focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#d99536]">
+                                      A definir ↗
+                                    </a>
+                                  ) : 'A definir'}
                                 </p>
                               </div>
                             </div>

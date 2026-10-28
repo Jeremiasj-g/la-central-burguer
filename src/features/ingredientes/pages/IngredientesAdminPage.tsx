@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { CheckCircle2, ChevronLeft, ChevronRight, Package, Plus, RefreshCw, RotateCcw, Search, XCircle, CircleAlert } from 'lucide-react';
 import type { Ingredient } from '../types/ingrediente.types';
 import { IngredienteForm } from '../components/IngredienteForm';
@@ -89,6 +89,21 @@ export function IngredientesAdminPage() {
   // Mantener los proveedores de todos los ingredientes, no solo los filtrados.
   const { ingredientes, isLoading, error, refresh } = useIngredientes({ active: 'all' });
   const mutations = useIngredienteMutations(refresh);
+  const deepLinkHandled = useRef(false);
+
+  useEffect(() => {
+    if (isLoading || error || deepLinkHandled.current) return;
+    const id = new URLSearchParams(window.location.search).get('editar');
+    if (!id) return;
+    deepLinkHandled.current = true;
+    const target = ingredientes.find((ingredient) => ingredient.id === id);
+    if (target) {
+      setEditing(target);
+      setModalOpen(true);
+      setSearch(target.name);
+      setPage(1);
+    }
+  }, [ingredientes, isLoading, error]);
 
   useEffect(() => {
     document.body.classList.add('catalog-wallet-active');

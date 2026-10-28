@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { ArrowDown, ArrowDownUp, ArrowRight, ArrowUp, Calculator, ChevronLeft, ChevronRight, Info, PencilLine, SlidersHorizontal } from 'lucide-react';
+import { ArrowDown, ArrowDownUp, ArrowRight, ArrowUp, Calculator, ChevronLeft, ChevronRight, Info, PencilLine } from 'lucide-react';
 import type { Category } from '@/features/categorias/types/categoria.types';
 import type { Product } from '@/features/productos/types/producto.types';
 import { formatCurrency } from '@/shared/utils/format.utils';
@@ -18,7 +18,6 @@ export type RecipeProfitRow = {
 };
 
 type SortKey = 'name' | 'status' | 'cost' | 'sale' | 'profit' | 'margin' | 'foodCost' | 'suggested' | 'difference';
-type StatusFilter = 'all' | 'complete' | 'pending';
 type Direction = 'asc' | 'desc';
 
 const PAGE_SIZE = 20;
@@ -69,16 +68,12 @@ export function RentabilidadOverview({
   onEdit: (id: string) => void;
 }) {
   const [targetMargin, setTargetMargin] = useState(20);
-  const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
   const [sortKey, setSortKey] = useState<SortKey>('name');
   const [direction, setDirection] = useState<Direction>('asc');
   const [page, setPage] = useState(1);
 
   const filtered = useMemo(() => {
-    const matching = items.filter((item) => (
-      statusFilter === 'all' || (statusFilter === 'complete' ? item.complete : !item.complete)
-    ));
-    return [...matching].sort((a, b) => {
+    return [...items].sort((a, b) => {
       const av = sortValue(a, sortKey, targetMargin);
       const bv = sortValue(b, sortKey, targetMargin);
       // Valores sin costo completo siempre quedan al final, con cualquier orden.
@@ -89,7 +84,7 @@ export function RentabilidadOverview({
         : Number(av) - Number(bv);
       return (direction === 'asc' ? comparison : -comparison) || a.product.name.localeCompare(b.product.name, 'es');
     });
-  }, [items, statusFilter, sortKey, direction, targetMargin]);
+  }, [items, sortKey, direction, targetMargin]);
 
   const lastPage = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const currentPage = Math.min(page, lastPage);
@@ -167,22 +162,7 @@ export function RentabilidadOverview({
             </div>
             <p className="mt-1 text-[11px] text-neutral-500">{completeCount} costeados · {incompleteCount} pendientes · Valores por unidad de producto</p>
           </div>
-          <div className="flex shrink-0 items-center gap-2">
-            <SlidersHorizontal size={15} className="text-neutral-400" />
-            <div className="flex rounded-[10px] bg-[#f6f6f7] p-1">
-              {([
-                { id: 'all', text: 'Todos' },
-                { id: 'complete', text: 'Costeados' },
-                { id: 'pending', text: 'Pendientes' },
-              ] as const).map((option) => (
-                <button key={option.id} type="button" aria-pressed={statusFilter === option.id}
-                  onClick={() => { setStatusFilter(option.id); setPage(1); }}
-                  className={cn('rounded-[8px] px-2.5 py-1.5 text-[11px] font-medium transition-colors duration-200', statusFilter === option.id ? 'bg-white text-neutral-900 shadow-[0_1px_5px_rgba(0,0,0,.08)]' : 'text-neutral-500 hover:text-neutral-800')}>
-                  {option.text}
-                </button>
-              ))}
-            </div>
-          </div>
+
         </div>
 
         <div className="min-w-0 overflow-x-auto custom-scrollbar" role="region" aria-label="Desplazar tabla de rentabilidad horizontalmente" tabIndex={0}>
