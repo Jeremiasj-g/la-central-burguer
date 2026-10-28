@@ -106,7 +106,13 @@ export function RecetasAdminPage() {
     return productos.filter((product) => {
       if (categoryId !== 'all' && product.categoryId !== categoryId) return false;
       const recipe = recipeByProductId.get(product.id)?.ingredients;
-      const rows = recipe ?? (product.ingredientIds ?? []).map((ingredientId) => ({ ingredientId, quantity: 0, unit: ingredientById.get(ingredientId)?.unit ?? 'unidad' as IngredientUnit }));
+      const rows = recipe ?? (product.ingredientIds ?? []).map((ingredientId) => ({
+        id: `${product.id}-${ingredientId}`,
+        productId: product.id,
+        ingredientId,
+        quantity: 0,
+        unit: ingredientById.get(ingredientId)?.unit ?? 'unidad' as IngredientUnit,
+      }));
       const complete = isRecipeCostComplete(rows, ingredientById);
       if (costStatus === 'complete' && !complete) return false;
       if (costStatus === 'pending' && complete) return false;
