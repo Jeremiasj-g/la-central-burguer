@@ -15,7 +15,7 @@ export async function saveCategoryDiscount(input: CategoryDiscountInput, id?: st
   requireSupabaseConfigured('guardar la campaña');
   const title = input.title.trim();
   if (title.length < 3) throw new Error('Indicá un nombre de al menos tres caracteres.');
-  if (!input.category_id) throw new Error('Seleccioná una categoría.');
+  if (!input.category_ids.length) throw new Error('Seleccioná al menos una categoría.');
   if (!Number.isFinite(input.discount_percent) || input.discount_percent <= 0 || input.discount_percent >= 100)
     throw new Error('El descuento debe ser mayor a 0% y menor a 100%.');
   if (!/^\d{4}-\d{2}-\d{2}$/.test(input.starts_on) || !/^\d{4}-\d{2}-\d{2}$/.test(input.ends_on) || input.ends_on < input.starts_on)
