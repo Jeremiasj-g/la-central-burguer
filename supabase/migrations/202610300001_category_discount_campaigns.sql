@@ -3,7 +3,7 @@
 create table if not exists public.category_discount_campaigns (
   id uuid primary key default gen_random_uuid(),
   title text not null check (length(btrim(title)) between 3 and 100),
-  category_id uuid not null references public.categories(id) on delete restrict,
+  category_ids uuid[] not null check (cardinality(category_ids) > 0 and array_position(category_ids, null) is null),
   discount_percent numeric(5,2) not null check (discount_percent > 0 and discount_percent < 100),
   starts_on date not null,
   ends_on date not null,
@@ -13,8 +13,31 @@ create table if not exists public.category_discount_campaigns (
   constraint category_discount_dates_valid check (ends_on >= starts_on)
 );
 create index if not exists category_discount_by_category_dates
-  on public.category_discount_campaigns(category_id, enabled, starts_on, ends_on);
+  on public.category_discount_campaigns(enabled, starts_on, ends_on);
+create index if not exists category_discount_targets_gin
+  on public.category_discount_campaigns using gin(category_ids);
 alter table public.category_discount_campaigns enable row level security;
+
+-- Impide que una campaña incluya IDs inexistentes, pese a usar selección múltiple.
+create or replace function public.validate_discount_categories()
+returns trigger language plpgsql security invoker set search_path = public
+as $
+begin
+  if exists (
+    select 1 from unnest(new.category_ids) selected(id)
+    left join public.categories c on c.id = selected.id and c.deleted_at is null
+    where c.id is null
+  ) then
+    raise exception 'Una o más categorías seleccionadas no existen.' using errcode = '22023';
+  end if;
+  return new;
+end;
+$;
+drop trigger if exists validate_discount_categories on public.category_discount_campaigns;
+create trigger validate_discount_categories
+before insert or update of category_ids on public.category_discount_campaigns
+for each row execute function public.validate_discount_categories();
+
 
 create or replace function public.business_local_date()
 returns date language sql stable security invoker
@@ -53,7 +76,7 @@ set search_path = public
 as $$
   select coalesce(max(discount_percent), 0)
   from public.category_discount_campaigns
-  where category_id = target_category_id
+  where target_category_id = any(category_ids)
     and enabled
     and starts_on <= public.business_local_date()
     and ends_on >= public.business_local_date();
