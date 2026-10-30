@@ -117,9 +117,17 @@ export function ProductDetailModal({
             ) : null}
             <div className="mt-1.5 flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
               <p className="text-[12px] font-normal text-white/50">Precio unitario</p>
-              <p className="text-[22px] font-semibold tracking-[-.04em] text-[#faf9f6] tabular-nums">
-                {formatCurrency(currentProduct.currentPrice)}
-              </p>
+              <div className="flex flex-wrap items-baseline justify-end gap-x-2">
+                {currentProduct.discountPercent && currentProduct.originalPrice !== undefined ? (
+                  <>
+                    <span className="text-[12px] text-white/40 line-through">{formatCurrency(currentProduct.originalPrice)}</span>
+                    <span className="text-[11px] font-semibold text-[#f5ad4e]">-{currentProduct.discountPercent}%</span>
+                  </>
+                ) : null}
+                <p className="text-[22px] font-semibold tracking-[-.04em] text-[#faf9f6] tabular-nums">
+                  {formatCurrency(currentProduct.currentPrice)}
+                </p>
+              </div>
             </div>
             {currentProduct.description ? (
               <p className="mt-3 text-[13px] font-normal leading-[1.7] text-white/60 sm:text-[14px]">
