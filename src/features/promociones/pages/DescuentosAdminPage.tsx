@@ -9,7 +9,6 @@ import { Button } from '@/shared/components/ui/Button';
 import { ConfirmDialog } from '@/shared/components/ui/ConfirmDialog';
 import { Input } from '@/shared/components/ui/Input';
 import { Modal } from '@/shared/components/ui/Modal';
-import { Select } from '@/shared/components/ui/Select';
 import { DataLoadError } from '@/shared/components/feedback/DataLoadError';
 import { useCategoryDiscounts } from '../hooks/useCategoryDiscounts';
 import type { CategoryDiscountCampaign, CategoryDiscountInput } from '../types/descuento.types';
@@ -26,7 +25,7 @@ const statusColors = {
 };
 
 function emptyForm(today: string): CategoryDiscountInput {
-  return { title: '', category_id: '', discount_percent: 25, starts_on: today, ends_on: today, enabled: true };
+  return { title: '', category_ids: [], discount_percent: 25, starts_on: today, ends_on: today, enabled: true };
 }
 function displayDate(value: string) {
   const [year, month, day] = value.split('-');
@@ -60,7 +59,7 @@ export function DescuentosAdminPage() {
   }
   function startEdit(c: CategoryDiscountCampaign) {
     setEditingId(c.id);
-    setForm({ title: c.title, category_id: c.category_id, discount_percent: Number(c.discount_percent),
+    setForm({ title: c.title, category_ids: c.category_ids, discount_percent: Number(c.discount_percent),
       starts_on: c.starts_on, ends_on: c.ends_on, enabled: c.enabled });
     setOpen(true);
   }
@@ -135,7 +134,7 @@ export function DescuentosAdminPage() {
               <div key={c.id} className="flex flex-wrap items-center gap-x-5 gap-y-3 border-b border-neutral-100 px-5 py-4 last:border-b-0">
                 <div className="min-w-[200px] flex-1">
                   <p className="text-[13px] font-semibold text-neutral-900">{c.title}</p>
-                  <p className="mt-1 text-[11px] text-neutral-500">{categoriesById.get(c.category_id) ?? 'Categoría no disponible'}</p>
+                  <p className="mt-1 text-[11px] text-neutral-500">{c.category_ids.map(id => categoriesById.get(id) ?? 'Categoría no disponible').join(' · ')}</p>
                 </div>
                 <div className="w-20">
                   <p className="text-[20px] font-semibold tabular-nums tracking-tight text-[#bc7f2c]">-{Number(c.discount_percent).toLocaleString('es-AR')}%</p>
@@ -174,12 +173,19 @@ export function DescuentosAdminPage() {
             <Input className={`mt-1.5 ${control}`} value={form.title} maxLength={100} required
               onChange={e => setForm(s => ({ ...s, title: e.target.value }))} placeholder="Ej.: Fin de semana burger" />
           </label>
-          <div>
-            <p className="mb-1.5 text-[12px] font-medium text-neutral-700">Categoría</p>
-            <Select variant="light" className={control} value={form.category_id}
-              options={categorias.map(c => ({ value: c.id, label: c.name }))}
-              onValueChange={v => setForm(s => ({ ...s, category_id: v }))} placeholder="Seleccionar categoría" />
-          </div>
+          <fieldset>
+            <legend className="mb-2 text-[12px] font-medium text-neutral-700">Categorías incluidas</legend>
+            <div className="grid max-h-[190px] grid-cols-1 gap-x-3 gap-y-2 overflow-y-auto sm:grid-cols-2">
+              {categorias.map(c => (
+                <label key={c.id} className="flex cursor-pointer items-center gap-2 py-1 text-[12px] text-neutral-700">
+                  <input type="checkbox" checked={form.category_ids.includes(c.id)} className="accent-[#d99536]"
+                    onChange={e => setForm(s => ({ ...s, category_ids: e.target.checked
+                      ? [...s.category_ids, c.id] : s.category_ids.filter(id => id !== c.id) }))} />
+                  <span>{c.name}</span>
+                </label>
+              ))}
+            </div>
+          </fieldset>
           <label className="block text-[12px] font-medium text-neutral-700">
             Descuento (%)
             <Input className={`mt-1.5 ${control}`} type="number" min="0.01" max="99.99" step="0.01" required
@@ -203,7 +209,7 @@ export function DescuentosAdminPage() {
           </label>
           <div className="flex justify-end gap-2 border-t border-neutral-100 pt-4">
             <Button type="button" variant="secondary" onClick={() => setOpen(false)} disabled={saving}>Cancelar</Button>
-            <Button type="submit" disabled={saving || !form.category_id || !form.title.trim() || form.ends_on < form.starts_on}
+            <Button type="submit" disabled={saving || !form.category_ids.length || !form.title.trim() || form.ends_on < form.starts_on}
               className="!bg-[#191b20] !text-white">{saving ? 'Guardando…' : editingId ? 'Guardar cambios' : 'Crear campaña'}</Button>
           </div>
         </form>
