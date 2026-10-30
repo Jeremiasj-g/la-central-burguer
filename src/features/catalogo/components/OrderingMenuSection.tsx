@@ -17,6 +17,9 @@ import { CheckoutModal } from '@/features/checkout/components/CheckoutModal';
 import { EmptyState } from '@/shared/components/ui/EmptyState';
 import { toast } from 'react-toastify';
 import { getOrderableProductIds } from '@/features/productos/services/productos.service';
+import { useCategoryDiscounts } from '@/features/promociones/hooks/useCategoryDiscounts';
+import { businessDate, discountForCategory, discountedPrice } from '@/features/promociones/utils/descuentos.utils';
+import { calculateCartTotals } from '@/features/carrito/services/carrito.service';
 import { useBusinessConfig } from '@/features/configuracion/hooks/useBusinessConfig';
 import { isBusinessOpenBySchedule } from '@/features/configuracion/utils/businessStatus.utils';
 import { useBusinessClock } from '@/features/configuracion/hooks/useBusinessClock';
@@ -31,16 +34,40 @@ export function OrderingMenuSection() {
   const [previewProduct, setPreviewProduct] = useState<Product | null>(null);
 
   const { categorias, isLoading: loadingCategories, error: categoriesError } = useCategorias({ active: 'active' });
-  const { productos, isLoading: loadingProducts, error: productsError, refresh: refreshProducts } = useProductos({
-    search,
-    categoryId: selectedCategoryId,
-    available: 'all',
-    active: 'active',
+  const { productos: catalogProducts, isLoading: loadingProducts, error: productsError, refresh: refreshProducts } = useProductos({
+    available: 'all', active: 'active',
   });
+  const { campaigns } = useCategoryDiscounts();
   const cart = useCarrito();
   const { config } = useBusinessConfig();
   const now = useBusinessClock();
+  const today = businessDate(now, config?.timezone);
   const isBusinessOpen = config ? isBusinessOpenBySchedule(config,now) : false;
+  // Descuentos solo para el menú público: los precios originales del catálogo administrativo no cambian.
+  const pricedProducts = useMemo(() => catalogProducts.map(product => {
+    const discountPercent = discountForCategory(campaigns, product.categoryId, today);
+    return discountPercent > 0
+      ? { ...product, originalPrice: product.currentPrice, discountPercent,
+          currentPrice: discountedPrice(product.currentPrice, discountPercent) }
+      : product;
+  }), [catalogProducts, campaigns, today]);
+  const productos = useMemo(() => {
+    const query = search.trim().toLocaleLowerCase('es');
+    return pricedProducts.filter(product =>
+      (selectedCategoryId === 'all' || product.categoryId === selectedCategoryId)
+      && (!query || product.name.toLocaleLowerCase('es').includes(query)
+        || product.description.toLocaleLowerCase('es').includes(query)));
+  }, [pricedProducts, selectedCategoryId, search]);
+  // Revalidamos visualmente los precios del carrito cuando comienza/termina una campaña.
+  // El servidor siempre vuelve a calcular los precios al confirmar.
+  const pricedCartItems = useMemo(() => {
+    const byId = new Map(pricedProducts.map(p => [p.id, p.currentPrice]));
+    return cart.items.map(item => ({ ...item, unitPrice: byId.get(item.productId) ?? item.unitPrice }));
+  }, [cart.items, pricedProducts]);
+  const pricedCartTotals = useMemo(() => calculateCartTotals(pricedCartItems), [pricedCartItems]);
+  const selectedProductLive = selectedProduct
+    ? pricedProducts.find(product => product.id === selectedProduct.id) ?? selectedProduct
+    : null;
 
   useEffect(() => {
     function handleCartOpen() {
@@ -102,14 +129,14 @@ export function OrderingMenuSection() {
             </div>
           </div>
 
-          <CartSidebar items={cart.items} total={cart.totals.total} checkoutDisabled={!isBusinessOpen} onUpdateQuantity={cart.updateQuantity} onUpdateNote={cart.updateNote} onRemove={cart.removeItem} onClear={cart.clear} onCheckout={() => isBusinessOpen && setCheckoutOpen(true)} />
+          <CartSidebar items={pricedCartItems} total={pricedCartTotals.total} checkoutDisabled={!isBusinessOpen} onUpdateQuantity={cart.updateQuantity} onUpdateNote={cart.updateNote} onRemove={cart.removeItem} onClear={cart.clear} onCheckout={() => isBusinessOpen && setCheckoutOpen(true)} />
         </div>
       </div>
 
       <ProductDetailModal
-        product={selectedProduct}
+        product={selectedProductLive}
         open={Boolean(selectedProduct)}
-        disabled={!isBusinessOpen || !selectedProduct?.available}
+        disabled={!isBusinessOpen || !selectedProductLive?.available}
         onClose={() => setSelectedProduct(null)}
         onPreviewImage={setPreviewProduct}
         categoryName={selectedProduct ? categoryById[selectedProduct.categoryId] : undefined}
@@ -145,8 +172,8 @@ export function OrderingMenuSection() {
         categoryName={previewProduct ? categoryById[previewProduct.categoryId] : undefined}
         onClose={() => setPreviewProduct(null)}
       />
-      <CartDrawer open={cartOpen} onClose={() => setCartOpen(false)} items={cart.items} total={cart.totals.total} checkoutDisabled={!isBusinessOpen} onUpdateQuantity={cart.updateQuantity} onUpdateNote={cart.updateNote} onRemove={cart.removeItem} onClear={cart.clear} onCheckout={() => isBusinessOpen && setCheckoutOpen(true)} />
-      <CheckoutModal open={checkoutOpen} onClose={() => setCheckoutOpen(false)} items={cart.items} onOrderCreated={() => setCartOpen(false)} />
+      <CartDrawer open={cartOpen} onClose={() => setCartOpen(false)} items={pricedCartItems} total={pricedCartTotals.total} checkoutDisabled={!isBusinessOpen} onUpdateQuantity={cart.updateQuantity} onUpdateNote={cart.updateNote} onRemove={cart.removeItem} onClear={cart.clear} onCheckout={() => isBusinessOpen && setCheckoutOpen(true)} />
+      <CheckoutModal open={checkoutOpen} onClose={() => setCheckoutOpen(false)} items={pricedCartItems} onOrderCreated={() => setCartOpen(false)} />
     </section>
   );
 }
