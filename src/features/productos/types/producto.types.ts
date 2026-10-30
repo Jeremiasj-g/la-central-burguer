@@ -6,6 +6,8 @@ export interface Product {
   imageUrl: string;
   categoryId: string;
   currentPrice: number;
+  originalPrice?: number;
+  discountPercent?: number;
   active: boolean;
   available: boolean;
   featured: boolean;
