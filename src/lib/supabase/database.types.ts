@@ -97,6 +97,11 @@ export interface Database {
         { id?: string; name: string; code: PaymentMethodCode; active?: boolean; display_order?: number; created_at?: string; updated_at?: string },
         { name?: string; code?: PaymentMethodCode; active?: boolean; display_order?: number; updated_at?: string }
       >;
+      category_discount_campaigns: TableDefinition<
+        { id: string; title: string; category_id: string; discount_percent: number; starts_on: string; ends_on: string; enabled: boolean; created_at: string; updated_at: string },
+        { id?: string; title: string; category_id: string; discount_percent: number; starts_on: string; ends_on: string; enabled?: boolean; created_at?: string; updated_at?: string },
+        { title?: string; category_id?: string; discount_percent?: number; starts_on?: string; ends_on?: string; enabled?: boolean; updated_at?: string }
+      >;
       categories: TableDefinition<
         { id: string; name: string; slug: string; description: string | null; icon_name: string | null; image_url: string | null; display_order: number; active: boolean; deleted_at: string | null; created_at: string; updated_at: string },
         { id?: string; name: string; slug?: string; description?: string | null; icon_name?: string | null; image_url?: string | null; display_order?: number; active?: boolean; deleted_at?: string | null; created_at?: string; updated_at?: string },
