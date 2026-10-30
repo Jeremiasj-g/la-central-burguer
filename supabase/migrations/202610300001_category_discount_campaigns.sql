@@ -21,7 +21,7 @@ alter table public.category_discount_campaigns enable row level security;
 -- Impide que una campaña incluya IDs inexistentes, pese a usar selección múltiple.
 create or replace function public.validate_discount_categories()
 returns trigger language plpgsql security invoker set search_path = public
-as $
+as $discount_validation$
 begin
   if exists (
     select 1 from unnest(new.category_ids) selected(id)
@@ -32,7 +32,7 @@ begin
   end if;
   return new;
 end;
-$;
+$discount_validation$;
 drop trigger if exists validate_discount_categories on public.category_discount_campaigns;
 create trigger validate_discount_categories
 before insert or update of category_ids on public.category_discount_campaigns
