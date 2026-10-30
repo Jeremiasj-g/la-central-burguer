@@ -8,6 +8,7 @@ export const ROUTES = {
   adminCategorias: '/admin/categorias',
   adminIngredientes: '/admin/ingredientes',
   adminRecetas: '/admin/recetas',
+  adminDescuentos: '/admin/descuentos',
   adminPedidos: '/admin/pedidos',
   adminVentaMostrador: '/admin/venta-mostrador',
   adminDelivery: '/admin/delivery',
