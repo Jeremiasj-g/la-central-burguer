@@ -28,6 +28,7 @@ export const ADMIN_NAVIGATION = [
   { label: 'Categorías', href: ROUTES.adminCategorias, icon: Tags, development: false },
   { label: 'Ingredientes', href: ROUTES.adminIngredientes, icon: Boxes, development: false },
   { label: 'Recetas', href: ROUTES.adminRecetas, icon: BookOpenCheck, development: false },
+  { label: 'Descuentos', href: ROUTES.adminDescuentos, icon: BadgePercent, development: false },
   { label: 'Pedidos', href: ROUTES.adminPedidos, icon: ClipboardList, development: false },
   { label: 'Venta mostrador', href: ROUTES.adminVentaMostrador, icon: Store, development: false },
   { label: 'Delivery', href: ROUTES.adminDelivery, icon: Truck, development: true },
