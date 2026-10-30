@@ -75,6 +75,7 @@ export function ProductoCard({ product, categoryName, disabled = false, onSelect
         <div>
           <div className="flex flex-wrap items-center gap-2">
             {categoryName ? <span className="text-[11px] font-medium tracking-normal text-central-orange/80">{formatMenuLabel(categoryName)}</span> : null}
+            {product.discountPercent ? <span className="rounded-full bg-central-orange px-2 py-0.5 text-[10px] font-bold text-[#191b20]">-{product.discountPercent}%</span> : null}
             {product.featured ? <span className="inline-flex items-center gap-1 rounded-full border border-central-orange/35 px-2 py-0.5 text-[10px] font-medium tracking-normal text-central-orange"><Star size={11} /> recomendado</span> : null}
           </div>
           <h3 className="mt-1.5 line-clamp-2 text-[17px] font-semibold leading-tight tracking-[-.02em] text-central-cream sm:text-[19px]">{product.name}</h3>
@@ -82,7 +83,10 @@ export function ProductoCard({ product, categoryName, disabled = false, onSelect
         </div>
 
         <div className="mt-3 flex items-end sm:mt-4 justify-between gap-3">
-          <p className="text-[17px] font-semibold tracking-[-.02em] text-central-orange">{formatCurrency(product.currentPrice)}</p>
+          <div className="flex flex-wrap items-baseline gap-x-2">
+            {product.discountPercent && product.originalPrice !== undefined ? <span className="text-[12px] text-central-cream/45 line-through">{formatCurrency(product.originalPrice)}</span> : null}
+            <p className="text-[17px] font-semibold tracking-[-.02em] text-central-orange">{formatCurrency(product.currentPrice)}</p>
+          </div>
         </div>
       </div>
     </article>
