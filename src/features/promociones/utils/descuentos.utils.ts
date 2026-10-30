@@ -17,7 +17,7 @@ export function campaignStatus(c: CategoryDiscountCampaign, today: string): 'pau
 }
 
 export function discountForCategory(campaigns: CategoryDiscountCampaign[], categoryId: string, today: string): number {
-  return campaigns.reduce((best, c) => c.category_id === categoryId && campaignStatus(c, today) === 'active'
+  return campaigns.reduce((best, c) => c.category_ids.includes(categoryId) && campaignStatus(c, today) === 'active'
     ? Math.max(best, Number(c.discount_percent))
     : best, 0);
 }
