@@ -318,7 +318,9 @@ export function CheckoutModal({ open, onClose, items, onOrderCreated }: Checkout
           </div>
           <h3 className="mt-5 text-[23px] font-semibold leading-tight tracking-[-.04em] text-white sm:text-[27px]">¡Pedido confirmado!</h3>
           <p className="mx-auto mt-3 max-w-[400px] text-[13px] leading-[1.7] text-white/55">
-            Ya registramos tu pedido en {config?.businessName ?? 'La Central Burger'} y abrimos WhatsApp con el detalle para coordinarlo.
+            {process.env.NEXT_PUBLIC_APP_ENV === 'development'
+              ? 'Pedido de prueba registrado en la base de desarrollo. No se notificó al local ni se abrió WhatsApp.'
+              : `Ya registramos tu pedido en ${config?.businessName ?? 'La Central Burger'} y abrimos WhatsApp con el detalle para coordinarlo.`}
           </p>
           <div className="mt-6 border-y border-white/10 py-5">
             <p className="text-[11px] text-white/45">Código de tu pedido</p>
