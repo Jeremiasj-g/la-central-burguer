@@ -25,9 +25,12 @@ import { isBusinessOpenBySchedule } from '@/features/configuracion/utils/busines
 import { useBusinessClock } from '@/features/configuracion/hooks/useBusinessClock';
 import { formatMenuLabel } from '../utils/menuLabel';
 
+const CATEGORY_SWITCH_MS = 220;
+
 export function OrderingMenuSection() {
   const [search, setSearch] = useState('');
   const [selectedCategoryId, setSelectedCategoryId] = useState('all');
+  const [displayedCategoryId, setDisplayedCategoryId] = useState('all');
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [cartOpen, setCartOpen] = useState(false);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
@@ -38,6 +41,19 @@ export function OrderingMenuSection() {
     available: 'all', active: 'active',
   });
   const { campaigns } = useCategoryDiscounts();
+
+  // El catálogo ya está en memoria. Mostramos una transición breve al elegir
+  // una categoría, sin volver a pedir los productos a Supabase.
+  const switchingCategory = selectedCategoryId !== displayedCategoryId;
+  useEffect(() => {
+    if (!switchingCategory) return;
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      setDisplayedCategoryId(selectedCategoryId);
+      return;
+    }
+    const timeout = window.setTimeout(() => setDisplayedCategoryId(selectedCategoryId), CATEGORY_SWITCH_MS);
+    return () => window.clearTimeout(timeout);
+  }, [selectedCategoryId, switchingCategory]);
   const cart = useCarrito();
   const { config } = useBusinessConfig();
   const now = useBusinessClock();
@@ -54,10 +70,10 @@ export function OrderingMenuSection() {
   const productos = useMemo(() => {
     const query = search.trim().toLocaleLowerCase('es');
     return pricedProducts.filter(product =>
-      (selectedCategoryId === 'all' || product.categoryId === selectedCategoryId)
+      (displayedCategoryId === 'all' || product.categoryId === displayedCategoryId)
       && (!query || product.name.toLocaleLowerCase('es').includes(query)
         || product.description.toLocaleLowerCase('es').includes(query)));
-  }, [pricedProducts, selectedCategoryId, search]);
+  }, [pricedProducts, displayedCategoryId, search]);
   // Revalidamos visualmente los precios del carrito cuando comienza/termina una campaña.
   // El servidor siempre vuelve a calcular los precios al confirmar.
   const pricedCartItems = useMemo(() => {
@@ -90,6 +106,10 @@ export function OrderingMenuSection() {
 
   const categoryById = useMemo(() => Object.fromEntries(categorias.map((category) => [category.id, category.name])), [categorias]);
   const activeTitle = selectedCategoryId === 'all' ? 'Menú completo' : (categoryById[selectedCategoryId] ?? 'Menú');
+  const showingSkeleton = loadingProducts || switchingCategory;
+  const skeletonCount = loadingProducts ? 8 : Math.min(6, Math.max(2,
+    pricedProducts.filter(product => selectedCategoryId === 'all' || product.categoryId === selectedCategoryId).length,
+  ));
 
   return (
     <section id="menu" className="brick-wall lcb-ordering-section relative px-5 py-9 text-central-cream sm:px-6 sm:py-12 lg:px-8 lg:py-14">
@@ -121,13 +141,18 @@ export function OrderingMenuSection() {
                 </div>
               ) : (
                 <>
-                  <div className="grid gap-3 sm:gap-4 xl:grid-cols-2">
-                    {loadingProducts ? Array.from({ length: 8 }).map((_, index) => <ProductoCardSkeleton key={index} />) : null}
-                    {!loadingProducts && productos.map((product) => (
-                      <ProductoCard key={product.id} product={product} categoryName={categoryById[product.categoryId]} disabled={!isBusinessOpen} onSelect={setSelectedProduct} onPreviewImage={setPreviewProduct} />
-                    ))}
+                  <div
+                    key={showingSkeleton ? 'menu-loading' : `menu-${displayedCategoryId}`}
+                    className={`grid gap-3 sm:gap-4 xl:grid-cols-2 ${showingSkeleton ? '' : 'lcb-menu-products-enter'}`}
+                    aria-busy={showingSkeleton}
+                  >
+                    {showingSkeleton
+                      ? Array.from({ length: skeletonCount }, (_, index) => <ProductoCardSkeleton key={index} />)
+                      : productos.map((product) => (
+                          <ProductoCard key={product.id} product={product} categoryName={categoryById[product.categoryId]} disabled={!isBusinessOpen} onSelect={setSelectedProduct} onPreviewImage={setPreviewProduct} />
+                        ))}
                   </div>
-                  {!loadingProducts && productos.length === 0 ? <EmptyState className="mt-6 border-central-orange/25 bg-black/30 text-central-cream" title="No encontramos productos" description="Probá cambiar el texto de búsqueda o elegir otra categoría." /> : null}
+                  {!showingSkeleton && productos.length === 0 ? <EmptyState className="mt-6 border-central-orange/25 bg-black/30 text-central-cream" title="No encontramos productos" description="Probá cambiar el texto de búsqueda o elegir otra categoría." /> : null}
                 </>
               )}
             </div>
