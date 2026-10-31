@@ -589,7 +589,7 @@ export function CheckoutModal({ open, onClose, items, onOrderCreated }: Checkout
         theme={theme}
         title="Confirmar pedido"
         description="¿Seguro que querés crear el pedido y abrir WhatsApp con el detalle?"
-        confirmLabel="Crear y enviar"
+        confirmLabel={process.env.NEXT_PUBLIC_APP_ENV === 'development' ? 'Crear pedido de prueba' : 'Crear y enviar'}
         isLoading={isSubmitting}
         onCancel={() => setConfirmSendOpen(false)}
         onConfirm={handleSubmit}
