@@ -61,8 +61,12 @@ export function OrderingMenuSection() {
   // Revalidamos visualmente los precios del carrito cuando comienza/termina una campaña.
   // El servidor siempre vuelve a calcular los precios al confirmar.
   const pricedCartItems = useMemo(() => {
-    const byId = new Map(pricedProducts.map(p => [p.id, p.currentPrice]));
-    return cart.items.map(item => ({ ...item, unitPrice: byId.get(item.productId) ?? item.unitPrice }));
+    const byId = new Map(pricedProducts.map(p => [p.id, {
+      unitPrice: p.currentPrice,
+      originalUnitPrice: p.originalPrice ?? p.currentPrice,
+      discountPercent: p.discountPercent ?? 0,
+    }]));
+    return cart.items.map(item => ({ ...item, ...(byId.get(item.productId) ?? {}) }));
   }, [cart.items, pricedProducts]);
   const pricedCartTotals = useMemo(() => calculateCartTotals(pricedCartItems), [pricedCartItems]);
   const selectedProductLive = selectedProduct
@@ -155,6 +159,8 @@ export function OrderingMenuSection() {
               imageUrl: product.imageUrl,
               categoryName: categoryById[product.categoryId],
               unitPrice: product.currentPrice,
+              originalUnitPrice: product.originalPrice ?? product.currentPrice,
+              discountPercent: product.discountPercent ?? 0,
               quantity,
               note,
             });
