@@ -32,6 +32,28 @@ interface CheckoutModalProps {
   onOrderCreated?: () => void;
 }
 
+function CheckoutSummaryItem({ item }: { item: CartItem }) {
+  const originalUnitPrice = item.originalUnitPrice ?? item.unitPrice;
+  const hasDiscount = originalUnitPrice > item.unitPrice;
+
+  return (
+    <div className="flex min-w-0 items-start justify-between gap-3 text-[12px] leading-5 text-white/60">
+      <div className="min-w-0">
+        <p className="break-words">{item.quantity} × {item.productName}</p>
+        {hasDiscount && item.discountPercent ? (
+          <span className="text-[10px] font-medium text-[#f3b25b]">-{item.discountPercent}% de descuento</span>
+        ) : null}
+      </div>
+      <div className="shrink-0 text-right tabular-nums">
+        {hasDiscount ? (
+          <p className="text-[11px] text-white/40 line-through">{formatCurrency(originalUnitPrice * item.quantity)}</p>
+        ) : null}
+        <p className="text-white/85">{formatCurrency(item.quantity * item.unitPrice)}</p>
+      </div>
+    </div>
+  );
+}
+
 function RequiredMark() {
   return <span className="ml-1 text-central-orange" aria-hidden="true">*</span>;
 }
@@ -262,9 +284,19 @@ export function CheckoutModal({ open, onClose, items, onOrderCreated }: Checkout
         <div className="lcb-checkout-footer flex items-center justify-between gap-3 lg:hidden">
           <div className="min-w-0">
             <p className="text-[10px] leading-4 text-white/45">{hasValidDeliveryQuote ? 'Total del pedido' : 'Subtotal sin envío'}</p>
+            {totals.savings > 0 ? (
+              <p className="text-[11px] tabular-nums text-white/40 line-through">
+                {formatCurrency(totals.originalSubtotal + totals.deliveryCost)}
+              </p>
+            ) : null}
             <p className="truncate text-[20px] font-semibold leading-6 tracking-[-.045em] tabular-nums text-white">
               {formatCurrency(totals.total)}
             </p>
+            {totals.savings > 0 ? (
+              <p className={cn('text-[10px] font-semibold tabular-nums', theme === 'light' ? 'text-emerald-700' : 'text-emerald-300')}>
+                Ahorrás {formatCurrency(totals.savings)}
+              </p>
+            ) : null}
           </div>
           <button
             type="button"
@@ -483,12 +515,12 @@ export function CheckoutModal({ open, onClose, items, onOrderCreated }: Checkout
               )}>
                 <div className="min-h-0 overflow-hidden">
                   <div className="space-y-2.5 border-t border-white/[.085] pt-3">
-                    {items.map((item) => (
-                      <div key={item.id} className="flex items-start justify-between gap-3 text-[12px] leading-5 text-white/60">
-                        <span className="min-w-0">{item.quantity} × {item.productName}</span>
-                        <span className="shrink-0 tabular-nums text-white/85">{formatCurrency(item.quantity * item.unitPrice)}</span>
-                      </div>
-                    ))}
+                    {items.map((item) => <CheckoutSummaryItem key={item.id} item={item} />)}
+                    {totals.savings > 0 ? (
+                      <p className={cn('pt-1 text-[11px] font-semibold tabular-nums', theme === 'light' ? 'text-emerald-700' : 'text-emerald-300')}>
+                        Ahorro por promociones: {formatCurrency(totals.savings)}
+                      </p>
+                    ) : null}
                   </div>
                 </div>
               </div>
@@ -499,16 +531,25 @@ export function CheckoutModal({ open, onClose, items, onOrderCreated }: Checkout
                 <h3 className="text-[16px] font-semibold tracking-[-.025em] text-white">Tu pedido</h3>
               </div>
               <div className="max-h-[220px] space-y-3 overflow-y-auto pr-1">
-                {items.map((item) => (
-                  <div key={item.id} className="flex items-start justify-between gap-3 text-[12px] leading-5 text-white/60">
-                    <span className="min-w-0">{item.quantity} × {item.productName}</span>
-                    <span className="shrink-0 tabular-nums text-white/85">{formatCurrency(item.quantity * item.unitPrice)}</span>
-                  </div>
-                ))}
+                {items.map((item) => <CheckoutSummaryItem key={item.id} item={item} />)}
               </div>
             </div>
             <div className="mt-4 hidden space-y-2.5 border-t border-white/[.085] pt-4 text-[12px] lg:block">
-              <div className="flex justify-between text-white/55"><span>Subtotal</span><span>{formatCurrency(totals.subtotal)}</span></div>
+              <div className="flex justify-between gap-3 text-white/55">
+                <span>Subtotal</span>
+                <div className="text-right tabular-nums">
+                  {totals.savings > 0 ? (
+                    <p className="text-[11px] text-white/40 line-through">{formatCurrency(totals.originalSubtotal)}</p>
+                  ) : null}
+                  <p>{formatCurrency(totals.subtotal)}</p>
+                </div>
+              </div>
+              {totals.savings > 0 ? (
+                <div className={cn('flex justify-between gap-3 font-medium', theme === 'light' ? 'text-emerald-700' : 'text-emerald-300')}>
+                  <span>Ahorro por promociones</span>
+                  <span className="tabular-nums">-{formatCurrency(totals.savings)}</span>
+                </div>
+              ) : null}
               <div aria-hidden={!isDelivery} className={cn(
                 'grid transition-[grid-template-rows,opacity] duration-200 ease-out motion-reduce:transition-none',
                 isDelivery ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0',
