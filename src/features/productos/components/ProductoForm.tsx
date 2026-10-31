@@ -116,8 +116,9 @@ export function ProductoForm({ product, categories, ingredients, isSaving, onSub
 
   const labelClass = 'mb-1.5 block text-[11px] font-medium text-neutral-500';
   const fieldClass = '!h-10 !w-full !rounded-[10px] !border-neutral-200/80 !bg-[#f8f8f9] !px-3 !text-[13px] !font-normal !text-neutral-900 !shadow-none placeholder:!text-neutral-400 focus:!border-central-orange/45 focus:!bg-white focus:!ring-central-orange/10';
-  const selectedChipClass = 'group inline-flex min-h-8 cursor-pointer items-center gap-1 rounded-[9px] bg-central-orange/[.09] px-2.5 py-1 text-[11px] font-medium text-central-ember transition-[background-color,transform] duration-200 hover:bg-central-orange/15 active:scale-[.98]';
-  const suggestionChipClass = 'inline-flex min-h-8 cursor-pointer items-center gap-1 rounded-[9px] bg-[#f5f5f6] px-2.5 py-1 text-[11px] font-normal text-neutral-600 transition-[background-color,color,transform] duration-200 hover:bg-central-orange/[.09] hover:text-central-ember active:scale-[.98]';
+  // Chips discretos en el modal: evitamos que los estilos globales de botones los agranden.
+  const selectedChipClass = 'group inline-flex min-h-[26px] max-w-full cursor-pointer items-center gap-1.5 rounded-[8px] border border-neutral-200/80 bg-[#f6f6f7] px-2 py-1 !text-[11px] !font-medium leading-[16px] text-neutral-700 transition-colors duration-200 hover:border-central-orange/30 hover:bg-central-orange/[.07] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-central-orange';
+  const suggestionChipClass = 'group inline-flex min-h-[26px] max-w-full cursor-pointer items-center gap-1.5 rounded-[8px] border border-neutral-200/70 bg-[#f8f8f9] px-2 py-1 !text-[11px] !font-normal leading-[16px] text-neutral-600 transition-colors duration-200 hover:border-central-orange/35 hover:bg-central-orange/[.06] hover:text-neutral-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-central-orange';
 
   return (
     <form onSubmit={handleSubmit} className="product-create-workspace min-w-0">
@@ -165,44 +166,44 @@ export function ProductoForm({ product, categories, ingredients, isSaving, onSub
         </section>
 
         <section aria-labelledby="product-ingredients-heading" className="min-w-0 border-t border-neutral-100 pt-5 lg:border-l lg:border-t-0 lg:px-5 lg:pt-0 xl:px-7">
-          <div className="mb-4 flex items-center justify-between gap-3">
+          <div className="mb-3 flex items-center justify-between gap-3">
             <h3 id="product-ingredients-heading" className="text-[14px] font-semibold tracking-[-.02em] text-neutral-900">Ingredientes</h3>
             <span className="text-[11px] tabular-nums text-neutral-400">{selectedIngredients.length} seleccionados</span>
           </div>
 
           <div className="min-w-0">
             <p className={labelClass}>Seleccionados</p>
-            <div className="flex min-h-[37px] max-h-[118px] flex-wrap content-start gap-1.5 overflow-y-auto py-1 custom-scrollbar" aria-label="Ingredientes seleccionados">
+            <div className="custom-scrollbar flex min-h-[29px] max-h-[88px] flex-wrap content-start gap-1.5 overflow-y-auto py-0.5" aria-label="Ingredientes seleccionados">
               {selectedIngredients.length ? selectedIngredients.map((ingredient) => (
                 <button key={ingredient.id} type="button" title={`Quitar ${ingredient.name}`} aria-label={`Quitar ${ingredient.name}`} className={selectedChipClass} onClick={() => toggleIngredient(ingredient.id)}>
-                  {ingredient.name}
-                  <X size={12} strokeWidth={1.8} className="opacity-65 transition-opacity duration-200 group-hover:opacity-100" />
+                  <span className="min-w-0 max-w-[220px] truncate">{ingredient.name}</span>
+                  <X size={11} strokeWidth={1.8} className="shrink-0 text-neutral-400 transition-colors duration-200 group-hover:text-central-ember" aria-hidden="true" />
                 </button>
-              )) : <p className="py-2 text-[11px] text-neutral-400">Sin ingredientes seleccionados</p>}
+              )) : <p className="py-1 text-[11px] text-neutral-400">Sin ingredientes seleccionados</p>}
             </div>
           </div>
 
-          <div className="mt-4 min-w-0">
+          <div className="mt-3 min-w-0">
             <label htmlFor="ingredient-product-search" className={labelClass}>Agregar ingrediente</label>
             <div className="relative">
               <Search size={15} strokeWidth={1.8} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" />
               <Input
                 id="ingredient-product-search"
                 type="search"
-                className={fieldClass + ' !pl-9'}
+                className={fieldClass + ' !h-9 !pl-9'}
                 value={ingredientSearch}
                 onChange={(event) => setIngredientSearch(event.target.value)}
                 placeholder="Buscar ingrediente"
                 autoComplete="off"
               />
             </div>
-            <div className="custom-scrollbar mt-2.5 max-h-[240px] min-h-[86px] overflow-y-auto">
+            <div className="custom-scrollbar mt-2 max-h-[190px] min-h-[60px] overflow-y-auto pr-1">
               {filteredIngredients.length ? (
                 <div className="flex flex-wrap content-start gap-1.5">
                   {filteredIngredients.map((ingredient) => (
                     <button key={ingredient.id} type="button" title={`Agregar ${ingredient.name}`} aria-label={`Agregar ${ingredient.name}`} className={suggestionChipClass} onClick={() => toggleIngredient(ingredient.id)}>
-                      <Plus size={12} strokeWidth={1.9} className="text-central-orange" />
-                      {ingredient.name}
+                      <Plus size={11} strokeWidth={1.9} className="shrink-0 text-central-orange/80" aria-hidden="true" />
+                      <span className="min-w-0 max-w-[240px] truncate">{ingredient.name}</span>
                     </button>
                   ))}
                 </div>
