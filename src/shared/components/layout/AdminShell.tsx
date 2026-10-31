@@ -16,12 +16,11 @@ import { BurgerLoader } from '@/shared/components/ui/BurgerLoader';
 import { useAnimatedPresence } from '@/shared/hooks/useAnimatedPresence';
 import { AdminUnsavedChangesProvider, useGuardedNavigation } from './AdminUnsavedChanges';
 
-const ADMIN_NAV_GROUPS = [
-  { label: 'Resumen', items: ADMIN_NAVIGATION.slice(0, 1) },
-  { label: 'Catálogo', items: ADMIN_NAVIGATION.slice(1, 5) },
-  { label: 'Operación', items: ADMIN_NAVIGATION.slice(5, 8) },
-  { label: 'Administración', items: ADMIN_NAVIGATION.slice(8, 11) },
-] as const;
+// Evitamos rangos fijos: si se agrega un módulo, ninguno desaparece del menú.
+const ADMIN_NAV_GROUPS = (['Resumen', 'Catálogo', 'Operación', 'Administración'] as const).map((label) => ({
+  label,
+  items: ADMIN_NAVIGATION.filter((item) => item.group === label),
+}));
 
 export function AdminShell({ children }: { children: React.ReactNode }) {
   return <AdminUnsavedChangesProvider><AdminShellContent>{children}</AdminShellContent></AdminUnsavedChangesProvider>;
