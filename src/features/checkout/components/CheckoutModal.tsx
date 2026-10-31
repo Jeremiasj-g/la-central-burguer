@@ -101,7 +101,7 @@ export function CheckoutModal({ open, onClose, items, onOrderCreated }: Checkout
     () => config?.paymentMethods.filter((method) => method.active) ?? [],
     [config],
   );
-  const { isLoading: isGettingLocation, requestLocation, clearLocation } = useCurrentLocation();
+  const { isLoading: isGettingLocation, isRetrying: isRetryingLocation, requestLocation, clearLocation } = useCurrentLocation();
   const isDelivery = values.deliveryMethod === 'delivery';
   const hasValidDeliveryQuote = !isDelivery || Boolean(
     values.customerLocation
@@ -210,6 +210,7 @@ export function CheckoutModal({ open, onClose, items, onOrderCreated }: Checkout
       }
 
       setDeliveryQuote(quote);
+      toast.success('Ubicación y costo de envío calculados correctamente.');
       setValues((current) => ({
         ...current,
         address: '',
@@ -431,7 +432,7 @@ export function CheckoutModal({ open, onClose, items, onOrderCreated }: Checkout
                         <button type="button" onClick={attachCurrentLocation} disabled={!isDelivery || isGettingLocation || isQuotingDelivery}
                           className="inline-flex h-9 items-center gap-2 rounded-[10px] bg-central-orange px-3 text-[11px] font-semibold text-[#191919] transition-colors duration-200 hover:bg-[#ffc04a] disabled:cursor-wait disabled:opacity-60">
                           <Navigation size={14} strokeWidth={1.9}/>
-                          {isGettingLocation || isQuotingDelivery ? 'Calculando...' : 'Compartir ubicación'}
+                          {isRetryingLocation ? 'Buscando por red...' : isGettingLocation || isQuotingDelivery ? 'Calculando...' : 'Compartir ubicación'}
                         </button>
                       )}
                       {values.deliveryMapsUrl ? (
