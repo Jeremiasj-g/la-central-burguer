@@ -393,7 +393,7 @@ export function ReportesAdminPage() {
       {analysisView === 'tables' ? (
         isLoading
           ? <div className="rounded-[18px] border border-neutral-200 bg-white p-12 text-center text-sm text-neutral-500 shadow-soft">Preparando movimientos…</div>
-          : <ReportTables groups={groups} groupBy={groupBy} onGroupByChange={setGroupBy} detailOrders={detailOrders} detailTotal={detailTotal} detailPage={detailPage} detailLoading={detailLoading} onDetailPageChange={setDetailPage} />
+          : <ReportTables dataset={filteredData} groups={groups} groupBy={groupBy} onGroupByChange={setGroupBy} detailOrders={detailOrders} detailTotal={detailTotal} detailPage={detailPage} detailLoading={detailLoading} onDetailPageChange={setDetailPage} />
       ) : (
         <ReportCharts dataset={filteredData} filters={appliedFilters} periodLabel={periodDescription} isLoading={isLoading} />
       )}
