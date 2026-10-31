@@ -39,13 +39,14 @@ export function useCheckout() {
     try {
       setIsSubmitting(true);
       const order = await createCheckoutOrder(values, items);
-      const whatsappUrl = await buildWhatsappUrl(order);
+      const isDevelopment = process.env.NEXT_PUBLIC_APP_ENV === 'development';
+      const whatsappUrl = isDevelopment ? null : await buildWhatsappUrl(order);
 
       setCreatedOrder(order);
       clearCart();
       clearCheckoutDraft();
-      window.open(whatsappUrl, '_blank', 'noopener,noreferrer');
-      toast.success('Pedido confirmado. Gracias por tu compra.');
+      if (whatsappUrl) window.open(whatsappUrl, '_blank', 'noopener,noreferrer');
+      toast.success(isDevelopment ? 'Pedido de prueba creado solo en DEV.' : 'Pedido confirmado. Gracias por tu compra.');
       return order;
     } catch (err) {
       const message = err instanceof Error ? err.message : 'No se pudo crear el pedido.';
