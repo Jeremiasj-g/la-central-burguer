@@ -73,5 +73,10 @@ export function clearCart(): CartItem[] {
 
 export function calculateCartTotals(items: CartItem[], deliveryCost = 0): CartTotals {
   const subtotal = items.reduce((total, item) => total + item.unitPrice * item.quantity, 0);
-  return { subtotal, deliveryCost, total: subtotal + deliveryCost };
+  const originalSubtotal = items.reduce(
+    (total, item) => total + Math.max(item.originalUnitPrice ?? item.unitPrice, item.unitPrice) * item.quantity,
+    0,
+  );
+  const savings = Math.max(0, originalSubtotal - subtotal);
+  return { subtotal, originalSubtotal, savings, deliveryCost, total: subtotal + deliveryCost };
 }
