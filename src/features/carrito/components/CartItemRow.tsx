@@ -25,6 +25,8 @@ export function CartItemRow({ item, onUpdateQuantity, onUpdateNote, onRemove, fo
   const [isRemoving, setIsRemoving] = useState(false);
   const removeTimerRef = useRef<number | null>(null);
   const removing = isRemoving || forceRemoving;
+  const originalUnitPrice = item.originalUnitPrice ?? item.unitPrice;
+  const hasDiscount = originalUnitPrice > item.unitPrice;
 
   useEffect(() => {
     if (!editingNote) setDraftNote(item.note ?? '');
@@ -68,9 +70,17 @@ export function CartItemRow({ item, onUpdateQuantity, onUpdateNote, onRemove, fo
           <h4 className="line-clamp-3 break-words text-[13px] font-semibold leading-[1.36] tracking-[-.012em] text-[#f6f5f2] sm:text-[14px]">
             {item.productName}
           </h4>
-          <p className="mt-1 text-[11px] font-normal tabular-nums text-white/45">
-            {formatCurrency(item.unitPrice)} c/u
-          </p>
+          <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[11px] tabular-nums">
+            {hasDiscount ? (
+              <span className="text-white/40 line-through">{formatCurrency(originalUnitPrice)} c/u</span>
+            ) : null}
+            <span className={hasDiscount ? 'font-medium text-[#f3b25b]' : 'font-normal text-white/45'}>
+              {formatCurrency(item.unitPrice)} c/u
+            </span>
+            {hasDiscount && item.discountPercent ? (
+              <span className="font-semibold text-[#f3b25b]">-{item.discountPercent}%</span>
+            ) : null}
+          </div>
         </div>
 
         <button
@@ -155,9 +165,16 @@ export function CartItemRow({ item, onUpdateQuantity, onUpdateNote, onRemove, fo
             <Plus size={16} strokeWidth={1.8} />
           </button>
         </div>
-        <span className="min-w-0 text-right text-[16px] font-semibold tracking-[-.035em] tabular-nums text-[#f7f5f2] sm:text-[17px]">
-          {formatCurrency(item.unitPrice * item.quantity)}
-        </span>
+        <div className="min-w-0 text-right tabular-nums">
+          {hasDiscount ? (
+            <p className="text-[11px] font-normal text-white/40 line-through">
+              {formatCurrency(originalUnitPrice * item.quantity)}
+            </p>
+          ) : null}
+          <p className="text-[16px] font-semibold tracking-[-.035em] text-[#f7f5f2] sm:text-[17px]">
+            {formatCurrency(item.unitPrice * item.quantity)}
+          </p>
+        </div>
       </div>
 
       <ConfirmDialog
