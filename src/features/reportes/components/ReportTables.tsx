@@ -7,6 +7,7 @@ import { Select } from '@/shared/components/ui/Select';
 import { TablePagination } from '@/shared/components/ui/TablePagination';
 import type { ReportDataset, ReportGroupBy, ReportGroupRow, ReportOrder } from '../types/reporte.types';
 import { PromotionReport } from './PromotionReport';
+import { summarizePromotionSales } from '../utils/report-promotions.utils';
 import {
   formatCurrency,
   formatNumber,
@@ -71,6 +72,9 @@ export function ReportTables({
   const [consolidatedPage, setConsolidatedPage] = useState(1);
   const transitionTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const groupOptions = (Object.entries(REPORT_GROUP_LABELS) as [ReportGroupBy, string][]).map(([value, label]) => ({ value, label: `Agrupar por ${label.toLocaleLowerCase('es-AR')}` }));
+
+  const offers = useMemo(() => summarizePromotionSales(dataset, 'campaign'), [dataset]);
+  const campaignOffers = useMemo(() => summarizePromotionSales(dataset, 'campaign', 'campaign'), [dataset]);
 
   const paginatedGroups = useMemo(() => {
     const start = (consolidatedPage - 1) * ROWS_PER_PAGE;
@@ -137,6 +141,25 @@ export function ReportTables({
         </div>
       </div>
 
+      {view === 'consolidated' ? (
+        <div className="flex flex-wrap items-center gap-x-7 gap-y-3 border-b border-neutral-100 px-5 py-4">
+          <div className="min-w-0">
+            <p className="text-[11px] text-neutral-500">Facturación total en ofertas</p>
+            <p className="mt-1 text-[22px] font-semibold leading-tight tracking-tight tabular-nums text-neutral-900">
+              {formatCurrency(offers.revenue)}
+            </p>
+            <p className="mt-0.5 text-[10px] text-neutral-400">Precio cobrado en cada venta · sin envíos ni cancelaciones</p>
+          </div>
+          <div className="min-w-0">
+            <p className="text-[11px] text-neutral-500">De campañas de descuento</p>
+            <p className="mt-1 text-[19px] font-semibold tabular-nums text-[#b97625]">{formatCurrency(campaignOffers.revenue)}</p>
+          </div>
+          <button type="button" onClick={() => handleViewChange('promotions')}
+            className="ml-auto text-[12px] font-semibold text-neutral-600 underline decoration-neutral-300 underline-offset-4 transition hover:text-neutral-900">
+            Ver desglose de ofertas
+          </button>
+        </div>
+      ) : null}
       <div className="min-h-[30rem] max-w-full overflow-x-auto overscroll-x-contain sm:min-h-[34rem] xl:min-h-[38rem]">
         {view === 'promotions' ? (
           <PromotionReport dataset={dataset} />
