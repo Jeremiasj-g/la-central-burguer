@@ -1,11 +1,12 @@
 'use client';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Layers3, List } from 'lucide-react';
+import { BadgePercent, Layers3, List } from 'lucide-react';
 import Skeleton from 'react-loading-skeleton';
 import { Select } from '@/shared/components/ui/Select';
 import { TablePagination } from '@/shared/components/ui/TablePagination';
-import type { ReportGroupBy, ReportGroupRow, ReportOrder } from '../types/reporte.types';
+import type { ReportDataset, ReportGroupBy, ReportGroupRow, ReportOrder } from '../types/reporte.types';
+import { PromotionReport } from './PromotionReport';
 import {
   formatCurrency,
   formatNumber,
@@ -16,6 +17,7 @@ import {
 
 interface ReportTablesProps {
   groups: ReportGroupRow[];
+  dataset: ReportDataset;
   groupBy: ReportGroupBy;
   onGroupByChange: (groupBy: ReportGroupBy) => void;
   detailOrders: ReportOrder[];
@@ -55,6 +57,7 @@ function ReportTableSkeleton({ view }: { view: 'consolidated' | 'detail' }) {
 
 export function ReportTables({
   groups,
+  dataset,
   groupBy,
   onGroupByChange,
   detailOrders,
@@ -63,7 +66,7 @@ export function ReportTables({
   detailLoading,
   onDetailPageChange,
 }: ReportTablesProps) {
-  const [view, setView] = useState<'consolidated' | 'detail'>('consolidated');
+  const [view, setView] = useState<'consolidated' | 'promotions' | 'detail'>('consolidated');
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [consolidatedPage, setConsolidatedPage] = useState(1);
   const transitionTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -92,7 +95,7 @@ export function ReportTables({
     }, VIEW_TRANSITION_MS);
   }
 
-  function handleViewChange(nextView: 'consolidated' | 'detail') {
+  function handleViewChange(nextView: 'consolidated' | 'promotions' | 'detail') {
     if (nextView === view) return;
     beginContentTransition(() => setView(nextView));
   }
@@ -114,9 +117,12 @@ export function ReportTables({
           <p className="mt-1 break-words text-[11px] leading-5 text-neutral-500">Agrupados o individuales · 10 registros por página</p>
         </div>
         <div className="flex min-w-0 flex-col gap-2 sm:flex-row sm:items-center sm:justify-end">
-          <div className="grid w-full grid-cols-2 rounded-[11px] bg-[#efeff1] p-1 sm:inline-flex sm:w-auto sm:flex-none">
+          <div className="grid w-full grid-cols-3 rounded-[11px] bg-[#efeff1] p-1 sm:inline-flex sm:w-auto sm:flex-none">
             <button type="button" aria-pressed={view === 'consolidated'} onClick={() => handleViewChange('consolidated')} className={`inline-flex cursor-pointer items-center justify-center gap-2 whitespace-nowrap rounded-[9px] px-3.5 py-2 text-[12px] font-semibold transition-colors ${view === 'consolidated' ? 'bg-white text-neutral-900 shadow-sm' : 'text-neutral-500 hover:text-neutral-900'}`}>
               <Layers3 size={14} className="shrink-0" /> <span>Consolidado</span>
+            </button>
+            <button type="button" aria-pressed={view === 'promotions'} onClick={() => handleViewChange('promotions')} className={`inline-flex cursor-pointer items-center justify-center gap-2 whitespace-nowrap rounded-[9px] px-3.5 py-2 text-[12px] font-semibold transition-colors ${view === 'promotions' ? 'bg-white text-neutral-900 shadow-sm' : 'text-neutral-500 hover:text-neutral-900'}`}>
+              <BadgePercent size={14} className="shrink-0" /> <span>Ofertas</span>
             </button>
             <button type="button" aria-pressed={view === 'detail'} onClick={() => handleViewChange('detail')} className={`inline-flex cursor-pointer items-center justify-center gap-2 whitespace-nowrap rounded-[9px] px-3.5 py-2 text-[12px] font-semibold transition-colors ${view === 'detail' ? 'bg-white text-neutral-900 shadow-sm' : 'text-neutral-500 hover:text-neutral-900'}`}>
               <List size={14} className="shrink-0" /> <span>Detalle</span>
@@ -132,7 +138,9 @@ export function ReportTables({
       </div>
 
       <div className="min-h-[30rem] max-w-full overflow-x-auto overscroll-x-contain sm:min-h-[34rem] xl:min-h-[38rem]">
-        {isTransitioning || (view === 'detail' && detailLoading) ? (
+        {view === 'promotions' ? (
+          <PromotionReport dataset={dataset} />
+        ) : isTransitioning || (view === 'detail' && detailLoading) ? (
           <ReportTableSkeleton view={view} />
         ) : (
           <div className="report-table-enter">
@@ -204,7 +212,7 @@ export function ReportTables({
         )}
       </div>
 
-      {!isTransitioning && !(view === 'detail' && detailLoading) ? (
+      {view !== 'promotions' && !isTransitioning && !(view === 'detail' && detailLoading) ? (
         <TablePagination
           page={pagination.page}
           pageSize={ROWS_PER_PAGE}
