@@ -16,34 +16,75 @@ export function PublicGallery({ initialGallery }: { initialGallery: GalleryState
 
   useEffect(() => {
     let active = true;
+    let pending: AbortController | null = null;
+
     const refresh = () => {
-      void fetch('/api/gallery', { cache: 'no-store' })
-        .then(async response => {
+      // Los navegadores móviles suspenden las pestañas en segundo plano.
+      // Al regresar, focus / pageshow / visibilitychange vuelven a consultar el estado.
+      if (!active || document.hidden) return;
+
+      // Evita que una respuesta antigua sobrescriba un cambio más reciente.
+      pending?.abort();
+      const controller = new AbortController();
+      pending = controller;
+
+      void fetch('/api/gallery', { cache: 'no-store', signal: controller.signal })
+        .then(async (response) => {
           if (!response.ok) throw new Error(`Galería: HTTP ${response.status}`);
           return response.json() as Promise<GalleryState>;
         })
-        .then(data => { if (active) setGallery(data); })
-        .catch(error => {
-          // Conservamos las imágenes renderizadas por el servidor si una actualización falla.
-          console.warn('No se pudo actualizar la galería pública:', error);
+        .then((data) => {
+          if (!active || controller.signal.aborted) return;
+
+          setGallery((previous) => {
+            if (previous?.enabled === data.enabled
+              && previous.images.length === data.images.length
+              && previous.images.every((image, i) => {
+                const current = data.images[i];
+                return image.id === current.id
+                  && image.image_url === current.image_url
+                  && image.alt_text === current.alt_text
+                  && image.display_order === current.display_order;
+              })) return previous;
+            return data;
+          });
+          setSelectedImageIndex((value) =>
+            value !== null && (!data.enabled || value >= data.images.length) ? null : value);
+        })
+        .catch((error: unknown) => {
+          // Mantener visible la última galería válida aunque se caiga la red o Realtime.
+          if (!active || controller.signal.aborted) return;
+          console.warn('No se pudo sincronizar la galería pública:', error);
+        })
+        .finally(() => {
+          if (pending === controller) pending = null;
         });
     };
 
+    // Primera sincronización más las notificaciones en tiempo real de Supabase.
     refresh();
     let stop = () => {};
     try { stop = subscribeGallery(refresh); }
     catch (error) { console.warn('No se pudo suscribir la galería en tiempo real:', error); }
 
-    const refreshOnVisibility = () => { if (!document.hidden) refresh(); };
-    const interval = window.setInterval(refresh, 60_000);
+    // Respaldo cuando falla WebSocket; solo hace consultas con la pestaña visible.
+    const interval = window.setInterval(refresh, 20_000);
+    const onVisibility = () => { if (!document.hidden) refresh(); };
+    const onPageShow = () => refresh(); // Incluye restauración desde back-forward cache.
     window.addEventListener('focus', refresh);
-    document.addEventListener('visibilitychange', refreshOnVisibility);
+    window.addEventListener('online', refresh);
+    window.addEventListener('pageshow', onPageShow);
+    document.addEventListener('visibilitychange', onVisibility);
+
     return () => {
       active = false;
+      pending?.abort();
       stop();
       window.clearInterval(interval);
       window.removeEventListener('focus', refresh);
-      document.removeEventListener('visibilitychange', refreshOnVisibility);
+      window.removeEventListener('online', refresh);
+      window.removeEventListener('pageshow', onPageShow);
+      document.removeEventListener('visibilitychange', onVisibility);
     };
   }, []);
 
