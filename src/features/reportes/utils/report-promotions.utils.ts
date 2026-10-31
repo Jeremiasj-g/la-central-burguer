@@ -1,6 +1,7 @@
 import type { ReportDataset } from '../types/reporte.types';
 
 export type PromotionGroupMode = 'campaign' | 'product';
+export type PromotionScope = 'all' | 'campaign' | 'other';
 
 export interface PromotionRow {
   key: string;
@@ -12,6 +13,7 @@ export interface PromotionRow {
   savings: number;
   savingsUntrackedUnits: number;
   share: number;
+  averageSoldPrice: number;
 }
 
 export interface PromotionSummary {
@@ -29,7 +31,7 @@ export interface PromotionSummary {
  * Nunca reconstruye precios originales a partir de precios ACTUALES del catálogo.
  * El ahorro es exacto solamente cuando existe snapshot de la venta.
  */
-export function summarizePromotionSales(dataset: ReportDataset, groupBy: PromotionGroupMode): PromotionSummary {
+export function summarizePromotionSales(dataset: ReportDataset, groupBy: PromotionGroupMode, scope: PromotionScope = 'all'): PromotionSummary {
   const validOrders = dataset.orders.filter(order => order.status !== 'cancelado');
   const validIds = new Set(validOrders.map(order => order.id));
   const subtotalProducts = validOrders.reduce((sum, order) => sum + order.subtotal, 0);
@@ -46,6 +48,8 @@ export function summarizePromotionSales(dataset: ReportDataset, groupBy: Promoti
 
   for (const item of dataset.items) {
     if (!validIds.has(item.orderId) || (!item.isPromotion && !item.discountCampaignId)) continue;
+    if (scope === 'campaign' && !item.discountCampaignId) continue;
+    if (scope === 'other' && item.discountCampaignId) continue;
     const tracked = item.originalUnitPrice !== null && item.discountPercent !== null
       && item.originalUnitPrice > item.unitPrice;
     const itemSavings = tracked ? (item.originalUnitPrice! - item.unitPrice) * item.quantity : 0;
@@ -85,6 +89,7 @@ export function summarizePromotionSales(dataset: ReportDataset, groupBy: Promoti
     orders: group.orderIds.size, units: group.units, revenue: group.revenue,
     savings: group.savings, savingsUntrackedUnits: group.savingsUntrackedUnits,
     share: revenue > 0 ? group.revenue / revenue : 0,
+    averageSoldPrice: group.units > 0 ? group.revenue / group.units : 0,
   })).sort((a, b) => b.revenue - a.revenue || a.label.localeCompare(b.label));
 
   return { revenue, units, orders: seenOrders.size, savings, savingsUntrackedUnits,
