@@ -6,6 +6,7 @@ import { toast } from 'react-toastify';
 import { useCategorias } from '@/features/categorias/hooks/useCategorias';
 import { useBusinessConfig } from '@/features/configuracion/hooks/useBusinessConfig';
 import { Button } from '@/shared/components/ui/Button';
+import { DatePickerField } from '@/shared/components/ui/DatePickerField';
 import { ConfirmDialog } from '@/shared/components/ui/ConfirmDialog';
 import { Input } from '@/shared/components/ui/Input';
 import { Modal } from '@/shared/components/ui/Modal';
@@ -64,7 +65,7 @@ export function DescuentosAdminPage() {
     setOpen(true);
   }
   async function save() {
-    if (saving) return;
+    if (saving || !form.starts_on || !form.ends_on || form.ends_on < form.starts_on) return;
     setSaving(true);
     try {
       await saveCategoryDiscount(form, editingId);
@@ -209,16 +210,32 @@ export function DescuentosAdminPage() {
               value={form.discount_percent} onChange={e => setForm(s => ({ ...s, discount_percent: Number(e.target.value) }))} />
           </label>
           <div className="grid gap-3 sm:grid-cols-2">
-            <label className="block text-[12px] font-medium text-neutral-700">
-              Fecha de inicio
-              <Input className={`mt-1.5 ${control}`} type="date" value={form.starts_on} required
-                onChange={e => setForm(s => ({ ...s, starts_on: e.target.value }))} />
-            </label>
-            <label className="block text-[12px] font-medium text-neutral-700">
-              Fecha de fin (incluida)
-              <Input className={`mt-1.5 ${control}`} type="date" min={form.starts_on} value={form.ends_on} required
-                onChange={e => setForm(s => ({ ...s, ends_on: e.target.value }))} />
-            </label>
+            <div className="min-w-0">
+              <span className="block text-[12px] font-medium text-neutral-700">Fecha de inicio</span>
+              <DatePickerField
+                value={form.starts_on}
+                ariaLabel="Fecha de inicio de la campaña"
+                allowClear={false}
+                className={`mt-1.5 ${control} !px-3 !shadow-none`}
+                onChange={starts_on => setForm(s => ({
+                  ...s,
+                  starts_on,
+                  // La fecha de finalización nunca puede quedar antes del inicio.
+                  ends_on: s.ends_on < starts_on ? starts_on : s.ends_on,
+                }))}
+              />
+            </div>
+            <div className="min-w-0">
+              <span className="block text-[12px] font-medium text-neutral-700">Fecha de fin (incluida)</span>
+              <DatePickerField
+                value={form.ends_on}
+                minDate={form.starts_on}
+                ariaLabel="Fecha de fin de la campaña (incluida)"
+                allowClear={false}
+                className={`mt-1.5 ${control} !px-3 !shadow-none`}
+                onChange={ends_on => setForm(s => ({ ...s, ends_on }))}
+              />
+            </div>
           </div>
           <label className="flex min-h-11 cursor-pointer items-center justify-between gap-3 py-1 text-[12px] font-medium text-neutral-700">
             <span>Campaña habilitada</span>
@@ -237,7 +254,7 @@ export function DescuentosAdminPage() {
           <div className="flex justify-end gap-2 border-t border-neutral-100 pt-4">
             <Button type="button" variant="secondary" onClick={() => setOpen(false)} disabled={saving}
               className="!h-9 !rounded-[10px] !border-neutral-200 !px-4 !text-[12px] !font-medium !shadow-none">Cancelar</Button>
-            <Button type="submit" disabled={saving || !form.category_ids.length || !form.title.trim() || form.ends_on < form.starts_on}
+            <Button type="submit" disabled={saving || !form.category_ids.length || !form.title.trim() || !form.starts_on || !form.ends_on || form.ends_on < form.starts_on}
               className="!h-9 !rounded-[10px] !bg-[#191b20] !px-4 !text-[12px] !font-medium !text-white !shadow-none hover:!bg-neutral-700">
               {saving ? 'Guardando…' : editingId ? 'Guardar cambios' : 'Crear campaña'}
             </Button>
