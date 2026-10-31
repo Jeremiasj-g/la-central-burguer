@@ -30,6 +30,10 @@ interface DatePickerFieldProps {
   placeholder?: string;
   ariaLabel: string;
   disabled?: boolean;
+  /** Optional earliest selectable day (YYYY-MM-DD). */
+  minDate?: string;
+  /** Hide the clear action when the parent form requires a date. */
+  allowClear?: boolean;
   className?: string;
 }
 
@@ -94,6 +98,8 @@ export function DatePickerField({
   placeholder = 'Seleccionar fecha',
   ariaLabel,
   disabled = false,
+  minDate,
+  allowClear = true,
   className,
 }: DatePickerFieldProps) {
   const triggerRef = useRef<HTMLButtonElement>(null);
@@ -107,6 +113,7 @@ export function DatePickerField({
   const [monthTransitionKey, setMonthTransitionKey] = useState(0);
 
   const selected = useMemo(() => parseIsoDate(value), [value]);
+  const minimum = useMemo(() => parseIsoDate(minDate ?? ''), [minDate]);
   const [visibleMonth, setVisibleMonth] = useState<Date>(selected ?? new Date());
   const calendarDays = useMemo(() => buildCalendarDays(visibleMonth), [visibleMonth]);
 
@@ -161,6 +168,8 @@ export function DatePickerField({
 
     function handleKeyDown(event: KeyboardEvent) {
       if (event.key !== 'Escape') return;
+      // El calendario puede estar sobre una modal: Escape debe cerrar primero el popover.
+      event.stopPropagation();
       if (calendarView === 'months') setCalendarView('days');
       else setOpen(false);
     }
@@ -180,6 +189,7 @@ export function DatePickerField({
   }, [calendarView, open]);
 
   function chooseDate(date: Date) {
+    if (minimum && date < minimum) return;
     onChange(formatIsoDate(date));
     setVisibleMonth(date);
     setOpen(false);
@@ -187,7 +197,9 @@ export function DatePickerField({
   }
 
   function handleToday() {
-    chooseDate(new Date());
+    const now = new Date();
+    if (minimum && now < minimum) return;
+    chooseDate(now);
   }
 
   function handleClear() {
@@ -322,12 +334,14 @@ export function DatePickerField({
                     const outside = date.getMonth() !== visibleMonthIndex;
                     const isSelected = sameDay(selected, date);
                     const isToday = sameDay(today, date);
+                    const beforeMinimum = Boolean(minimum && date < minimum);
 
                     return (
                       <button
                         key={formatIsoDate(date)}
                         type="button"
                         onClick={() => chooseDate(date)}
+                        disabled={beforeMinimum}
                         className={cn(
                           'mx-auto grid h-9 w-9 place-items-center rounded-[11px] text-xs font-semibold transition-[background-color,color,transform,opacity] duration-150 active:scale-90',
                           outside
@@ -335,6 +349,7 @@ export function DatePickerField({
                             : 'text-neutral-700 hover:bg-neutral-100',
                           isToday && !isSelected && 'bg-central-orange/10 font-black text-central-orange ring-1 ring-central-orange/20',
                           isSelected && 'bg-central-orange/12 opacity-100 ring-1 ring-central-orange/35 shadow-[0_5px_12px_rgba(216,137,24,.14)]',
+                          beforeMinimum && 'cursor-not-allowed bg-transparent text-neutral-300 opacity-40 hover:bg-transparent hover:text-neutral-300',
                         )}
                         aria-label={new Intl.DateTimeFormat('es-AR', { dateStyle: 'full' }).format(date)}
                         aria-pressed={isSelected}
@@ -349,18 +364,21 @@ export function DatePickerField({
           )}
 
           <div className="mt-2.5 flex items-center justify-between border-t border-neutral-100 px-1 pt-2.5">
-            <button
-              type="button"
-              onClick={handleClear}
-              disabled={!selected}
-              className="rounded-[9px] px-2.5 py-1.5 text-xs font-bold text-central-orange transition hover:bg-central-orange/10 disabled:cursor-default disabled:opacity-30"
-            >
-              Borrar
-            </button>
+            {allowClear ? (
+              <button
+                type="button"
+                onClick={handleClear}
+                disabled={!selected}
+                className="rounded-[9px] px-2.5 py-1.5 text-xs font-bold text-central-orange transition hover:bg-central-orange/10 disabled:cursor-default disabled:opacity-30"
+              >
+                Borrar
+              </button>
+            ) : <span />}
             <button
               type="button"
               onClick={handleToday}
-              className="rounded-[9px] px-2.5 py-1.5 text-xs font-bold text-central-orange transition hover:bg-central-orange/10"
+              disabled={Boolean(minimum && today < minimum)}
+              className="rounded-[9px] px-2.5 py-1.5 text-xs font-bold text-central-orange transition hover:bg-central-orange/10 disabled:cursor-not-allowed disabled:opacity-30"
             >
               Hoy
             </button>
