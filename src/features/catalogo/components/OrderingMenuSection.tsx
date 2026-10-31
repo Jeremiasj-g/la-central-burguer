@@ -25,7 +25,7 @@ import { isBusinessOpenBySchedule } from '@/features/configuracion/utils/busines
 import { useBusinessClock } from '@/features/configuracion/hooks/useBusinessClock';
 import { formatMenuLabel } from '../utils/menuLabel';
 
-const CATEGORY_SWITCH_MS = 220;
+const CATEGORY_SWITCH_MS = 300;
 
 export function OrderingMenuSection() {
   const [search, setSearch] = useState('');
