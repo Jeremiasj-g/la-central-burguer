@@ -6,10 +6,10 @@ import { GalleryLightbox } from './GalleryLightbox';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import type { Swiper as SwiperInstance } from 'swiper';
 import { A11y } from 'swiper/modules';
-import { getGalleryState, subscribeGallery, type GalleryState } from '../services/gallery.service';
+import { subscribeGallery, type GalleryState } from '../services/gallery.service';
 
-export function PublicGallery() {
-  const [gallery, setGallery] = useState<GalleryState | null>(null);
+export function PublicGallery({ initialGallery }: { initialGallery: GalleryState | null }) {
+  const [gallery, setGallery] = useState<GalleryState | null>(initialGallery);
   const [swiper, setSwiper] = useState<SwiperInstance | null>(null);
   const [index, setIndex] = useState(0);
   const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(null);
@@ -17,13 +17,34 @@ export function PublicGallery() {
   useEffect(() => {
     let active = true;
     const refresh = () => {
-      void getGalleryState().then(data => {
-        if (active) setGallery(data);
-      }).catch(() => { if (active) setGallery(null); });
+      void fetch('/api/gallery', { cache: 'no-store' })
+        .then(async response => {
+          if (!response.ok) throw new Error(`Galería: HTTP ${response.status}`);
+          return response.json() as Promise<GalleryState>;
+        })
+        .then(data => { if (active) setGallery(data); })
+        .catch(error => {
+          // Conservamos las imágenes renderizadas por el servidor si una actualización falla.
+          console.warn('No se pudo actualizar la galería pública:', error);
+        });
     };
+
     refresh();
-    const stop = subscribeGallery(refresh);
-    return () => { active = false; stop(); };
+    let stop = () => {};
+    try { stop = subscribeGallery(refresh); }
+    catch (error) { console.warn('No se pudo suscribir la galería en tiempo real:', error); }
+
+    const refreshOnVisibility = () => { if (!document.hidden) refresh(); };
+    const interval = window.setInterval(refresh, 60_000);
+    window.addEventListener('focus', refresh);
+    document.addEventListener('visibilitychange', refreshOnVisibility);
+    return () => {
+      active = false;
+      stop();
+      window.clearInterval(interval);
+      window.removeEventListener('focus', refresh);
+      document.removeEventListener('visibilitychange', refreshOnVisibility);
+    };
   }, []);
 
   if (!gallery?.enabled || gallery.images.length === 0) return null;
