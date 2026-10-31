@@ -23,18 +23,18 @@ export const PUBLIC_NAVIGATION = [
 ] as const;
 
 export const ADMIN_NAVIGATION = [
-  { label: 'Dashboard', href: ROUTES.adminDashboard, icon: LayoutDashboard, development: false },
-  { label: 'Productos', href: ROUTES.adminProductos, icon: Beef, development: false },
-  { label: 'Categorías', href: ROUTES.adminCategorias, icon: Tags, development: false },
-  { label: 'Ingredientes', href: ROUTES.adminIngredientes, icon: Boxes, development: false },
-  { label: 'Recetas', href: ROUTES.adminRecetas, icon: BookOpenCheck, development: false },
-  { label: 'Descuentos', href: ROUTES.adminDescuentos, icon: BadgePercent, development: false },
-  { label: 'Pedidos', href: ROUTES.adminPedidos, icon: ClipboardList, development: false },
-  { label: 'Venta mostrador', href: ROUTES.adminVentaMostrador, icon: Store, development: false },
-  { label: 'Delivery', href: ROUTES.adminDelivery, icon: Truck, development: true },
-  { label: 'Usuarios y roles', href: ROUTES.adminUsuarios, icon: Users, development: false },
-  { label: 'Reportes', href: ROUTES.adminReportes, icon: FileSpreadsheet, development: false },
-  { label: 'Configuración', href: ROUTES.adminConfiguracion, icon: Settings, development: false },
+  { label: 'Dashboard', group: 'Resumen', href: ROUTES.adminDashboard, icon: LayoutDashboard, development: false },
+  { label: 'Productos', group: 'Catálogo', href: ROUTES.adminProductos, icon: Beef, development: false },
+  { label: 'Categorías', group: 'Catálogo', href: ROUTES.adminCategorias, icon: Tags, development: false },
+  { label: 'Ingredientes', group: 'Catálogo', href: ROUTES.adminIngredientes, icon: Boxes, development: false },
+  { label: 'Recetas', group: 'Catálogo', href: ROUTES.adminRecetas, icon: BookOpenCheck, development: false },
+  { label: 'Descuentos', group: 'Catálogo', href: ROUTES.adminDescuentos, icon: BadgePercent, development: false },
+  { label: 'Pedidos', group: 'Operación', href: ROUTES.adminPedidos, icon: ClipboardList, development: false },
+  { label: 'Venta mostrador', group: 'Operación', href: ROUTES.adminVentaMostrador, icon: Store, development: false },
+  { label: 'Delivery', group: 'Operación', href: ROUTES.adminDelivery, icon: Truck, development: true },
+  { label: 'Usuarios y roles', group: 'Administración', href: ROUTES.adminUsuarios, icon: Users, development: false },
+  { label: 'Reportes', group: 'Administración', href: ROUTES.adminReportes, icon: FileSpreadsheet, development: false },
+  { label: 'Configuración', group: 'Administración', href: ROUTES.adminConfiguracion, icon: Settings, development: false },
 ] as const;
 
 export const CATEGORY_ICON_HINTS = {
