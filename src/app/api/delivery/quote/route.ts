@@ -405,8 +405,17 @@ export async function POST(request: Request) {
       stack: error instanceof Error ? error.stack : undefined,
     });
 
+    const message = error instanceof Error ? error.message.toLowerCase() : '';
+    const invalidSerpApiKey = /invalid api key|serpapi respondió con estado 401|serpapi respondió con estado 403/.test(message);
+    const missingSerpApiKey = message.includes('serpapi todavía no está configurado');
+    const isDev = process.env.NEXT_PUBLIC_APP_ENV === 'development';
+
     return NextResponse.json(
-      { error: PUBLIC_DELIVERY_ERROR },
+      {
+        error: isDev && (invalidSerpApiKey || missingSerpApiKey)
+          ? 'La API de rutas en DEV no autorizó la clave SerpApi. Revisá SERPAPI_API_KEY en Vercel DEV y volvé a desplegar.'
+          : PUBLIC_DELIVERY_ERROR,
+      },
       {
         status: 502,
         headers: {
