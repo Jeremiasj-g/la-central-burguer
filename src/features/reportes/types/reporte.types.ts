@@ -65,6 +65,11 @@ export interface ReportItem {
   categoryName: string | null;
   imageUrl: string | null;
   isPromotion: boolean;
+  /** Historical snapshot: null for sales before snapshot tracking. */
+  discountCampaignId: string | null;
+  discountCampaignTitle: string | null;
+  discountPercent: number | null;
+  originalUnitPrice: number | null;
   quantity: number;
   unitPrice: number;
   total: number;
