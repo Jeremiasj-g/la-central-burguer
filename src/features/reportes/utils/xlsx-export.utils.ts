@@ -1,3 +1,4 @@
+import { summarizePromotionSales } from './report-promotions.utils';
 import type {
   ReportDataset,
   ReportFilters,
@@ -352,6 +353,11 @@ function buildSheets(
       unitario: item.unitPrice,
       total: item.total,
       promo: item.isPromotion ? 'Sí' : 'No',
+      campania: item.discountCampaignTitle ?? '',
+      descuento: item.discountPercent !== null ? item.discountPercent : null,
+      precioOriginal: item.originalUnitPrice,
+      ahorro: item.originalUnitPrice !== null && item.originalUnitPrice > item.unitPrice
+        ? (item.originalUnitPrice - item.unitPrice) * item.quantity : null,
       valida: validOrderIds.has(item.orderId) ? 'Sí' : 'No',
     };
   });
@@ -400,9 +406,32 @@ function buildSheets(
         { header: 'Precio unit.', key: 'unitario', width: 15, kind: 'currency' },
         { header: 'Total', key: 'total', width: 15, kind: 'currency' },
         { header: 'Promoción', key: 'promo', width: 12 },
+        { header: 'Campaña al vender', key: 'campania', width: 32 },
+        { header: 'Descuento %', key: 'descuento', width: 16, kind: 'number' },
+        { header: 'Precio original', key: 'precioOriginal', width: 18, kind: 'currency' },
+        { header: 'Ahorro registrado', key: 'ahorro', width: 20, kind: 'currency' },
         { header: 'Venta válida', key: 'valida', width: 12 },
       ],
       rows: itemRows,
+    },
+    {
+      name: 'Ofertas',
+      title: 'Ventas de productos en oferta',
+      subtitle: subtitle + ' · Ahorro: únicamente compras con precio original registrado',
+      columns: [
+        { header: 'Campaña', key: 'campania', width: 36 },
+        { header: 'Pedidos', key: 'pedidos', width: 12, kind: 'number' },
+        { header: 'Unidades', key: 'unidades', width: 12, kind: 'number' },
+        { header: 'Facturado', key: 'facturado', width: 19, kind: 'currency' },
+        { header: 'Ahorro registrado', key: 'ahorro', width: 20, kind: 'currency' },
+        { header: 'Unidades sin dato ahorro', key: 'sinDato', width: 27, kind: 'number' },
+        { header: 'Participación', key: 'participacion', width: 18, kind: 'percent' },
+      ],
+      rows: summarizePromotionSales(dataset, 'campaign').rows.map(row => ({
+        campania: row.label, pedidos: row.orders, unidades: row.units,
+        facturado: row.revenue, ahorro: row.savings, sinDato: row.savingsUntrackedUnits,
+        participacion: row.share,
+      })),
     },
     {
       name: 'Consolidado',
@@ -479,6 +508,11 @@ const RAW_COLUMNS: ExportColumn[] = [
   { header: 'ID categoría', key: 'categoriaId', width: 38 },
   { header: 'Categoría', key: 'categoria', width: 24 },
   { header: 'Es promoción', key: 'promocion', width: 14 },
+  { header: 'ID campaña descuento', key: 'campaniaId', width: 38 },
+  { header: 'Campaña descuento', key: 'campaniaTitulo', width: 36 },
+  { header: 'Descuento %', key: 'descuentoPorcentaje', width: 16 },
+  { header: 'Precio original por unidad', key: 'precioOriginalUnitario', width: 24 },
+  { header: 'Ahorro línea', key: 'ahorroLinea', width: 18 },
   { header: 'Cantidad', key: 'cantidad', width: 12 },
   { header: 'Precio unitario', key: 'precioUnitario', width: 18 },
   { header: 'Importe producto', key: 'importeProducto', width: 18 },
@@ -556,6 +590,12 @@ function buildRawRows(dataset: ReportDataset) {
         categoriaId: item?.categoryId,
         categoria: item?.categoryName,
         promocion: item ? (item.isPromotion ? 'Sí' : 'No') : null,
+        campaniaId: item?.discountCampaignId,
+        campaniaTitulo: item?.discountCampaignTitle,
+        descuentoPorcentaje: item?.discountPercent,
+        precioOriginalUnitario: item?.originalUnitPrice,
+        ahorroLinea: item && item.originalUnitPrice !== null && item.originalUnitPrice > item.unitPrice
+          ? (item.originalUnitPrice - item.unitPrice) * item.quantity : null,
         cantidad: item?.quantity,
         precioUnitario: item?.unitPrice,
         importeProducto: item?.total,
