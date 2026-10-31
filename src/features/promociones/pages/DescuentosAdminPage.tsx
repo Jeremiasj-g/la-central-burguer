@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { BadgePercent, CalendarDays, PauseCircle, PlayCircle, Plus, Pencil, Trash2 } from 'lucide-react';
+import { BadgePercent, CalendarDays, Check, PauseCircle, PlayCircle, Plus, Pencil, Trash2 } from 'lucide-react';
 import { toast } from 'react-toastify';
 import { useCategorias } from '@/features/categorias/hooks/useCategorias';
 import { useBusinessConfig } from '@/features/configuracion/hooks/useBusinessConfig';
@@ -166,7 +166,16 @@ export function DescuentosAdminPage() {
       )}
       <p className="mt-4 text-[11px] leading-5 text-neutral-500">Las campañas se activan al comenzar el día de inicio y terminan al finalizar el día de cierre. No se acumulan entre sí.</p>
 
-      <Modal open={open} onClose={() => setOpen(false)} title={editingId ? 'Editar campaña' : 'Nueva campaña'} size="md" theme="light">
+      <Modal
+        open={open}
+        onClose={() => setOpen(false)}
+        title={editingId ? 'Editar campaña' : 'Nueva campaña'}
+        size="md"
+        theme="light"
+        panelClassName="!rounded-[18px] !border-neutral-200/80"
+        titleClassName="!text-[20px] !font-semibold !tracking-[-.035em]"
+        closeButtonClassName="!rounded-[10px]"
+      >
         <form onSubmit={(event) => { event.preventDefault(); void save(); }} className="space-y-4">
           <label className="block text-[12px] font-medium text-neutral-700">
             Nombre de la campaña
@@ -175,13 +184,21 @@ export function DescuentosAdminPage() {
           </label>
           <fieldset>
             <legend className="mb-2 text-[12px] font-medium text-neutral-700">Categorías incluidas</legend>
-            <div className="grid max-h-[190px] grid-cols-1 gap-x-3 gap-y-2 overflow-y-auto sm:grid-cols-2">
+            <div className="grid max-h-[190px] grid-cols-1 gap-x-3 gap-y-1.5 overflow-y-auto sm:grid-cols-2">
               {categorias.map(c => (
-                <label key={c.id} className="flex cursor-pointer items-center gap-2 py-1 text-[12px] text-neutral-700">
-                  <input type="checkbox" checked={form.category_ids.includes(c.id)} className="accent-[#d99536]"
-                    onChange={e => setForm(s => ({ ...s, category_ids: e.target.checked
-                      ? [...s.category_ids, c.id] : s.category_ids.filter(id => id !== c.id) }))} />
-                  <span>{c.name}</span>
+                <label key={c.id} className="group flex min-h-8 cursor-pointer items-center gap-2.5 rounded-[8px] px-1.5 py-1 text-[12px] font-normal text-neutral-700 transition-colors duration-200 hover:bg-neutral-50">
+                  <span className="relative grid h-[16px] w-[16px] shrink-0 place-items-center">
+                    <input
+                      type="checkbox"
+                      checked={form.category_ids.includes(c.id)}
+                      className="peer absolute inset-0 z-10 h-full w-full cursor-pointer opacity-0"
+                      onChange={e => setForm(s => ({ ...s, category_ids: e.target.checked
+                        ? [...s.category_ids, c.id] : s.category_ids.filter(id => id !== c.id) }))}
+                    />
+                    <span aria-hidden="true" className="pointer-events-none absolute inset-0 rounded-[4px] border border-neutral-300 bg-white transition-colors duration-200 peer-checked:border-central-orange peer-checked:bg-central-orange peer-focus-visible:ring-2 peer-focus-visible:ring-central-orange/35 peer-focus-visible:ring-offset-2" />
+                    <Check aria-hidden="true" size={12} strokeWidth={2.8} className="pointer-events-none relative text-white opacity-0 transition-opacity duration-150 peer-checked:opacity-100" />
+                  </span>
+                  <span className="min-w-0">{c.name}</span>
                 </label>
               ))}
             </div>
@@ -203,14 +220,27 @@ export function DescuentosAdminPage() {
                 onChange={e => setForm(s => ({ ...s, ends_on: e.target.value }))} />
             </label>
           </div>
-          <label className="flex cursor-pointer items-center gap-2.5 py-1 text-[12px] text-neutral-700">
-            <input type="checkbox" checked={form.enabled} onChange={e => setForm(s => ({ ...s, enabled: e.target.checked }))} className="accent-[#d99536]" />
-            Campaña habilitada
+          <label className="flex min-h-11 cursor-pointer items-center justify-between gap-3 py-1 text-[12px] font-medium text-neutral-700">
+            <span>Campaña habilitada</span>
+            <span className="relative inline-flex h-6 w-11 shrink-0 items-center">
+              <input
+                type="checkbox"
+                className="peer absolute inset-0 h-full w-full cursor-pointer opacity-0"
+                checked={form.enabled}
+                onChange={e => setForm(s => ({ ...s, enabled: e.target.checked }))}
+                aria-label="Campaña habilitada"
+              />
+              <span aria-hidden="true" className="pointer-events-none h-6 w-11 rounded-full bg-neutral-200 transition-colors duration-200 peer-checked:bg-central-orange peer-focus-visible:ring-2 peer-focus-visible:ring-central-orange/35 peer-focus-visible:ring-offset-2" />
+              <span aria-hidden="true" className="pointer-events-none absolute left-[3px] top-[3px] h-[18px] w-[18px] rounded-full bg-white shadow-sm transition-transform duration-200 peer-checked:translate-x-5" />
+            </span>
           </label>
           <div className="flex justify-end gap-2 border-t border-neutral-100 pt-4">
-            <Button type="button" variant="secondary" onClick={() => setOpen(false)} disabled={saving}>Cancelar</Button>
+            <Button type="button" variant="secondary" onClick={() => setOpen(false)} disabled={saving}
+              className="!h-9 !rounded-[10px] !border-neutral-200 !px-4 !text-[12px] !font-medium !shadow-none">Cancelar</Button>
             <Button type="submit" disabled={saving || !form.category_ids.length || !form.title.trim() || form.ends_on < form.starts_on}
-              className="!bg-[#191b20] !text-white">{saving ? 'Guardando…' : editingId ? 'Guardar cambios' : 'Crear campaña'}</Button>
+              className="!h-9 !rounded-[10px] !bg-[#191b20] !px-4 !text-[12px] !font-medium !text-white !shadow-none hover:!bg-neutral-700">
+              {saving ? 'Guardando…' : editingId ? 'Guardar cambios' : 'Crear campaña'}
+            </Button>
           </div>
         </form>
       </Modal>
