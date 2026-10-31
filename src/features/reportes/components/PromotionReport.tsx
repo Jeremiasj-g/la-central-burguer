@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Select } from '@/shared/components/ui/Select';
 import { TablePagination } from '@/shared/components/ui/TablePagination';
 import type { ReportDataset } from '../types/reporte.types';
-import { formatCurrency, formatNumber } from '../utils/reportes.utils';
+import { formatCurrency, formatNumber, formatReportDateTime } from '../utils/reportes.utils';
 import { summarizePromotionSales, type PromotionGroupMode, type PromotionScope } from '../utils/report-promotions.utils';
 
 const PAGE_SIZE = 10;
@@ -12,13 +12,25 @@ const PAGE_SIZE = 10;
 export function PromotionReport({ dataset }: { dataset: ReportDataset }) {
   const [groupBy, setGroupBy] = useState<PromotionGroupMode>('campaign');
   const [scope, setScope] = useState<PromotionScope>('all');
+  const [detailView, setDetailView] = useState(false);
   const [page, setPage] = useState(1);
   const allSales = useMemo(() => summarizePromotionSales(dataset, 'campaign'), [dataset]);
   const categoryCampaigns = useMemo(() => summarizePromotionSales(dataset, 'campaign', 'campaign'), [dataset]);
   const otherPromotions = useMemo(() => summarizePromotionSales(dataset, 'campaign', 'other'), [dataset]);
   const summary = useMemo(() => summarizePromotionSales(dataset, groupBy, scope), [dataset, groupBy, scope]);
-  useEffect(() => setPage(1), [dataset, groupBy, scope]);
+  const soldLines = useMemo(() => {
+    const ordersById = new Map(dataset.orders.filter(order => order.status !== 'cancelado').map(order => [order.id, order]));
+    return dataset.items.flatMap(item => {
+      const order = ordersById.get(item.orderId);
+      if (!order || (!item.isPromotion && !item.discountCampaignId)) return [];
+      if (scope === 'campaign' && !item.discountCampaignId) return [];
+      if (scope === 'other' && item.discountCampaignId) return [];
+      return [{ item, order }];
+    }).sort((a, b) => b.order.createdAt.localeCompare(a.order.createdAt));
+  }, [dataset, scope]);
+  useEffect(() => setPage(1), [dataset, groupBy, scope, detailView]);
   const visibleRows = summary.rows.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+  const visibleLines = soldLines.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   return (
     <>
@@ -27,11 +39,25 @@ export function PromotionReport({ dataset }: { dataset: ReportDataset }) {
           <p className="text-[13px] font-semibold text-neutral-900">Facturación real de promociones</p>
           <p className="mt-0.5 text-[11px] text-neutral-500">Importes cobrados al vender, no precios actuales del catálogo. Se aplican los filtros del informe.</p>
         </div>
-        <div className="w-full sm:w-48">
-          <Select aria-label="Agrupar ofertas" variant="light" value={groupBy}
-            options={[{value:'campaign',label:'Por campaña'}, {value:'product',label:'Por producto'}]}
-            onValueChange={(value) => setGroupBy(value as PromotionGroupMode)}
-            className="!h-9 !rounded-[10px] !border-neutral-200 !bg-[#f8f8f9] !text-[12px] !font-medium !shadow-none" />
+        <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto">
+          <div className="inline-flex rounded-[10px] bg-neutral-100 p-1">
+            <button type="button" aria-pressed={!detailView} onClick={() => setDetailView(false)}
+              className={`rounded-[8px] px-3 py-1.5 text-[11px] font-medium transition-colors ${!detailView ? 'bg-white text-neutral-900 shadow-sm' : 'text-neutral-500'}`}>
+              Agrupado
+            </button>
+            <button type="button" aria-pressed={detailView} onClick={() => setDetailView(true)}
+              className={`rounded-[8px] px-3 py-1.5 text-[11px] font-medium transition-colors ${detailView ? 'bg-white text-neutral-900 shadow-sm' : 'text-neutral-500'}`}>
+              Cada venta
+            </button>
+          </div>
+          {!detailView ? (
+            <div className="min-w-[150px] flex-1 sm:w-44 sm:flex-none">
+              <Select aria-label="Agrupar ofertas" variant="light" value={groupBy}
+                options={[{value:'campaign',label:'Por campaña'}, {value:'product',label:'Por producto'}]}
+                onValueChange={(value) => setGroupBy(value as PromotionGroupMode)}
+                className="!h-9 !rounded-[10px] !border-neutral-200 !bg-[#f8f8f9] !text-[12px] !font-medium !shadow-none" />
+            </div>
+          ) : null}
         </div>
       </div>
 
@@ -81,6 +107,34 @@ export function PromotionReport({ dataset }: { dataset: ReportDataset }) {
       </div>
 
       <div className="overflow-x-auto">
+        {detailView ? (
+          <table className="w-full min-w-[1040px] text-left text-sm">
+            <thead className="bg-neutral-50 text-[11px] font-semibold uppercase tracking-wider text-neutral-500">
+              <tr>
+                <th className="px-5 py-3">Fecha de venta</th>
+                <th className="px-4 py-3">Pedido</th>
+                <th className="px-4 py-3">Producto</th>
+                <th className="px-4 py-3">Campaña / promoción</th>
+                <th className="px-4 py-3 text-right">Unidades</th>
+                <th className="px-4 py-3 text-right">Precio cobrado por unidad</th>
+                <th className="px-5 py-3 text-right">Total facturado</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-neutral-100">
+              {visibleLines.map(({ item, order }) => (
+                <tr key={item.id} className="transition hover:bg-neutral-50/70">
+                  <td className="whitespace-nowrap px-5 py-3.5 text-neutral-500">{formatReportDateTime(order.createdAt)}</td>
+                  <td className="px-4 py-3.5 font-medium text-neutral-700">{order.orderCode}</td>
+                  <td className="px-4 py-3.5 font-medium text-neutral-900">{item.productName}</td>
+                  <td className="px-4 py-3.5 text-neutral-500">{item.discountCampaignTitle ?? 'Otra promoción'}</td>
+                  <td className="px-4 py-3.5 text-right tabular-nums text-neutral-600">{formatNumber(item.quantity)}</td>
+                  <td className="px-4 py-3.5 text-right tabular-nums text-neutral-600">{formatCurrency(item.unitPrice)}</td>
+                  <td className="px-5 py-3.5 text-right font-semibold tabular-nums text-neutral-900">{formatCurrency(item.total)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        ) : (
         <table className="w-full min-w-[1080px] text-left text-sm">
           <thead className="bg-neutral-50 text-[11px] font-semibold uppercase tracking-wider text-neutral-500">
             <tr>
@@ -114,7 +168,8 @@ export function PromotionReport({ dataset }: { dataset: ReportDataset }) {
             ))}
           </tbody>
         </table>
-        {!summary.rows.length ? (
+        )}
+        {!(detailView ? soldLines.length : summary.rows.length) ? (
           <div className="px-5 py-10 text-center text-[13px] text-neutral-500">No se registraron ventas promocionales con estos filtros.</div>
         ) : null}
       </div>
@@ -126,7 +181,7 @@ export function PromotionReport({ dataset }: { dataset: ReportDataset }) {
           ? ` ${formatNumber(summary.savingsUntrackedUnits)} unidades promocionales no tienen precio original histórico guardado, por lo que no se estima su ahorro.`
           : ''}
       </p>
-      <TablePagination page={page} pageSize={PAGE_SIZE} totalItems={summary.rows.length} onPageChange={setPage} />
+      <TablePagination page={page} pageSize={PAGE_SIZE} totalItems={detailView ? soldLines.length : summary.rows.length} onPageChange={setPage} />
     </>
   );
 }
