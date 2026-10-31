@@ -4,6 +4,7 @@ import { ArrowRight, ShoppingBag, Trash2 } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import type { CartItem } from '../types/carrito.types';
 import { CartItemRow } from './CartItemRow';
+import { calculateCartTotals } from '../services/carrito.service';
 import { ConfirmDialog } from '@/shared/components/ui/ConfirmDialog';
 import { Drawer } from '@/shared/components/ui/Drawer';
 import { formatCurrency } from '@/shared/utils/format.utils';
@@ -29,6 +30,7 @@ export function CartDrawer({ open, onClose, items, total, checkoutDisabled = fal
   const clearTimerRef = useRef<number | null>(null);
   const disabled = items.length === 0 || checkoutDisabled || isClearing;
   const quantity = items.reduce((sum, item) => sum + item.quantity, 0);
+  const { originalSubtotal, savings } = calculateCartTotals(items);
 
   useEffect(() => () => {
     if (clearTimerRef.current !== null) window.clearTimeout(clearTimerRef.current);
@@ -57,9 +59,17 @@ export function CartDrawer({ open, onClose, items, total, checkoutDisabled = fal
             <div className="flex min-w-0 items-center justify-between gap-4">
               <div className="min-w-0">
                 <p className="text-[11px] font-normal text-white/45">Total del carrito</p>
+                {savings > 0 ? (
+                  <p className="mt-1 text-[11px] tabular-nums text-white/40 line-through">{formatCurrency(originalSubtotal)}</p>
+                ) : null}
                 <p className="mt-0.5 text-[26px] font-semibold leading-tight tracking-[-.045em] tabular-nums text-[#f6f5f3]" aria-live="polite">
                   {formatCurrency(total)}
                 </p>
+                {savings > 0 ? (
+                  <p className={`mt-1 text-[11px] font-semibold tabular-nums ${theme === 'light' ? 'text-emerald-700' : 'text-emerald-300'}`}>
+                    Ahorrás {formatCurrency(savings)} con la promo
+                  </p>
+                ) : null}
               </div>
               {items.length > 0 ? (
                 <button
