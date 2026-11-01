@@ -46,6 +46,13 @@ export async function POST(request: Request) {
       }
 
       const quote = verifyDeliveryQuote(quoteToken);
+      // Las cotizaciones simuladas no pueden usarse en el sitio real.
+      if (quote.routeProvider === 'dev_simulated' && process.env.NEXT_PUBLIC_APP_ENV !== 'development') {
+        return NextResponse.json(
+          { error: 'La cotización de pruebas no puede usarse en producción.' },
+          { status: 409 },
+        );
+      }
 
       if (
         !coordinatesMatch(payload.customerLat, quote.customerLat)
