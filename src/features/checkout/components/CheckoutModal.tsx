@@ -246,7 +246,12 @@ export function CheckoutModal({ open, onClose, items, onOrderCreated }: Checkout
 
   async function attachCurrentLocation() {
     const location = await requestLocation();
-    if (location) await attachLocation(location);
+    if (location) {
+      await attachLocation(location);
+    } else {
+      // Si Windows no responde al GPS, mostrar automáticamente la alternativa.
+      setManualLocationOpen(true);
+    }
   }
 
   async function attachTestLocation() {
