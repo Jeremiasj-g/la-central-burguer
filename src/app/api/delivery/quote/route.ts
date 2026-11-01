@@ -19,6 +19,9 @@ const ROUTE_CACHE_RADIUS_KM = 0.035;
 const STORE_CACHE_RADIUS_KM = 0.02;
 const CACHE_SEARCH_DELTA = 0.0006;
 const ROUTE_PROVIDER = 'serpapi_google_maps';
+const IS_DEV_SIMULATION = process.env.NEXT_PUBLIC_APP_ENV === 'development';
+// Distancia estimada solo para QA; NO es una ruta real ni se usa en producción.
+const DEV_ROUTE_DISTANCE_FACTOR = 1.35;
 const TRAVEL_MODE = 'two_wheeler';
 const PUBLIC_DELIVERY_ERROR = 'No pudimos calcular el envío en este momento. Intentá nuevamente.';
 
@@ -187,6 +190,14 @@ export async function GET() {
       return NextResponse.json({ ok: false, code: 'STORE_LOCATION_MISSING' }, { status: 500 });
     }
 
+    if (IS_DEV_SIMULATION) {
+      return NextResponse.json({
+        ok: true,
+        code: 'DEV_SIMULATED',
+        note: 'Cotización simulada solo para pruebas. No representa una ruta real.',
+      }, { headers: { 'Cache-Control': 'no-store' } });
+    }
+
     const serpApiKey = process.env.SERPAPI_API_KEY?.trim() ?? '';
     if (!serpApiKey) {
       return NextResponse.json({ ok: false, code: 'SERPAPI_KEY_MISSING' }, { status: 500 });
@@ -321,28 +332,40 @@ export async function POST(request: Request) {
 
     let route: RouteResult | null = null;
 
-    try {
-      route = await findCachedRoute(storeLocation, customerLocation);
-    } catch (error) {
-      console.warn('[delivery-route-cache] Lectura de caché omitida.', {
-        message: error instanceof Error ? error.message : String(error),
-      });
-    }
-
-    if (!route) {
-      route = await fetchSerpApiRoute(storeLocation, customerLocation);
-
+    if (IS_DEV_SIMULATION) {
+      // DEV: sin dependencias externas ni consultas facturables a SerpApi.
+      // Las coordenadas sí son las proporcionadas por el navegador o el botón de prueba.
+      route = {
+        routeDistanceKm: Number((straightDistanceKm * DEV_ROUTE_DISTANCE_FACTOR).toFixed(3)),
+        routeDurationSeconds: null,
+        routeDurationText: null,
+        routeVia: 'Distancia simulada para pruebas (no es una ruta real)',
+        cacheHit: false,
+      };
+    } else {
       try {
-        await saveCachedRoute(storeLocation, customerLocation, {
-          routeDistanceKm: route.routeDistanceKm,
-          routeDurationSeconds: route.routeDurationSeconds,
-          routeDurationText: route.routeDurationText,
-          routeVia: route.routeVia,
-        });
+        route = await findCachedRoute(storeLocation, customerLocation);
       } catch (error) {
-        console.warn('[delivery-route-cache] Escritura de caché omitida.', {
+        console.warn('[delivery-route-cache] Lectura de caché omitida.', {
           message: error instanceof Error ? error.message : String(error),
         });
+      }
+
+      if (!route) {
+        route = await fetchSerpApiRoute(storeLocation, customerLocation);
+
+        try {
+          await saveCachedRoute(storeLocation, customerLocation, {
+            routeDistanceKm: route.routeDistanceKm,
+            routeDurationSeconds: route.routeDurationSeconds,
+            routeDurationText: route.routeDurationText,
+            routeVia: route.routeVia,
+          });
+        } catch (error) {
+          console.warn('[delivery-route-cache] Escritura de caché omitida.', {
+            message: error instanceof Error ? error.message : String(error),
+          });
+        }
       }
     }
 
@@ -367,7 +390,7 @@ export async function POST(request: Request) {
       deliveryCost: isWithinRange ? deliveryCost : 0,
       isWithinRange,
       mapsUrl,
-      routeProvider: ROUTE_PROVIDER,
+      routeProvider: IS_DEV_SIMULATION ? 'dev_simulated' : ROUTE_PROVIDER,
       travelMode: TRAVEL_MODE,
       routeVia: route.routeVia,
       quotedAt: now.toISOString(),
