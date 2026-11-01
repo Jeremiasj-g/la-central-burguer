@@ -1,6 +1,6 @@
 import { createHmac, timingSafeEqual } from 'node:crypto';
 
-export type DeliveryRouteProvider = 'serpapi_google_maps';
+export type DeliveryRouteProvider = 'serpapi_google_maps' | 'dev_simulated';
 export type DeliveryTravelMode = 'two_wheeler';
 
 export interface SignedDeliveryQuotePayload {
