@@ -11,7 +11,7 @@ export interface DeliveryPricingConfig {
   roundingValue: number;
 }
 
-export type DeliveryRouteProvider = 'serpapi_google_maps';
+export type DeliveryRouteProvider = 'serpapi_google_maps' | 'dev_simulated';
 export type DeliveryTravelMode = 'two_wheeler';
 
 export interface DeliveryQuote {
