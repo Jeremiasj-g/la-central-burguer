@@ -9,6 +9,7 @@ import { useCheckout } from '../hooks/useCheckout';
 import { getDeliveryQuote } from '@/features/delivery/services/delivery.service';
 import type { DeliveryQuote } from '@/features/delivery/types/delivery.types';
 import { formatDistanceKm } from '@/features/delivery/utils/delivery.utils';
+import { parseSharedMapLocation } from '@/features/delivery/utils/map-location.utils';
 import { useCurrentLocation } from '@/features/delivery/hooks/useCurrentLocation';
 import { ConfirmDialog } from '@/shared/components/ui/ConfirmDialog';
 import { Input } from '@/shared/components/ui/Input';
@@ -93,6 +94,8 @@ export function CheckoutModal({ open, onClose, items, onOrderCreated }: Checkout
   const [summaryExpanded, setSummaryExpanded] = useState(false);
   const [deliveryQuote, setDeliveryQuote] = useState<DeliveryQuote | null>(null);
   const [isQuotingDelivery, setIsQuotingDelivery] = useState(false);
+  const [manualLocationOpen, setManualLocationOpen] = useState(false);
+  const [manualLocationInput, setManualLocationInput] = useState('');
   const [values, setValues] = useState<CheckoutFormValues>(EMPTY_CHECKOUT_VALUES);
   const [isDraftHydrated, setIsDraftHydrated] = useState(false);
   const { submit, isSubmitting, errors, createdOrder, setCreatedOrder, clearError } = useCheckout();
@@ -203,7 +206,7 @@ export function CheckoutModal({ open, onClose, items, onOrderCreated }: Checkout
         setDeliveryQuote(null);
         setValues((current) => clearDeliveryQuoteValues(current));
         toast.error('No pudimos calcular el envío. Verificá la ubicación del local e intentá nuevamente.');
-        return;
+        return false;
       }
 
       setDeliveryQuote(quote);
@@ -228,12 +231,14 @@ export function CheckoutModal({ open, onClose, items, onOrderCreated }: Checkout
       if (!quote.isWithinRange) {
         toast.warning('Esta ubicación está fuera del radio de entrega configurado.');
       }
+      return true;
     } catch (error) {
       clearLocation();
       setDeliveryQuote(null);
       setValues((current) => clearDeliveryQuoteValues(current));
       const message = error instanceof Error ? error.message : 'No pudimos calcular el envío.';
       toast.error(message);
+      return false;
     } finally {
       setIsQuotingDelivery(false);
     }
@@ -255,6 +260,19 @@ export function CheckoutModal({ open, onClose, items, onOrderCreated }: Checkout
       lat: Number((config!.storeLatitude! + 0.003).toFixed(7)),
       lng: Number((config!.storeLongitude! + 0.003).toFixed(7)),
     });
+  }
+
+  async function attachManualLocation() {
+    const location = parseSharedMapLocation(manualLocationInput);
+    if (!location) {
+      toast.error('Pegá coordenadas (ej.: -27.4692, -58.8306) o un enlace directo de Google Maps con el punto seleccionado.');
+      return;
+    }
+
+    if (await attachLocation(location)) {
+      setManualLocationOpen(false);
+      setManualLocationInput('');
+    }
   }
 
   function removeLocation() {
@@ -463,12 +481,45 @@ export function CheckoutModal({ open, onClose, items, onOrderCreated }: Checkout
                           Usar ubicación de prueba
                         </button>
                       ) : null}
+                      {!values.customerLocation ? (
+                        <button type="button" onClick={() => setManualLocationOpen(open => !open)}
+                          disabled={!isDelivery || isQuotingDelivery}
+                          aria-expanded={manualLocationOpen}
+                          className="inline-flex h-9 items-center gap-1.5 rounded-[10px] border border-white/15 bg-white/[.045] px-3 text-[11px] font-medium text-white/80 transition-colors duration-200 hover:border-central-orange/40 hover:text-white disabled:opacity-50">
+                          <MapPin size={14} strokeWidth={1.8}/>
+                          {manualLocationOpen ? 'Ocultar ubicación manual' : 'Ingresar ubicación manual'}
+                        </button>
+                      ) : null}
                       {values.deliveryMapsUrl ? (
                         <a href={values.deliveryMapsUrl} target="_blank" rel="noreferrer" className="inline-flex h-9 items-center text-[11px] font-medium text-central-orange hover:underline">
                           Ver en Google Maps
                         </a>
                       ) : null}
                     </div>
+                    {isDelivery && manualLocationOpen && !values.customerLocation ? (
+                      <form onSubmit={(event) => { event.preventDefault(); void attachManualLocation(); }}
+                        className="mt-3 space-y-2 rounded-[12px] border border-white/10 bg-black/10 p-3 sm:ml-[30px]">
+                        <label htmlFor="checkout-manual-location" className="block text-[11px] font-medium text-white/75">
+                          Coordenadas o enlace de Google Maps
+                        </label>
+                        <div className="flex flex-wrap gap-2">
+                          <Input id="checkout-manual-location" type="text"
+                            value={manualLocationInput}
+                            onChange={(event) => setManualLocationInput(event.target.value)}
+                            placeholder="-27.4692, -58.8306"
+                            autoComplete="off"
+                            className="!h-9 min-w-[180px] flex-1 !rounded-[9px] !border-white/20 !bg-white/[.06] !px-3 !text-[12px] !font-normal !text-white placeholder:!text-white/40"
+                          />
+                          <button type="submit" disabled={!manualLocationInput.trim() || isGettingLocation || isQuotingDelivery}
+                            className="inline-flex h-9 items-center rounded-[9px] bg-central-orange px-3 text-[11px] font-medium text-[#191919] transition-colors hover:bg-[#ffc04a] disabled:opacity-50">
+                            {isQuotingDelivery ? 'Calculando...' : 'Usar este punto'}
+                          </button>
+                        </div>
+                        <p className="text-[11px] leading-5 text-white/45">
+                          Abrí Google Maps, elegí el punto exacto, hacé clic derecho sobre él y copiá sus coordenadas. También podés pegar un enlace directo que incluya las coordenadas.
+                        </p>
+                      </form>
+                    ) : null}
                   </div>
                   {errors.customerLocation ? <p className="mt-2 text-[11px] text-red-300" role="alert">{errors.customerLocation}</p> : null}
                 </div>
