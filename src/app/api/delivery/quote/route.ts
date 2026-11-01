@@ -432,12 +432,30 @@ export async function POST(request: Request) {
     const invalidSerpApiKey = /invalid api key|serpapi respondió con estado 401|serpapi respondió con estado 403/.test(message);
     const missingSerpApiKey = message.includes('serpapi todavía no está configurado');
     const isDev = process.env.NEXT_PUBLIC_APP_ENV === 'development';
+    // Diagnóstico limitado a DEV: nunca exponer mensajes internos de Supabase o secretos.
+    const devCode = !process.env.DELIVERY_QUOTE_SECRET?.trim()
+      ? 'DEV_QUOTE_SECRET_MISSING'
+      : /ubicación del local no está configurada/i.test(message)
+        ? 'DEV_STORE_LOCATION_MISSING'
+        : /fetch failed|failed to fetch|network/i.test(message)
+          ? 'DEV_BACKEND_UNREACHABLE'
+          : invalidSerpApiKey || missingSerpApiKey
+            ? 'DEV_SERPAPI_MISCONFIGURED'
+            : 'DEV_QUOTE_FAILED';
+    const devError = devCode === 'DEV_QUOTE_SECRET_MISSING'
+      ? 'Falta configurar DELIVERY_QUOTE_SECRET en el proyecto DEV de Vercel.'
+      : devCode === 'DEV_STORE_LOCATION_MISSING'
+        ? 'Falta configurar la ubicación del local en la base de datos DEV.'
+        : devCode === 'DEV_BACKEND_UNREACHABLE'
+          ? 'El servidor DEV no pudo conectarse a su servicio de datos. Revisá la conexión a Supabase DEV.'
+          : devCode === 'DEV_SERPAPI_MISCONFIGURED'
+            ? 'DEV intentó usar SerpApi. Verificá que NEXT_PUBLIC_APP_ENV sea development en el despliegue.'
+            : 'La cotización DEV falló en el servidor. Revisá el registro [delivery-quote] en Vercel.';
 
     return NextResponse.json(
       {
-        error: isDev && (invalidSerpApiKey || missingSerpApiKey)
-          ? 'La API de rutas en DEV no autorizó la clave SerpApi. Revisá SERPAPI_API_KEY en Vercel DEV y volvé a desplegar.'
-          : PUBLIC_DELIVERY_ERROR,
+        error: isDev ? devError : PUBLIC_DELIVERY_ERROR,
+        ...(isDev ? { code: devCode } : {}),
       },
       {
         status: 502,
