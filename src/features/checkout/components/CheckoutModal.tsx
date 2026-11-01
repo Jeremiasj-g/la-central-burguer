@@ -193,11 +193,8 @@ export function CheckoutModal({ open, onClose, items, onOrderCreated }: Checkout
     setValues((current) => ({ ...current, deliveryMethod: method, address: '' }));
   }
 
-  async function attachCurrentLocation() {
+  async function attachLocation(location: { lat: number; lng: number }) {
     clearError('customerLocation');
-    const location = await requestLocation();
-    if (!location) return;
-
     setIsQuotingDelivery(true);
     try {
       const quote = await getDeliveryQuote(location);
@@ -242,6 +239,24 @@ export function CheckoutModal({ open, onClose, items, onOrderCreated }: Checkout
     }
   }
 
+  async function attachCurrentLocation() {
+    const location = await requestLocation();
+    if (location) await attachLocation(location);
+  }
+
+  async function attachTestLocation() {
+    // Coordenadas cercanas al local: SOLO para probar el flujo de pedidos en DEV.
+    if (process.env.NEXT_PUBLIC_APP_ENV !== 'development'
+        || !Number.isFinite(config?.storeLatitude) || !Number.isFinite(config?.storeLongitude)) {
+      toast.error('No se pudo obtener la ubicación de prueba del local.');
+      return;
+    }
+    await attachLocation({
+      lat: Number((config!.storeLatitude! + 0.003).toFixed(7)),
+      lng: Number((config!.storeLongitude! + 0.003).toFixed(7)),
+    });
+  }
+
   function removeLocation() {
     clearError('customerLocation');
     clearLocation();
@@ -261,9 +276,11 @@ export function CheckoutModal({ open, onClose, items, onOrderCreated }: Checkout
   }
 
   const deliveryHelperText = deliveryQuote
-    ? deliveryQuote.isWithinRange
-      ? `${formatDistanceKm(deliveryQuote.routeDistanceKm)} · Envío: ${formatCurrency(deliveryQuote.deliveryCost)}`
-      : `${formatDistanceKm(deliveryQuote.routeDistanceKm)} · Fuera del radio de entrega.`
+    ? deliveryQuote.routeProvider === 'dev_simulated'
+      ? `SIMULACIÓN DEV · ${formatDistanceKm(deliveryQuote.routeDistanceKm)} aproximados · Envío ficticio: ${formatCurrency(deliveryQuote.deliveryCost)}`
+      : deliveryQuote.isWithinRange
+        ? `${formatDistanceKm(deliveryQuote.routeDistanceKm)} · Envío: ${formatCurrency(deliveryQuote.deliveryCost)}`
+        : `${formatDistanceKm(deliveryQuote.routeDistanceKm)} · Fuera del radio de entrega.`
     : 'Para solicitar delivery, activá el GPS y compartí tu ubicación actual. La utilizaremos para calcular el envío y localizar la entrega.';
 
   const canSendOrder = !isSubmitting
@@ -435,6 +452,17 @@ export function CheckoutModal({ open, onClose, items, onOrderCreated }: Checkout
                           {isRetryingLocation ? 'Buscando por red...' : isGettingLocation || isQuotingDelivery ? 'Calculando...' : 'Compartir ubicación'}
                         </button>
                       )}
+                      {process.env.NEXT_PUBLIC_APP_ENV === 'development'
+                        && !values.customerLocation
+                        && typeof config?.storeLatitude === 'number'
+                        && typeof config?.storeLongitude === 'number' ? (
+                        <button type="button" onClick={attachTestLocation}
+                          disabled={!isDelivery || isGettingLocation || isQuotingDelivery}
+                          className="inline-flex h-9 items-center gap-1.5 rounded-[10px] border border-central-orange/40 bg-central-orange/[.09] px-3 text-[11px] font-medium text-central-orange transition-colors duration-200 hover:bg-central-orange/[.15] disabled:opacity-50">
+                          <MapPin size={14} strokeWidth={1.8}/>
+                          Usar ubicación de prueba
+                        </button>
+                      ) : null}
                       {values.deliveryMapsUrl ? (
                         <a href={values.deliveryMapsUrl} target="_blank" rel="noreferrer" className="inline-flex h-9 items-center text-[11px] font-medium text-central-orange hover:underline">
                           Ver en Google Maps
