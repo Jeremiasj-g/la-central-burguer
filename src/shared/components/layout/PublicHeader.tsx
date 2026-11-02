@@ -1,22 +1,14 @@
 'use client';
 
+import Image from 'next/image';
 import Link from 'next/link';
 import { ShoppingCart } from 'lucide-react';
 import { useCarrito } from '@/features/carrito/hooks/useCarrito';
-import { useBusinessConfig } from '@/features/configuracion/hooks/useBusinessConfig';
 import { ROUTES } from '@/shared/constants/routes';
-import { BusinessLogo } from '@/features/configuracion/components/BusinessLogo';
 import { PublicThemeToggle } from './PublicThemeProvider';
 
-const navigation = [
-  { label: 'Inicio', href: ROUTES.home },
-  { label: 'Menú', href: '#menu' },
-];
-
 export function PublicHeader() {
-  const { config, isLoading } = useBusinessConfig();
   const cart = useCarrito();
-  const businessName = config?.businessName ?? 'La Central Burger';
   const cartCount = cart.items.reduce((total, item) => total + item.quantity, 0);
 
   function handleCartClick() {
@@ -24,61 +16,24 @@ export function PublicHeader() {
   }
 
   return (
-    <header className="sticky top-0 z-40 border-b border-central-orange/25 bg-[#0d0c0b]/88 text-central-cream shadow-dark backdrop-blur-xl">
-      <div className="mx-auto flex min-h-[68px] w-full max-w-[1120px] items-center justify-between gap-3 px-4 py-2 sm:min-h-[72px] sm:px-6 lg:px-8">
-        <div className="flex min-w-0 items-center gap-5 lg:gap-8">
-          <Link
-            href={ROUTES.home}
-            className="inline-flex shrink-0 items-center rounded-full focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-central-orange"
-            aria-label={`Ir al inicio de ${businessName}`}
-            title="Ir al inicio"
-          >
-            <BusinessLogo logoUrl={config?.logoUrl} businessName={businessName} mode="navbar" loading={isLoading} />
-          </Link>
-
-          <nav aria-label="Navegación principal" className="hidden items-center gap-1 border-l border-white/10 pl-5 md:flex lg:pl-8">
-            {navigation.map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                className="inline-flex h-10 items-center rounded-[11px] px-4 text-[13px] font-medium tracking-normal text-central-cream/75 transition-colors duration-200 hover:bg-central-orange/10 hover:text-central-orange focus-visible:outline focus-visible:outline-2 focus-visible:outline-central-orange"
-              >
-                {item.label}
-              </Link>
-            ))}
-          </nav>
-        </div>
-
-        <div className="flex shrink-0 items-center gap-1.5 sm:gap-2 lg:gap-3">
-          <Link
-            href="#menu"
-            className="inline-flex h-10 items-center rounded-[11px] border border-white/10 bg-white/[.035] px-3 text-[12px] font-semibold text-central-cream transition-colors duration-200 hover:border-central-orange/50 hover:text-central-orange md:hidden"
-          >
-            Menú
-          </Link>
-
-          <Link
-            href="#menu"
-            className="hidden h-10 items-center justify-center rounded-[11px] bg-central-orange px-5 text-[12px] font-semibold text-black shadow-orange transition-colors duration-200 hover:bg-central-cream lg:inline-flex"
-          >
-            Pedir ahora
-          </Link>
-
+    <header className="sticky top-0 z-40 border-b border-white/10 bg-[#111113]/95 text-[#f5f5f7] backdrop-blur-xl">
+      <div className="mx-auto flex min-h-[70px] max-w-7xl items-center justify-between gap-3 px-5 sm:px-8">
+        <Link href={ROUTES.home} aria-label="Ir al inicio de Chetos" className="flex min-w-0 shrink-0 items-center gap-2.5 rounded-xl transition-transform duration-200 hover:scale-[1.02] focus-visible:outline-2 focus-visible:outline-[#ff933d] motion-reduce:transition-none">
+          <Image src="/branding/chef-cutout.webp" width={50} height={40} alt="" className="h-10 w-12 object-contain" />
+          <span className="text-xl font-semibold tracking-[-.045em] text-white">Chetos<span className="text-[#ff933d]">.</span></span>
+        </Link>
+        <nav aria-label="Navegación principal" className="hidden items-center gap-7 md:flex">
+          <Link href={ROUTES.home} className="text-sm font-medium text-white/80 transition-transform duration-200 hover:scale-[1.04] motion-reduce:transition-none">Inicio</Link>
+          <Link href="/#especialidades" className="text-sm font-medium text-white/70 transition-transform duration-200 hover:scale-[1.04] motion-reduce:transition-none">Especialidades</Link>
+          <Link href="/#menu" className="text-sm font-medium text-white/70 transition-transform duration-200 hover:scale-[1.04] motion-reduce:transition-none">Menú</Link>
+        </nav>
+        <div className="flex items-center gap-2 sm:gap-3">
+          <Link href="/#menu" className="rounded-full border border-white/15 px-3 py-2 text-xs font-medium text-white transition-transform duration-200 hover:scale-[1.03] sm:hidden motion-reduce:transition-none">Menú</Link>
+          <Link href="/#menu" className="hidden rounded-full bg-[#ff8730] px-5 py-2.5 text-sm font-semibold text-[#151311] transition-transform duration-200 hover:scale-[1.03] sm:inline-flex motion-reduce:transition-none">Hacer pedido</Link>
           <PublicThemeToggle />
-
-          <button
-            type="button"
-            onClick={handleCartClick}
-            className="relative grid h-10 w-10 shrink-0 place-items-center rounded-[11px] border border-central-orange/30 text-central-cream transition-colors duration-200 hover:border-central-orange hover:text-central-orange lg:hidden"
-            aria-label={cartCount > 0 ? `Abrir carrito, ${cartCount} productos` : 'Abrir carrito'}
-            title="Carrito"
-          >
-            <ShoppingCart size={21} className={cartCount > 0 ? 'lcb-bell-vibrate' : undefined} />
-            {cartCount > 0 ? (
-              <span className="absolute -right-1.5 -top-1.5 grid min-h-5 min-w-5 place-items-center rounded-full bg-central-orange px-1 text-[10px] font-black leading-none text-black ring-2 ring-[#0d0c0b]">
-                {cartCount > 99 ? '99+' : cartCount}
-              </span>
-            ) : null}
+          <button type="button" onClick={handleCartClick} className="relative grid h-10 w-10 shrink-0 place-items-center rounded-full border border-white/15 text-white transition-transform duration-200 hover:scale-[1.04] focus-visible:outline-2 focus-visible:outline-[#ff933d] lg:hidden motion-reduce:transition-none" aria-label={cartCount > 0 ? 'Abrir carrito, ' + cartCount + ' productos' : 'Abrir carrito'} title="Carrito">
+            <ShoppingCart size={20} strokeWidth={1.7} />
+            {cartCount > 0 ? <span className="absolute -right-1 -top-1 grid h-5 min-w-5 place-items-center rounded-full bg-[#ff8730] px-1 text-[10px] font-semibold text-[#151311]">{cartCount > 99 ? '99+' : cartCount}</span> : null}
           </button>
         </div>
       </div>

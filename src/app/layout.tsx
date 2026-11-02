@@ -3,8 +3,8 @@ import './globals.css';
 import { AppProviders } from '@/providers/AppProviders';
 
 export const metadata: Metadata = {
-  title: 'La Central Burger',
-  description: 'Hamburguesas, pizzas, lomitos y sándwiches preparados al momento.',
+  title: 'Chetos | Hamburguesas y mucho más',
+  description: 'Chetos: hamburguesas, lomitos, pizzas y tus favoritos para compartir.',
   ...(process.env.NEXT_PUBLIC_APP_ENV === 'development' ? { robots: { index: false, follow: false } } : {}),
 };
 

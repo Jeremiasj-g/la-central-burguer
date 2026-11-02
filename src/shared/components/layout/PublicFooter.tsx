@@ -1,146 +1,59 @@
 'use client';
 
+import Image from 'next/image';
 import Link from 'next/link';
-import Skeleton from 'react-loading-skeleton';
-import { MapPin } from 'lucide-react';
+import { ArrowUpRight, MapPin, Phone } from 'lucide-react';
 import { useBusinessConfig } from '@/features/configuracion/hooks/useBusinessConfig';
-import { BusinessLogo } from '@/features/configuracion/components/BusinessLogo';
 
-const socialButtonBase = 'grid h-12 w-12 place-items-center overflow-visible transition-transform duration-200 ease-out hover:scale-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-[#11100f]';
-
-function normalizeExternalUrl(value: string | undefined, fallback: string) {
+function externalUrl(value?: string, fallback = '#') {
   const trimmed = value?.trim();
-  if (!trimmed) return fallback;
-  return /^https?:\/\//i.test(trimmed) ? trimmed : `https://${trimmed.replace(/^\/+/, '')}`;
+  return trimmed ? (/^https?:\/\//i.test(trimmed) ? trimmed : 'https://' + trimmed.replace(/^\/+/, '')) : fallback;
 }
 
 export function PublicFooter() {
-  const { config, isLoading } = useBusinessConfig();
-  const businessName = config?.businessName?.trim() || 'La Central Burger';
-  const whatsapp = (config?.whatsappNumber || '543794752707').replace(/\D/g, '');
-  const address = config?.address?.trim() || 'Madariaga 246';
-  const facebookUrl = normalizeExternalUrl(config?.facebookUrl, '#');
-  const instagramUrl = normalizeExternalUrl(config?.instagramUrl, '#');
-  const whatsappUrl = normalizeExternalUrl(config?.whatsappUrl, `https://wa.me/${whatsapp}`);
+  const { config } = useBusinessConfig();
+  const phone = (config?.whatsappNumber || '').replace(/\D/g, '');
+  const socialLinks = [
+    { label: 'Instagram', href: externalUrl(config?.instagramUrl) },
+    { label: 'Facebook', href: externalUrl(config?.facebookUrl) },
+    { label: 'WhatsApp', href: externalUrl(config?.whatsappUrl, phone ? 'https://wa.me/' + phone : '#') },
+  ].filter(link => link.href !== '#');
 
   return (
-    <footer className="brick-wall relative overflow-hidden border-t border-central-orange/25 px-4 py-16 text-central-cream sm:px-6 lg:px-8">
-      <div className="absolute right-0 top-8 h-[75%] w-1 rounded-l-full bg-central-orange" />
-      {!isLoading ? (
-        <div className="pointer-events-none absolute left-8 top-10 hidden text-[70px] watermark-text lg:block">{businessName}</div>
-      ) : null}
-
-      <div className="mx-auto max-w-7xl text-center">
-        <div className="brand-stamp mx-auto mb-8 h-28 w-28 overflow-hidden">
-          <BusinessLogo logoUrl={config?.logoUrl} businessName={businessName} mode="stamp" loading={isLoading} />
+    <footer className="border-t border-white/10 bg-[#0b0b0d] px-5 py-14 text-[#f5f5f7] sm:px-8 sm:py-16">
+      <div className="mx-auto grid max-w-7xl gap-10 md:grid-cols-[1.2fr_1fr_1fr]">
+        <div>
+          <Link href="/" className="inline-flex items-center gap-3 rounded-xl transition-transform duration-200 hover:scale-[1.02] motion-reduce:transition-none">
+            <Image src="/branding/chef-cutout.webp" width={100} height={76} alt="Chef de Chetos con una pizza y una hamburguesa" className="h-[76px] w-[100px] object-contain" />
+            <div>
+              <span className="block text-3xl font-semibold tracking-[-.06em]">Chetos<span className="text-[#ff933d]">.</span></span>
+              <span className="mt-1 block text-xs font-normal text-white/55">Una obra maestra.</span>
+            </div>
+          </Link>
+          <p className="mt-4 max-w-sm text-sm font-normal leading-6 text-white/50">Hamburguesas, lomitos, pizzas y tus comidas favoritas, hechas para disfrutar.</p>
         </div>
-
-        {isLoading ? (
-          <div className="skeleton-dark mx-auto max-w-sm"><Skeleton height={48} borderRadius={2} /></div>
-        ) : (
-          <h2 className="text-[42px] font-semibold tracking-[-.055em] text-central-orange sm:text-[54px]">{businessName}</h2>
-        )}
-        <div className="brush-line mx-auto mt-5" />
-
-        {isLoading ? (
-          <div className="skeleton-dark mt-8 flex justify-center gap-4">
-            <Skeleton width={48} height={48} borderRadius={2} />
-            <Skeleton width={48} height={48} borderRadius={2} />
-            <Skeleton width={48} height={48} borderRadius={2} />
+        <div>
+          <p className="text-sm font-semibold text-white">Explorá</p>
+          <div className="mt-5 flex flex-col items-start gap-3 text-sm text-white/60">
+            <Link href="/" className="transition-transform duration-200 hover:scale-[1.03] motion-reduce:transition-none">Inicio</Link>
+            <Link href="/#especialidades" className="transition-transform duration-200 hover:scale-[1.03] motion-reduce:transition-none">Especialidades</Link>
+            <Link href="/#menu" className="transition-transform duration-200 hover:scale-[1.03] motion-reduce:transition-none">Carta y pedidos</Link>
           </div>
-        ) : (
-          <div className="mt-8 flex justify-center gap-4">
-            <Link
-              className={`${socialButtonBase} hover:drop-shadow-[0_0_14px_rgba(24,119,242,.75)] focus-visible:ring-[#1877F2]`}
-              href={facebookUrl}
-              target={facebookUrl === '#' ? undefined : '_blank'}
-              rel={facebookUrl === '#' ? undefined : 'noreferrer'}
-              aria-label="Facebook"
-              title="Facebook"
-            >
-              <span
-                aria-hidden="true"
-                className="h-full w-full"
-                style={{
-                  backgroundColor: '#1877F2',
-                  WebkitMaskImage: 'url("/social/facebook.svg")',
-                  maskImage: 'url("/social/facebook.svg")',
-                  WebkitMaskRepeat: 'no-repeat',
-                  maskRepeat: 'no-repeat',
-                  WebkitMaskPosition: 'center',
-                  maskPosition: 'center',
-                  WebkitMaskSize: 'contain',
-                  maskSize: 'contain',
-                }}
-              />
-            </Link>
-  
-            <Link
-              className={`${socialButtonBase} hover:drop-shadow-[0_0_14px_rgba(225,48,108,.75)] focus-visible:ring-[#E1306C]`}
-              href={instagramUrl}
-              target={instagramUrl === '#' ? undefined : '_blank'}
-              rel={instagramUrl === '#' ? undefined : 'noreferrer'}
-              aria-label="Instagram"
-              title="Instagram"
-            >
-              <span
-                aria-hidden="true"
-                className="h-full w-full"
-                style={{
-                  backgroundColor: '#E1306C',
-                  WebkitMaskImage: 'url("/social/instagram.svg")',
-                  maskImage: 'url("/social/instagram.svg")',
-                  WebkitMaskRepeat: 'no-repeat',
-                  maskRepeat: 'no-repeat',
-                  WebkitMaskPosition: 'center',
-                  maskPosition: 'center',
-                  WebkitMaskSize: 'contain',
-                  maskSize: 'contain',
-                }}
-              />
-            </Link>
-  
-            <Link
-              className={`${socialButtonBase} hover:drop-shadow-[0_0_14px_rgba(37,211,102,.75)] focus-visible:ring-[#25D366]`}
-              href={whatsappUrl}
-              target="_blank"
-              rel="noreferrer"
-              aria-label="WhatsApp"
-              title="WhatsApp"
-            >
-              <span
-                aria-hidden="true"
-                className="h-full w-full"
-                style={{
-                  backgroundColor: '#25D366',
-                  WebkitMaskImage: 'url("/social/whatsapp.svg")',
-                  maskImage: 'url("/social/whatsapp.svg")',
-                  WebkitMaskRepeat: 'no-repeat',
-                  maskRepeat: 'no-repeat',
-                  WebkitMaskPosition: 'center',
-                  maskPosition: 'center',
-                  WebkitMaskSize: 'contain',
-                  maskSize: 'contain',
-                }}
-              />
-            </Link>
+        </div>
+        <div>
+          <p className="text-sm font-semibold text-white">Encontranos</p>
+          <div className="mt-5 space-y-3 text-sm font-normal text-white/60">
+            <p className="flex items-start gap-2"><MapPin size={17} className="mt-0.5 shrink-0 text-[#ff933d]" strokeWidth={1.6} />{config?.address?.trim() || 'Corrientes, Argentina'}</p>
+            {phone ? <a href={'https://wa.me/' + phone} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 transition-transform duration-200 hover:scale-[1.03] motion-reduce:transition-none"><Phone size={17} className="text-[#ff933d]" strokeWidth={1.6} />{phone}</a> : null}
+            <div className="flex flex-wrap gap-x-4 gap-y-2 pt-1">
+              {socialLinks.map(link => <a key={link.label} href={link.href} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-xs font-medium text-white/70 transition-transform duration-200 hover:scale-[1.03] motion-reduce:transition-none">{link.label} <ArrowUpRight size={13} /></a>)}
+            </div>
           </div>
-        )}
-
-        {isLoading ? (
-          <div className="skeleton-dark mx-auto mt-8 max-w-xs">
-            <Skeleton height={16} />
-            <Skeleton className="mt-2" width="82%" height={14} />
-          </div>
-        ) : (
-          <>
-            <p className="mt-8 flex items-center justify-center gap-2 text-sm font-bold text-central-cream/65">
-              <MapPin size={16} /> {address} · Corrientes, Argentina
-            </p>
-            <p className="mt-2 text-sm text-central-cream/45">Copyright © 2026 {businessName}. Todos los derechos reservados.</p>
-          </>
-        )}
-        <p className="mt-2 text-sm text-central-cream/45">Desarrollado por <span className="font-bold text-central-orange">@Devcor</span></p>
+        </div>
+      </div>
+      <div className="mx-auto mt-12 flex max-w-7xl flex-wrap justify-between gap-3 border-t border-white/10 pt-6 text-xs font-normal text-white/40">
+        <span>© {new Date().getFullYear()} Chetos. Todos los derechos reservados.</span>
+        <span>Desarrollado por <span className="font-medium text-white/65">@Devcor</span></span>
       </div>
     </footer>
   );

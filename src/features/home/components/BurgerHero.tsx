@@ -1,140 +1,79 @@
 'use client';
 
+import Image from 'next/image';
 import Link from 'next/link';
-import { useMemo } from 'react';
-import Skeleton from 'react-loading-skeleton';
-import { ArrowDown, Flame, MapPin, Wrench } from 'lucide-react';
+import { ArrowDownRight, Clock3, MapPin, ShoppingBag } from 'lucide-react';
 import { useBusinessConfig } from '@/features/configuracion/hooks/useBusinessConfig';
-import { isBusinessOpenBySchedule, getNextBusinessOpening, getWeeklyBusinessHours } from '@/features/configuracion/utils/businessStatus.utils';
+import { isBusinessOpenBySchedule, getWeeklyBusinessHours } from '@/features/configuracion/utils/businessStatus.utils';
 import { useBusinessClock } from '@/features/configuracion/hooks/useBusinessClock';
-import { BusinessLogo } from '@/features/configuracion/components/BusinessLogo';
-
-function formatPhoneForDisplay(phone?: string) {
-  if (!phone) return 'Sin WhatsApp';
-  return phone.replace(/^54/, '').replace(/\D/g, '') || phone;
-}
 
 export function BurgerHero() {
   const { config, isLoading } = useBusinessConfig();
   const now = useBusinessClock();
-  const isOpen = config ? isBusinessOpenBySchedule(config,now) : false;
-  const minuteTick = Math.floor(now.getTime()/60000);
-  const nextOpening = useMemo(() => config && !isBusinessOpenBySchedule(config,new Date(minuteTick*60000)) ? getNextBusinessOpening(config,new Date(minuteTick*60000)) : null, [config,minuteTick]);
-  const remaining = nextOpening ? Math.max(0,Math.ceil((nextOpening.getTime()-now.getTime())/1000)) : 0;
-  const remainingDays=Math.floor(remaining/86400);
-  const clockText=[Math.floor(remaining%86400/3600),Math.floor(remaining%3600/60),remaining%60].map(n=>String(n).padStart(2,'0')).join(':');
-  const isMaintenance = Boolean(config?.maintenanceMode);
-  const businessName = config?.businessName ?? 'La Central Burger';
-  const words = businessName.trim().split(/\s+/);
-  const lastWord = words.pop() ?? '';
-  const firstWords = words.join(' ') || lastWord;
+  const isOpen = config ? isBusinessOpenBySchedule(config, now) : false;
+  const maintenance = Boolean(config?.maintenanceMode);
+  const hours = config ? getWeeklyBusinessHours(config) : [];
 
   return (
-    <section className="brick-wall grunge-border relative min-h-[720px] overflow-hidden px-4 py-20 text-central-cream sm:px-6 lg:px-8 lg:py-24">
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_18%,rgba(216,137,24,.18),transparent_30rem),linear-gradient(90deg,rgba(0,0,0,.30),transparent_45%,rgba(0,0,0,.34))]" />
-      <div className="pointer-events-none absolute -right-24 top-28 hidden h-[380px] w-[380px] rounded-full border-[28px] border-central-cream/5 xl:block" />
-      <div className="pointer-events-none absolute bottom-0 right-0 hidden h-[290px] w-[520px] rounded-tl-[80px] bg-[radial-gradient(circle_at_60%_45%,rgba(216,137,24,.38),rgba(216,137,24,.08)_42%,transparent_70%)] blur-sm lg:block" />
-
-      <div className="relative mx-auto flex max-w-7xl flex-col items-center text-center">
-        <div className="brand-stamp h-32 w-32 overflow-hidden sm:h-40 sm:w-40">
-          <BusinessLogo
-            logoUrl={config?.logoUrl}
-            businessName={businessName}
-            mode="stamp"
-            loading={isLoading}
-          />
-        </div>
-
-        {isLoading ? (
-          <div className="skeleton-dark mt-12">
-            <Skeleton width={175} height={38} borderRadius={2} />
-          </div>
-        ) : (
-          <div className={`mt-12 inline-flex items-center gap-2 rounded-[13px] border-2 bg-black/45 px-5 py-2.5 text-xs font-black uppercase tracking-[.28em] shadow-dark backdrop-blur ${isMaintenance ? 'border-central-orange/70 text-central-orange shadow-[0_0_28px_rgba(228,87,18,.12)]' : isOpen ? 'border-emerald-400/80 text-emerald-300 shadow-[0_0_28px_rgba(52,211,153,.18)]' : 'border-red-400/80 text-red-300 shadow-[0_0_28px_rgba(248,113,113,.15)]'}`}>
-            {isMaintenance ? <Wrench size={15} strokeWidth={1.8} /> : <Flame size={15} />} {isMaintenance ? 'Mantenimiento' : isOpen ? 'Abierto ahora' : 'Cerrado ahora'}
-          </div>
-        )}
-
-        {!isLoading && config ? (
-          <div className="mt-2 flex flex-col items-center gap-1.5 text-center">
-            {!isOpen && nextOpening ? (
-              <div className="rounded-full border border-white/15 bg-black/35 px-4 py-1.5 text-[11px] text-white/80 backdrop-blur" aria-live="off">
-                Abre en <span className="font-semibold tabular-nums text-white">{remainingDays ? remainingDays+'d ' : ''}{clockText}</span>
-              </div>
-            ) : null}
-          </div>
-        ) : null}
-
-        {isLoading ? (
-          <div className="skeleton-dark mt-7 w-full max-w-4xl">
-            <Skeleton height={86} borderRadius={2} />
-            <Skeleton className="mt-2" width="68%" height={86} borderRadius={2} />
-          </div>
-        ) : (
-          <h1 className="hero-brand-title menu-title-shadow mt-7 max-w-5xl font-display text-6xl uppercase leading-[.82] tracking-wide text-central-cream sm:text-8xl lg:text-[9.5rem]">
-            {firstWords}<br />{lastWord ? <span className="text-central-orange">{lastWord}</span> : null}
-          </h1>
-        )}
-
-        <div className="brush-line mx-auto mt-7" />
-
-        {isLoading ? (
-          <div className="skeleton-dark mt-8 w-full max-w-3xl">
-            <Skeleton height={20} />
-            <Skeleton className="mt-2" width="86%" height={20} />
-          </div>
-        ) : (
-          <p className="mt-8 max-w-3xl text-lg font-semibold leading-8 text-central-cream/80 sm:text-xl">
-            {config?.heroDescription ?? 'Hamburguesas, lomitos, sándwichs de milanesa, figazzas, pizzas y milanesas XXL. Sabor bien cargado, papas fritas y pedidos rápidos por WhatsApp.'}
+    <section id="inicio" className="relative isolate overflow-hidden bg-[#0d0d0f] text-[#f5f5f7]">
+      <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_80%_30%,rgba(255,128,37,.17),transparent_45%),linear-gradient(145deg,#0d0d0f,#171518_64%,#0d0d0f)]" />
+      <div className="relative mx-auto grid min-h-[600px] max-w-7xl items-center gap-10 px-5 py-16 sm:px-8 lg:grid-cols-[1.1fr_.9fr] lg:gap-12 lg:py-24">
+        <div className="min-w-0">
+          <p className="mb-5 text-xs font-medium uppercase tracking-[.2em] text-[#ff9a4c]">
+            Chetos · Corrientes
           </p>
-        )}
-
-        <div className="mt-10 flex flex-col gap-3 sm:flex-row">
-          <Link href="#menu" className="inline-flex h-14 items-center justify-center gap-2 rounded-[13px] bg-central-orange px-7 text-sm font-black uppercase tracking-wide text-black shadow-orange transition hover:bg-central-cream">
-            Ver menú <ArrowDown size={18} />
-          </Link>
-        </div>
-
-        <div className="mt-12 grid w-full max-w-5xl gap-3 sm:grid-cols-2 xl:grid-cols-4">
-          <div className="rounded-[15px] border border-central-orange/25 bg-black/35 p-4 backdrop-blur">
-            <p className="text-xs font-black uppercase tracking-[.25em] text-central-orange">WhatsApp</p>
-            {isLoading ? (
-              <div className="skeleton-dark mt-2"><Skeleton width={150} height={24} /></div>
-            ) : (
-              <p className="mt-1 text-xl font-black">{formatPhoneForDisplay(config?.whatsappNumber)}</p>
-            )}
+          <h1 className="max-w-[700px] text-[clamp(3.1rem,7.6vw,6.7rem)] font-semibold leading-[.99] tracking-[-.075em]">
+            Comida que <span className="text-[#ff933d]">se disfruta</span> de verdad.
+          </h1>
+          <p className="mt-6 max-w-xl text-base font-normal leading-7 text-white/65 sm:text-lg">
+            Hamburguesas, lomitos, pizzas y mucho más. Elegí tu favorito, armá tu pedido y disfrutá.
+          </p>
+          <div className="mt-8 flex flex-wrap items-center gap-3">
+            <Link
+              href="#menu"
+              className="inline-flex h-12 items-center gap-2 rounded-full bg-[#ff8730] px-6 text-sm font-semibold text-[#151311] transition-transform duration-200 hover:scale-[1.03] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#ff8730] motion-reduce:transition-none"
+            >
+              Ver nuestra carta <ArrowDownRight size={17} strokeWidth={1.8} />
+            </Link>
+            <Link
+              href="#especialidades"
+              className="inline-flex h-12 items-center rounded-full border border-white/20 px-6 text-sm font-medium text-white transition-transform duration-200 hover:scale-[1.03] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white motion-reduce:transition-none"
+            >
+              Descubrí los favoritos
+            </Link>
           </div>
-          <div className="rounded-[15px] border border-central-orange/25 bg-black/35 p-4 backdrop-blur">
-            <p className="text-xs font-black uppercase tracking-[.25em] text-central-orange">Dirección</p>
-            {isLoading ? (
-              <div className="skeleton-dark mt-2"><Skeleton width={165} height={24} /></div>
-            ) : (
-              <p className="mt-1 flex items-center justify-center gap-2 text-xl font-black"><MapPin size={18} /> {config?.address ?? 'Madariaga 246'}</p>
-            )}
+          <div className="mt-12 flex flex-wrap gap-x-6 gap-y-3 border-t border-white/10 pt-6 text-sm font-normal text-white/65">
+            <span className="inline-flex items-center gap-2">
+              <span className={'h-2 w-2 rounded-full ' + (maintenance ? 'bg-amber-400' : isOpen ? 'bg-emerald-400' : 'bg-white/40')} />
+              {isLoading ? 'Consultando horarios' : maintenance ? 'En mantenimiento' : isOpen ? 'Abierto ahora' : 'Cerrado ahora'}
+            </span>
+            <span className="inline-flex items-center gap-2"><ShoppingBag size={16} strokeWidth={1.7} /> Pedidos online</span>
+            <span className="inline-flex min-w-0 items-center gap-2"><MapPin size={16} strokeWidth={1.7} /> {config?.address?.trim() || 'Corrientes, Argentina'}</span>
           </div>
-          <div className="rounded-[15px] border border-central-orange/25 bg-black/35 p-4 backdrop-blur">
-            <p className="text-xs font-black uppercase tracking-[.25em] text-central-orange">Especialidad</p>
-            {isLoading ? (
-              <div className="skeleton-dark mt-2"><Skeleton width={140} height={24} /></div>
-            ) : (
-              <p className="mt-1 text-xl font-black">{config?.specialty ?? 'Papas incluidas'}</p>
-            )}
-          </div>
-          <div className="rounded-[15px] border border-central-orange/25 bg-black/35 p-4 backdrop-blur">
-            <p className="text-xs font-black uppercase tracking-[.25em] text-central-orange">Horarios</p>
-            {isLoading ? (
-              <div className="skeleton-dark mt-2"><Skeleton width={145} height={24} /></div>
-            ) : config ? (
-              <div className="mt-2 space-y-2">
-                {getWeeklyBusinessHours(config).map(row => (
-                  <div key={row.label} className="flex items-baseline justify-between gap-3 text-[12px] leading-5">
-                    <span className="shrink-0 font-semibold text-central-cream/70">{row.label}</span>
-                    <span className="text-right font-semibold tabular-nums text-white">{row.hours}</span>
-                  </div>
-                ))}
+          {hours.length > 0 ? (
+            <details className="mt-4 max-w-md text-xs font-normal text-white/55">
+              <summary className="inline-flex cursor-pointer items-center gap-2 text-white/65"><Clock3 size={14} /> Ver horarios</summary>
+              <div className="mt-3 grid gap-1.5 border-l border-white/15 pl-3">
+                {hours.map(row => <div key={row.label} className="flex justify-between gap-6"><span>{row.label}</span><span>{row.hours}</span></div>)}
               </div>
-            ) : <p className="mt-1 text-sm text-central-cream/70">—</p>}
+            </details>
+          ) : null}
+        </div>
+        <div className="relative flex min-h-[280px] items-center justify-center sm:min-h-[400px] lg:min-h-[460px]">
+          <div aria-hidden="true" className="pointer-events-none absolute h-[75%] w-[75%] max-w-[410px] rounded-full bg-[#ff842b]/15 blur-[75px]" />
+          <div className="relative mx-auto grid aspect-square w-full max-w-[470px] place-items-center rounded-full border border-[#ff9c52]/10 bg-[radial-gradient(circle_at_50%_48%,#352014_0%,#1b1717_56%,#101012_80%)]">
+            <Image
+              src="/branding/chef-cutout.webp"
+              width={540}
+              height={400}
+              alt="Chef de Chetos sosteniendo una pizza y una hamburguesa"
+              priority
+              className="relative h-auto w-[91%] max-w-[420px] object-contain drop-shadow-[0_22px_35px_rgba(0,0,0,.32)]"
+            />
           </div>
+          <span className="absolute bottom-3 right-1 rounded-full border border-white/15 bg-[#201c1b] px-4 py-2 text-xs font-medium text-white/80 sm:bottom-10 sm:right-5">
+            Una obra maestra
+          </span>
         </div>
       </div>
     </section>
