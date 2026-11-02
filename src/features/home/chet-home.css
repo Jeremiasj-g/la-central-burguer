@@ -131,8 +131,6 @@ body.chet-customer-active [data-lcb-scroll-lock-overlay] :is(.chet-cart-drawer,.
 .public-site[data-public-theme="light"] .chet-ordering-section h3 {color:#242428!important;}
 .public-site[data-public-theme="light"] .chet-home .chet-menu-search::placeholder {color:#7d7d84!important;}
 .public-site[data-public-theme="light"] .chet-home .chet-category-chip[aria-pressed="true"] {background:#ff933d!important;border-color:#ff933d!important;color:#1a120d!important;}
-.public-site[data-public-theme="light"] .chet-home .chet-product-card button:not([aria-label*="Ampliar"]) + div,
-.public-site[data-public-theme="light"] .chet-home .chet-product-card .relative.aspect-\\[1\\.55\\] {background:#efeff0;}
 body.chet-customer-active[data-public-theme="light"] [data-lcb-scroll-lock-overlay] :is(.chet-checkout-panel,.chet-product-detail,.chet-cart-drawer) {
   background:#fff!important;color:#242428!important;border-color:rgba(20,20,24,.11)!important;
 }
