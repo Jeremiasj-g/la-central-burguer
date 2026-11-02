@@ -2,17 +2,14 @@ import Skeleton from 'react-loading-skeleton';
 
 export function ProductoCardSkeleton() {
   return (
-    <div className="lcb-product-skeleton skeleton-dark rounded-[17px] bg-[#171514] p-5 shadow-dark">
-      <div className="grid grid-cols-[34px_1fr_auto] gap-4">
-        <Skeleton width={30} height={30} borderRadius={8} />
-        <div>
-          <Skeleton width={120} height={12} />
-          <Skeleton className="mt-3" height={34} />
-          <Skeleton className="mt-3" count={2} />
-        </div>
-        <Skeleton width={92} height={34} />
+    <div className="chet-product-card skeleton-dark overflow-hidden rounded-[23px] border border-white/10 bg-[#1b1b1e]">
+      <Skeleton height={200} borderRadius={0} />
+      <div className="space-y-3 p-5">
+        <Skeleton width={90} height={12} />
+        <Skeleton width="72%" height={24} />
+        <Skeleton count={2} height={12} />
+        <Skeleton width={110} height={24} />
       </div>
-      <Skeleton className="mt-5" height={1} />
     </div>
   );
 }

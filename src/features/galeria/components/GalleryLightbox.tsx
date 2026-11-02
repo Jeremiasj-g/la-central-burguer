@@ -178,7 +178,7 @@ export function GalleryLightbox({ images, selectedIndex, onSelect, onClose }: Ga
         <div ref={viewportRef} className="absolute inset-0 flex touch-none select-none items-center justify-center overflow-hidden p-3 sm:p-8"
           onTouchStart={onTouchStart} onTouchMove={onTouchMove} onTouchEnd={onTouchEnd} onTouchCancel={onTouchEnd}
           onDoubleClick={() => changeZoom(scale > 1 ? 1 - scale : 1)}>
-          <img src={image.image_url} alt={image.alt_text || 'Fotografía de La Central Burger'}
+          <img src={image.image_url} alt={image.alt_text || 'Fotografía de Chetos'}
             draggable={false} className="pointer-events-none block max-h-full max-w-full select-none object-contain"
             style={{
               transform: `translate3d(${offset.x}px, ${offset.y}px, 0) scale(${scale})`,

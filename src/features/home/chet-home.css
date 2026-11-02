@@ -32,3 +32,134 @@
 .chet-home [class*="font-extrabold"],
 .chet-home [class*="font-bold"] { font-weight: 600 !important; }
 .chet-home .lcb-food-gallery img { transition-duration: 250ms !important; }
+
+
+/* Carta Chetos / sitio público DEV. Nunca se aplica al panel administrador. */
+.chet-home, .chet-customer-active .lcb-modal-overlay, .chet-customer-active .lcb-drawer-overlay {
+  font-family: Outfit, Inter, system-ui, sans-serif;
+  font-weight: 400;
+}
+.chet-home :is(h1,h2,h3,h4,b,strong),
+.chet-customer-active :is(.chet-product-detail,.chet-checkout-panel,.chet-cart-drawer) :is(h1,h2,h3,h4,b,strong) {font-weight:600!important;}
+.chet-home .chet-ordering-section { background:#141416; color:#f5f5f7; }
+.chet-home .chet-category-list {scrollbar-width:none;-webkit-overflow-scrolling:touch;}
+.chet-home .chet-category-list::-webkit-scrollbar {display:none;}
+.chet-home .chet-menu-search::-webkit-search-cancel-button {display:none;}
+.chet-home .chet-product-card {box-shadow:0 8px 30px rgba(0,0,0,.08);}
+.chet-home .chet-product-card:hover {border-color:rgba(255,147,61,.32);}
+.chet-home .chet-product-card .react-loading-skeleton {--base-color:#242427;--highlight-color:#303034;}
+.chet-home .chet-cart-sidebar {box-shadow:0 18px 55px rgba(0,0,0,.11);}
+.chet-home .chet-cart-sidebar button:focus-visible,
+.chet-customer-active .chet-cart-drawer button:focus-visible,
+.chet-customer-active .chet-checkout-panel button:focus-visible,
+.chet-customer-active .chet-product-detail button:focus-visible {outline:2px solid #ff933d;outline-offset:2px;}
+.chet-home .lcb-menu-products-enter {animation:none!important;}
+
+/* Checkout, detalle y carrito: usan portales al body, fuera del contenedor home. */
+body.chet-customer-active [data-lcb-scroll-lock-overlay] :is(.chet-checkout-panel,.chet-product-detail,.chet-cart-drawer) {
+  background:#1c1c20!important;
+  color:#f5f5f7!important;
+  border:1px solid rgba(255,255,255,.11)!important;
+  border-radius:24px!important;
+  box-shadow:0 24px 75px rgba(0,0,0,.34)!important;
+}
+body.chet-customer-active [data-lcb-scroll-lock-overlay] :is(.chet-checkout-panel,.chet-product-detail,.chet-cart-drawer) > header,
+body.chet-customer-active [data-lcb-scroll-lock-overlay] :is(.chet-checkout-panel,.chet-product-detail) > div:first-child {
+  background:#1c1c20!important;
+  border-color:rgba(255,255,255,.09)!important;
+}
+body.chet-customer-active [data-lcb-scroll-lock-overlay] :is(.chet-checkout-panel,.chet-product-detail,.chet-cart-drawer) :is(input:not([type="radio"]),textarea) {
+  font-weight:400!important;
+}
+body.chet-customer-active [data-lcb-scroll-lock-overlay] :is(.chet-checkout-panel,.chet-product-detail,.chet-cart-drawer) .lcb-public-field-shell {
+  background:#28282d!important;
+  border:1px solid rgba(255,255,255,.12)!important;
+  border-radius:14px!important;
+  box-shadow:none!important;
+}
+body.chet-customer-active [data-lcb-scroll-lock-overlay] :is(.chet-checkout-panel,.chet-product-detail,.chet-cart-drawer) .lcb-public-field-shell:focus-within {
+  border-color:#ff933d!important;
+  box-shadow:0 0 0 2px rgba(255,147,61,.16)!important;
+}
+body.chet-customer-active [data-lcb-scroll-lock-overlay] .chet-checkout-panel .lcb-checkout-choice {
+  background:#252529!important;
+  border-color:rgba(255,255,255,.11)!important;
+  border-radius:14px!important;
+}
+body.chet-customer-active [data-lcb-scroll-lock-overlay] .chet-checkout-panel .lcb-checkout-choice:has(input:checked) {
+  background:rgba(255,147,61,.085)!important;
+  border-color:rgba(255,147,61,.65)!important;
+}
+body.chet-customer-active [data-lcb-scroll-lock-overlay] .chet-checkout-panel .lcb-checkout-summary {
+  background:transparent!important;
+  border-color:rgba(255,255,255,.1)!important;
+}
+body.chet-customer-active [data-lcb-scroll-lock-overlay] .chet-product-detail .lcb-detail-summary {
+  background:#1c1c20!important;
+}
+body.chet-customer-active [data-lcb-scroll-lock-overlay] .chet-cart-drawer .lcb-cart-item-row {
+  border-color:rgba(255,255,255,.08)!important;
+}
+body.chet-customer-active [data-lcb-scroll-lock-overlay] .chet-checkout-panel :is(button[class*="bg-central-orange"],button[class*="bg-[#ff933d]"]),
+body.chet-customer-active [data-lcb-scroll-lock-overlay] .chet-product-detail button[class*="bg-central-orange"],
+body.chet-customer-active [data-lcb-scroll-lock-overlay] .chet-cart-drawer button[class*="bg-central-orange"] {
+  border-radius:999px!important;
+  background:#ff933d!important;
+  color:#1a120d!important;
+}
+
+/* Las animaciones de entrada de la carta anterior no forman parte de Chetos. */
+body.chet-customer-active [data-lcb-scroll-lock-overlay] :is(.chet-cart-drawer,.chet-checkout-panel,.chet-product-detail) {
+  animation:none!important;
+}
+.chet-home .chet-cart-item, body.chet-customer-active .chet-cart-item {transition:none!important;transform:none!important;}
+
+/* Tema claro existente: mismo diseño, superficie y contraste adaptados. */
+.public-site[data-public-theme="light"] .chet-home,
+.public-site[data-public-theme="light"] .chet-discovery {background:#f7f7f8!important;color:#202024!important;}
+.public-site[data-public-theme="light"] .chet-ordering-section {background:#f7f7f8!important;color:#202024!important;}
+.public-site[data-public-theme="light"] .chet-ordering-section .menu-ordering-tools {background:rgba(247,247,248,.97)!important;border-color:rgba(30,30,35,.1)!important;}
+.public-site[data-public-theme="light"] .chet-home :is(.chet-product-card,.chet-cart-sidebar),
+.public-site[data-public-theme="light"] .chet-discovery a[class*="rounded-[22px]"],
+.public-site[data-public-theme="light"] .chet-discovery a[class*="rounded-[24px]"] {background:#fff!important;border-color:rgba(30,30,35,.1)!important;color:#242428!important;}
+.public-site[data-public-theme="light"] .chet-home .chet-category-chip:not([aria-pressed="true"]),
+.public-site[data-public-theme="light"] .chet-home .chet-menu-search {background:#fff!important;border-color:rgba(30,30,35,.12)!important;color:#242428!important;}
+.public-site[data-public-theme="light"] .chet-home .chet-product-card h3,
+.public-site[data-public-theme="light"] .chet-home .chet-product-card p[class*="text-white"],
+.public-site[data-public-theme="light"] .chet-home .chet-cart-sidebar :is(h2,p),
+.public-site[data-public-theme="light"] .chet-ordering-section h2,
+.public-site[data-public-theme="light"] .chet-ordering-section h3 {color:#242428!important;}
+.public-site[data-public-theme="light"] .chet-home .chet-menu-search::placeholder {color:#7d7d84!important;}
+.public-site[data-public-theme="light"] .chet-home .chet-category-chip[aria-pressed="true"] {background:#ff933d!important;border-color:#ff933d!important;color:#1a120d!important;}
+.public-site[data-public-theme="light"] .chet-home .chet-product-card button:not([aria-label*="Ampliar"]) + div,
+.public-site[data-public-theme="light"] .chet-home .chet-product-card .relative.aspect-\\[1\\.55\\] {background:#efeff0;}
+body.chet-customer-active[data-public-theme="light"] [data-lcb-scroll-lock-overlay] :is(.chet-checkout-panel,.chet-product-detail,.chet-cart-drawer) {
+  background:#fff!important;color:#242428!important;border-color:rgba(20,20,24,.11)!important;
+}
+body.chet-customer-active[data-public-theme="light"] [data-lcb-scroll-lock-overlay] :is(.chet-checkout-panel,.chet-product-detail,.chet-cart-drawer) > header,
+body.chet-customer-active[data-public-theme="light"] [data-lcb-scroll-lock-overlay] :is(.chet-checkout-panel,.chet-product-detail) > div:first-child,
+body.chet-customer-active[data-public-theme="light"] [data-lcb-scroll-lock-overlay] .chet-product-detail .lcb-detail-summary {background:#fff!important;color:#242428!important;}
+body.chet-customer-active[data-public-theme="light"] [data-lcb-scroll-lock-overlay] .chet-checkout-panel .lcb-checkout-choice,
+body.chet-customer-active[data-public-theme="light"] [data-lcb-scroll-lock-overlay] :is(.chet-checkout-panel,.chet-product-detail,.chet-cart-drawer) .lcb-public-field-shell {background:#f6f6f7!important;border-color:rgba(20,20,24,.12)!important;}
+@media(prefers-reduced-motion:reduce) {
+  .chet-home *,body.chet-customer-active [data-lcb-scroll-lock-overlay] * {animation:none!important;transition:none!important;}
+}
+
+/* Tratamiento coherente del modo claro en hero, destacados y footer. */
+.public-site[data-public-theme="light"] #inicio {background:#f7f7f8!important;color:#222228!important;}
+.public-site[data-public-theme="light"] #inicio > .pointer-events-none.absolute.inset-0 {opacity:.12;}
+.public-site[data-public-theme="light"] #inicio :is(h1,p,span):not([class*="text-[#ff"]) {color:#28282d!important;}
+.public-site[data-public-theme="light"] #inicio p[class*="text-white/"] {color:#74747b!important;}
+.public-site[data-public-theme="light"] #inicio a[class*="border-white/"] {border-color:rgba(25,25,30,.18)!important;color:#25252b!important;}
+.public-site[data-public-theme="light"] .chet-discovery :is(h2,h3,p):not([class*="text-[#ff"]) {color:#28282d!important;}
+.public-site[data-public-theme="light"] .chet-discovery p[class*="text-white/"] {color:#777780!important;}
+.public-site[data-public-theme="light"] .chet-discovery a[class*="text-[#ff"] {color:#c0631c!important;}
+.public-site[data-public-theme="light"] .chet-ordering-section p[class*="text-white/"] {color:#777780!important;}
+.public-site[data-public-theme="light"] .chet-ordering-section .chet-product-card p[class*="text-white/"] {color:#777780!important;}
+.public-site[data-public-theme="light"] .chet-ordering-section .chet-product-card p[class*="text-xl"] {color:#242428!important;}
+.public-site[data-public-theme="light"] footer:not(.lcb-checkout-footer):not(.lcb-checkout-modal-footer) {
+  background:#f4f4f5!important;color:#26262b!important;
+}
+.public-site[data-public-theme="light"] footer:not(.lcb-checkout-footer):not(.lcb-checkout-modal-footer) :is(h2,h3,a,span):not([class*="text-[#ff"]) {color:#26262b!important;}
+.public-site[data-public-theme="light"] footer:not(.lcb-checkout-footer):not(.lcb-checkout-modal-footer) p[class*="text-white/"],
+.public-site[data-public-theme="light"] footer:not(.lcb-checkout-footer):not(.lcb-checkout-modal-footer) span[class*="text-white/"] {color:#73737b!important;}

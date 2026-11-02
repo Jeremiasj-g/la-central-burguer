@@ -22,7 +22,7 @@ export function HomeDiscovery() {
   const featured = favorites.length ? favorites : productos.slice(0, 3);
 
   return (
-    <div className="bg-[#101012] text-[#f5f5f7]">
+    <div className="chet-discovery bg-[#101012] text-[#f5f5f7]">
       <section id="especialidades" className="mx-auto max-w-7xl px-5 py-16 sm:px-8 sm:py-20">
         <div className="flex flex-wrap items-end justify-between gap-5">
           <div>

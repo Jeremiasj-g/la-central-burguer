@@ -25,12 +25,9 @@ import { isBusinessOpenBySchedule } from '@/features/configuracion/utils/busines
 import { useBusinessClock } from '@/features/configuracion/hooks/useBusinessClock';
 import { formatMenuLabel } from '../utils/menuLabel';
 
-const CATEGORY_SWITCH_MS = 300;
-
 export function OrderingMenuSection() {
   const [search, setSearch] = useState('');
   const [selectedCategoryId, setSelectedCategoryId] = useState('all');
-  const [displayedCategoryId, setDisplayedCategoryId] = useState('all');
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [cartOpen, setCartOpen] = useState(false);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
@@ -42,18 +39,7 @@ export function OrderingMenuSection() {
   });
   const { campaigns } = useCategoryDiscounts();
 
-  // El catálogo ya está en memoria. Mostramos una transición breve al elegir
-  // una categoría, sin volver a pedir los productos a Supabase.
-  const switchingCategory = selectedCategoryId !== displayedCategoryId;
-  useEffect(() => {
-    if (!switchingCategory) return;
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-      setDisplayedCategoryId(selectedCategoryId);
-      return;
-    }
-    const timeout = window.setTimeout(() => setDisplayedCategoryId(selectedCategoryId), CATEGORY_SWITCH_MS);
-    return () => window.clearTimeout(timeout);
-  }, [selectedCategoryId, switchingCategory]);
+  // El cambio de categoría es inmediato: sin animaciones de entrada ni esperas artificiales.
   const cart = useCarrito();
   const { config } = useBusinessConfig();
   const now = useBusinessClock();
@@ -70,10 +56,10 @@ export function OrderingMenuSection() {
   const productos = useMemo(() => {
     const query = search.trim().toLocaleLowerCase('es');
     return pricedProducts.filter(product =>
-      (displayedCategoryId === 'all' || product.categoryId === displayedCategoryId)
+      (selectedCategoryId === 'all' || product.categoryId === selectedCategoryId)
       && (!query || product.name.toLocaleLowerCase('es').includes(query)
         || product.description.toLocaleLowerCase('es').includes(query)));
-  }, [pricedProducts, displayedCategoryId, search]);
+  }, [pricedProducts, selectedCategoryId, search]);
   // Revalidamos visualmente los precios del carrito cuando comienza/termina una campaña.
   // El servidor siempre vuelve a calcular los precios al confirmar.
   const pricedCartItems = useMemo(() => {
@@ -106,58 +92,68 @@ export function OrderingMenuSection() {
 
   const categoryById = useMemo(() => Object.fromEntries(categorias.map((category) => [category.id, category.name])), [categorias]);
   const activeTitle = selectedCategoryId === 'all' ? 'Menú completo' : (categoryById[selectedCategoryId] ?? 'Menú');
-  const showingSkeleton = loadingProducts || switchingCategory;
+  const showingSkeleton = loadingProducts;
   const skeletonCount = loadingProducts ? 8 : Math.min(6, Math.max(2,
     pricedProducts.filter(product => selectedCategoryId === 'all' || product.categoryId === selectedCategoryId).length,
   ));
 
   return (
-    <section id="menu" className="brick-wall lcb-ordering-section relative px-5 py-9 text-central-cream sm:px-6 sm:py-12 lg:px-8 lg:py-14">
-      <div className="relative mx-auto w-full max-w-[1480px]">
-        <div className="mb-6 text-center sm:mb-9">
-          <h2 className="mx-auto max-w-[95%] break-words text-[clamp(3.1rem,9vw,6.4rem)] font-semibold leading-[1.06] tracking-[-.055em] text-central-cream" aria-live="polite">
-            {formatMenuLabel(activeTitle)}
-          </h2>
-          <div className="mx-auto mt-5 h-[3px] w-14 rounded-full bg-central-orange sm:mt-6" aria-hidden="true" />
+    <section id="menu" className="chet-ordering-section relative scroll-mt-[70px] bg-[#141416] px-5 pb-16 pt-16 text-white sm:px-8 sm:pb-20 sm:pt-20">
+      <div className="mx-auto w-full max-w-7xl">
+        <div className="mb-9 flex flex-col justify-between gap-4 border-b border-white/10 pb-8 md:flex-row md:items-end">
+          <div className="min-w-0">
+            <p className="text-[11px] font-medium uppercase tracking-[.2em] text-[#ffac75]">La carta de Chetos</p>
+            <h2 className="mt-3 text-[clamp(2.2rem,5vw,3.7rem)] font-semibold leading-[1.05] tracking-[-.06em] text-white">
+              Elegí lo que más te guste.
+            </h2>
+            <p className="mt-3 max-w-2xl text-sm font-normal leading-6 text-white/55">
+              Explorá el menú, personalizá tu elección y armá tu pedido.
+            </p>
+          </div>
+          <p className="text-[13px] font-normal text-white/50" aria-live="polite">
+            {loadingProducts ? 'Cargando la carta...' : productos.length === 1 ? '1 producto' : productos.length + ' productos'}
+          </p>
         </div>
 
-        <div className="relative min-h-[calc(100dvh-72px)] lg:grid lg:min-h-[calc(100dvh+420px)] lg:grid-cols-[minmax(0,1fr)_390px] lg:gap-6 xl:grid-cols-[minmax(0,1fr)_430px]">
+        <div className="lg:grid lg:grid-cols-[minmax(0,1fr)_330px] lg:items-start lg:gap-9 xl:grid-cols-[minmax(0,1fr)_355px]">
           <div className="min-w-0">
-            <div className="menu-ordering-tools sticky top-[72px] z-30 rounded-[16px] px-1 py-0 lg:top-[92px]">
+            <div className="menu-ordering-tools sticky top-[70px] z-30 -mx-2 border-b border-white/10 bg-[#141416]/95 px-2 pb-3 pt-3 backdrop-blur-xl lg:top-[70px]">
               <MenuSearchBar value={search} onChange={setSearch} />
-              <div className="">
+              <div className="mt-2">
                 {loadingCategories ? (
-                  <div className="lcb-category-skeleton skeleton-dark h-[78px] rounded-[14px] bg-black/35 sm:h-28" />
+                  <div className="h-11 rounded-full bg-white/[.045]" aria-label="Cargando categorías" />
                 ) : (
                   <CategoryTabs categories={categorias} selectedCategoryId={selectedCategoryId} onSelect={setSelectedCategoryId} />
                 )}
               </div>
             </div>
 
-            <div className="mt-4 rounded-[16px] p-1 backdrop-blur sm:mt-5">
+            <div className="mt-7">
+              {selectedCategoryId !== 'all' ? (
+                <h3 className="mb-5 text-xl font-semibold tracking-[-.035em] text-white" aria-live="polite">
+                  {formatMenuLabel(activeTitle)}
+                </h3>
+              ) : null}
               {categoriesError || productsError ? (
-                <div className="rounded-sm border border-red-400/30 bg-red-500/10 p-5 text-sm text-red-100">
+                <div role="alert" className="rounded-[18px] border border-red-400/30 bg-red-500/10 p-5 text-sm text-red-100">
                   {productsError ?? categoriesError}
                 </div>
               ) : (
                 <>
-                  <div
-                    key={showingSkeleton ? 'menu-loading' : `menu-${displayedCategoryId}`}
-                    className={`grid gap-3 sm:gap-4 xl:grid-cols-2 ${showingSkeleton ? '' : 'lcb-menu-products-enter'}`}
-                    aria-busy={showingSkeleton}
-                  >
+                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2" aria-busy={showingSkeleton}>
                     {showingSkeleton
                       ? Array.from({ length: skeletonCount }, (_, index) => <ProductoCardSkeleton key={index} />)
-                      : productos.map((product) => (
-                          <ProductoCard key={product.id} product={product} categoryName={categoryById[product.categoryId]} disabled={!isBusinessOpen} onSelect={setSelectedProduct} onPreviewImage={setPreviewProduct} />
-                        ))}
+                      : productos.map(product => (
+                        <ProductoCard key={product.id} product={product} categoryName={categoryById[product.categoryId]} disabled={!isBusinessOpen} onSelect={setSelectedProduct} onPreviewImage={setPreviewProduct} />
+                      ))}
                   </div>
-                  {!showingSkeleton && productos.length === 0 ? <EmptyState className="mt-6 border-central-orange/25 bg-black/30 text-central-cream" title="No encontramos productos" description="Probá cambiar el texto de búsqueda o elegir otra categoría." /> : null}
+                  {!showingSkeleton && productos.length === 0 ? (
+                    <EmptyState className="mt-6 border-white/10 bg-white/[.025] text-white" title="No encontramos productos" description="Probá otra búsqueda o elegí una categoría diferente." />
+                  ) : null}
                 </>
               )}
             </div>
           </div>
-
           <CartSidebar items={pricedCartItems} total={pricedCartTotals.total} checkoutDisabled={!isBusinessOpen} onUpdateQuantity={cart.updateQuantity} onUpdateNote={cart.updateNote} onRemove={cart.removeItem} onClear={cart.clear} onCheckout={() => isBusinessOpen && setCheckoutOpen(true)} />
         </div>
       </div>

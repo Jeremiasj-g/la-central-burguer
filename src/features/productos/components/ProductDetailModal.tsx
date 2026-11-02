@@ -89,7 +89,7 @@ export function ProductDetailModal({
       title={currentProduct.name}
       theme={theme}
       size="lg"
-      panelClassName="lcb-product-detail !rounded-[22px] !shadow-[0_25px_85px_rgba(0,0,0,.25)]"
+      panelClassName="lcb-product-detail chet-product-detail !rounded-[24px] !shadow-[0_25px_85px_rgba(0,0,0,.25)]"
     >
       <div className="lcb-product-detail-content grid min-w-0 gap-5 sm:gap-6 md:grid-cols-[minmax(0,.92fr)_minmax(0,1.08fr)] md:items-start md:gap-7">
         <div className="min-w-0">
@@ -113,7 +113,7 @@ export function ProductDetailModal({
         <div className="flex min-w-0 flex-col gap-5 md:gap-6">
           <div className="min-w-0">
             {categoryName ? (
-              <p className="text-[11px] font-medium text-[#efae58]">{formatMenuLabel(categoryName)}</p>
+              <p className="text-[11px] font-medium text-[#ffac75]">{formatMenuLabel(categoryName)}</p>
             ) : null}
             <div className="mt-1.5 flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
               <p className="text-[12px] font-normal text-white/50">Precio unitario</p>
@@ -121,7 +121,7 @@ export function ProductDetailModal({
                 {currentProduct.discountPercent && currentProduct.originalPrice !== undefined ? (
                   <>
                     <span className="text-[12px] text-white/40 line-through">{formatCurrency(currentProduct.originalPrice)}</span>
-                    <span className="text-[11px] font-semibold text-[#f5ad4e]">-{currentProduct.discountPercent}%</span>
+                    <span className="text-[11px] font-semibold text-[#ffac75]">-{currentProduct.discountPercent}%</span>
                   </>
                 ) : null}
                 <p className="text-[22px] font-semibold tracking-[-.04em] text-[#faf9f6] tabular-nums">
@@ -218,7 +218,7 @@ export function ProductDetailModal({
             </div>
           </div>
 
-          <div className="lcb-detail-summary sticky bottom-[-1px] z-10 -mx-3.5 border-t border-white/10 bg-[#171717] px-3.5 pb-1 pt-4 sm:-mx-5 sm:px-5 md:static md:mx-0 md:px-0 md:pb-0">
+          <div className="lcb-detail-summary sticky bottom-[-1px] z-10 -mx-3.5 border-t border-white/10 bg-[#1c1c20] px-3.5 pb-1 pt-4 sm:-mx-5 sm:px-5 md:static md:mx-0 md:px-0 md:pb-0">
             <div className="mb-3 flex items-baseline justify-between gap-3">
               <span className="text-[13px] font-medium text-white/60">Total</span>
               <span className="text-[26px] font-semibold tracking-[-.045em] text-white tabular-nums" aria-live="polite">
@@ -227,7 +227,7 @@ export function ProductDetailModal({
             </div>
             <button
               type="button"
-              className="flex h-12 w-full items-center justify-center gap-2.5 rounded-[13px] bg-central-orange px-4 text-[13px] font-semibold text-[#191b20] shadow-none transition-[background-color,transform,opacity] duration-200 hover:bg-[#ffc04a] active:scale-[.99] disabled:cursor-not-allowed disabled:opacity-55 motion-reduce:transition-none"
+              className="flex h-12 w-full items-center justify-center gap-2.5 rounded-full bg-[#ff933d] px-4 text-[13px] font-semibold text-[#1a120d] shadow-none transition-transform duration-200 hover:scale-[1.02] disabled:cursor-not-allowed disabled:opacity-55 motion-reduce:transition-none"
               title={unavailable ? 'Producto no disponible' : disabled ? 'Local cerrado, intentá más tarde' : 'Agregar al carrito'}
               disabled={blocked || isAdding}
               onClick={() => void handleAdd()}

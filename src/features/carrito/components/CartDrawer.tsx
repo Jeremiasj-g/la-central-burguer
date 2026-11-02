@@ -50,8 +50,8 @@ export function CartDrawer({ open, onClose, items, total, checkoutDisabled = fal
       <Drawer
         open={open}
         onClose={onClose}
-        title="Mi pedido"
-        className="lcb-cart-drawer"
+        title="Tu pedido"
+        className="lcb-cart-drawer chet-cart-drawer"
         exitDuration={300}
         theme={theme}
         footer={
@@ -85,7 +85,7 @@ export function CartDrawer({ open, onClose, items, total, checkoutDisabled = fal
             </div>
             <button
               type="button"
-              className="flex h-12 w-full items-center justify-center gap-2 rounded-[13px] bg-central-orange px-4 text-[13px] font-semibold text-[#191919] transition-[background-color,transform,opacity] duration-200 hover:bg-[#ffc04a] active:scale-[.99] disabled:cursor-not-allowed disabled:opacity-45 motion-reduce:transition-none"
+              className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-[#ff933d] px-4 text-[13px] font-semibold text-[#1a120d] transition-transform duration-200 hover:scale-[1.02] disabled:cursor-not-allowed disabled:opacity-45 motion-reduce:transition-none"
               title={checkoutDisabled ? 'Local cerrado, intentá más tarde' : 'Confirmar pedido'}
               disabled={disabled}
               onClick={onCheckout}
@@ -97,7 +97,7 @@ export function CartDrawer({ open, onClose, items, total, checkoutDisabled = fal
       >
         {items.length === 0 ? (
           <div className="flex min-h-[210px] flex-col items-center justify-center px-3 py-8 text-center">
-            <span className="grid h-14 w-14 place-items-center rounded-[17px] bg-white/[.055] text-[#f4af3e]">
+            <span className="grid h-14 w-14 place-items-center rounded-[17px] bg-white/[.055] text-[#ff9d59]">
               <ShoppingBag size={25} strokeWidth={1.55} />
             </span>
             <p className="mt-4 text-[14px] font-semibold text-white/90">Tu carrito está vacío</p>

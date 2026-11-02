@@ -1,10 +1,9 @@
-import { Ban, Maximize2, Star } from 'lucide-react';
+import { Ban, Maximize2, Plus, Star } from 'lucide-react';
 import { toast } from 'react-toastify';
 import type { Product } from '../types/producto.types';
 import { formatCurrency } from '@/shared/utils/format.utils';
 import { cn } from '@/shared/utils/cn';
 import { ProductImageMedia } from './ProductImageMedia';
-import { formatMenuLabel } from '@/features/catalogo/utils/menuLabel';
 
 interface ProductoCardProps {
   product: Product;
@@ -18,75 +17,57 @@ export function ProductoCard({ product, categoryName, disabled = false, onSelect
   const unavailable = !product.available;
   const blocked = disabled || unavailable;
 
+  function selectProduct() {
+    if (blocked) {
+      toast.warning(unavailable ? 'Este producto no está disponible por el momento.' : 'Local cerrado, intentá más tarde.');
+      return;
+    }
+    onSelect(product);
+  }
+
   return (
     <article className={cn(
-      'group relative min-h-[160px] overflow-hidden rounded-[17px] bg-[#20201f] shadow-2xl transition-all duration-200 ease-out motion-reduce:transition-none hover:scale-[1.035] hover:border-central-orange/65 sm:min-h-[170px]',
-      blocked && 'opacity-70 hover:scale-100',
+      'chet-product-card group relative flex min-w-0 flex-col overflow-hidden rounded-[23px] border border-white/10 bg-[#1b1b1e] transition-transform duration-200 hover:scale-[1.018] motion-reduce:transition-none',
+      blocked && 'opacity-65 hover:scale-100',
     )}>
-      <button
-        type="button"
-        className={cn('absolute inset-0 z-20', blocked ? 'cursor-not-allowed' : 'cursor-pointer')}
-        onClick={() => {
-          if (blocked) {
-            toast.warning(unavailable ? 'Este producto no está disponible por el momento.' : 'Local cerrado, intentá más tarde.');
-            return;
-          }
-          onSelect(product);
-        }}
-        title={unavailable ? 'Producto no disponible' : disabled ? 'Local cerrado, intentá más tarde' : `Ver ${product.name}`}
-        aria-label={unavailable ? 'Producto no disponible' : disabled ? 'Local cerrado, intentá más tarde' : `Ver ${product.name}`}
-      />
+      <button type="button" className={cn('absolute inset-0 z-20 focus-visible:outline-2 focus-visible:outline-offset-[-3px] focus-visible:outline-[#ff933d]', blocked ? 'cursor-not-allowed' : 'cursor-pointer')}
+        onClick={selectProduct} title={unavailable ? 'Producto no disponible' : disabled ? 'Local cerrado, intentá más tarde' : 'Ver ' + product.name}
+        aria-label={unavailable ? 'Producto no disponible' : disabled ? 'Local cerrado, intentá más tarde' : 'Ver ' + product.name} />
 
-      {unavailable ? (
-        <span className="pointer-events-none absolute right-3 top-3 z-30 inline-flex items-center gap-1 rounded-[9px] border border-central-orange/25 bg-[#191b20]/90 px-2.5 py-1 text-[10px] font-medium text-[#f2b77e]">
-          <Ban size={12} strokeWidth={1.8} /> No disponible
-        </span>
-      ) : disabled ? (
-        <span className="pointer-events-none absolute right-3 top-3 z-30 inline-flex items-center gap-1 rounded-[9px] border border-white/15 bg-black/70 px-2.5 py-1 text-[10px] font-medium text-white/70">
-          <Ban size={12} strokeWidth={1.8} /> Local cerrado
-        </span>
-      ) : null}
-
-      <div className="absolute inset-y-0 right-0 w-[40%] overflow-hidden bg-black sm:w-[38%]">
-        <ProductImageMedia
-          imageUrl={product.imageUrl}
-          productName={product.name}
-          categoryName={categoryName}
-          className="h-full w-full"
-          imageClassName=""
-        />
-        <div className="absolute inset-0 bg-gradient-to-r from-[#171514] via-[#171514]/70 to-transparent" />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/38 via-transparent to-transparent" />
+      <div className="relative aspect-[1.55] w-full overflow-hidden bg-[#242327] sm:aspect-[1.6]">
+        <ProductImageMedia imageUrl={product.imageUrl} productName={product.name} categoryName={categoryName}
+          className="h-full w-full" imageClassName="object-cover" />
+        {product.featured && !unavailable ? (
+          <span className="pointer-events-none absolute left-4 top-4 z-30 inline-flex items-center gap-1.5 rounded-full bg-[#171719]/85 px-3 py-1.5 text-[11px] font-medium text-[#ffc08e] backdrop-blur-md">
+            <Star size={12} strokeWidth={1.7}/> Favorito
+          </span>
+        ) : null}
+        {blocked ? (
+          <span className="pointer-events-none absolute right-4 top-4 z-30 rounded-full border border-white/15 bg-[#161619]/85 px-3 py-1.5 text-[11px] font-medium text-white/75">
+            <Ban size={12} className="mr-1 inline" /> {unavailable ? 'No disponible' : 'Local cerrado'}
+          </span>
+        ) : null}
+        {onPreviewImage && !unavailable ? (
+          <button type="button" aria-label={'Ampliar foto de ' + product.name} title="Ver imagen completa" onClick={() => onPreviewImage(product)}
+            className="absolute bottom-3 right-3 z-40 grid h-9 w-9 place-items-center rounded-full border border-white/20 bg-[#141416]/80 text-white/90 backdrop-blur-sm transition-transform duration-200 hover:scale-110 focus-visible:outline-2 focus-visible:outline-[#ff933d] motion-reduce:transition-none">
+            <Maximize2 size={16} strokeWidth={1.7} />
+          </button>
+        ) : null}
       </div>
-
-      {onPreviewImage && !unavailable ? (
-        <button
-          type="button"
-          className="absolute bottom-2.5 right-2.5 z-40 grid h-8 w-8 place-items-center rounded-[10px] border border-central-orange/35 bg-black/75 text-central-cream/80 backdrop-blur transition hover:border-central-orange hover:bg-central-orange hover:text-black focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-central-orange"
-          onClick={() => onPreviewImage(product)}
-          title={`Ampliar imagen de ${product.name}`}
-          aria-label={`Ampliar imagen de ${product.name}`}
-        >
-          <Maximize2 size={15} />
-        </button>
-      ) : null}
-
-      <div className="relative z-10 flex min-h-[160px] max-w-[72%] flex-col justify-between p-4 pr-2 sm:min-h-[170px] sm:max-w-[68%]">
-        <div>
-          <div className="flex flex-wrap items-center gap-2">
-            {categoryName ? <span className="text-[11px] font-medium tracking-normal text-central-orange/80">{formatMenuLabel(categoryName)}</span> : null}
-            {product.discountPercent ? <span className="rounded-full bg-central-orange px-2 py-0.5 text-[10px] font-bold text-[#191b20]">-{product.discountPercent}%</span> : null}
-            {product.featured ? <span className="inline-flex items-center gap-1 rounded-full border border-central-orange/35 px-2 py-0.5 text-[10px] font-medium tracking-normal text-central-orange"><Star size={11} /> recomendado</span> : null}
+      <div className="relative flex flex-1 flex-col px-5 pb-5 pt-4">
+        <p className="truncate text-[11px] font-medium tracking-[.04em] text-[#ffac75]">{categoryName || 'Chetos'}</p>
+        <h3 className="mt-1.5 line-clamp-2 min-h-[24px] text-lg font-semibold leading-[1.22] tracking-[-.03em] text-white">{product.name}</h3>
+        <p className="mt-2 line-clamp-2 min-h-[40px] text-[13px] font-normal leading-5 text-white/55">{product.description || 'Preparado para disfrutar.'}</p>
+        <div className="mt-auto flex items-end justify-between gap-3 pt-5">
+          <div className="min-w-0">
+            {product.discountPercent && product.originalPrice !== undefined ? (
+              <p className="text-[12px] font-normal text-white/40 line-through">{formatCurrency(product.originalPrice)}</p>
+            ) : null}
+            <p className="text-xl font-semibold tracking-[-.04em] text-white">{formatCurrency(product.currentPrice)}</p>
           </div>
-          <h3 className="mt-1.5 line-clamp-2 text-[17px] font-semibold leading-tight tracking-[-.02em] text-central-cream sm:text-[19px]">{product.name}</h3>
-          <p className="mt-1.5 line-clamp-2 text-xs font-normal leading-5 text-central-cream/62 sm:text-sm">{product.description}</p>
-        </div>
-
-        <div className="mt-3 flex items-end sm:mt-4 justify-between gap-3">
-          <div className="flex flex-wrap items-baseline gap-x-2">
-            {product.discountPercent && product.originalPrice !== undefined ? <span className="text-[12px] text-central-cream/45 line-through">{formatCurrency(product.originalPrice)}</span> : null}
-            <p className="text-[17px] font-semibold tracking-[-.02em] text-central-orange">{formatCurrency(product.currentPrice)}</p>
-          </div>
+          <span aria-hidden="true" className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-[#ff933d] text-[#16100d]">
+            <Plus size={21} strokeWidth={1.9} />
+          </span>
         </div>
       </div>
     </article>

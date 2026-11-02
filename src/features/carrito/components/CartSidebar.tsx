@@ -44,15 +44,15 @@ export function CartSidebar({ items, total, checkoutDisabled = false, onUpdateQu
 
   return (
     <>
-      <aside className="sticky top-[92px] z-20 hidden h-[calc(100dvh-112px)] min-h-[470px] min-w-0 self-start flex-col overflow-hidden rounded-[20px] border border-white/[.085] bg-[#171717] text-[#f6f5f2] shadow-[0_16px_45px_rgba(0,0,0,.16)] lg:flex">
+      <aside className="chet-cart-sidebar sticky top-[86px] z-20 hidden h-[calc(100dvh-112px)] min-h-[450px] min-w-0 self-start flex-col overflow-hidden rounded-[24px] border border-white/10 bg-[#1c1c20] text-[#f5f5f7] lg:flex">
         <header className="flex shrink-0 items-center justify-between gap-3 border-b border-white/[.075] px-5 py-5">
           <div className="min-w-0">
-            <h2 className="text-[23px] font-semibold leading-tight tracking-[-.035em]">Mi pedido</h2>
+            <h2 className="text-[22px] font-semibold leading-tight tracking-[-.035em]">Tu pedido</h2>
             <p className="mt-1 text-[11px] font-normal text-white/45">
               {quantity} {quantity === 1 ? 'producto' : 'productos'} en tu pedido
             </p>
           </div>
-          <span className="grid h-10 w-10 shrink-0 place-items-center rounded-[12px] bg-white/[.055] text-[#f1b34f]">
+          <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-white/[.055] text-[#ff9d59]">
             <ShoppingBag size={19} strokeWidth={1.7} />
           </span>
         </header>
@@ -62,7 +62,7 @@ export function CartSidebar({ items, total, checkoutDisabled = false, onUpdateQu
             <div className="flex h-full min-h-[170px] flex-col items-center justify-center py-8 text-center">
               <ShoppingBag size={39} strokeWidth={1.4} className="text-white/30" />
               <p className="mt-4 text-[13px] font-semibold text-white/85">Tu carrito está vacío</p>
-              <p className="mt-1.5 text-[11px] leading-5 text-white/45">Agregá productos desde el menú.</p>
+              <p className="mt-1.5 text-[11px] leading-5 text-white/45">Elegí algo rico de nuestra carta.</p>
             </div>
           ) : (
             <div className="divide-y divide-white/[.075]">
@@ -107,7 +107,7 @@ export function CartSidebar({ items, total, checkoutDisabled = false, onUpdateQu
           </div>
           <button
             type="button"
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-[13px] bg-central-orange px-4 text-[13px] font-semibold text-[#191919] transition-[background-color,transform,opacity] duration-200 hover:bg-[#ffc04a] active:scale-[.99] disabled:cursor-not-allowed disabled:opacity-45 motion-reduce:transition-none"
+            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-[#ff933d] px-4 text-[13px] font-semibold text-[#1a120d] transition-transform duration-200 hover:scale-[1.02] disabled:cursor-not-allowed disabled:opacity-45 motion-reduce:transition-none"
             title={checkoutDisabled ? 'Local cerrado, intentá más tarde' : 'Confirmar pedido'}
             disabled={disabled}
             onClick={onCheckout}
