@@ -9,6 +9,8 @@ export interface BusinessConfig {
   businessName: string;
   logoUrl: string;
   logoPath: string | null;
+  heroImageUrl: string;
+  heroImagePath: string | null;
   heroDescription: string;
   heroTitlePrefix: string;
   heroTitleHighlight: string;

@@ -9,6 +9,7 @@ type ConfigRow = Database['public']['Tables']['business_config']['Row'];
 type PaymentRow = Database['public']['Tables']['payment_methods']['Row'];
 
 const BUSINESS_ASSETS_BUCKET = 'business-assets';
+const HERO_IMAGES_BUCKET = 'gallery-images';
 
 let pendingBusinessConfigRequest: Promise<BusinessConfig> | null = null;
 
@@ -35,6 +36,31 @@ async function uploadBusinessLogo(dataUrl: string) {
   return { logoUrl: data.publicUrl, logoPath: path };
 }
 
+
+async function uploadBusinessHeroImage(dataUrl: string) {
+  const supabase = getSupabaseBrowserClient();
+  const blob = dataUrlToBlob(dataUrl);
+  if (!['image/jpeg', 'image/png', 'image/webp'].includes(blob.type) || blob.size > 4 * 1024 * 1024) {
+    throw new Error('La imagen del hero debe ser JPG, PNG o WEBP y pesar como máximo 4 MB.');
+  }
+
+  const ext = blob.type === 'image/jpeg' ? 'jpg' : blob.type === 'image/webp' ? 'webp' : 'png';
+  const path = `hero/${crypto.randomUUID()}.${ext}`;
+  const bucket = supabase.storage.from(HERO_IMAGES_BUCKET);
+  const { error } = await bucket.upload(path, blob, { contentType: blob.type, upsert: false });
+  if (error) throw new Error(`No se pudo subir la imagen del hero: ${error.message}`);
+
+  return { heroImageUrl: bucket.getPublicUrl(path).data.publicUrl, heroImagePath: path };
+}
+
+async function removeStoredBusinessHeroImage(path?: string | null) {
+  // No tocar imágenes ajenas a la carpeta hero.
+  if (!path?.startsWith('hero/')) return;
+  const { error } = await getSupabaseBrowserClient()
+    .storage.from(HERO_IMAGES_BUCKET).remove([path]);
+  if (error) console.warn('No se pudo borrar la imagen anterior del hero:', error.message);
+}
+
 async function removeStoredBusinessLogo(path?: string | null) {
   if (!path) return;
   const { error } = await getSupabaseBrowserClient()
@@ -53,6 +79,8 @@ function normalizeBusinessConfig(config: Partial<BusinessConfig>): BusinessConfi
     ...config,
     logoUrl: config.logoUrl ?? BUSINESS_CONFIG_DEFAULTS.logoUrl,
     logoPath: config.logoPath ?? BUSINESS_CONFIG_DEFAULTS.logoPath,
+    heroImageUrl: config.heroImageUrl ?? BUSINESS_CONFIG_DEFAULTS.heroImageUrl,
+    heroImagePath: config.heroImagePath ?? BUSINESS_CONFIG_DEFAULTS.heroImagePath,
     heroDescription: config.heroDescription ?? BUSINESS_CONFIG_DEFAULTS.heroDescription,
     heroTitlePrefix: config.heroTitlePrefix ?? BUSINESS_CONFIG_DEFAULTS.heroTitlePrefix,
     heroTitleHighlight: config.heroTitleHighlight ?? BUSINESS_CONFIG_DEFAULTS.heroTitleHighlight,
@@ -105,6 +133,8 @@ function mapConfig(row: ConfigRow, paymentMethods: PaymentMethod[]): BusinessCon
     businessName: row.business_name,
     logoUrl: row.logo_url,
     logoPath: row.logo_path,
+    heroImageUrl: row.hero_image_url,
+    heroImagePath: row.hero_image_path,
     heroDescription: row.hero_description,
     heroTitlePrefix: row.hero_title_prefix,
     heroTitleHighlight: row.hero_title_highlight,
@@ -185,7 +215,7 @@ export async function updateBusinessConfig(input: Partial<BusinessConfig>): Prom
   const supabase = getSupabaseBrowserClient();
   const { data: currentConfig, error: currentError } = await supabase
     .from('business_config')
-    .select('logo_url,logo_path')
+    .select('logo_url,logo_path,hero_image_url,hero_image_path')
     .eq('id', 1)
     .single();
 
@@ -210,9 +240,34 @@ export async function updateBusinessConfig(input: Partial<BusinessConfig>): Prom
     }
   }
 
+  let uploadedHeroPath: string | null = null;
+  let nextHeroUrl: string | undefined;
+  let nextHeroPath: string | null | undefined;
+
+  try {
+    if (input.heroImageUrl !== undefined) {
+      if (input.heroImageUrl.startsWith('data:image/')) {
+        const uploaded = await uploadBusinessHeroImage(input.heroImageUrl);
+        uploadedHeroPath = uploaded.heroImagePath;
+        nextHeroUrl = uploaded.heroImageUrl;
+        nextHeroPath = uploaded.heroImagePath;
+      } else if (!input.heroImageUrl.trim()) {
+        nextHeroUrl = '';
+        nextHeroPath = null;
+      } else {
+        nextHeroUrl = input.heroImageUrl;
+        nextHeroPath = input.heroImagePath ?? null;
+      }
+    }
+  } catch (error) {
+    if (uploadedLogoPath) await removeStoredBusinessLogo(uploadedLogoPath);
+    throw error;
+  }
+
   const payload = {
     ...(input.businessName !== undefined ? { business_name: input.businessName } : {}),
     ...(nextLogoUrl !== undefined ? { logo_url: nextLogoUrl, logo_path: nextLogoPath ?? null } : {}),
+    ...(nextHeroUrl !== undefined ? { hero_image_url: nextHeroUrl, hero_image_path: nextHeroPath ?? null } : {}),
     ...(input.heroDescription !== undefined ? { hero_description: input.heroDescription } : {}),
     ...(input.heroTitlePrefix !== undefined ? { hero_title_prefix: input.heroTitlePrefix } : {}),
     ...(input.heroTitleHighlight !== undefined ? { hero_title_highlight: input.heroTitleHighlight } : {}),
@@ -274,6 +329,7 @@ export async function updateBusinessConfig(input: Partial<BusinessConfig>): Prom
 
   if (error) {
     if (uploadedLogoPath) await removeStoredBusinessLogo(uploadedLogoPath);
+    if (uploadedHeroPath) await removeStoredBusinessHeroImage(uploadedHeroPath);
     throw new Error(error.message);
   }
 
@@ -283,6 +339,14 @@ export async function updateBusinessConfig(input: Partial<BusinessConfig>): Prom
     currentConfig.logo_path !== nextLogoPath
   ) {
     await removeStoredBusinessLogo(currentConfig.logo_path);
+  }
+
+  if (
+    input.heroImageUrl !== undefined &&
+    currentConfig.hero_image_path &&
+    currentConfig.hero_image_path !== nextHeroPath
+  ) {
+    await removeStoredBusinessHeroImage(currentConfig.hero_image_path);
   }
 
   if (input.paymentMethods) {

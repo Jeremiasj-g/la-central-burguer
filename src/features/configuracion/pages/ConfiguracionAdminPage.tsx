@@ -46,6 +46,8 @@ type ConfigFormValues = Pick<
   | 'businessName'
   | 'logoUrl'
   | 'logoPath'
+  | 'heroImageUrl'
+  | 'heroImagePath'
   | 'heroDescription'
   | 'heroTitlePrefix'
   | 'heroTitleHighlight'
@@ -89,6 +91,7 @@ type ConfigFormValues = Pick<
 function editableConfig(config: BusinessConfig): ConfigFormValues {
   return {
     businessName: config.businessName, logoUrl: config.logoUrl, logoPath: config.logoPath,
+    heroImageUrl: config.heroImageUrl, heroImagePath: config.heroImagePath,
     heroDescription: config.heroDescription,
     heroTitlePrefix: config.heroTitlePrefix,
     heroTitleHighlight: config.heroTitleHighlight,
@@ -185,6 +188,31 @@ export function ConfiguracionAdminPage() {
   function removeLogo() {
     if (!values) return;
     setValues({ ...values, logoUrl: '', logoPath: null });
+  }
+
+  function handleHeroImageFile(file?: File) {
+    if (!file) return;
+    if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
+      toast.error('La imagen del hero debe ser JPG, PNG o WEBP.');
+      return;
+    }
+    if (file.size > 4 * 1024 * 1024) {
+      toast.error('La imagen del hero no puede superar los 4 MB.');
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => {
+      if (typeof reader.result !== 'string') return;
+      setValues(current => current
+        ? { ...current, heroImageUrl: reader.result as string, heroImagePath: null }
+        : current);
+    };
+    reader.onerror = () => toast.error('No se pudo leer la imagen seleccionada.');
+    reader.readAsDataURL(file);
+  }
+
+  function removeHeroImage() {
+    setValues(current => current ? { ...current, heroImageUrl: '', heroImagePath: null } : current);
   }
 
   async function toggleManualStatus() {
@@ -343,7 +371,50 @@ export function ConfiguracionAdminPage() {
 
           <div className="mt-7 border-t border-neutral-100 pt-6">
             <h3 className="text-[15px] font-semibold text-neutral-900">Contenido del hero</h3>
-            <p className="mt-1 text-[12px] text-neutral-500">Personalizá el título y sus tres segmentos. El texto central se resalta en naranja.</p>
+            <p className="mt-1 text-[12px] text-neutral-500">Personalizá la imagen, el título y los botones del hero. El texto central se resalta en naranja.</p>
+
+            <div className="mt-5 flex flex-col gap-4 border-b border-neutral-100 pb-6 sm:flex-row sm:items-center">
+              <div className="relative grid aspect-[5/4] w-full shrink-0 place-items-center overflow-hidden rounded-[15px] bg-[#171518] sm:w-[240px]">
+                <img
+                  src={values.heroImageUrl || values.logoUrl || '/branding/chef-cutout.webp'}
+                  alt="Vista previa de la imagen principal del hero"
+                  className="h-full w-full object-contain p-3"
+                />
+                <span className="absolute bottom-2 right-2 rounded-full bg-black/65 px-2.5 py-1 text-[10px] font-medium text-white">
+                  Vista previa
+                </span>
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="text-[13px] font-semibold text-neutral-800">Imagen principal del hero</p>
+                <p className="mt-1 text-[12px] leading-5 text-neutral-500">
+                  Subí una foto para probar cómo queda en la portada. Es independiente del logo del encabezado y el footer.
+                  Si la quitás, vuelve el logo actual. JPG, PNG o WEBP, máximo 4 MB.
+                </p>
+                <div className="mt-3 flex flex-wrap items-center gap-2">
+                  <label className="inline-flex h-9 cursor-pointer items-center gap-2 rounded-[11px] bg-central-orange px-3 text-[12px] font-semibold text-white transition-colors duration-200 hover:bg-central-ember focus-within:ring-2 focus-within:ring-central-orange/30">
+                    <ImageUp size={16} /> {values.heroImageUrl ? 'Cambiar imagen' : 'Subir imagen'}
+                    <input
+                      type="file"
+                      accept="image/png,image/jpeg,image/webp"
+                      className="sr-only"
+                      onChange={(event) => {
+                        handleHeroImageFile(event.target.files?.[0]);
+                        event.currentTarget.value = '';
+                      }}
+                    />
+                  </label>
+                  {values.heroImageUrl ? (
+                    <Button type="button" variant="secondary" size="sm" className={actionClass}
+                      title="Volver a la imagen del logo en el hero" onClick={removeHeroImage}>
+                      <Trash2 size={15} /> Quitar imagen
+                    </Button>
+                  ) : null}
+                </div>
+                <p className="mt-2 text-[11px] text-neutral-400">
+                  Para publicar la imagen elegida, presioná «Guardar cambios».
+                </p>
+              </div>
+            </div>
             <div className="mt-4 grid min-w-0 gap-4 md:grid-cols-2">
               <div><label className={labelClass}>Inicio del título</label><EditableControl><Input className={adminInputClass} maxLength={120} value={values.heroTitlePrefix} onChange={(event) => setValues({ ...values, heroTitlePrefix: event.target.value })}  /></EditableControl></div>
               <div><label className={labelClass}>Texto resaltado</label><EditableControl><Input className={adminInputClass} maxLength={120} value={values.heroTitleHighlight} onChange={(event) => setValues({ ...values, heroTitleHighlight: event.target.value })}  /></EditableControl></div>

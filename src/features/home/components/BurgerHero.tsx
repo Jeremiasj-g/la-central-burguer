@@ -69,7 +69,7 @@ export function BurgerHero() {
         <div className="relative flex min-h-[280px] items-center justify-center sm:min-h-[400px] lg:min-h-[460px]">
           <div aria-hidden="true" className="pointer-events-none absolute h-[75%] w-[75%] max-w-[410px] rounded-full bg-[#ff842b]/15 blur-[75px]" />
           <div className="relative mx-auto grid aspect-square w-full max-w-[470px] place-items-center rounded-full border border-[#ff9c52]/10 bg-[radial-gradient(circle_at_50%_48%,#352014_0%,#1b1717_56%,#101012_80%)]">
-            <PublicBrandImage logoUrl={branding.logoUrl} businessName={branding.businessName}
+            <PublicBrandImage logoUrl={branding.heroImageUrl || branding.logoUrl} businessName={branding.businessName}
               width={540} height={400} loading="eager"
               className="relative h-auto w-[91%] max-w-[420px] object-contain drop-shadow-[0_22px_35px_rgba(0,0,0,.32)]" />
           </div>
