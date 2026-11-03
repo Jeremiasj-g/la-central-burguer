@@ -3,6 +3,7 @@ import './public.css';
 import './display.css';
 import { PublicTypographyPortalSync } from './PublicTypographyPortalSync';
 import { PublicThemeProvider } from '@/shared/components/layout/PublicThemeProvider';
+import { PublicSectionNavigation } from '@/shared/components/layout/PublicSectionNavigation';
 import './light.css';
 
 const publicFont = Outfit({
@@ -22,6 +23,7 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
   return (
     <div className={`${publicFont.className} ${publicDisplayFont.variable} public-site`}>
       <PublicTypographyPortalSync />
+      <PublicSectionNavigation />
       <PublicThemeProvider>{children}</PublicThemeProvider>
     </div>
   );
