@@ -28,17 +28,17 @@ export function HomeBestSellers({ onSelectProduct }: HomeBestSellersProps) {
 
   const bestSellers = useMemo(() => {
     const byId = new Map(productos.map(product => [product.id, product]));
-    return ranking.flatMap(({ productId, unitsSold }) => {
+    return ranking.flatMap(({ productId }) => {
       const product = byId.get(productId);
       if (!product) return [];
       const discountPercent = discountForCategory(campaigns, product.categoryId, today);
       const price = discountPercent > 0 ? discountedPrice(product.currentPrice, discountPercent) : product.currentPrice;
-      return [{ product, unitsSold, price }];
+      return [{ product, price }];
     });
   }, [productos, ranking, campaigns, today]);
 
   return (
-    <section id="mas-vendidos" className="brick-wall relative scroll-mt-[80px] border-y border-central-orange/15 px-4 py-14 text-central-cream sm:px-6 sm:py-16 lg:px-8 lg:py-20">
+    <section id="mas-vendidos" className="lcb-best-sellers brick-wall relative scroll-mt-[80px] border-y border-central-orange/15 px-4 py-14 text-central-cream sm:px-6 sm:py-16 lg:px-8 lg:py-20">
       <div className="relative mx-auto w-full max-w-7xl">
         <div className="mb-8 flex flex-wrap items-center justify-between gap-4">
           <h2 className="text-[clamp(2rem,5vw,3.3rem)] font-semibold leading-tight tracking-[-.055em] text-central-cream">
@@ -50,7 +50,7 @@ export function HomeBestSellers({ onSelectProduct }: HomeBestSellersProps) {
         </div>
         {loadingProducts || loadingRanking ? (
           <div className="grid gap-4 md:grid-cols-3" role="status" aria-label="Cargando los más vendidos">
-            {[0, 1, 2].map(index => <div key={index} className="h-[330px] rounded-[20px] border border-central-orange/15 bg-[#201e1c]" />)}
+            {[0, 1, 2].map(index => <div key={index} className="lcb-best-seller-skeleton h-[330px] rounded-[20px] bg-[#201e1c]" />)}
           </div>
         ) : productsError || rankingError ? (
           <p className="py-6 text-sm text-central-cream/70" role="alert">
@@ -62,13 +62,13 @@ export function HomeBestSellers({ onSelectProduct }: HomeBestSellersProps) {
           </p>
         ) : (
           <div className="grid gap-4 md:grid-cols-3">
-            {bestSellers.map(({ product, unitsSold, price }, index) => (
+            {bestSellers.map(({ product, price }, index) => (
               <button
                 key={product.id}
                 type="button"
                 onClick={() => onSelectProduct(product.id)}
                 aria-label={product.available ? `Elegir ${product.name} para agregar al carrito` : `Ver detalles de ${product.name}, temporalmente no disponible`}
-                className="group flex w-full flex-col overflow-hidden rounded-[20px] border border-central-orange/20 bg-[#201e1c] text-left shadow-dark transition-transform duration-200 hover:scale-[1.02] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-central-orange motion-reduce:transition-none"
+                className="lcb-best-seller-card group flex w-full flex-col overflow-hidden rounded-[20px] bg-[#201e1c] text-left shadow-dark transition-transform duration-200 hover:scale-[1.02] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-central-orange motion-reduce:transition-none"
               >
                 <div className="relative h-[190px] w-full bg-[#171514] sm:h-[210px]">
                   {product.imageUrl ? (
@@ -88,7 +88,6 @@ export function HomeBestSellers({ onSelectProduct }: HomeBestSellersProps) {
                     <span className="shrink-0 text-sm font-semibold tabular-nums text-central-orange">{formatCurrency(price)}</span>
                   </div>
                   <p className="mt-3 line-clamp-2 text-sm font-normal leading-6 text-central-cream/60">{product.description}</p>
-                  <p className="mt-3 text-xs font-normal text-central-cream/50">{unitsSold} {unitsSold === 1 ? 'unidad vendida' : 'unidades vendidas'}</p>
                   {!product.available && <p className="mt-2 text-xs font-medium text-central-orange">No disponible por ahora</p>}
                   <p className="mt-auto inline-flex items-center gap-2 pt-5 text-xs font-medium text-central-cream/85">
                     <ShoppingBag size={15} />

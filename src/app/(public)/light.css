@@ -462,3 +462,36 @@ body.lcb-public-typography[data-public-theme="light"]
   padding-top: 3px;
   padding-bottom: 10px;
 }
+
+
+/* Más vendidos: tarjetas sin borde y superficies adaptadas al modo claro. */
+.public-site[data-public-theme="light"] .lcb-best-sellers {
+  background: #f7f7f8 !important;
+  background-image: none !important;
+  color: #24262b !important;
+  border-color: rgba(36,38,43,.08) !important;
+}
+.public-site[data-public-theme="light"] .lcb-best-sellers h2 {
+  color: #24262b !important;
+}
+.public-site[data-public-theme="light"] .lcb-best-sellers .lcb-best-seller-card,
+.public-site[data-public-theme="light"] .lcb-best-sellers .lcb-best-seller-skeleton {
+  background: #fff !important;
+  border: 0 !important;
+  box-shadow: 0 8px 28px rgba(26,29,35,.055) !important;
+}
+.public-site[data-public-theme="light"] .lcb-best-sellers .lcb-best-seller-card h3 {
+  color: #24262b !important;
+}
+.public-site[data-public-theme="light"] .lcb-best-sellers .lcb-best-seller-card p[class*="text-central-cream/"] {
+  color: #737881 !important;
+}
+.public-site[data-public-theme="light"] .lcb-best-sellers .lcb-best-seller-card > div:first-child {
+  background: #eeeef0 !important;
+}
+/* La etiqueta numérica debe seguir siendo legible sobre las fotos. */
+.public-site[data-public-theme="light"] .lcb-best-sellers .lcb-best-seller-card > div:first-child > span {
+  background: rgba(20,20,23,.84) !important;
+  border-color: transparent !important;
+  color: #fff !important;
+}
