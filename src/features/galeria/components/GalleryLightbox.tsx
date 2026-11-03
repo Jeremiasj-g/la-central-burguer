@@ -176,7 +176,7 @@ export function GalleryLightbox({ images, selectedIndex, onSelect, onClose, titl
         <button ref={closeRef} type="button" onClick={onClose} aria-label="Cerrar fotografía" title="Cerrar"
           className="lcb-gallery-viewer-control h-10 w-10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-400"><X size={21} /></button>
       </div>
-      <div className="relative min-h-0 flex-1">
+      <div className="lcb-gallery-zoom-enter relative min-h-0 flex-1">
         <div ref={viewportRef} className="absolute inset-0 flex touch-none select-none items-center justify-center overflow-hidden p-3 sm:p-8"
           onTouchStart={onTouchStart} onTouchMove={onTouchMove} onTouchEnd={onTouchEnd} onTouchCancel={onTouchEnd}
           onDoubleClick={() => changeZoom(scale > 1 ? 1 - scale : 1)}>
