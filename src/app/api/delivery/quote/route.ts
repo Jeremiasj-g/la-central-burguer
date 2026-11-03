@@ -1,5 +1,4 @@
 import { NextResponse } from 'next/server';
-import { getSupabaseAdminClient } from '@/lib/supabase/admin';
 import { getSupabaseBrowserClient } from '@/lib/supabase/client';
 import {
   buildGoogleMapsUrl,
@@ -13,456 +12,179 @@ import {
 
 export const runtime = 'nodejs';
 
+// EXCLUSIVO DE CHETOS DEV: sin SerpApi, OSRM, Google Directions ni rutas externas.
+// El GPS proviene de navigator.geolocation en el checkout; Haversine calcula
+// la distancia en línea recta, por lo que no equivale al recorrido por calles.
+const DEV_PROJECT_REF = 'xammmicdxyvzdxccnwpq';
+const DEV_BRANCH = 'fix/dev-delivery-simulation';
 const QUOTE_TTL_MS = 20 * 60 * 1000;
-const ROUTE_CACHE_TTL_MS = 7 * 24 * 60 * 60 * 1000;
-const ROUTE_CACHE_RADIUS_KM = 0.035;
-const STORE_CACHE_RADIUS_KM = 0.02;
-const CACHE_SEARCH_DELTA = 0.0006;
-const ROUTE_PROVIDER = 'serpapi_google_maps';
-const IS_DEV_SIMULATION = process.env.NEXT_PUBLIC_APP_ENV === 'development';
-// Distancia estimada solo para QA; NO es una ruta real ni se usa en producción.
-const DEV_ROUTE_DISTANCE_FACTOR = 1.35;
-const TRAVEL_MODE = 'two_wheeler';
-const PUBLIC_DELIVERY_ERROR = 'No pudimos calcular el envío en este momento. Intentá nuevamente.';
+const ROUTE_PROVIDER = 'haversine_gps' as const;
+const TRAVEL_MODE = 'two_wheeler' as const;
 
-interface QuoteRequestBody {
-  lat?: number;
-  lng?: number;
+type QuoteRequestBody = { lat?: unknown; lng?: unknown };
+type Point = { lat: number; lng: number };
+
+function isQaEnvironment() {
+  return process.env.VERCEL_GIT_COMMIT_REF === DEV_BRANCH
+    || (process.env.NODE_ENV === 'development');
 }
 
-interface SerpApiDirection {
-  travel_mode?: string;
-  via?: string;
-  distance?: number;
-  duration?: number;
-  formatted_distance?: string;
-  formatted_duration?: string;
+function hasDevDatabaseConnection() {
+  try {
+    return new URL(process.env.NEXT_PUBLIC_SUPABASE_URL ?? '').hostname
+      === `${DEV_PROJECT_REF}.supabase.co`;
+  } catch {
+    return false;
+  }
 }
 
-interface SerpApiDirectionsResponse {
-  error?: string;
-  directions?: SerpApiDirection[];
+function isValidCoordinate(value: unknown, minimum: number, maximum: number): value is number {
+  return typeof value === 'number' && Number.isFinite(value)
+    && value >= minimum && value <= maximum;
 }
 
-interface RouteResult {
-  routeDistanceKm: number;
-  routeDurationSeconds: number | null;
-  routeDurationText: string | null;
-  routeVia: string | null;
-  cacheHit: boolean;
-}
+async function getDeliverySettings() {
+  const { data, error } = await getSupabaseBrowserClient()
+    .from('business_config')
+    .select('store_latitude,store_longitude,delivery_base_fee,delivery_price_per_km,delivery_max_distance_km,delivery_rounding_value')
+    .eq('id', 1)
+    .single();
+  if (error || !data) throw new Error('No pudimos consultar la configuración de envío de Chetos DEV.');
 
-function isValidCoordinate(value: unknown, min: number, max: number): value is number {
-  return typeof value === 'number' && Number.isFinite(value) && value >= min && value <= max;
-}
+  const rawStoreLat = data.store_latitude;
+  const rawStoreLng = data.store_longitude;
+  if (rawStoreLat === null || rawStoreLng === null
+    || !Number.isFinite(Number(rawStoreLat)) || !Number.isFinite(Number(rawStoreLng))) {
+    throw new Error('Configurá la ubicación del local desde el panel de Chetos DEV.');
+  }
 
-function routeCacheKey(
-  storeLocation: { lat: number; lng: number },
-  customerLocation: { lat: number; lng: number },
-) {
-  return [
-    ROUTE_PROVIDER,
-    TRAVEL_MODE,
-    storeLocation.lat.toFixed(4),
-    storeLocation.lng.toFixed(4),
-    customerLocation.lat.toFixed(4),
-    customerLocation.lng.toFixed(4),
-  ].join(':');
-}
+  const amounts = [
+    data.delivery_base_fee, data.delivery_price_per_km,
+    data.delivery_max_distance_km, data.delivery_rounding_value,
+  ].map(Number);
+  if (amounts.some(value => !Number.isFinite(value) || value < 0)) {
+    throw new Error('La tarifa de envío del local no está configurada correctamente.');
+  }
 
-async function findCachedRoute(
-  storeLocation: { lat: number; lng: number },
-  customerLocation: { lat: number; lng: number },
-): Promise<RouteResult | null> {
-  const supabase = getSupabaseAdminClient();
-  const nowIso = new Date().toISOString();
-
-  const { data, error } = await supabase
-    .from('delivery_route_cache')
-    .select('id,store_latitude,store_longitude,customer_latitude,customer_longitude,route_distance_km,route_duration_seconds,route_via,formatted_duration,hit_count')
-    .eq('provider', ROUTE_PROVIDER)
-    .eq('travel_mode', TRAVEL_MODE)
-    .gt('expires_at', nowIso)
-    .gte('store_latitude', storeLocation.lat - CACHE_SEARCH_DELTA)
-    .lte('store_latitude', storeLocation.lat + CACHE_SEARCH_DELTA)
-    .gte('store_longitude', storeLocation.lng - CACHE_SEARCH_DELTA)
-    .lte('store_longitude', storeLocation.lng + CACHE_SEARCH_DELTA)
-    .gte('customer_latitude', customerLocation.lat - CACHE_SEARCH_DELTA)
-    .lte('customer_latitude', customerLocation.lat + CACHE_SEARCH_DELTA)
-    .gte('customer_longitude', customerLocation.lng - CACHE_SEARCH_DELTA)
-    .lte('customer_longitude', customerLocation.lng + CACHE_SEARCH_DELTA)
-    .order('last_used_at', { ascending: false })
-    .limit(30);
-
-  if (error || !data?.length) return null;
-
-  const nearest = data
-    .map((row) => {
-      const cachedStoreLocation = {
-        lat: Number(row.store_latitude),
-        lng: Number(row.store_longitude),
-      };
-      const cachedCustomerLocation = {
-        lat: Number(row.customer_latitude),
-        lng: Number(row.customer_longitude),
-      };
-
-      return {
-        row,
-        storeDistanceKm: calculateDistanceKm(storeLocation, cachedStoreLocation),
-        customerDistanceKm: calculateDistanceKm(customerLocation, cachedCustomerLocation),
-      };
-    })
-    .filter((candidate) =>
-      candidate.storeDistanceKm <= STORE_CACHE_RADIUS_KM
-      && candidate.customerDistanceKm <= ROUTE_CACHE_RADIUS_KM,
-    )
-    .sort((left, right) => left.customerDistanceKm - right.customerDistanceKm)[0];
-
-  if (!nearest) return null;
-
-  const usedAt = new Date().toISOString();
-  await supabase
-    .from('delivery_route_cache')
-    .update({
-      hit_count: nearest.row.hit_count + 1,
-      last_used_at: usedAt,
-      updated_at: usedAt,
-    })
-    .eq('id', nearest.row.id);
-
+  const storeLocation: Point = { lat: Number(rawStoreLat), lng: Number(rawStoreLng) };
+  if (!isValidCoordinate(storeLocation.lat, -90, 90)
+    || !isValidCoordinate(storeLocation.lng, -180, 180)) {
+    throw new Error('La ubicación configurada del local es inválida.');
+  }
   return {
-    routeDistanceKm: Number(nearest.row.route_distance_km),
-    routeDurationSeconds: nearest.row.route_duration_seconds,
-    routeDurationText: nearest.row.formatted_duration,
-    routeVia: nearest.row.route_via,
-    cacheHit: true,
+    storeLocation,
+    baseFee: amounts[0],
+    pricePerKm: amounts[1],
+    maxDistanceKm: amounts[2],
+    roundingValue: amounts[3],
   };
 }
 
-async function saveCachedRoute(
-  storeLocation: { lat: number; lng: number },
-  customerLocation: { lat: number; lng: number },
-  route: Omit<RouteResult, 'cacheHit'>,
-) {
-  const supabase = getSupabaseAdminClient();
-  const now = new Date();
-  const nowIso = now.toISOString();
+function errorResponse(error: unknown, status = 502) {
+  const message = error instanceof Error ? error.message : 'No pudimos calcular el envío.';
+  console.error('[chetos-haversine-delivery]', message);
+  return NextResponse.json({ error: message }, {
+    status,
+    headers: { 'Cache-Control': 'no-store' },
+  });
+}
 
-  await supabase
-    .from('delivery_route_cache')
-    .upsert(
-      {
-        cache_key: routeCacheKey(storeLocation, customerLocation),
-        provider: ROUTE_PROVIDER,
-        travel_mode: TRAVEL_MODE,
-        store_latitude: storeLocation.lat,
-        store_longitude: storeLocation.lng,
-        customer_latitude: customerLocation.lat,
-        customer_longitude: customerLocation.lng,
-        route_distance_km: route.routeDistanceKm,
-        route_duration_seconds: route.routeDurationSeconds,
-        route_via: route.routeVia,
-        formatted_duration: route.routeDurationText,
-        expires_at: new Date(now.getTime() + ROUTE_CACHE_TTL_MS).toISOString(),
-        hit_count: 0,
-        last_used_at: nowIso,
-        updated_at: nowIso,
-      },
-      { onConflict: 'cache_key' },
-    );
+function assertQaSafety() {
+  if (!isQaEnvironment()) {
+    throw new Error('Este método de cotización solo está habilitado en la rama de pruebas.');
+  }
+  // Evita que el checkout DEV use accidentalmente la base de producción.
+  if (!hasDevDatabaseConnection()) {
+    throw new Error('El despliegue de pruebas no apunta a chetos-dev. Revisá Supabase Preview en Vercel.');
+  }
 }
 
 export async function GET() {
   try {
-    const supabase = getSupabaseBrowserClient();
-    const { data: config, error: configError } = await supabase
-      .from('business_config')
-      .select('store_latitude,store_longitude')
-      .eq('id', 1)
-      .single();
-
-    if (configError) {
-      return NextResponse.json({ ok: false, code: 'CONFIG_ERROR' }, { status: 500 });
+    assertQaSafety();
+    if (!process.env.DELIVERY_QUOTE_SECRET?.trim()) {
+      throw new Error('Falta configurar DELIVERY_QUOTE_SECRET en Vercel Preview.');
     }
-
-    if (config.store_latitude === null || config.store_longitude === null) {
-      return NextResponse.json({ ok: false, code: 'STORE_LOCATION_MISSING' }, { status: 500 });
-    }
-
-    if (IS_DEV_SIMULATION) {
-      return NextResponse.json({
-        ok: true,
-        code: 'DEV_SIMULATED',
-        note: 'Cotización simulada solo para pruebas. No representa una ruta real.',
-      }, { headers: { 'Cache-Control': 'no-store' } });
-    }
-
-    const serpApiKey = process.env.SERPAPI_API_KEY?.trim() ?? '';
-    if (!serpApiKey) {
-      return NextResponse.json({ ok: false, code: 'SERPAPI_KEY_MISSING' }, { status: 500 });
-    }
-
-    const storeLocation = {
-      lat: Number(config.store_latitude),
-      lng: Number(config.store_longitude),
-    };
-
-    const customerLocation = {
-      lat: storeLocation.lat + 0.008,
-      lng: storeLocation.lng + 0.008,
-    };
-
-    await fetchSerpApiRoute(storeLocation, customerLocation);
-
-    return NextResponse.json({ ok: true, code: 'OK' }, { status: 200 });
+    await getDeliverySettings();
+    return NextResponse.json({
+      ok: true, code: 'HAVERSINE_GPS_DEV',
+      note: 'Geolocation API del navegador y distancia recta; no se consultan rutas por calles.',
+    }, { headers: { 'Cache-Control': 'no-store' } });
   } catch (error) {
-    const message = error instanceof Error ? error.message.toLocaleLowerCase('en') : '';
-
-    const code = message.includes('invalid api key')
-      ? 'SERPAPI_INVALID_KEY'
-      : message.includes('serpapi respondió con estado 401')
-        ? 'SERPAPI_UNAUTHORIZED'
-        : message.includes('serpapi respondió con estado 403')
-          ? 'SERPAPI_FORBIDDEN'
-          : message.includes('serpapi respondió con estado 429')
-            ? 'SERPAPI_RATE_LIMIT'
-            : message.includes('no devolvió una ruta válida')
-              ? 'ROUTE_NOT_FOUND'
-              : 'PROVIDER_ERROR';
-
-    console.error('[delivery-quote-health]', {
-      code,
-      message: error instanceof Error ? error.message : String(error),
-    });
-
-    return NextResponse.json({ ok: false, code }, { status: 502 });
+    return errorResponse(error);
   }
-}
-
-async function fetchSerpApiRoute(
-  storeLocation: { lat: number; lng: number },
-  customerLocation: { lat: number; lng: number },
-): Promise<RouteResult> {
-  const serpApiKey = process.env.SERPAPI_API_KEY?.trim() ?? '';
-  if (!serpApiKey) {
-    throw new Error('SerpApi todavía no está configurado en el servidor.');
-  }
-
-  const params = new URLSearchParams({
-    engine: 'google_maps_directions',
-    start_coords: `${storeLocation.lat},${storeLocation.lng}`,
-    end_coords: `${customerLocation.lat},${customerLocation.lng}`,
-    travel_mode: '9',
-    distance_unit: '0',
-    hl: 'es',
-    gl: 'ar',
-    api_key: serpApiKey,
-  });
-
-  const response = await fetch(`https://serpapi.com/search.json?${params.toString()}`, {
-    method: 'GET',
-    cache: 'no-store',
-    signal: AbortSignal.timeout(12_000),
-  });
-
-  if (!response.ok) {
-    throw new Error(`SerpApi respondió con estado ${response.status}.`);
-  }
-
-  const result = await response.json() as SerpApiDirectionsResponse;
-  if (result.error) throw new Error(result.error);
-
-  const direction = result.directions?.find((item) =>
-    item.travel_mode?.toLocaleLowerCase('en').includes('two-wheeler'),
-  ) ?? result.directions?.[0];
-
-  if (
-    !direction
-    || typeof direction.distance !== 'number'
-    || !Number.isFinite(direction.distance)
-    || direction.distance <= 0
-  ) {
-    throw new Error('Google Maps no devolvió una ruta válida para esta ubicación.');
-  }
-
-  return {
-    routeDistanceKm: direction.distance / 1000,
-    routeDurationSeconds:
-      typeof direction.duration === 'number' && Number.isFinite(direction.duration)
-        ? direction.duration
-        : null,
-    routeDurationText: direction.formatted_duration ?? null,
-    routeVia: direction.via?.trim() || null,
-    cacheHit: false,
-  };
 }
 
 export async function POST(request: Request) {
   try {
-    const body = await request.json() as QuoteRequestBody;
-    if (!isValidCoordinate(body.lat, -90, 90) || !isValidCoordinate(body.lng, -180, 180)) {
-      return NextResponse.json(
-        { error: 'La ubicación GPS no es válida.' },
-        { status: 400 },
-      );
+    assertQaSafety();
+    if (!process.env.DELIVERY_QUOTE_SECRET?.trim()) {
+      throw new Error('Falta configurar DELIVERY_QUOTE_SECRET en Vercel Preview.');
     }
 
-    const supabase = getSupabaseBrowserClient();
-    const { data: config, error: configError } = await supabase
-      .from('business_config')
-      .select('store_latitude,store_longitude,delivery_base_fee,delivery_price_per_km,delivery_max_distance_km,delivery_rounding_value')
-      .eq('id', 1)
-      .single();
-
-    if (configError) throw new Error(configError.message);
-    if (
-      config.store_latitude === null
-      || config.store_longitude === null
-    ) {
-      throw new Error('La ubicación del local no está configurada.');
+    let body: QuoteRequestBody;
+    try {
+      body = await request.json() as QuoteRequestBody;
+    } catch {
+      return NextResponse.json({ error: 'Enviá una ubicación GPS válida.' }, { status: 400 });
+    }
+    if (!isValidCoordinate(body.lat, -90, 90)
+      || !isValidCoordinate(body.lng, -180, 180)) {
+      return NextResponse.json({ error: 'La ubicación GPS no es válida.' }, { status: 400 });
     }
 
-    const storeLocation = {
-      lat: Number(config.store_latitude),
-      lng: Number(config.store_longitude),
-    };
+    const settings = await getDeliverySettings();
     const customerLocation = { lat: body.lat, lng: body.lng };
-    const straightDistanceKm = calculateDistanceKm(storeLocation, customerLocation);
 
-    let route: RouteResult | null = null;
-
-    if (IS_DEV_SIMULATION) {
-      // DEV: sin dependencias externas ni consultas facturables a SerpApi.
-      // Las coordenadas sí son las proporcionadas por el navegador o el botón de prueba.
-      route = {
-        routeDistanceKm: Number((straightDistanceKm * DEV_ROUTE_DISTANCE_FACTOR).toFixed(3)),
-        routeDurationSeconds: null,
-        routeDurationText: null,
-        routeVia: 'Distancia simulada para pruebas (no es una ruta real)',
-        cacheHit: false,
-      };
-    } else {
-      try {
-        route = await findCachedRoute(storeLocation, customerLocation);
-      } catch (error) {
-        console.warn('[delivery-route-cache] Lectura de caché omitida.', {
-          message: error instanceof Error ? error.message : String(error),
-        });
-      }
-
-      if (!route) {
-        route = await fetchSerpApiRoute(storeLocation, customerLocation);
-
-        try {
-          await saveCachedRoute(storeLocation, customerLocation, {
-            routeDistanceKm: route.routeDistanceKm,
-            routeDurationSeconds: route.routeDurationSeconds,
-            routeDurationText: route.routeDurationText,
-            routeVia: route.routeVia,
-          });
-        } catch (error) {
-          console.warn('[delivery-route-cache] Escritura de caché omitida.', {
-            message: error instanceof Error ? error.message : String(error),
-          });
-        }
-      }
-    }
-
+    // Guardamos la distancia en 3 decimales, como la columna numeric(8,3)
+    // y la validación del costo que hace PostgreSQL al crear el pedido.
+    const straightDistanceKm = Number(
+      calculateDistanceKm(settings.storeLocation, customerLocation).toFixed(3),
+    );
     const deliveryCost = calculateDeliveryCost({
-      distanceKm: route.routeDistanceKm,
-      baseFee: Number(config.delivery_base_fee),
-      pricePerKm: Number(config.delivery_price_per_km),
-      roundingValue: Number(config.delivery_rounding_value),
+      distanceKm: straightDistanceKm,
+      baseFee: settings.baseFee,
+      pricePerKm: settings.pricePerKm,
+      roundingValue: settings.roundingValue,
     });
-    const maxDistanceKm = Number(config.delivery_max_distance_km);
-    const isWithinRange = maxDistanceKm <= 0 || route.routeDistanceKm <= maxDistanceKm;
+    const isWithinRange = settings.maxDistanceKm <= 0
+      || straightDistanceKm <= settings.maxDistanceKm;
+    const mapsUrl = buildGoogleMapsUrl(customerLocation);
     const now = new Date();
     const expiresAt = new Date(now.getTime() + QUOTE_TTL_MS);
-    const mapsUrl = buildGoogleMapsUrl(customerLocation);
 
-    const signedPayload: SignedDeliveryQuotePayload = {
+    const signed: SignedDeliveryQuotePayload = {
       customerLat: customerLocation.lat,
       customerLng: customerLocation.lng,
-      routeDistanceKm: route.routeDistanceKm,
+      routeDistanceKm: straightDistanceKm,
       straightDistanceKm,
-      routeDurationSeconds: route.routeDurationSeconds,
+      routeDurationSeconds: null,
       deliveryCost: isWithinRange ? deliveryCost : 0,
       isWithinRange,
       mapsUrl,
-      routeProvider: IS_DEV_SIMULATION ? 'dev_simulated' : ROUTE_PROVIDER,
+      routeProvider: ROUTE_PROVIDER,
       travelMode: TRAVEL_MODE,
-      routeVia: route.routeVia,
+      routeVia: 'Distancia directa por GPS (sin cálculo por calles)',
       quotedAt: now.toISOString(),
       expiresAt: expiresAt.toISOString(),
     };
 
-    return NextResponse.json(
-      {
-        distanceKm: route.routeDistanceKm,
-        routeDistanceKm: route.routeDistanceKm,
-        straightDistanceKm,
-        routeDurationSeconds: signedPayload.routeDurationSeconds,
-        routeDurationText: route.routeDurationText,
-        routeVia: signedPayload.routeVia,
-        routeProvider: signedPayload.routeProvider,
-        travelMode: signedPayload.travelMode,
-        deliveryCost: signedPayload.deliveryCost,
-        isWithinRange,
-        mapsUrl,
-        quoteToken: signDeliveryQuote(signedPayload),
-        quoteExpiresAt: signedPayload.expiresAt,
-        routeCacheHit: route.cacheHit,
-      },
-      {
-        status: 200,
-        headers: {
-          'Cache-Control': 'no-store',
-        },
-      },
-    );
+    return NextResponse.json({
+      distanceKm: straightDistanceKm,
+      routeDistanceKm: straightDistanceKm,
+      straightDistanceKm,
+      routeDurationSeconds: null,
+      routeDurationText: null,
+      routeVia: signed.routeVia,
+      routeProvider: signed.routeProvider,
+      travelMode: signed.travelMode,
+      deliveryCost: signed.deliveryCost,
+      isWithinRange,
+      mapsUrl,
+      quoteToken: signDeliveryQuote(signed),
+      quoteExpiresAt: signed.expiresAt,
+    }, { headers: { 'Cache-Control': 'no-store' } });
   } catch (error) {
-    console.error('[delivery-quote] No se pudo calcular la cotización de delivery.', {
-      message: error instanceof Error ? error.message : String(error),
-      name: error instanceof Error ? error.name : 'UnknownError',
-      stack: error instanceof Error ? error.stack : undefined,
-    });
-
-    const message = error instanceof Error ? error.message.toLowerCase() : '';
-    const invalidSerpApiKey = /invalid api key|serpapi respondió con estado 401|serpapi respondió con estado 403/.test(message);
-    const missingSerpApiKey = message.includes('serpapi todavía no está configurado');
-    const isDev = process.env.NEXT_PUBLIC_APP_ENV === 'development';
-    // Diagnóstico limitado a DEV: nunca exponer mensajes internos de Supabase o secretos.
-    const devCode = !process.env.DELIVERY_QUOTE_SECRET?.trim()
-      ? 'DEV_QUOTE_SECRET_MISSING'
-      : /ubicación del local no está configurada/i.test(message)
-        ? 'DEV_STORE_LOCATION_MISSING'
-        : /fetch failed|failed to fetch|network/i.test(message)
-          ? 'DEV_BACKEND_UNREACHABLE'
-          : invalidSerpApiKey || missingSerpApiKey
-            ? 'DEV_SERPAPI_MISCONFIGURED'
-            : 'DEV_QUOTE_FAILED';
-    const devError = devCode === 'DEV_QUOTE_SECRET_MISSING'
-      ? 'Falta configurar DELIVERY_QUOTE_SECRET en el proyecto DEV de Vercel.'
-      : devCode === 'DEV_STORE_LOCATION_MISSING'
-        ? 'Falta configurar la ubicación del local en la base de datos DEV.'
-        : devCode === 'DEV_BACKEND_UNREACHABLE'
-          ? 'El servidor DEV no pudo conectarse a su servicio de datos. Revisá la conexión a Supabase DEV.'
-          : devCode === 'DEV_SERPAPI_MISCONFIGURED'
-            ? 'DEV intentó usar SerpApi. Verificá que NEXT_PUBLIC_APP_ENV sea development en el despliegue.'
-            : 'La cotización DEV falló en el servidor. Revisá el registro [delivery-quote] en Vercel.';
-
-    return NextResponse.json(
-      {
-        error: isDev ? devError : PUBLIC_DELIVERY_ERROR,
-        ...(isDev ? { code: devCode } : {}),
-      },
-      {
-        status: 502,
-        headers: {
-          'Cache-Control': 'no-store',
-        },
-      },
-    );
+    return errorResponse(error);
   }
 }

@@ -81,12 +81,12 @@ export async function buildWhatsappUrl(order: Order) {
     `*Entrega:* ${deliveryLabel}`,
     order.deliveryMapsUrl ? `*Ubicación adjunta:* ${order.deliveryMapsUrl}` : '',
     typeof order.deliveryDistanceKm === 'number'
-      ? `*Distancia por ruta:* ${formatDistanceKm(order.deliveryDistanceKm)}`
+      ? `${order.deliveryRouteProvider === 'haversine_gps' ? '*Distancia directa estimada:*' : '*Distancia por ruta:*'} ${formatDistanceKm(order.deliveryDistanceKm)}`
       : '',
     typeof order.deliveryRouteDurationSeconds === 'number'
       ? `*Tiempo estimado de ruta:* ${formatRouteDuration(order.deliveryRouteDurationSeconds)}`
       : '',
-    order.deliveryRouteVia ? `*Ruta sugerida:* ${order.deliveryRouteVia}` : '',
+    order.deliveryRouteVia && order.deliveryRouteProvider !== 'haversine_gps' ? `*Ruta sugerida:* ${order.deliveryRouteVia}` : '',
     `*Método de pago:* ${paymentLabel}`,
     '------------------------------',
     '*Pedido:*',

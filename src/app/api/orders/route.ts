@@ -40,16 +40,18 @@ export async function POST(request: Request) {
 
       if (!quoteToken) {
         return NextResponse.json(
-          { error: 'Volvé a compartir tu ubicación para calcular el delivery por ruta.' },
+          { error: 'Volvé a compartir tu ubicación para calcular el envío.' },
           { status: 409 },
         );
       }
 
       const quote = verifyDeliveryQuote(quoteToken);
       // Las cotizaciones simuladas no pueden usarse en el sitio real.
-      if (quote.routeProvider === 'dev_simulated' && process.env.NEXT_PUBLIC_APP_ENV !== 'development') {
+      const isQaBranch = process.env.VERCEL_GIT_COMMIT_REF === 'fix/dev-delivery-simulation'
+        || process.env.NODE_ENV === 'development';
+      if (['dev_simulated', 'haversine_gps'].includes(quote.routeProvider) && !isQaBranch) {
         return NextResponse.json(
-          { error: 'La cotización de pruebas no puede usarse en producción.' },
+          { error: 'La cotización de ubicación directa solo puede usarse en Chetos DEV.' },
           { status: 409 },
         );
       }

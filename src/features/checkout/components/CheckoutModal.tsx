@@ -127,6 +127,7 @@ export function CheckoutModal({ open, onClose, items, onOrderCreated }: Checkout
         && typeof draft.deliveryStraightDistanceKm === 'number'
         && draft.deliveryMapsUrl
         && draft.deliveryQuoteToken
+        && draft.deliveryRouteProvider === 'haversine_gps'
         && isFreshQuote(draft.deliveryQuoteExpiresAt),
     );
 
@@ -139,7 +140,7 @@ export function CheckoutModal({ open, onClose, items, onOrderCreated }: Checkout
         routeDurationSeconds: draft.deliveryRouteDurationSeconds ?? null,
         routeDurationText: draft.deliveryRouteDurationText ?? null,
         routeVia: draft.deliveryRouteVia ?? null,
-        routeProvider: draft.deliveryRouteProvider ?? 'serpapi_google_maps',
+        routeProvider: draft.deliveryRouteProvider ?? 'haversine_gps',
         travelMode: draft.deliveryTravelMode ?? 'two_wheeler',
         deliveryCost: draft.deliveryCost ?? 0,
         isWithinRange: typeof draft.deliveryCost === 'number',
@@ -207,7 +208,7 @@ export function CheckoutModal({ open, onClose, items, onOrderCreated }: Checkout
       }
 
       setDeliveryQuote(quote);
-      toast.success('Ubicación y costo de envío calculados correctamente.');
+      toast.success('Ubicación adjuntada y envío estimado correctamente.');
       setValues((current) => ({
         ...current,
         address: '',
@@ -276,12 +277,14 @@ export function CheckoutModal({ open, onClose, items, onOrderCreated }: Checkout
   }
 
   const deliveryHelperText = deliveryQuote
-    ? deliveryQuote.routeProvider === 'dev_simulated'
-      ? `SIMULACIÓN DEV · ${formatDistanceKm(deliveryQuote.routeDistanceKm)} aproximados · Envío ficticio: ${formatCurrency(deliveryQuote.deliveryCost)}`
+    ? deliveryQuote.routeProvider === 'haversine_gps'
+      ? deliveryQuote.isWithinRange
+        ? `${formatDistanceKm(deliveryQuote.straightDistanceKm)} en línea recta · Envío estimado: ${formatCurrency(deliveryQuote.deliveryCost)}`
+        : `${formatDistanceKm(deliveryQuote.straightDistanceKm)} en línea recta · Fuera del radio de entrega.`
       : deliveryQuote.isWithinRange
         ? `${formatDistanceKm(deliveryQuote.routeDistanceKm)} · Envío: ${formatCurrency(deliveryQuote.deliveryCost)}`
         : `${formatDistanceKm(deliveryQuote.routeDistanceKm)} · Fuera del radio de entrega.`
-    : 'Para solicitar delivery, activá el GPS y compartí tu ubicación actual. La utilizaremos para calcular el envío y localizar la entrega.';
+    : 'Activá el GPS para adjuntar tu ubicación y estimar el envío según la distancia directa al local.';
 
   const canSendOrder = !isSubmitting
     && items.length > 0
