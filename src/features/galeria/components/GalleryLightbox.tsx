@@ -1,14 +1,16 @@
 'use client';
 
-import { useEffect, useRef, useState, type TouchEvent } from 'react';
+import { useEffect, useRef, useState, type ReactNode, type TouchEvent } from 'react';
 import { createPortal } from 'react-dom';
 import { ChevronLeft, ChevronRight, X, ZoomIn, ZoomOut } from 'lucide-react';
 import { useBodyScrollLock } from '@/shared/hooks/useBodyScrollLock';
 import type { GalleryImage } from '../services/gallery.service';
 
 type GalleryLightboxProps = {
-  images: GalleryImage[];
+  images: Pick<GalleryImage, 'image_url' | 'alt_text'>[];
   selectedIndex: number;
+  title?: string;
+  fallbackImage?: ReactNode;
   onSelect: (index: number) => void;
   onClose: () => void;
 };
@@ -26,7 +28,7 @@ function midpoint(a: React.Touch, b: React.Touch): Point {
   return { x: (a.clientX + b.clientX) / 2, y: (a.clientY + b.clientY) / 2 };
 }
 
-export function GalleryLightbox({ images, selectedIndex, onSelect, onClose }: GalleryLightboxProps) {
+export function GalleryLightbox({ images, selectedIndex, onSelect, onClose, title, fallbackImage }: GalleryLightboxProps) {
   const [scale, setScale] = useState(1);
   const [offset, setOffset] = useState<Point>({ x: 0, y: 0 });
   const viewportRef = useRef<HTMLDivElement>(null);
@@ -58,7 +60,7 @@ export function GalleryLightbox({ images, selectedIndex, onSelect, onClose }: Ga
 
   useEffect(() => {
     function keydown(event: KeyboardEvent) {
-      if (event.key === 'Escape') { event.preventDefault(); onClose(); }
+      if (event.key === 'Escape') { event.preventDefault(); event.stopPropagation(); onClose(); }
       else if (event.key === 'ArrowLeft' && selectedIndex > 0) { event.preventDefault(); onSelect(selectedIndex - 1); }
       else if (event.key === 'ArrowRight' && selectedIndex < images.length - 1) { event.preventDefault(); onSelect(selectedIndex + 1); }
       else if (event.key === 'Tab') {
@@ -166,11 +168,11 @@ export function GalleryLightbox({ images, selectedIndex, onSelect, onClose }: Ga
   if (!image || typeof document === 'undefined') return null;
 
   return createPortal(
-    <div ref={dialogRef} role="dialog" aria-modal="true" aria-label="Fotografía ampliada"
+    <div ref={dialogRef} role="dialog" aria-modal="true" aria-label={title ? 'Fotografía ampliada de ' + title : 'Fotografía ampliada'}
       className="lcb-gallery-lightbox fixed inset-0 z-[160] flex flex-col overflow-hidden text-white"
       style={{ backgroundColor: 'rgba(9,9,11,.97)', color: '#fff' }}>
       <div className="relative z-10 flex h-[64px] shrink-0 items-center justify-between gap-4 border-b border-white/10 px-4 sm:h-[72px] sm:px-6">
-        <span className="text-[13px] font-medium text-white/80">{selectedIndex + 1} de {images.length}</span>
+        <span className="min-w-0 truncate pr-2 text-[13px] font-medium text-white/80">{title ?? `${selectedIndex + 1} de ${images.length}`}</span>
         <button ref={closeRef} type="button" onClick={onClose} aria-label="Cerrar fotografía" title="Cerrar"
           className="lcb-gallery-viewer-control h-10 w-10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-400"><X size={21} /></button>
       </div>
@@ -178,12 +180,24 @@ export function GalleryLightbox({ images, selectedIndex, onSelect, onClose }: Ga
         <div ref={viewportRef} className="absolute inset-0 flex touch-none select-none items-center justify-center overflow-hidden p-3 sm:p-8"
           onTouchStart={onTouchStart} onTouchMove={onTouchMove} onTouchEnd={onTouchEnd} onTouchCancel={onTouchEnd}
           onDoubleClick={() => changeZoom(scale > 1 ? 1 - scale : 1)}>
-          <img src={image.image_url} alt={image.alt_text || 'Fotografía de La Central Burger'}
-            draggable={false} className="pointer-events-none block max-h-full max-w-full select-none object-contain"
-            style={{
-              transform: `translate3d(${offset.x}px, ${offset.y}px, 0) scale(${scale})`,
-              transformOrigin: 'center center',
-            }} />
+          {image.image_url ? (
+            <img src={image.image_url} alt={image.alt_text || 'Fotografía de La Central Burger'}
+              draggable={false} className="pointer-events-none block max-h-full max-w-full select-none object-contain"
+              style={{
+                transform: `translate3d(${offset.x}px, ${offset.y}px, 0) scale(${scale})`,
+                transformOrigin: 'center center',
+              }} />
+          ) : (
+            <div
+              className="h-[min(66dvh,84vw)] w-[min(66dvh,84vw)] max-w-full overflow-hidden rounded-xl"
+              style={{
+                transform: `translate3d(${offset.x}px, ${offset.y}px, 0) scale(${scale})`,
+                transformOrigin: 'center center',
+              }}
+            >
+              {fallbackImage ?? <span className="grid h-full place-items-center text-sm text-white/60">Sin fotografía</span>}
+            </div>
+          )}
         </div>
         {images.length > 1 ? (
           <>
@@ -204,7 +218,7 @@ export function GalleryLightbox({ images, selectedIndex, onSelect, onClose }: Ga
           <button type="button" aria-label="Acercar fotografía" disabled={scale >= MAX_ZOOM}
             onClick={() => changeZoom(0.5)} className="lcb-gallery-viewer-control h-10 w-10"><ZoomIn size={19}/></button>
         </div>
-        <p className="text-center text-[10px] text-white/50 sm:text-[11px]">Separá dos dedos para ampliar · Deslizá para cambiar de foto</p>
+        <p className="text-center text-[10px] text-white/50 sm:text-[11px]">{images.length > 1 ? 'Separá dos dedos para ampliar · Deslizá para cambiar de foto' : 'Separá dos dedos para ampliar · Arrastrá para recorrer la foto'}</p>
       </div>
     </div>, document.body,
   );
