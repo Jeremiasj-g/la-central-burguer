@@ -19,8 +19,8 @@ export function HomeDiscovery({ onSelectProduct }: HomeDiscoveryProps) {
   const { ranking, isLoading: loadingRanking, error: rankingError } = useBestSellers();
   const byId = new Map(productos.map(product => [product.id, product]));
   const bestSellers = ranking
-    .map(rank => ({ product: byId.get(rank.productId), unitsSold: rank.unitsSold }))
-    .filter((entry): entry is { product: (typeof productos)[number]; unitsSold: number } => Boolean(entry.product));
+    .map(rank => byId.get(rank.productId))
+    .filter((product): product is (typeof productos)[number] => Boolean(product));
   const isLoading = loadingProducts || loadingRanking;
 
   return (
@@ -35,7 +35,7 @@ export function HomeDiscovery({ onSelectProduct }: HomeDiscoveryProps) {
 
         {isLoading ? (
           <div className="grid gap-4 md:grid-cols-3" role="status" aria-label="Cargando más vendidos">
-            {Array.from({ length: 3 }, (_, index) => <div key={index} className="h-[340px] rounded-[24px] border border-white/10 bg-[#1a1a1d]" />)}
+            {Array.from({ length: 3 }, (_, index) => <div key={index} className="chet-best-seller-skeleton h-[340px] rounded-[24px] bg-[#1a1a1d]" />)}
           </div>
         ) : productsError || rankingError ? (
           <p role="alert" className="py-6 text-sm font-normal text-white/60">
@@ -47,13 +47,13 @@ export function HomeDiscovery({ onSelectProduct }: HomeDiscoveryProps) {
           </p>
         ) : (
           <div className="grid gap-4 md:grid-cols-3">
-            {bestSellers.map(({ product, unitsSold }, index) => (
+            {bestSellers.map((product, index) => (
               <button
                 key={product.id}
                 type="button"
                 onClick={() => onSelectProduct(product.id)}
                 aria-label={product.available ? `Elegir ${product.name} para agregar al carrito` : `Ver detalles de ${product.name}, no disponible por ahora`}
-                className="group flex w-full flex-col overflow-hidden rounded-[24px] border border-white/10 bg-[#1a1a1d] text-left transition-transform duration-300 hover:scale-[1.015] focus-visible:outline-2 focus-visible:outline-[#ff933d] motion-reduce:transition-none"
+                className="chet-best-seller-card group flex w-full flex-col overflow-hidden rounded-[24px] bg-[#1a1a1d] text-left transition-transform duration-300 hover:scale-[1.015] focus-visible:outline-2 focus-visible:outline-[#ff933d] motion-reduce:transition-none"
               >
                 <div className="relative h-[185px] bg-[#292428] sm:h-[220px]">
                   {product.imageUrl ? (
@@ -71,7 +71,6 @@ export function HomeDiscovery({ onSelectProduct }: HomeDiscoveryProps) {
                     <span className="shrink-0 text-sm font-semibold text-[#ffab6f]">{money.format(product.currentPrice)}</span>
                   </div>
                   <p className="mt-2 line-clamp-2 text-sm font-normal leading-6 text-white/55">{product.description}</p>
-                  <p className="mt-3 text-xs font-normal text-white/50">{unitsSold} {unitsSold === 1 ? 'unidad vendida' : 'unidades vendidas'}</p>
                   {!product.available && (
                     <p className="mt-2 text-xs font-medium text-[#ffac75]">No disponible por ahora</p>
                   )}
