@@ -48,6 +48,7 @@ export async function POST(request: Request) {
       const quote = verifyDeliveryQuote(quoteToken);
       // Las cotizaciones simuladas no pueden usarse en el sitio real.
       const isQaBranch = process.env.VERCEL_GIT_COMMIT_REF === 'fix/dev-delivery-simulation'
+        || process.env.NEXT_PUBLIC_APP_ENV === 'development'
         || process.env.NODE_ENV === 'development';
       if (['dev_simulated', 'haversine_gps'].includes(quote.routeProvider) && !isQaBranch) {
         return NextResponse.json(

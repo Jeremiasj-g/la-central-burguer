@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getSupabaseBrowserClient } from '@/lib/supabase/client';
+import { getSupabaseAdminClient } from '@/lib/supabase/admin';
 import {
   buildGoogleMapsUrl,
   calculateDeliveryCost,
@@ -26,7 +27,8 @@ type Point = { lat: number; lng: number };
 
 function isQaEnvironment() {
   return process.env.VERCEL_GIT_COMMIT_REF === DEV_BRANCH
-    || (process.env.NODE_ENV === 'development');
+    || process.env.NEXT_PUBLIC_APP_ENV === 'development'
+    || process.env.NODE_ENV === 'development';
 }
 
 function hasDevDatabaseConnection() {
@@ -62,7 +64,7 @@ async function getDeliverySettings() {
     data.delivery_base_fee, data.delivery_price_per_km,
     data.delivery_max_distance_km, data.delivery_rounding_value,
   ].map(Number);
-  if (amounts.some(value => !Number.isFinite(value) || value < 0)) {
+  if (amounts.some(value => !Number.isFinite(value) || value < 0) || amounts[3] <= 0) {
     throw new Error('La tarifa de envío del local no está configurada correctamente.');
   }
 
@@ -78,6 +80,17 @@ async function getDeliverySettings() {
     maxDistanceKm: amounts[2],
     roundingValue: amounts[3],
   };
+}
+
+async function verifyDevOrderDatabase() {
+  const { data, error } = await getSupabaseAdminClient()
+    .from('business_config')
+    .select('id')
+    .eq('id', 1)
+    .single();
+  if (error || !data) {
+    throw new Error('La clave de servidor de Supabase Preview no permite confirmar pedidos en chetos-dev.');
+  }
 }
 
 function errorResponse(error: unknown, status = 502) {
@@ -106,6 +119,7 @@ export async function GET() {
       throw new Error('Falta configurar DELIVERY_QUOTE_SECRET en Vercel Preview.');
     }
     await getDeliverySettings();
+    await verifyDevOrderDatabase();
     return NextResponse.json({
       ok: true, code: 'HAVERSINE_GPS_DEV',
       note: 'Geolocation API del navegador y distancia recta; no se consultan rutas por calles.',
@@ -134,6 +148,7 @@ export async function POST(request: Request) {
     }
 
     const settings = await getDeliverySettings();
+    await verifyDevOrderDatabase();
     const customerLocation = { lat: body.lat, lng: body.lng };
 
     // Guardamos la distancia en 3 decimales, como la columna numeric(8,3)
