@@ -203,6 +203,7 @@ export interface Database {
       create_public_order: { Args: { payload: Json }; Returns: Json };
       create_public_order_from_route: { Args: { payload: Json }; Returns: Json };
       sync_product_ingredients: { Args: { target_product_id: string; ingredient_rows?: Json }; Returns: undefined };
+      get_public_best_sellers: { Args: Record<PropertyKey, never>; Returns: { product_id: string; units_sold: number }[] };
       get_dashboard_stats: { Args: { days_back?: number }; Returns: Json };
       is_business_open: { Args: Record<PropertyKey, never>; Returns: boolean };
       calculate_delivery_quote: { Args: { customer_lat: number; customer_lng: number }; Returns: DeliveryQuoteRow[] };

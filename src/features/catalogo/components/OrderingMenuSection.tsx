@@ -27,7 +27,12 @@ import { formatMenuLabel } from '../utils/menuLabel';
 
 const CATEGORY_SWITCH_MS = 300;
 
-export function OrderingMenuSection() {
+interface OrderingMenuSectionProps {
+  requestedProductId?: string | null;
+  onRequestHandled?: () => void;
+}
+
+export function OrderingMenuSection({ requestedProductId = null, onRequestHandled }: OrderingMenuSectionProps = {}) {
   const [search, setSearch] = useState('');
   const [selectedCategoryId, setSelectedCategoryId] = useState('all');
   const [displayedCategoryId, setDisplayedCategoryId] = useState('all');
@@ -98,11 +103,24 @@ export function OrderingMenuSection() {
     return () => window.removeEventListener('central-cart-open', handleCartOpen);
   }, []);
 
+  // Reutilizamos el modal de la carta para comprar directamente desde Más vendidos.
   useEffect(() => {
-    if (!loadingProducts && selectedProduct && !productos.some((item) => item.id === selectedProduct.id && item.available)) {
+    if (!requestedProductId || loadingProducts) return;
+    const product = pricedProducts.find(item => item.id === requestedProductId);
+    if (product) {
+      setSelectedProduct(product);
+    } else {
+      toast.warning('Este producto ya no se encuentra en la carta.');
+    }
+    onRequestHandled?.();
+  }, [requestedProductId, loadingProducts, pricedProducts, onRequestHandled]);
+
+  // Los filtros de la carta no deben cerrar un detalle abierto desde Más vendidos.
+  useEffect(() => {
+    if (!loadingProducts && selectedProduct && !pricedProducts.some(item => item.id === selectedProduct.id)) {
       setSelectedProduct(null);
     }
-  }, [loadingProducts, productos, selectedProduct]);
+  }, [loadingProducts, pricedProducts, selectedProduct]);
 
   const categoryById = useMemo(() => Object.fromEntries(categorias.map((category) => [category.id, category.name])), [categorias]);
   const activeTitle = selectedCategoryId === 'all' ? 'Menú completo' : (categoryById[selectedCategoryId] ?? 'Menú');
