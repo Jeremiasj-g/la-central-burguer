@@ -19,7 +19,7 @@ export function BurgerHero() {
   return (
     <section id="inicio" className="relative isolate overflow-hidden bg-[#0d0d0f] text-[#f5f5f7]">
       <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_80%_30%,rgba(255,128,37,.17),transparent_45%),linear-gradient(145deg,#0d0d0f,#171518_64%,#0d0d0f)]" />
-      <div className="relative mx-auto grid min-h-[600px] max-w-7xl items-center gap-10 px-5 py-16 sm:px-8 lg:grid-cols-[1.1fr_.9fr] lg:gap-12 lg:py-24">
+      <div className="relative mx-auto grid min-h-[600px] max-w-7xl items-center gap-10 px-5 py-16 sm:px-8 lg:grid-cols-[1.03fr_.97fr] lg:gap-8 lg:py-24">
         <div className="min-w-0">
           <h1 className="max-w-[700px] text-[clamp(3.1rem,7.6vw,6.7rem)] font-semibold leading-[.99] tracking-[-.075em]">
             {branding.heroTitlePrefix}
@@ -66,15 +66,13 @@ export function BurgerHero() {
             </details>
           )}
         </div>
-        <div className="relative flex min-h-[280px] items-center justify-center sm:min-h-[400px] lg:min-h-[460px]">
-          <div aria-hidden="true" className="pointer-events-none absolute h-[75%] w-[75%] max-w-[410px] rounded-full bg-[#ff842b]/15 blur-[75px]" />
-          <div className="relative mx-auto grid aspect-square w-full max-w-[470px] place-items-center rounded-full border border-[#ff9c52]/10 bg-[radial-gradient(circle_at_50%_48%,#352014_0%,#1b1717_56%,#101012_80%)]">
-            <PublicBrandImage logoUrl={branding.heroImageUrl || branding.logoUrl} businessName={branding.businessName}
-              width={540} height={400} loading="eager"
-              className="relative h-auto w-[91%] max-w-[420px] object-contain drop-shadow-[0_22px_35px_rgba(0,0,0,.32)]" />
-          </div>
+        <div className="relative flex min-h-[300px] items-center justify-center sm:min-h-[440px] lg:min-h-[540px]">
+          <div aria-hidden="true" className="pointer-events-none absolute inset-x-[8%] top-[18%] h-[65%] bg-[#ff842b]/10 blur-[95px]" />
+          <PublicBrandImage logoUrl={branding.heroImageUrl || branding.logoUrl} businessName={branding.businessName}
+            width={720} height={620} loading="eager"
+            className="relative z-10 block h-auto w-full max-w-[650px] object-contain drop-shadow-[0_24px_40px_rgba(0,0,0,.32)] lg:scale-[1.06]" />
           {branding.heroImageCaption.trim() && (
-            <span className="absolute bottom-3 right-1 rounded-full border border-white/15 bg-[#201c1b] px-4 py-2 text-xs font-medium text-white/80 sm:bottom-10 sm:right-5">
+            <span className="absolute bottom-2 right-1 z-20 rounded-full border border-white/15 bg-[#201c1b]/90 px-4 py-2 text-xs font-medium text-white/80 sm:bottom-6 sm:right-4">
               {branding.heroImageCaption}
             </span>
           )}
