@@ -1,6 +1,8 @@
 'use client';
 
-import Image from 'next/image';
+import { PublicBrandImage } from '@/features/configuracion/components/PublicBrandImage';
+import { useBusinessConfig } from '@/features/configuracion/hooks/useBusinessConfig';
+import { BUSINESS_CONFIG_DEFAULTS } from '@/features/configuracion/constants/configuracion.defaults';
 import Link from 'next/link';
 import { ShoppingCart } from 'lucide-react';
 import { useCarrito } from '@/features/carrito/hooks/useCarrito';
@@ -8,6 +10,8 @@ import { ROUTES } from '@/shared/constants/routes';
 import { PublicThemeToggle } from './PublicThemeProvider';
 
 export function PublicHeader() {
+  const { config } = useBusinessConfig();
+  const branding = config ?? BUSINESS_CONFIG_DEFAULTS;
   const cart = useCarrito();
   const cartCount = cart.items.reduce((total, item) => total + item.quantity, 0);
 
@@ -18,13 +22,13 @@ export function PublicHeader() {
   return (
     <header className="sticky top-0 z-40 border-b border-white/10 bg-[#111113]/95 text-[#f5f5f7] backdrop-blur-xl">
       <div className="mx-auto flex min-h-[70px] max-w-7xl items-center justify-between gap-3 px-5 sm:px-8">
-        <Link href={ROUTES.home} aria-label="Ir al inicio de Chetos" className="flex min-w-0 shrink-0 items-center gap-2.5 rounded-xl transition-transform duration-200 hover:scale-[1.02] focus-visible:outline-2 focus-visible:outline-[#ff933d] motion-reduce:transition-none">
-          <Image src="/branding/chef-cutout.webp" width={50} height={40} alt="" className="h-10 w-12 object-contain" />
-          <span className="text-xl font-semibold tracking-[-.045em] text-white">Chetos<span className="text-[#ff933d]">.</span></span>
+        <Link href={ROUTES.home} aria-label={`Ir al inicio de ${branding.businessName}`} className="flex min-w-0 shrink-0 items-center gap-2.5 rounded-xl transition-transform duration-200 hover:scale-[1.02] focus-visible:outline-2 focus-visible:outline-[#ff933d] motion-reduce:transition-none">
+          <PublicBrandImage logoUrl={branding.logoUrl} businessName={branding.businessName} width={50} height={40} className="h-10 w-12 object-contain" />
+          <span className="text-xl font-semibold tracking-[-.045em] text-white">{branding.businessName}<span className="text-[#ff933d]">.</span></span>
         </Link>
         <nav aria-label="Navegación principal" className="hidden items-center gap-7 md:flex">
           <Link href={ROUTES.home} className="text-sm font-medium text-white/80 transition-transform duration-200 hover:scale-[1.04] motion-reduce:transition-none">Inicio</Link>
-          <Link href="/#especialidades" className="text-sm font-medium text-white/70 transition-transform duration-200 hover:scale-[1.04] motion-reduce:transition-none">Especialidades</Link>
+          <Link href="/#mas-vendidos" className="text-sm font-medium text-white/70 transition-transform duration-200 hover:scale-[1.04] motion-reduce:transition-none">Más vendidos</Link>
           <Link href="/#menu" className="text-sm font-medium text-white/70 transition-transform duration-200 hover:scale-[1.04] motion-reduce:transition-none">Menú</Link>
         </nav>
         <div className="flex items-center gap-2 sm:gap-3">

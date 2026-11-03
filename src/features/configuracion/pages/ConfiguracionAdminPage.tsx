@@ -47,6 +47,22 @@ type ConfigFormValues = Pick<
   | 'logoUrl'
   | 'logoPath'
   | 'heroDescription'
+  | 'heroTitlePrefix'
+  | 'heroTitleHighlight'
+  | 'heroTitleSuffix'
+  | 'heroPrimaryButtonLabel'
+  | 'heroSecondaryButtonLabel'
+  | 'heroImageCaption'
+  | 'heroServiceLabel'
+  | 'footerTagline'
+  | 'footerDescription'
+  | 'footerLinksHeading'
+  | 'footerContactHeading'
+  | 'footerHomeLabel'
+  | 'footerBestSellersLabel'
+  | 'footerMenuLabel'
+  | 'footerCredit'
+  | 'footerCopyright'
   | 'whatsappNumber'
   | 'facebookUrl'
   | 'instagramUrl'
@@ -73,7 +89,24 @@ type ConfigFormValues = Pick<
 function editableConfig(config: BusinessConfig): ConfigFormValues {
   return {
     businessName: config.businessName, logoUrl: config.logoUrl, logoPath: config.logoPath,
-    heroDescription: config.heroDescription, whatsappNumber: config.whatsappNumber,
+    heroDescription: config.heroDescription,
+    heroTitlePrefix: config.heroTitlePrefix,
+    heroTitleHighlight: config.heroTitleHighlight,
+    heroTitleSuffix: config.heroTitleSuffix,
+    heroPrimaryButtonLabel: config.heroPrimaryButtonLabel,
+    heroSecondaryButtonLabel: config.heroSecondaryButtonLabel,
+    heroImageCaption: config.heroImageCaption,
+    heroServiceLabel: config.heroServiceLabel,
+    footerTagline: config.footerTagline,
+    footerDescription: config.footerDescription,
+    footerLinksHeading: config.footerLinksHeading,
+    footerContactHeading: config.footerContactHeading,
+    footerHomeLabel: config.footerHomeLabel,
+    footerBestSellersLabel: config.footerBestSellersLabel,
+    footerMenuLabel: config.footerMenuLabel,
+    footerCredit: config.footerCredit,
+    footerCopyright: config.footerCopyright,
+    whatsappNumber: config.whatsappNumber,
     facebookUrl: config.facebookUrl, instagramUrl: config.instagramUrl, whatsappUrl: config.whatsappUrl,
     transferAlias: config.transferAlias, transferCvu: config.transferCvu,
     address: config.address, specialty: config.specialty,
@@ -181,7 +214,7 @@ export function ConfiguracionAdminPage() {
     <div className="config-wallet min-w-0 pb-8">
       <div className="mb-5 min-w-0">
         <h1 className="text-[28px] font-semibold leading-tight tracking-[-.045em] text-neutral-950 sm:text-[34px]">Configuración del negocio</h1>
-        <p className="mt-1 max-w-2xl text-[13px] leading-5 text-neutral-500">Administrá la identidad, los horarios, los cobros y el delivery de La Central.</p>
+        <p className="mt-1 max-w-2xl text-[13px] leading-5 text-neutral-500">Administrá la identidad, el sitio público, los horarios, los cobros y el delivery de Chetos.</p>
       </div>
       <div className="sticky top-[72px] z-20 -mx-4 mb-6 border-b border-neutral-200/50 bg-[#f5f5f5]/90 px-4 py-2.5 backdrop-blur-xl sm:top-[76px] sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8">
         <div className="flex w-full flex-wrap items-center gap-2 sm:justify-end">
@@ -238,7 +271,7 @@ export function ConfiguracionAdminPage() {
 
               <div className="min-w-0 flex-1">
                 <label className="block text-[13px] font-semibold text-neutral-800">Logo del negocio</label>
-                <p className="mt-1 text-[11px] leading-5 text-neutral-500">Se muestra en el hero, el navbar, el footer y el panel administrador. Recomendado: imagen cuadrada PNG o WEBP con fondo transparente, máximo 2 MB.</p>
+                <p className="mt-1 text-[11px] leading-5 text-neutral-500">Se muestra en el hero, la navegación y el footer. Si no se carga uno, aparece el chef de Chetos. Recomendado: imagen cuadrada PNG o WEBP con fondo transparente, máximo 2 MB.</p>
                 <div className="mt-3 flex flex-wrap gap-2">
                   <label className="inline-flex min-h-9 cursor-pointer items-center gap-2 rounded-[11px] bg-central-orange px-3 py-2 text-[12px] font-semibold text-white transition-colors duration-200 hover:bg-central-ember focus-within:ring-2 focus-within:ring-central-orange/30">
                     <ImageUp size={16} /> {values.logoUrl ? 'Cambiar logo' : 'Subir logo'}
@@ -304,6 +337,36 @@ export function ConfiguracionAdminPage() {
               <EditableControl multiline>
                 <Textarea className={`${adminInputClass} min-h-28 py-3`} value={values.heroDescription} onChange={(event) => setValues({ ...values, heroDescription: event.target.value })} />
               </EditableControl>
+            </div>
+          </div>
+
+
+          <div className="mt-7 border-t border-neutral-100 pt-6">
+            <h3 className="text-[15px] font-semibold text-neutral-900">Contenido del hero</h3>
+            <p className="mt-1 text-[12px] text-neutral-500">Personalizá el título y sus tres segmentos. El texto central se resalta en naranja.</p>
+            <div className="mt-4 grid min-w-0 gap-4 md:grid-cols-2">
+              <div><label className={labelClass}>Inicio del título</label><EditableControl><Input className={adminInputClass} maxLength={120} value={values.heroTitlePrefix} onChange={(event) => setValues({ ...values, heroTitlePrefix: event.target.value })}  /></EditableControl></div>
+              <div><label className={labelClass}>Texto resaltado</label><EditableControl><Input className={adminInputClass} maxLength={120} value={values.heroTitleHighlight} onChange={(event) => setValues({ ...values, heroTitleHighlight: event.target.value })}  /></EditableControl></div>
+              <div><label className={labelClass}>Final del título</label><EditableControl><Input className={adminInputClass} maxLength={120} value={values.heroTitleSuffix} onChange={(event) => setValues({ ...values, heroTitleSuffix: event.target.value })}  /></EditableControl></div>
+              <div><label className={labelClass}>Texto junto al logo</label><EditableControl><Input className={adminInputClass} maxLength={120} value={values.heroImageCaption} onChange={(event) => setValues({ ...values, heroImageCaption: event.target.value })}  /></EditableControl></div>
+              <div><label className={labelClass}>Botón principal (abrir carta)</label><EditableControl><Input className={adminInputClass} maxLength={120} value={values.heroPrimaryButtonLabel} onChange={(event) => setValues({ ...values, heroPrimaryButtonLabel: event.target.value })}  /></EditableControl></div>
+              <div><label className={labelClass}>Botón secundario (más vendidos)</label><EditableControl><Input className={adminInputClass} maxLength={120} value={values.heroSecondaryButtonLabel} onChange={(event) => setValues({ ...values, heroSecondaryButtonLabel: event.target.value })}  /></EditableControl></div>
+              <div><label className={labelClass}>Etiqueta de pedidos</label><EditableControl><Input className={adminInputClass} maxLength={120} value={values.heroServiceLabel} onChange={(event) => setValues({ ...values, heroServiceLabel: event.target.value })}  /></EditableControl></div>
+            </div>
+          </div>
+          <div className="mt-7 border-t border-neutral-100 pt-6">
+            <h3 className="text-[15px] font-semibold text-neutral-900">Contenido del footer</h3>
+            <p className="mt-1 text-[12px] text-neutral-500">El logo, nombre, dirección, contacto y redes se toman de los campos del negocio que configurás arriba.</p>
+            <div className="mt-4 grid min-w-0 gap-4 md:grid-cols-2">
+              <div><label className={labelClass}>Lema de la marca</label><EditableControl><Input className={adminInputClass} maxLength={120} value={values.footerTagline} onChange={(event) => setValues({ ...values, footerTagline: event.target.value })}  /></EditableControl></div>
+              <div className="md:col-span-2"><label className={labelClass}>Descripción del footer</label><EditableControl multiline><Textarea className={`${adminInputClass} min-h-24 py-3`} maxLength={500} value={values.footerDescription} onChange={(event) => setValues({ ...values, footerDescription: event.target.value })} /></EditableControl></div>
+              <div><label className={labelClass}>Título de enlaces</label><EditableControl><Input className={adminInputClass} maxLength={120} value={values.footerLinksHeading} onChange={(event) => setValues({ ...values, footerLinksHeading: event.target.value })}  /></EditableControl></div>
+              <div><label className={labelClass}>Título de contacto</label><EditableControl><Input className={adminInputClass} maxLength={120} value={values.footerContactHeading} onChange={(event) => setValues({ ...values, footerContactHeading: event.target.value })}  /></EditableControl></div>
+              <div><label className={labelClass}>Enlace al inicio</label><EditableControl><Input className={adminInputClass} maxLength={120} value={values.footerHomeLabel} onChange={(event) => setValues({ ...values, footerHomeLabel: event.target.value })}  /></EditableControl></div>
+              <div><label className={labelClass}>Enlace a más vendidos</label><EditableControl><Input className={adminInputClass} maxLength={120} value={values.footerBestSellersLabel} onChange={(event) => setValues({ ...values, footerBestSellersLabel: event.target.value })}  /></EditableControl></div>
+              <div><label className={labelClass}>Enlace a la carta</label><EditableControl><Input className={adminInputClass} maxLength={120} value={values.footerMenuLabel} onChange={(event) => setValues({ ...values, footerMenuLabel: event.target.value })}  /></EditableControl></div>
+              <div><label className={labelClass}>Crédito del footer</label><EditableControl><Input className={adminInputClass} maxLength={120} value={values.footerCredit} onChange={(event) => setValues({ ...values, footerCredit: event.target.value })}  /></EditableControl></div>
+              <div><label className={labelClass}>Leyenda de derechos</label><EditableControl><Input className={adminInputClass} maxLength={120} value={values.footerCopyright} onChange={(event) => setValues({ ...values, footerCopyright: event.target.value })}  /></EditableControl></div>
             </div>
           </div>
 

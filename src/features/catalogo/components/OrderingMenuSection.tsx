@@ -102,7 +102,6 @@ export function OrderingMenuSection() {
       <div className="mx-auto w-full max-w-7xl">
         <div className="mb-9 flex flex-col justify-between gap-4 border-b border-white/10 pb-8 md:flex-row md:items-end">
           <div className="min-w-0">
-            <p className="text-[11px] font-medium uppercase tracking-[.2em] text-[#ffac75]">La carta de Chetos</p>
             <h2 className="mt-3 text-[clamp(2.2rem,5vw,3.7rem)] font-semibold leading-[1.05] tracking-[-.06em] text-white">
               Elegí lo que más te guste.
             </h2>

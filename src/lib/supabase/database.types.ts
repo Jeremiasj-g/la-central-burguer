@@ -63,7 +63,7 @@ export interface Database {
       >;
       business_config: TableDefinition<
         {
-          id: number; business_name: string; logo_url: string; logo_path: string | null; hero_description: string; whatsapp_number: string; facebook_url: string; instagram_url: string; whatsapp_url: string; transfer_alias: string;
+          id: number; business_name: string; logo_url: string; logo_path: string | null; hero_description: string; hero_title_prefix: string; hero_title_highlight: string; hero_title_suffix: string; hero_primary_button_label: string; hero_secondary_button_label: string; hero_image_caption: string; hero_service_label: string; footer_tagline: string; footer_description: string; footer_links_heading: string; footer_contact_heading: string; footer_home_label: string; footer_best_sellers_label: string; footer_menu_label: string; footer_credit: string; footer_copyright: string; whatsapp_number: string; facebook_url: string; instagram_url: string; whatsapp_url: string; transfer_alias: string;
           transfer_cvu: string; address: string; specialty: string; timezone: string; is_open: boolean; maintenance_mode: boolean;
           auto_schedule_enabled: boolean; auto_open_time: string; auto_close_time: string; closed_weekdays: number[]; daily_hours: Record<string, { open: string; close: string }>;
           store_latitude: number | null; store_longitude: number | null; delivery_base_fee: number;
@@ -71,7 +71,7 @@ export interface Database {
           created_at: string; updated_at: string;
         },
         {
-          id?: number; business_name: string; logo_url?: string; logo_path?: string | null; hero_description?: string; whatsapp_number: string; facebook_url?: string; instagram_url?: string; whatsapp_url?: string; transfer_alias?: string;
+          id?: number; business_name: string; logo_url?: string; logo_path?: string | null; hero_description?: string; hero_title_prefix?: string; hero_title_highlight?: string; hero_title_suffix?: string; hero_primary_button_label?: string; hero_secondary_button_label?: string; hero_image_caption?: string; hero_service_label?: string; footer_tagline?: string; footer_description?: string; footer_links_heading?: string; footer_contact_heading?: string; footer_home_label?: string; footer_best_sellers_label?: string; footer_menu_label?: string; footer_credit?: string; footer_copyright?: string; whatsapp_number: string; facebook_url?: string; instagram_url?: string; whatsapp_url?: string; transfer_alias?: string;
           transfer_cvu?: string; address?: string; specialty?: string; timezone?: string; is_open?: boolean; maintenance_mode?: boolean;
           auto_schedule_enabled?: boolean; auto_open_time?: string; auto_close_time?: string; closed_weekdays?: number[]; daily_hours?: Record<string, { open: string; close: string }>;
           store_latitude?: number | null; store_longitude?: number | null; delivery_base_fee?: number;
@@ -79,7 +79,7 @@ export interface Database {
           created_at?: string; updated_at?: string;
         },
         {
-          business_name?: string; logo_url?: string; logo_path?: string | null; hero_description?: string; whatsapp_number?: string; facebook_url?: string; instagram_url?: string; whatsapp_url?: string; transfer_alias?: string;
+          business_name?: string; logo_url?: string; logo_path?: string | null; hero_description?: string; hero_title_prefix?: string; hero_title_highlight?: string; hero_title_suffix?: string; hero_primary_button_label?: string; hero_secondary_button_label?: string; hero_image_caption?: string; hero_service_label?: string; footer_tagline?: string; footer_description?: string; footer_links_heading?: string; footer_contact_heading?: string; footer_home_label?: string; footer_best_sellers_label?: string; footer_menu_label?: string; footer_credit?: string; footer_copyright?: string; whatsapp_number?: string; facebook_url?: string; instagram_url?: string; whatsapp_url?: string; transfer_alias?: string;
           transfer_cvu?: string; address?: string; specialty?: string; timezone?: string; is_open?: boolean; maintenance_mode?: boolean;
           auto_schedule_enabled?: boolean; auto_open_time?: string; auto_close_time?: string; closed_weekdays?: number[]; daily_hours?: Record<string, { open: string; close: string }>;
           store_latitude?: number | null; store_longitude?: number | null; delivery_base_fee?: number;
@@ -203,6 +203,7 @@ export interface Database {
       create_public_order: { Args: { payload: Json }; Returns: Json };
       create_public_order_from_route: { Args: { payload: Json }; Returns: Json };
       sync_product_ingredients: { Args: { target_product_id: string; ingredient_rows?: Json }; Returns: undefined };
+      get_public_best_sellers: { Args: Record<PropertyKey, never>; Returns: { product_id: string; units_sold: number }[] };
       get_dashboard_stats: { Args: { days_back?: number }; Returns: Json };
       is_business_open: { Args: Record<PropertyKey, never>; Returns: boolean };
       calculate_delivery_quote: { Args: { customer_lat: number; customer_lng: number }; Returns: DeliveryQuoteRow[] };
