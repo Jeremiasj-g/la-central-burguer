@@ -653,3 +653,26 @@ body.lcb-public-typography .lcb-gallery-lightbox .lcb-gallery-viewer-control:dis
     transition: none;
   }
 }
+
+/* Apertura del visor compartido (galería y productos): entrada 0,2 s. */
+@keyframes lcb-gallery-backdrop-enter {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes lcb-gallery-photo-enter {
+  from { opacity: .45; transform: scale(.86); }
+  to { opacity: 1; transform: scale(1); }
+}
+body.lcb-public-typography .lcb-gallery-lightbox {
+  animation: lcb-gallery-backdrop-enter .2s ease-out both;
+}
+body.lcb-public-typography .lcb-gallery-lightbox .lcb-gallery-zoom-enter {
+  transform-origin: center center;
+  animation: lcb-gallery-photo-enter .2s cubic-bezier(.2,.75,.3,1) both;
+}
+@media (prefers-reduced-motion: reduce) {
+  body.lcb-public-typography .lcb-gallery-lightbox,
+  body.lcb-public-typography .lcb-gallery-lightbox .lcb-gallery-zoom-enter {
+    animation: none !important;
+  }
+}
