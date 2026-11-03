@@ -116,7 +116,7 @@ export function OrderingMenuSection() {
 
         <div className="lg:grid lg:grid-cols-[minmax(0,1fr)_330px] lg:items-start lg:gap-9 xl:grid-cols-[minmax(0,1fr)_355px]">
           <div className="min-w-0">
-            <div className="menu-ordering-tools sticky top-[70px] z-30 -mx-2 border-b border-white/10 bg-[#141416]/95 px-2 pb-3 pt-3 backdrop-blur-xl lg:top-[70px]">
+            <div className="menu-ordering-tools sticky top-[70px] z-50 -mx-2 border-b border-white/10 bg-[#141416] px-2 pb-3 pt-3 lg:top-[70px]">
               <MenuSearchBar value={search} onChange={setSearch} />
               <div className="mt-2">
                 {loadingCategories ? (
@@ -139,7 +139,7 @@ export function OrderingMenuSection() {
                 </div>
               ) : (
                 <>
-                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2" aria-busy={showingSkeleton}>
+                  <div className="relative z-0 isolate grid grid-cols-1 gap-4 sm:grid-cols-2" aria-busy={showingSkeleton}>
                     {showingSkeleton
                       ? Array.from({ length: skeletonCount }, (_, index) => <ProductoCardSkeleton key={index} />)
                       : productos.map(product => (

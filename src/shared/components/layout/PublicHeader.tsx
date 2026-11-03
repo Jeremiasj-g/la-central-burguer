@@ -20,7 +20,7 @@ export function PublicHeader() {
   }
 
   return (
-    <header className="sticky top-0 z-40 border-b border-white/10 bg-[#111113]/95 text-[#f5f5f7] backdrop-blur-xl">
+    <header className="sticky top-0 z-[70] border-b border-white/10 bg-[#111113]/95 text-[#f5f5f7] backdrop-blur-xl">
       <div className="mx-auto flex min-h-[70px] max-w-7xl items-center justify-between gap-3 px-5 sm:px-8">
         <Link href={ROUTES.home} aria-label={`Ir al inicio de ${branding.businessName}`} className="flex min-w-0 shrink-0 items-center gap-2.5 rounded-xl transition-transform duration-200 hover:scale-[1.02] focus-visible:outline-2 focus-visible:outline-[#ff933d] motion-reduce:transition-none">
           <PublicBrandImage logoUrl={branding.logoUrl} businessName={branding.businessName} width={50} height={40} className="h-10 w-12 object-contain" />

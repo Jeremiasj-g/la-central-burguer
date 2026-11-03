@@ -118,7 +118,7 @@ body.chet-customer-active [data-lcb-scroll-lock-overlay] :is(.chet-cart-drawer,.
 .public-site[data-public-theme="light"] .chet-home,
 .public-site[data-public-theme="light"] .chet-discovery {background:#f7f7f8!important;color:#202024!important;}
 .public-site[data-public-theme="light"] .chet-ordering-section {background:#f7f7f8!important;color:#202024!important;}
-.public-site[data-public-theme="light"] .chet-ordering-section .menu-ordering-tools {background:rgba(247,247,248,.97)!important;border-color:rgba(30,30,35,.1)!important;}
+.public-site[data-public-theme="light"] .chet-ordering-section .menu-ordering-tools {background:#f7f7f8!important;border-color:rgba(30,30,35,.1)!important;}
 .public-site[data-public-theme="light"] .chet-home :is(.chet-product-card,.chet-cart-sidebar),
 .public-site[data-public-theme="light"] .chet-discovery a[class*="rounded-[22px]"],
 .public-site[data-public-theme="light"] .chet-discovery a[class*="rounded-[24px]"] {background:#fff!important;border-color:rgba(30,30,35,.1)!important;color:#242428!important;}
