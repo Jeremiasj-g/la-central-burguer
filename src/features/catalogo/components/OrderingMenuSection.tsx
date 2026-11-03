@@ -25,7 +25,15 @@ import { isBusinessOpenBySchedule } from '@/features/configuracion/utils/busines
 import { useBusinessClock } from '@/features/configuracion/hooks/useBusinessClock';
 import { formatMenuLabel } from '../utils/menuLabel';
 
-export function OrderingMenuSection() {
+interface OrderingMenuSectionProps {
+  requestedProductId?: string | null;
+  onRequestHandled?: () => void;
+}
+
+export function OrderingMenuSection({
+  requestedProductId = null,
+  onRequestHandled,
+}: OrderingMenuSectionProps = {}) {
   const [search, setSearch] = useState('');
   const [selectedCategoryId, setSelectedCategoryId] = useState('all');
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
@@ -84,11 +92,26 @@ export function OrderingMenuSection() {
     return () => window.removeEventListener('central-cart-open', handleCartOpen);
   }, []);
 
+  // Las tarjetas de Más vendidos abren el mismo modal y conservan la
+  // verificación de precios, horarios y disponibilidad de la carta.
   useEffect(() => {
-    if (!loadingProducts && selectedProduct && !productos.some((item) => item.id === selectedProduct.id && item.available)) {
+    if (!requestedProductId || loadingProducts) return;
+    const product = pricedProducts.find(item => item.id === requestedProductId);
+    if (product) {
+      setSelectedProduct(product);
+    } else {
+      toast.warning('Este producto ya no se encuentra en la carta.');
+    }
+    onRequestHandled?.();
+  }, [requestedProductId, loadingProducts, pricedProducts, onRequestHandled]);
+
+  // Un detalle abierto desde Más vendidos no debe cerrarse por el filtro de
+  // búsqueda/categoría de la carta, ni por estar temporalmente agotado.
+  useEffect(() => {
+    if (!loadingProducts && selectedProduct && !pricedProducts.some(item => item.id === selectedProduct.id)) {
       setSelectedProduct(null);
     }
-  }, [loadingProducts, productos, selectedProduct]);
+  }, [loadingProducts, pricedProducts, selectedProduct]);
 
   const categoryById = useMemo(() => Object.fromEntries(categorias.map((category) => [category.id, category.name])), [categorias]);
   const activeTitle = selectedCategoryId === 'all' ? 'Menú completo' : (categoryById[selectedCategoryId] ?? 'Menú');

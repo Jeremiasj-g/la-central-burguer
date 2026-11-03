@@ -1,13 +1,17 @@
 'use client';
 
 import Link from 'next/link';
-import { ArrowUpRight, UtensilsCrossed } from 'lucide-react';
+import { ArrowUpRight, ShoppingBag, UtensilsCrossed } from 'lucide-react';
 import { useProductos } from '@/features/productos/hooks/useProductos';
 import { useBestSellers } from '../hooks/useBestSellers';
 
 const money = new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS', maximumFractionDigits: 0 });
 
-export function HomeDiscovery() {
+interface HomeDiscoveryProps {
+  onSelectProduct: (productId: string) => void;
+}
+
+export function HomeDiscovery({ onSelectProduct }: HomeDiscoveryProps) {
   const { productos, isLoading: loadingProducts, error: productsError } = useProductos({
     active: 'active',
     available: 'all',
@@ -44,7 +48,13 @@ export function HomeDiscovery() {
         ) : (
           <div className="grid gap-4 md:grid-cols-3">
             {bestSellers.map(({ product, unitsSold }, index) => (
-              <Link key={product.id} href="#menu" className="group flex flex-col overflow-hidden rounded-[24px] border border-white/10 bg-[#1a1a1d] transition-transform duration-300 hover:scale-[1.015] focus-visible:outline-2 focus-visible:outline-[#ff933d] motion-reduce:transition-none">
+              <button
+                key={product.id}
+                type="button"
+                onClick={() => onSelectProduct(product.id)}
+                aria-label={product.available ? `Elegir ${product.name} para agregar al carrito` : `Ver detalles de ${product.name}, no disponible por ahora`}
+                className="group flex w-full flex-col overflow-hidden rounded-[24px] border border-white/10 bg-[#1a1a1d] text-left transition-transform duration-300 hover:scale-[1.015] focus-visible:outline-2 focus-visible:outline-[#ff933d] motion-reduce:transition-none"
+              >
                 <div className="relative h-[185px] bg-[#292428] sm:h-[220px]">
                   {product.imageUrl ? (
                     <img src={product.imageUrl} loading="lazy" alt={product.name} className="h-full w-full object-cover" />
@@ -65,9 +75,12 @@ export function HomeDiscovery() {
                   {!product.available && (
                     <p className="mt-2 text-xs font-medium text-[#ffac75]">No disponible por ahora</p>
                   )}
-                  <p className="mt-auto flex items-center gap-1 pt-5 text-xs font-medium text-white/80">Ver en el menú <ArrowUpRight size={15} /></p>
+                  <p className="mt-auto flex items-center gap-2 pt-5 text-xs font-medium text-white/80">
+                    <ShoppingBag size={15} strokeWidth={1.7} />
+                    {product.available ? 'Elegir y agregar al carrito' : 'Ver detalle del producto'}
+                  </p>
                 </div>
-              </Link>
+              </button>
             ))}
           </div>
         )}
