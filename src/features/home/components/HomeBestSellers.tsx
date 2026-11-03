@@ -38,8 +38,8 @@ export function HomeBestSellers({ onSelectProduct }: HomeBestSellersProps) {
   }, [productos, ranking, campaigns, today]);
 
   return (
-    <section id="mas-vendidos" className="lcb-best-sellers brick-wall relative scroll-mt-[80px] border-y border-central-orange/15 px-4 py-14 text-central-cream sm:px-6 sm:py-16 lg:px-8 lg:py-20">
-      <div className="relative mx-auto w-full max-w-7xl">
+    <section id="mas-vendidos" className="lcb-best-sellers brick-wall relative scroll-mt-[80px] border-y border-central-orange/15 px-5 py-14 text-central-cream sm:px-6 sm:py-16 lg:px-8 lg:py-20">
+      <div className="relative mx-auto w-full max-w-[1480px]">
         <div className="mb-8 flex flex-wrap items-center justify-between gap-4">
           <h2 className="text-[clamp(2rem,5vw,3.3rem)] font-semibold leading-tight tracking-[-.055em] text-central-cream">
             Más vendidos del mes

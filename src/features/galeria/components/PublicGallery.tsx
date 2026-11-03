@@ -94,7 +94,7 @@ export function PublicGallery({ initialGallery }: { initialGallery: GalleryState
     <>
       <section aria-label="Galería de La Central Burger" className="lcb-food-gallery relative overflow-hidden px-5 py-8 text-central-cream sm:px-6 sm:py-11 lg:px-8">
         <div aria-hidden="true" className="pointer-events-none absolute -top-32 left-[6%] h-[340px] w-[340px] rounded-full bg-[radial-gradient(circle,rgba(255,178,26,.14)_0%,rgba(255,178,26,.06)_37%,transparent_72%)] blur-3xl sm:left-[22%] sm:h-[450px] sm:w-[450px]" />
-        <div className="relative mx-auto w-full max-w-[1200px]">
+        <div className="relative mx-auto w-full max-w-[1480px]">
         <div className="mb-5 flex items-end justify-between gap-4 sm:mb-6">
           <div>
             <h2 className="text-[clamp(1.4rem,3vw,2rem)] font-semibold tracking-[-.04em]">Galería de La Central</h2>
