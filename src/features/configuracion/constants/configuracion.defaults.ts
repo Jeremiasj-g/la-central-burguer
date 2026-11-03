@@ -4,7 +4,7 @@ export const BUSINESS_CONFIG_DEFAULTS: BusinessConfig = {
   businessName: 'Chetos',
   logoUrl: '',
   logoPath: null,
-  heroDescription: 'Hamburguesas, lomitos, pizzas y mucho más. Elegí tu favorito, armá tu pedido y disfrutá.',,
+  heroDescription: 'Hamburguesas, lomitos, pizzas y mucho más. Elegí tu favorito, armá tu pedido y disfrutá.',
   heroTitlePrefix: 'Comida que ',
   heroTitleHighlight: 'se disfruta',
   heroTitleSuffix: ' de verdad.',
