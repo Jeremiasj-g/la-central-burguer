@@ -188,3 +188,30 @@ body.chet-customer-active[data-public-theme="light"] [data-lcb-scroll-lock-overl
   background: rgba(20,20,23,.84) !important;
   color: #fff !important;
 }
+
+
+/* Shimmer de carga, compartido con La Central y adaptado a las tarjetas Chetos. */
+.chet-home .chet-product-skeleton,
+.chet-home .chet-best-seller-skeleton {
+  pointer-events: none;
+  box-shadow: 0 8px 30px rgba(0,0,0,.08);
+}
+.chet-home .chet-product-skeleton .react-loading-skeleton,
+.chet-home .chet-best-seller-skeleton .react-loading-skeleton {
+  --base-color: #28282c;
+  --highlight-color: #3b3b40;
+}
+.public-site[data-public-theme="light"] .chet-home .chet-product-skeleton,
+.public-site[data-public-theme="light"] .chet-home .chet-best-seller-skeleton {
+  background: #fff !important;
+  border: 0 !important;
+  box-shadow: 0 8px 28px rgba(26,29,35,.055);
+}
+.public-site[data-public-theme="light"] .chet-home .chet-product-skeleton .react-loading-skeleton,
+.public-site[data-public-theme="light"] .chet-home .chet-best-seller-skeleton .react-loading-skeleton {
+  --base-color: #e9e9ec;
+  --highlight-color: #f6f6f8;
+}
+.public-site[data-public-theme="light"] .chet-home .chet-product-skeleton > div:first-child {
+  background: #e9e9ec !important;
+}

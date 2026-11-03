@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Skeleton from 'react-loading-skeleton';
 import { ArrowUpRight, ShoppingBag, UtensilsCrossed } from 'lucide-react';
 import { useProductos } from '@/features/productos/hooks/useProductos';
 import { useBestSellers } from '../hooks/useBestSellers';
@@ -35,7 +36,23 @@ export function HomeDiscovery({ onSelectProduct }: HomeDiscoveryProps) {
 
         {isLoading ? (
           <div className="grid gap-4 md:grid-cols-3" role="status" aria-label="Cargando más vendidos">
-            {Array.from({ length: 3 }, (_, index) => <div key={index} className="chet-best-seller-skeleton h-[340px] rounded-[24px] bg-[#1a1a1d]" />)}
+            {Array.from({ length: 3 }, (_, index) => (
+              <div key={index} className="chet-best-seller-skeleton skeleton-dark flex min-w-0 flex-col overflow-hidden rounded-[24px] bg-[#1a1a1d]" aria-hidden="true">
+                <div className="h-[185px] overflow-hidden sm:h-[220px]">
+                  <Skeleton width="100%" height="100%" borderRadius={0} containerClassName="block h-full w-full leading-none" />
+                </div>
+                <div className="flex flex-1 flex-col p-5">
+                  <div className="flex items-center justify-between gap-3">
+                    <Skeleton width="65%" height={23} borderRadius={8} />
+                    <Skeleton width={75} height={18} borderRadius={7} />
+                  </div>
+                  <div className="mt-3">
+                    <Skeleton count={2} height={13} borderRadius={6} />
+                  </div>
+                  <div className="mt-auto pt-5"><Skeleton width={155} height={13} borderRadius={6} /></div>
+                </div>
+              </div>
+            ))}
           </div>
         ) : productsError || rankingError ? (
           <p role="alert" className="py-6 text-sm font-normal text-white/60">
