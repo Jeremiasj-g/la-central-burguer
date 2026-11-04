@@ -1,7 +1,9 @@
 'use client';
 
 import { ImagePlus, Plus, Search, X } from 'lucide-react';
-import { useMemo, useState, type FormEvent } from 'react';
+import { useEffect, useMemo, useState, type FormEvent } from 'react';
+import { findProductWithSameSlug } from '../services/productos.service';
+import { prepareProductImage } from '../utils/prepareProductImage';
 import type { Product } from '../types/producto.types';
 import type { Category } from '@/features/categorias/types/categoria.types';
 import type { Ingredient } from '@/features/ingredientes/types/ingrediente.types';
@@ -29,10 +31,13 @@ interface ProductoFormProps {
     ingredientIds: string[];
   }) => void;
   onCancel: () => void;
+  onEditExisting?: (productId: string) => void;
 }
 
-export function ProductoForm({ product, categories, ingredients, isSaving, onSubmit, onCancel }: ProductoFormProps) {
+export function ProductoForm({ product, categories, ingredients, isSaving, onSubmit, onCancel, onEditExisting }: ProductoFormProps) {
   const [imageError, setImageError] = useState<string | null>(null);
+  const [isPreparingImage, setIsPreparingImage] = useState(false);
+  const [nameCheck, setNameCheck] = useState<{ name: string; checking: boolean; conflict: { id: string; name: string } | null; error: string | null }>({ name: '', checking: false, conflict: null, error: null });
   const [ingredientSearch, setIngredientSearch] = useState('');
   const [values, setValues] = useState({
     name: product?.name ?? '',
@@ -70,24 +75,44 @@ export function ProductoForm({ product, categories, ingredients, isSaving, onSub
     });
   }
 
-  function handleImageFile(file?: File) {
-    if (!file) return;
-    if (!['image/png', 'image/jpeg', 'image/webp', 'image/gif'].includes(file.type)) {
-      setImageError('Seleccioná una imagen PNG, JPG, WEBP o GIF.');
+  const currentName = values.name.trim();
+  const conflict = nameCheck.name === currentName ? nameCheck.conflict : null;
+  const checkingName = nameCheck.name === currentName && nameCheck.checking;
+  const nameCheckError = nameCheck.name === currentName ? nameCheck.error : null;
+
+  useEffect(() => {
+    if (currentName.length < 2 || currentName === product?.name.trim()) {
+      setNameCheck({ name: currentName, checking: false, conflict: null, error: null });
       return;
     }
-    if (file.size > 450_000) {
-      setImageError('La imagen es muy pesada para esta versión frontend. Usá una imagen menor a 450 KB.');
-      return;
-    }
+
+    let cancelled = false;
+    setNameCheck({ name: currentName, checking: true, conflict: null, error: null });
+    const timeout = window.setTimeout(() => {
+      void findProductWithSameSlug(currentName, product?.id)
+        .then((existing) => {
+          if (!cancelled) setNameCheck({ name: currentName, checking: false, conflict: existing, error: null });
+        })
+        .catch(() => {
+          if (!cancelled) setNameCheck({ name: currentName, checking: false, conflict: null, error: 'No pudimos verificar el nombre. Volvé a intentarlo.' });
+        });
+    }, 350);
+
+    return () => { cancelled = true; window.clearTimeout(timeout); };
+  }, [currentName, product?.id, product?.name]);
+
+  async function handleImageFile(file?: File) {
+    if (!file || isPreparingImage) return;
     setImageError(null);
-    const reader = new FileReader();
-    reader.onload = () => {
-      if (typeof reader.result === 'string') {
-        setValues((current) => ({ ...current, imageUrl: reader.result as string }));
-      }
-    };
-    reader.readAsDataURL(file);
+    setIsPreparingImage(true);
+    try {
+      const nextImageUrl = await prepareProductImage(file);
+      setValues((current) => ({ ...current, imageUrl: nextImageUrl }));
+    } catch (error) {
+      setImageError(error instanceof Error ? error.message : 'No se pudo preparar la fotografía.');
+    } finally {
+      setIsPreparingImage(false);
+    }
   }
 
   function buildProductDescription() {
@@ -107,6 +132,7 @@ export function ProductoForm({ product, categories, ingredients, isSaving, onSub
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (isSaving || isPreparingImage || checkingName || conflict || nameCheckError || currentName.length < 2) return;
     onSubmit({
       ...values,
       description: buildProductDescription(),
@@ -122,13 +148,34 @@ export function ProductoForm({ product, categories, ingredients, isSaving, onSub
 
   return (
     <form onSubmit={handleSubmit} className="product-create-workspace min-w-0">
+      <div className="mb-5 flex flex-wrap items-center justify-between gap-2 border-b border-neutral-100 pb-4">
+        <p className="min-w-0 text-[13px] text-neutral-600">
+          {product ? <>Editando <strong className="font-semibold text-neutral-900">{product.name}</strong>. Los cambios se aplicarán a este producto.</>
+            : <>Estás dando de alta un <strong className="font-semibold text-neutral-900">producto nuevo</strong>. Para cambiar uno existente, utilizá «Editar» en el listado.</>}
+        </p>
+        <span className={`shrink-0 rounded-full px-2.5 py-1 text-[11px] font-medium ${product ? 'bg-blue-50 text-blue-700' : 'bg-amber-50 text-amber-800'}`}>
+          {product ? 'Modo edición' : 'Modo creación'}
+        </span>
+      </div>
       <div className="grid min-w-0 items-start gap-y-6 lg:grid-cols-[minmax(0,1.04fr)_minmax(0,1fr)_minmax(0,.94fr)] lg:gap-x-0">
         <section aria-labelledby="product-info-heading" className="min-w-0 lg:pr-5 xl:pr-7">
           <h3 id="product-info-heading" className="mb-4 text-[14px] font-semibold tracking-[-.02em] text-neutral-900">Información del producto</h3>
           <div className="space-y-3.5">
             <div>
               <label htmlFor="product-name" className={labelClass}>Nombre <span className="text-red-500">*</span></label>
-              <Input id="product-name" className={fieldClass} value={values.name} onChange={(event) => setValues({ ...values, name: event.target.value })} placeholder="Ej. Hamburguesa clásica" required />
+              <Input id="product-name" className={fieldClass + (conflict ? ' !border-red-300' : '')} value={values.name} onChange={(event) => setValues({ ...values, name: event.target.value })} placeholder="Ej. Hamburguesa clásica" minLength={2} required />
+              {checkingName ? <p className="mt-1.5 text-[11px] text-neutral-400" role="status">Verificando nombre...</p> : null}
+              {conflict ? (
+                <div role="alert" className="mt-2 flex flex-wrap items-center justify-between gap-2 text-[11px] leading-5 text-amber-800">
+                  <span>Ya existe «{conflict.name}». No crees un duplicado.</span>
+                  {onEditExisting ? (
+                    <button type="button" className="font-semibold underline underline-offset-2 hover:text-amber-950" onClick={() => onEditExisting(conflict.id)}>
+                      Editar el existente
+                    </button>
+                  ) : null}
+                </div>
+              ) : null}
+              {nameCheckError ? <p role="alert" className="mt-1.5 text-[11px] text-red-600">{nameCheckError}</p> : null}
             </div>
             <div>
               <span className={labelClass}>Categoría <span className="text-red-500">*</span></span>
@@ -233,13 +280,14 @@ export function ProductoForm({ product, categories, ingredients, isSaving, onSub
             onDragOver={(event) => { event.preventDefault(); event.dataTransfer.dropEffect = 'copy'; }}
             onDrop={(event) => { event.preventDefault(); handleImageFile(event.dataTransfer.files?.[0]); }}
           >
-            <input type="file" accept="image/png,image/jpeg,image/webp,image/gif" className="sr-only" aria-label="Seleccionar imagen del producto" onChange={(event) => handleImageFile(event.target.files?.[0])} />
+            <input type="file" accept="image/png,image/jpeg,image/webp,image/gif,image/heic,image/heif" className="sr-only" aria-label="Seleccionar imagen del producto" disabled={isSaving || isPreparingImage} onChange={(event) => { void handleImageFile(event.target.files?.[0]); event.currentTarget.value = ''; }} />
             <span className="flex min-w-0 items-center gap-2">
               <ImagePlus size={16} strokeWidth={1.8} className="shrink-0 text-neutral-500" />
-              <span className="truncate">Cambiar imagen</span>
+              <span className="truncate">{isPreparingImage ? 'Optimizando imagen...' : product ? 'Reemplazar imagen' : 'Elegir imagen'}</span>
             </span>
-            <span className="shrink-0 text-[10px] text-neutral-400">Máx. 450 KB</span>
+            <span className="shrink-0 text-[10px] text-neutral-400">Fotos hasta 18 MB</span>
           </label>
+          {isPreparingImage ? <p role="status" className="mt-2 text-[11px] leading-4 text-neutral-500">Preparando la fotografía para subirla más rápido desde el celular...</p> : null}
           {imageError ? <p role="alert" className="mt-2 text-[11px] leading-4 text-red-600">{imageError}</p> : null}
 
           <div className="mt-4 divide-y divide-neutral-100 border-t border-neutral-100">
@@ -269,8 +317,8 @@ export function ProductoForm({ product, categories, ingredients, isSaving, onSub
 
       <div className="sticky bottom-[-14px] z-20 -mx-3.5 -mb-3.5 mt-4 flex items-center justify-end gap-2 border-t border-neutral-100 bg-white/95 px-3.5 pb-[calc(14px+env(safe-area-inset-bottom))] pt-3 backdrop-blur-xl sm:bottom-[-16px] sm:-mx-5 sm:-mb-4 sm:px-5 sm:pb-[calc(16px+env(safe-area-inset-bottom))]">
         <Button type="button" variant="secondary" className="!h-9 !rounded-[10px] !border-neutral-200 !bg-[#f7f7f9] !px-4 !text-[12px] !font-medium !text-neutral-600 !shadow-none hover:!bg-neutral-100" onClick={onCancel} disabled={isSaving}>Cancelar</Button>
-        <Button type="submit" className="!h-9 !rounded-[10px] !bg-[#191b20] !px-4 !text-[12px] !font-medium !shadow-none hover:!bg-neutral-700" disabled={isSaving}>
-          {isSaving ? 'Guardando...' : product ? 'Guardar cambios' : 'Crear producto'}
+        <Button type="submit" className="!h-9 !rounded-[10px] !bg-[#191b20] !px-4 !text-[12px] !font-medium !shadow-none hover:!bg-neutral-700" disabled={isSaving || isPreparingImage || checkingName || Boolean(conflict) || Boolean(nameCheckError)}>
+          {isPreparingImage ? 'Preparando foto...' : isSaving ? 'Guardando...' : product ? 'Guardar cambios' : 'Crear producto'}
         </Button>
       </div>
     </form>

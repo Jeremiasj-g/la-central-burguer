@@ -1,6 +1,8 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { toast } from 'react-toastify';
+import { getProductoById } from '../services/productos.service';
 import { CheckCircle2, Eye, Package, Plus, RefreshCw, Search, Star, XCircle } from 'lucide-react';
 import type { Product } from '../types/producto.types';
 import { ProductoForm } from '../components/ProductoForm';
@@ -30,6 +32,12 @@ type ProductFormValues = {
   ingredientIds: string[];
 };
 
+type PendingProductSave = {
+  values: ProductFormValues;
+  targetId: string | null;
+  originalName: string | null;
+};
+
 type PendingAction = {
   title: string;
   description: string;
@@ -45,7 +53,8 @@ export function ProductosAdminPage() {
   const [editing, setEditing] = useState<Product | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [pendingAction, setPendingAction] = useState<PendingAction | null>(null);
-  const [pendingFormValues, setPendingFormValues] = useState<ProductFormValues | null>(null);
+  const [pendingFormValues, setPendingFormValues] = useState<PendingProductSave | null>(null);
+  const [formError, setFormError] = useState<string | null>(null);
   const { categorias, error: categoriesError, refresh: refreshCategories } = useCategorias({ active: 'all' });
   const { ingredientes, error: ingredientsError, refresh: refreshIngredients } = useIngredientes({ active: 'active' });
   const { productos, isLoading, error: productsError, refresh } = useProductos({ search, categoryId, active: 'all', available: 'all' });
@@ -66,12 +75,57 @@ export function ProductosAdminPage() {
     setPendingAction(null);
   }
 
-  async function confirmFormSave() {
-    if (!pendingFormValues) return;
-    if (editing) await mutations.update({ id: editing.id, ...pendingFormValues });
-    else await mutations.create(pendingFormValues);
+  function openCreateProduct() {
+    setEditing(null);
     setPendingFormValues(null);
+    setFormError(null);
+    setModalOpen(true);
+  }
+
+  function openEditProduct(product: Product) {
+    setEditing(product);
+    setPendingFormValues(null);
+    setFormError(null);
+    setModalOpen(true);
+  }
+
+  function closeProductForm() {
+    if (mutations.isSaving) return;
     setModalOpen(false);
+    setEditing(null);
+    setPendingFormValues(null);
+    setFormError(null);
+  }
+
+  async function editExistingById(productId: string) {
+    try {
+      const existing = await getProductoById(productId);
+      if (!existing) throw new Error('El producto ya no se encuentra disponible para editar.');
+      openEditProduct(existing);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'No pudimos abrir ese producto.';
+      setFormError(message);
+      toast.error(message);
+    }
+  }
+
+  async function confirmFormSave() {
+    if (!pendingFormValues || mutations.isSaving) return;
+    const { targetId, values } = pendingFormValues;
+    try {
+      // La operación queda fijada al abrir la confirmación: no depende de
+      // posibles cambios del modal mientras se envía la solicitud.
+      if (targetId) await mutations.update({ id: targetId, ...values });
+      else await mutations.create(values);
+
+      setPendingFormValues(null);
+      setModalOpen(false);
+      setEditing(null);
+      setFormError(null);
+    } catch (error) {
+      setPendingFormValues(null);
+      setFormError(error instanceof Error ? error.message : 'No se pudieron guardar los cambios.');
+    }
   }
 
   // Inactivos incluye tanto los desactivados como los que no se pueden pedir.
@@ -112,7 +166,7 @@ export function ProductosAdminPage() {
           <Button
             size="sm"
             className="!h-9 !rounded-[11px] !bg-[#191b20] !px-3 !text-[12px] !font-medium !shadow-none transition duration-200 hover:!bg-neutral-700 active:scale-[.98]"
-            onClick={() => { setEditing(null); setModalOpen(true); }}
+            onClick={openCreateProduct}
           >
             <Plus size={16} strokeWidth={1.9} /> Nuevo producto
           </Button>
@@ -234,7 +288,7 @@ export function ProductosAdminPage() {
         products={filteredProducts}
         categories={categorias}
         ingredients={ingredientes}
-        onEdit={(product) => { setEditing(product); setModalOpen(true); }}
+        onEdit={openEditProduct}
         onDelete={(id) => requestAction({ title: 'Eliminar producto', description: '¿Seguro que querés eliminar este producto? Esta acción quita el producto del catálogo.', confirmLabel: 'Eliminar', tone: 'danger', run: () => mutations.remove(id) })}
         onToggleActive={(id) => requestAction({ title: 'Cambiar estado del producto', description: '¿Seguro que querés activar o desactivar este producto?', confirmLabel: 'Confirmar cambio', run: () => mutations.toggleActive(id) })}
         onToggleAvailable={(id) => requestAction({ title: 'Cambiar disponibilidad', description: '¿Seguro que querés cambiar la disponibilidad de este producto en el menú?', confirmLabel: 'Confirmar cambio', run: () => mutations.toggleAvailable(id) })}
@@ -243,20 +297,33 @@ export function ProductosAdminPage() {
 
       <Modal
         open={modalOpen}
-        onClose={() => setModalOpen(false)}
-        title={editing ? 'Editar producto' : 'Nuevo producto'}
+        onClose={closeProductForm}
+        title={editing ? 'Editar producto' : 'Crear producto'}
         size="xl"
         theme="light"
         panelClassName="product-create-modal !max-w-[1480px] !rounded-[18px] !border-neutral-200/70 !bg-white"
       >
+        {formError ? (
+          <div role="alert" className="mb-4 rounded-[12px] border border-red-200 bg-red-50 px-3.5 py-2.5 text-[12px] leading-5 text-red-700">
+            <strong className="font-semibold">No se pudo guardar.</strong> {formError}
+          </div>
+        ) : null}
         <ProductoForm
           key={editing?.id ?? 'new'}
           product={editing}
           categories={categorias}
           ingredients={ingredientes}
           isSaving={mutations.isSaving}
-          onCancel={() => setModalOpen(false)}
-          onSubmit={(values) => setPendingFormValues(values)}
+          onCancel={closeProductForm}
+          onEditExisting={(productId) => { void editExistingById(productId); }}
+          onSubmit={(values) => {
+            setFormError(null);
+            setPendingFormValues({
+              values,
+              targetId: editing?.id ?? null,
+              originalName: editing?.name ?? null,
+            });
+          }}
         />
       </Modal>
       <ConfirmDialog
@@ -272,9 +339,11 @@ export function ProductosAdminPage() {
       />
       <ConfirmDialog
         open={Boolean(pendingFormValues)}
-        title={editing ? 'Guardar cambios del producto' : 'Crear producto'}
-        description={editing ? '¿Seguro que querés guardar los cambios de este producto?' : '¿Seguro que querés crear este producto en el catálogo?'}
-        confirmLabel={editing ? 'Guardar cambios' : 'Crear producto'}
+        title={pendingFormValues?.targetId ? 'Guardar edición' : 'Crear producto nuevo'}
+        description={pendingFormValues?.targetId
+          ? `Se actualizará «${pendingFormValues.originalName ?? pendingFormValues.values.name}» sin crear un producto duplicado. ¿Confirmás?`
+          : `Se creará «${pendingFormValues?.values.name ?? ''}» como un producto nuevo. ¿Confirmás?`}
+        confirmLabel={pendingFormValues?.targetId ? 'Guardar cambios' : 'Crear producto'}
         theme="light"
         isLoading={mutations.isSaving}
         onCancel={() => setPendingFormValues(null)}

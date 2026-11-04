@@ -29,7 +29,7 @@ function StatusPill({ active, label, inactiveLabel }: { active: boolean; label: 
   );
 }
 
-function ProductActions({ product, onEdit, onDelete, onToggleActive, onToggleAvailable, onToggleFeatured }: { product: Product } & Omit<ProductoTableProps, 'products' | 'categories' | 'ingredients'>) {
+function ProductActions({ product, onEdit, onDelete, onToggleActive, onToggleAvailable, onToggleFeatured, showEditAction = true }: { product: Product; showEditAction?: boolean } & Omit<ProductoTableProps, 'products' | 'categories' | 'ingredients'>) {
   return (
     <div className="flex min-w-0 flex-wrap items-center justify-end gap-1 sm:gap-1.5">
       <button type="button" aria-label={product.available ? 'Marcar como no disponible' : 'Marcar como disponible'} title={product.available ? 'Marcar como no disponible' : 'Marcar como disponible'} className={iconButtonClass} onClick={() => onToggleAvailable(product.id)}>
@@ -41,9 +41,11 @@ function ProductActions({ product, onEdit, onDelete, onToggleActive, onToggleAva
       <button type="button" aria-label={product.active ? 'Desactivar producto' : 'Activar producto'} title={product.active ? 'Desactivar producto' : 'Activar producto'} className={iconButtonClass} onClick={() => onToggleActive(product.id)}>
         <Power size={15} strokeWidth={1.8} />
       </button>
-      <button type="button" aria-label="Editar producto" title="Editar producto" className={iconButtonClass} onClick={() => onEdit(product)}>
-        <Edit3 size={15} strokeWidth={1.8} />
-      </button>
+      {showEditAction ? (
+        <button type="button" aria-label="Editar producto" title="Editar producto" className={iconButtonClass} onClick={() => onEdit(product)}>
+          <Edit3 size={15} strokeWidth={1.8} />
+        </button>
+      ) : null}
       <button type="button" aria-label="Eliminar producto" title="Eliminar producto" className={`${iconButtonClass} !border-red-200/80 !bg-red-50 !text-red-600 hover:!border-red-300 hover:!bg-red-100`} onClick={() => onDelete(product.id)}>
         <Trash2 size={15} strokeWidth={1.8} />
       </button>
@@ -104,8 +106,15 @@ export function ProductoTable({ products, categories, ingredients, onEdit, onDel
                 </div>
               </div>
               <div className="mt-auto flex items-center justify-between gap-2 border-t border-neutral-100 bg-[#fafafa] px-3 py-3 sm:px-4">
-                <span className="shrink-0 text-[10px] font-medium text-neutral-400">Acciones</span>
-                <ProductActions product={product} {...actions} />
+                <button
+                  type="button"
+                  onClick={() => onEdit(product)}
+                  className="inline-flex h-9 shrink-0 items-center gap-1.5 rounded-[10px] bg-[#1b1d21] px-3 text-[12px] font-medium text-white transition-colors duration-200 hover:bg-neutral-700"
+                >
+                  <Edit3 size={14} strokeWidth={1.8} />
+                  Editar
+                </button>
+                <ProductActions product={product} {...actions} showEditAction={false} />
               </div>
             </article>
           );

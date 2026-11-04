@@ -12,13 +12,38 @@ import { createSharedRealtimeSubscription } from '@/lib/supabase/realtime-subscr
 
 const PRODUCT_IMAGE_BUCKET = 'product-images';
 
-function slugify(value: string) {
+export function slugifyProductName(value: string) {
   return value
     .toLowerCase()
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '')
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/(^-|-$)/g, '');
+}
+
+
+/** Verifica la restricción de slug antes de iniciar la carga de fotografías. */
+export async function findProductWithSameSlug(name: string, excludeId?: string): Promise<{ id: string; name: string } | null> {
+  const slug = slugifyProductName(name);
+  if (!slug) return null;
+
+  let query = getSupabaseBrowserClient()
+    .from('products')
+    .select('id,name')
+    .eq('slug', slug)
+    .is('deleted_at', null);
+  if (excludeId) query = query.neq('id', excludeId);
+
+  const { data, error } = await query.limit(1).maybeSingle();
+  if (error) throw new Error('No pudimos verificar si este nombre ya existe. Intentá nuevamente.');
+  return data;
+}
+
+function getProductSaveError(error: { message: string; code?: string }): Error {
+  if (error.code === '23505' || error.message.includes('products_slug_unique_idx')) {
+    return new Error('Ya existe un producto con ese nombre. Buscalo en el listado y usá Editar en lugar de crear otro.');
+  }
+  return new Error(error.message);
 }
 
 function dataUrlToBlob(dataUrl: string): Blob {
@@ -178,7 +203,12 @@ async function syncProductIngredients(productId: string, ingredientIds: string[]
 export async function createProducto(input: CreateProductInput): Promise<Product> {
   requireSupabaseConfigured('crear productos');
 
-  const slug = slugify(input.name);
+  const slug = slugifyProductName(input.name);
+  const existing = await findProductWithSameSlug(input.name);
+  if (existing) {
+    throw new Error(`Ya existe «${existing.name}». Seleccioná Editar para modificar ese producto.`);
+  }
+
   const image = await persistProductImage(
     input.imageUrl || '/images/productos/burger-simple.svg',
     slug,
@@ -203,7 +233,7 @@ export async function createProducto(input: CreateProductInput): Promise<Product
 
   if (error) {
     await removeStoredProductImage(image.imagePath);
-    throw new Error(error.message);
+    throw getProductSaveError(error);
   }
 
   try {
@@ -227,7 +257,14 @@ export async function updateProducto(input: UpdateProductInput): Promise<Product
   if (!currentRow) throw new Error('Producto no encontrado');
 
   const current = mapProductRowToProduct(currentRow);
-  const nextSlug = slugify(input.name ?? current.name);
+  const nextSlug = slugifyProductName(input.name ?? current.name);
+  if (input.name !== undefined && input.name !== current.name) {
+    const existing = await findProductWithSameSlug(input.name, input.id);
+    if (existing) {
+      throw new Error(`Ya existe «${existing.name}». Elegí otro nombre para este producto.`);
+    }
+  }
+
   let imageUrl = input.imageUrl ?? current.imageUrl;
   let imagePath: string | null | undefined;
 
@@ -263,7 +300,7 @@ export async function updateProducto(input: UpdateProductInput): Promise<Product
 
   if (error) {
     if (imagePath) await removeStoredProductImage(imagePath);
-    throw new Error(error.message);
+    throw getProductSaveError(error);
   }
 
   if (input.ingredientIds !== undefined) {
