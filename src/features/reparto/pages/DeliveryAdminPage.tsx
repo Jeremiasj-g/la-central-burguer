@@ -5,7 +5,7 @@ import {
   BadgeDollarSign,
   Bike,
   CheckCircle2,
-  CircleDollarSign,
+  CircleHelp,
   Edit3,
   ExternalLink,
   Eye,
@@ -42,6 +42,7 @@ import {
   cancelDeliverySettlement,
   createDeliverySettlement,
   getDeliveryAdminDashboard,
+  getDeliveryCashPendingDetails,
   getDeliveryHistoryPage,
   markDeliverySettlementPaid,
   resetDeliveryDriverPassword,
@@ -54,6 +55,7 @@ import type {
   DeliveryAssignment,
   DeliveryAssignmentStatus,
   DeliveryDriver,
+  DeliveryCashPendingItem,
   DeliveryHistoryItem,
   DeliveryVehicleType,
   DriverFormPayload,
@@ -61,6 +63,7 @@ import type {
 
 type Tab = 'operation' | 'history' | 'drivers' | 'settlements';
 type UnassignedScope = 'today' | 'all';
+type DeliveryHelpTopic = 'overview' | 'cash' | 'commissions' | 'orders';
 type PendingConfirmation =
   | { type: 'cancel-assignment'; assignment: DeliveryAssignment }
   | { type: 'toggle-driver'; driver: DeliveryDriver }
@@ -97,7 +100,7 @@ const VEHICLE_OPTIONS = [
 
 const UNASSIGNED_SCOPE_OPTIONS = [
   { value: 'today', label: 'Pendientes de hoy' },
-  { value: 'all', label: 'Todos sin asignar' },
+  { value: 'all', label: 'Ver días anteriores' },
 ] as const;
 
 function statusClass(status: DeliveryAssignmentStatus) {
@@ -229,25 +232,49 @@ function DriverModal({ driver, onClose, onSaved }: { driver?: DeliveryDriver; on
   );
 }
 
-function DeliveryWalletOverview({ cashPending, pendingCommission }: { cashPending: number; pendingCommission: number }) {
+function DeliveryWalletOverview({
+  cashPending,
+  pendingCommission,
+  onExplainCash,
+  onExplainCommissions,
+}: {
+  cashPending: number;
+  pendingCommission: number;
+  onExplainCash: () => void;
+  onExplainCommissions: () => void;
+}) {
   return (
     <section aria-label="Resumen financiero de reparto" className="relative flex min-w-0 flex-col overflow-hidden rounded-[23px] bg-[#191b20] px-5 py-6 text-white shadow-soft sm:px-7 sm:py-7 lg:min-h-[235px]">
       <div className="pointer-events-none absolute -right-12 -top-16 h-56 w-56 rounded-full bg-central-orange/10 blur-[55px]" aria-hidden="true" />
       <div className="relative flex items-start justify-between gap-3">
-        <div>
-          <p className="text-[11px] font-medium uppercase tracking-[.12em] text-white/45">Balance de reparto</p>
-          <p className="mt-1 text-[12px] text-white/55">Efectivo a rendir al negocio</p>
+        <div className="min-w-0">
+          <p className="text-[11px] font-medium uppercase tracking-[.12em] text-white/45">Saldo de repartos</p>
+          <p className="mt-1 text-[12px] text-white/70">Efectivo pendiente de rendición</p>
         </div>
-        <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl border border-white/10 bg-white/[.08] text-white/80">
-          <CircleDollarSign size={20} strokeWidth={1.7} />
-        </span>
+        <button
+          type="button"
+          onClick={onExplainCash}
+          title="Ver de qué pedidos sale el efectivo pendiente"
+          aria-label="Explicar efectivo pendiente y ver pedidos"
+          className="relative grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-white/[.08] text-white/80 transition-colors duration-200 hover:bg-white/15 focus-visible:outline-2 focus-visible:outline-white"
+        >
+          <CircleHelp size={20} strokeWidth={1.7} />
+        </button>
       </div>
       <p className="relative mt-5 break-words text-[clamp(2.5rem,4vw,3.65rem)] font-semibold leading-none tracking-[-.055em] [font-variant-numeric:tabular-nums]">
         {formatCurrency(cashPending)}
       </p>
-      <div className="relative mt-6 flex flex-wrap items-center justify-between gap-2 border-t border-white/10 pt-4">
-        <span className="inline-flex items-center gap-2 text-[12px] text-white/60">
+      <p className="relative mt-2 text-[11px] leading-5 text-white/50">Acumulado de entregas sin liquidación pagada, incluso de días anteriores.</p>
+      <div className="relative mt-5 flex flex-wrap items-center justify-between gap-2 border-t border-white/10 pt-4">
+        <span className="inline-flex items-center gap-1.5 text-[12px] text-white/70">
           <BadgeDollarSign size={15} className="text-central-orange" /> Comisiones pendientes
+          <button
+            type="button"
+            onClick={onExplainCommissions}
+            title="Cómo se calculan las comisiones pendientes"
+            aria-label="Explicar comisiones pendientes"
+            className="grid h-9 w-9 place-items-center rounded-full text-white/55 transition-colors duration-200 hover:bg-white/10 hover:text-white focus-visible:outline-2 focus-visible:outline-white"
+          ><CircleHelp size={15} /></button>
         </span>
         <span className="text-[19px] font-semibold tracking-[-.035em] text-[#c7f0d7] [font-variant-numeric:tabular-nums]">
           {formatCurrency(pendingCommission)}
@@ -281,6 +308,31 @@ export function DeliveryAdminPage() {
   const [historyTotal, setHistoryTotal] = useState(0);
   const [historyLoading, setHistoryLoading] = useState(false);
   const [historyDetail, setHistoryDetail] = useState<DeliveryHistoryItem | null>(null);
+  const [helpTopic, setHelpTopic] = useState<DeliveryHelpTopic | null>(null);
+  const [cashDetails, setCashDetails] = useState<DeliveryCashPendingItem[] | null>(null);
+  const [cashDetailsLoading, setCashDetailsLoading] = useState(false);
+  const [cashDetailsError, setCashDetailsError] = useState<string | null>(null);
+  const [currentInstant, setCurrentInstant] = useState(() => new Date());
+
+  // La jornada del negocio puede cambiar mientras el panel permanece abierto.
+  useEffect(() => {
+    const timer = window.setInterval(() => setCurrentInstant(new Date()), 60_000);
+    return () => window.clearInterval(timer);
+  }, []);
+
+  useEffect(() => {
+    if (helpTopic !== 'cash') return;
+    let active = true;
+    setCashDetailsLoading(true);
+    setCashDetailsError(null);
+    void getDeliveryCashPendingDetails()
+      .then((items) => { if (active) setCashDetails(items); })
+      .catch((error: unknown) => {
+        if (active) setCashDetailsError(error instanceof Error ? error.message : 'No se pudo consultar el detalle.');
+      })
+      .finally(() => { if (active) setCashDetailsLoading(false); });
+    return () => { active = false; };
+  }, [helpTopic]);
 
   const activeDrivers = useMemo(() => data.drivers.filter((driver) => driver.active && driver.commissionPercent !== null), [data.drivers]);
   const activeAssignments = useMemo(() => data.assignments.filter((item) => ['assigned', 'accepted', 'picked_up', 'in_transit'].includes(item.status)), [data.assignments]);
@@ -292,11 +344,12 @@ export function DeliveryAdminPage() {
     () => data.unassignedOrders.filter((order) => order.deliveryMethod === 'delivery'),
     [data.unassignedOrders],
   );
-  const todayKey = dateKey(new Date(), businessTimeZone);
+  const todayKey = dateKey(currentInstant, businessTimeZone);
   const todayUnassignedOrders = useMemo(
     () => deliveryUnassignedOrders.filter((order) => dateKey(order.createdAt, businessTimeZone) === todayKey),
     [businessTimeZone, deliveryUnassignedOrders, todayKey],
   );
+  const olderUnassignedCount = Math.max(0, deliveryUnassignedOrders.length - todayUnassignedOrders.length);
   const scopedOrders = unassignedScope === 'today' ? todayUnassignedOrders : deliveryUnassignedOrders;
 
   const normalizedQuery = query.trim().toLocaleLowerCase('es');
@@ -375,6 +428,12 @@ export function DeliveryAdminPage() {
   }
 
   async function handleAssign(orderId: string, driverId: string, commissionPercent?: number, assignmentId?: string) {
+    const createdAt = assignmentId
+      ? data.assignments.find((assignment) => assignment.id === assignmentId)?.orderCreatedAt
+      : data.unassignedOrders.find((order) => order.id === orderId)?.createdAt;
+    if (!createdAt || dateKey(createdAt, businessTimeZone) !== dateKey(new Date(), businessTimeZone)) {
+      return toast.warning('Solo podés asignar pedidos creados hoy. Los anteriores son solo de consulta.');
+    }
     if (!driverId) return toast.info('Seleccioná un repartidor.');
     const driver = activeDrivers.find((item) => item.id === driverId);
     const baseCommission = driver?.commissionPercent ?? null;
@@ -590,9 +649,16 @@ export function DeliveryAdminPage() {
       <div className="mb-5 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div className="min-w-0">
           <h1 className="text-[28px] font-semibold leading-tight tracking-[-.045em] text-neutral-950 sm:text-[34px]">Repartos y movimientos</h1>
-          <p className="mt-1 text-[13px] leading-5 text-neutral-500">Pedidos, equipo y saldos bajo control.</p>
         </div>
         <div className="flex shrink-0 flex-wrap items-center gap-2">
+          <button
+            type="button"
+            onClick={() => setHelpTopic('overview')}
+            className="inline-flex h-9 items-center gap-1.5 rounded-[11px] px-2.5 text-[12px] font-medium text-neutral-600 transition-colors duration-200 hover:bg-neutral-100 focus-visible:outline-2 focus-visible:outline-central-orange"
+            aria-label="Cómo funciona el reparto y sus saldos"
+          >
+            <CircleHelp size={17} /> Ayuda
+          </button>
           <Button
             variant="secondary"
             size="sm"
@@ -617,6 +683,8 @@ export function DeliveryAdminPage() {
           <DeliveryWalletOverview
             cashPending={data.summary.cashPending}
             pendingCommission={data.summary.pendingCommission}
+            onExplainCash={() => setHelpTopic('cash')}
+            onExplainCommissions={() => setHelpTopic('commissions')}
           />
 
           <section aria-label="Estado operativo" className="mt-4 grid min-w-0 overflow-hidden rounded-[20px] border border-neutral-200/70 bg-white shadow-soft sm:grid-cols-3">
@@ -624,9 +692,9 @@ export function DeliveryAdminPage() {
               icon={PackageCheck}
               label="Pendientes hoy"
               value={String(todayUnassignedOrders.length)}
-              detail={data.summary.unassignedOrders > todayUnassignedOrders.length
-                ? `${data.summary.unassignedOrders} pendientes en total`
-                : 'Esperando repartidor'}
+              detail={olderUnassignedCount > 0
+                ? `${olderUnassignedCount} de otros días · solo consulta`
+                : 'Disponibles para asignar'}
             />
             <DeliveryMetricCard icon={Truck} label="En camino y asignados" value={String(data.summary.activeAssignments)} detail="Repartos abiertos" />
             <DeliveryMetricCard icon={Users} label="Repartidores activos" value={String(data.summary.activeDrivers)} detail="Disponibles para recibir pedidos" />
@@ -635,7 +703,6 @@ export function DeliveryAdminPage() {
           <section aria-label="Navegación de delivery" className="mb-5 mt-8 flex min-w-0 flex-col justify-between gap-3 border-b border-neutral-200 pb-4 sm:flex-row sm:items-center">
             <div>
               <h2 className="text-[21px] font-semibold tracking-[-.035em] text-neutral-950">Actividad de delivery</h2>
-              <p className="mt-0.5 text-[12px] text-neutral-500">Administrá pedidos y operaciones en un solo lugar.</p>
             </div>
             <div className="flex min-w-0 max-w-full gap-1 overflow-x-auto rounded-[12px] bg-[#eaeaec] p-1">
               {tabs.map(({ id, label, icon: Icon }) => (
@@ -670,7 +737,16 @@ export function DeliveryAdminPage() {
                 <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
                   <div>
                     <h2 className="font-semibold text-central-carbon">Pedidos sin asignar</h2>
-                    <p className="text-xs text-neutral-500">Por defecto se muestran solo los pedidos delivery de hoy.</p>
+                    <p className="mt-1 text-xs text-neutral-500">Solo los pedidos creados hoy pueden asignarse.</p>
+                    {olderUnassignedCount > 0 ? (
+                      <button
+                        type="button"
+                        onClick={() => setHelpTopic('orders')}
+                        className="mt-2 inline-flex min-h-8 items-center gap-1.5 text-left text-[11px] font-medium text-neutral-500 underline-offset-2 hover:text-central-orange hover:underline"
+                      >
+                        <CircleHelp size={14} /> {olderUnassignedCount} de días anteriores (solo consulta)
+                      </button>
+                    ) : null}
                   </div>
                   <div className="flex min-w-0 items-center gap-2">
                     <div className="w-40 sm:w-44">
@@ -693,6 +769,7 @@ export function DeliveryAdminPage() {
                     const commissionPercent = commissionByOrder[order.id] ?? selectedDriver?.commissionPercent ?? 0;
                     const isCustomCommission = Boolean(selectedDriver && selectedDriver.commissionPercent !== null && Math.abs(commissionPercent - selectedDriver.commissionPercent) >= 0.005);
                     const commissionAmount = order.deliveryCost * commissionPercent / 100;
+                    const canAssign = dateKey(order.createdAt, businessTimeZone) === todayKey;
 
                     return (
                       <article key={order.id} className="border-b border-neutral-100 px-1 py-4 last:border-b-0 sm:px-2">
@@ -705,6 +782,8 @@ export function DeliveryAdminPage() {
                           <div className="text-right"><p className="font-semibold">{formatCurrency(order.total)}</p><p className="text-xs text-neutral-500">Envío {formatCurrency(order.deliveryCost)}</p></div>
                         </div>
 
+                        {canAssign ? (
+                          <>
                         <div className="mt-3 grid gap-2 sm:grid-cols-[minmax(0,1fr)_100px_auto]">
                           <SearchableSelect
                             value={selectedDriverId}
@@ -742,6 +821,13 @@ export function DeliveryAdminPage() {
                             <span className="font-semibold text-emerald-700">Recibe {formatCurrency(commissionAmount)}</span>
                           </div>
                         ) : null}
+                          </>
+                        ) : (
+                          <div className="mt-3 flex items-center gap-2 border-t border-neutral-100 pt-3 text-[11px] leading-5 text-neutral-500">
+                            <History size={15} className="shrink-0" />
+                            Pedido anterior · disponible para consulta, no para asignar.
+                          </div>
+                        )}
                       </article>
                     );
                   })}
@@ -751,7 +837,9 @@ export function DeliveryAdminPage() {
               <section className="min-w-0 rounded-[20px] border border-neutral-200/70 bg-white p-4 shadow-soft sm:p-5">
                 <div className="mb-4"><h2 className="font-semibold text-central-carbon">Repartos en curso</h2><p className="text-xs text-neutral-500">Los estados logísticos se registran sin mezclar el historial comercial del pedido.</p></div>
                 <div className="custom-scrollbar max-h-[68vh] space-y-0 overflow-y-auto pr-1">
-                  {filteredAssignments.length === 0 ? <div className="rounded-sm border border-dashed border-neutral-200 p-8 text-center text-sm text-neutral-500">No hay repartos activos que coincidan con la búsqueda.</div> : filteredAssignments.map((item) => (
+                  {filteredAssignments.length === 0 ? <div className="rounded-sm border border-dashed border-neutral-200 p-8 text-center text-sm text-neutral-500">No hay repartos activos que coincidan con la búsqueda.</div> : filteredAssignments.map((item) => {
+                    const canReassign = Boolean(item.orderCreatedAt && dateKey(item.orderCreatedAt, businessTimeZone) === todayKey);
+                    return (
                     <article key={item.id} className="border-b border-neutral-100 px-1 py-4 last:border-b-0 sm:px-2">
                       <div className="flex flex-wrap items-start justify-between gap-3">
                         <div className="min-w-0">
@@ -760,6 +848,7 @@ export function DeliveryAdminPage() {
                         </div>
                         <div className="text-right"><p className="text-sm font-semibold">{item.paymentMethod === 'efectivo' ? `Cobrar ${formatCurrency(item.cashToCollect)}` : 'Transferencia'}</p><p className="text-xs text-neutral-500">Asignado {formatDateTime(item.assignedAt)}</p></div>
                       </div>
+                      {canReassign ? (
                       <div className="mt-3 grid gap-2 sm:grid-cols-[minmax(0,1fr)_auto_auto]">
                         <SearchableSelect
                           value={driverByAssignment[item.id] ?? item.driverId}
@@ -772,8 +861,14 @@ export function DeliveryAdminPage() {
                         <Button size="sm" variant="secondary" onClick={() => void handleAssign(item.orderId, driverByAssignment[item.id] ?? item.driverId, undefined, item.id)} disabled={busyId === item.id}><RotateCcw size={14} /> Reasignar</Button>
                         <Button size="sm" variant="danger" onClick={() => setPendingConfirmation({ type: 'cancel-assignment', assignment: item })} disabled={busyId === item.id}>Quitar</Button>
                       </div>
+                      ) : (
+                        <p className="mt-3 flex items-center gap-2 border-t border-neutral-100 pt-3 text-[11px] leading-5 text-neutral-500">
+                          <History size={15} className="shrink-0" />
+                          Pedido de otro día · no se puede reasignar desde el panel.
+                        </p>
+                      )}
                     </article>
-                  ))}
+                  );})}
                 </div>
               </section>
             </div>
@@ -997,6 +1092,85 @@ export function DeliveryAdminPage() {
                 )) : <p className="text-sm text-neutral-500">No hay eventos adicionales registrados para esta asignación.</p>}
               </div>
             </section>
+          </div>
+        ) : null}
+      </Modal>
+
+
+      <Modal
+        open={Boolean(helpTopic)}
+        onClose={() => setHelpTopic(null)}
+        title={helpTopic === 'cash'
+          ? 'Efectivo pendiente de rendición'
+          : helpTopic === 'commissions'
+            ? 'Cómo funcionan las comisiones'
+            : helpTopic === 'orders'
+              ? 'Pedidos de hoy y anteriores'
+              : 'Cómo funciona el reparto'}
+        size="md"
+        theme="light"
+        panelClassName="!rounded-[20px]"
+      >
+        {helpTopic === 'cash' ? (
+          <div className="space-y-4 text-[13px] leading-6 text-neutral-600">
+            <p>Es el <strong className="text-neutral-900">importe total de los pedidos entregados y cobrados en efectivo</strong> que todavía no figuran en una liquidación pagada. Puede incluir entregas de meses anteriores.</p>
+            <div className="flex flex-wrap items-end justify-between gap-2 border-y border-neutral-100 py-3">
+              <span className="text-[12px] text-neutral-500">Total pendiente de rendición</span>
+              <strong className="text-[23px] font-semibold tracking-[-.035em] text-neutral-950">{formatCurrency(data.summary.cashPending)}</strong>
+            </div>
+            <div>
+              <h3 className="mb-1 text-[13px] font-semibold text-neutral-900">Pedidos que forman este saldo</h3>
+              {cashDetailsLoading ? (
+                <p role="status" className="py-4 text-[12px] text-neutral-500">Consultando entregas pendientes...</p>
+              ) : cashDetailsError ? (
+                <p role="alert" className="py-3 text-[12px] text-red-600">No se pudo consultar el detalle: {cashDetailsError}</p>
+              ) : cashDetails?.length ? (
+                <div className="custom-scrollbar max-h-[39vh] divide-y divide-neutral-100 overflow-y-auto">
+                  {cashDetails.map((item, index) => (
+                    <div key={`${item.orderCode}-${index}`} className="flex items-start justify-between gap-3 py-3">
+                      <div className="min-w-0">
+                        <p className="break-words text-[12px] font-semibold text-neutral-900">{item.orderCode}</p>
+                        <p className="mt-0.5 text-[11px] leading-5 text-neutral-500">{item.driverName} · {formatDateTime(item.deliveredAt)}</p>
+                      </div>
+                      <strong className="shrink-0 text-[13px] font-semibold tabular-nums text-neutral-900">{formatCurrency(item.cashAmount)}</strong>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="py-3 text-[12px] text-neutral-500">No hay entregas en efectivo pendientes de liquidación.</p>
+              )}
+            </div>
+            <p className="text-[11px] leading-5 text-neutral-500">Este monto es <strong>bruto</strong>: no se descuentan las comisiones del repartidor en esta tarjeta. Se concilia al cerrar la liquidación correspondiente.</p>
+            <Button size="sm" variant="secondary" className="w-full sm:w-auto" onClick={() => { setHelpTopic(null); setTab('settlements'); }}>
+              <WalletCards size={15} /> Ver liquidaciones
+            </Button>
+          </div>
+        ) : helpTopic === 'commissions' ? (
+          <div className="space-y-3 text-[13px] leading-6 text-neutral-600">
+            <p>Son las comisiones de <strong className="text-neutral-900">entregas completadas</strong> que todavía no tienen una liquidación pagada. También pueden acumularse de días anteriores.</p>
+            <p>La comisión se calcula sobre <strong className="text-neutral-900">el costo de envío</strong>, no sobre el total del pedido, aplicando el porcentaje asignado al repartidor.</p>
+            <p>Ejemplo: envío de $2.000 con comisión del 30 % = $600 para el repartidor.</p>
+            <div className="border-t border-neutral-100 pt-3 text-[12px] text-neutral-500">En Liquidaciones se registra la conciliación del efectivo y las comisiones. El saldo neto es comisión menos efectivo cobrado.</div>
+            <Button size="sm" variant="secondary" className="w-full sm:w-auto" onClick={() => { setHelpTopic(null); setTab('settlements'); }}>
+              <WalletCards size={15} /> Ir a liquidaciones
+            </Button>
+          </div>
+        ) : helpTopic === 'orders' ? (
+          <div className="space-y-3 text-[13px] leading-6 text-neutral-600">
+            <p>Solo los pedidos de delivery <strong className="text-neutral-900">creados durante el día actual del negocio</strong> se pueden asignar o reasignar.</p>
+            <p>Los pedidos de otras fechas siguen visibles al seleccionar «Ver días anteriores», pero ya no tienen botones de asignación.</p>
+            <p>La fecha se determina según la zona horaria del local, no según la hora configurada en el celular.</p>
+            <p className="border-t border-neutral-100 pt-3 text-[12px] text-neutral-500">El historial de repartos y las liquidaciones anteriores no se eliminan ni cambian con esta regla.</p>
+          </div>
+        ) : helpTopic === 'overview' ? (
+          <div className="space-y-4 text-[13px] leading-6 text-neutral-600">
+            <p><strong className="text-neutral-900">Pedidos:</strong> se asignan únicamente los que se crearon hoy. Los de otros días quedan disponibles para consulta.</p>
+            <p><strong className="text-neutral-900">Repartos en curso:</strong> pedidos ya asignados, aceptados, retirados o en camino.</p>
+            <p><strong className="text-neutral-900">Efectivo pendiente:</strong> pedidos entregados en efectivo sin liquidación pagada; no es una cifra exclusiva de hoy.</p>
+            <p><strong className="text-neutral-900">Comisiones:</strong> importe calculado sobre el costo del envío, pendiente de liquidar.</p>
+            <button type="button" onClick={() => setHelpTopic('cash')} className="flex min-h-10 items-center gap-2 text-[12px] font-semibold text-central-orange hover:underline">
+              <CircleHelp size={16} /> Ver detalle del efectivo pendiente
+            </button>
           </div>
         ) : null}
       </Modal>
