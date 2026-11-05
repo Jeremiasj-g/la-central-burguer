@@ -2,7 +2,7 @@ import { getAccessManagementDashboard, resetAccessUserPassword, saveAccessUser, 
 import { getSupabaseBrowserClient } from '@/lib/supabase/client';
 import { requireSupabaseConfigured } from '@/lib/config/env';
 import { createSharedRealtimeSubscription } from '@/lib/supabase/realtime-subscription';
-import type { DeliveryAdminDashboard, DeliveryHistoryPage, DriverFormPayload } from '../types/delivery-management.types';
+import type { DeliveryAdminDashboard, DeliveryHistoryPage, DriverFormPayload, DeliveryCashPendingItem } from '../types/delivery-management.types';
 
 type RpcError = { message: string } | null;
 type RpcInvoker = <T>(name: string, args?: Record<string, unknown>) => Promise<{ data: T | null; error: RpcError }>;
@@ -35,10 +35,29 @@ export async function getDeliveryAdminDashboard(): Promise<DeliveryAdminDashboar
 
   const unassignedOrders = delivery.unassignedOrders.filter((order) => order.deliveryMethod === 'delivery');
 
+  // La respuesta del dashboard no incluye la fecha de creación de cada
+  // asignación. La consultamos para bloquear la reasignación de días previos.
+  const activeOrderIds = [...new Set(delivery.assignments
+    .filter((assignment) => ['assigned', 'accepted', 'picked_up', 'in_transit'].includes(assignment.status))
+    .map((assignment) => assignment.orderId))];
+  const createdByOrder = new Map<string, string>();
+  if (activeOrderIds.length > 0) {
+    const { data: relatedOrders, error: ordersError } = await client()
+      .from('orders')
+      .select('id,created_at')
+      .in('id', activeOrderIds);
+    if (ordersError) throw new Error(ordersError.message);
+    for (const order of relatedOrders ?? []) createdByOrder.set(order.id, order.created_at);
+  }
+
   return {
     ...delivery,
     drivers,
     unassignedOrders,
+    assignments: delivery.assignments.map((assignment) => ({
+      ...assignment,
+      orderCreatedAt: createdByOrder.get(assignment.orderId) ?? null,
+    })),
     summary: {
       ...delivery.summary,
       unassignedOrders: unassignedOrders.length,
@@ -47,6 +66,11 @@ export async function getDeliveryAdminDashboard(): Promise<DeliveryAdminDashboar
   };
 }
 
+
+export async function getDeliveryCashPendingDetails(): Promise<DeliveryCashPendingItem[]> {
+  const rows = await deliveryRpc<DeliveryCashPendingItem[]>('admin_delivery_cash_pending_details');
+  return rows ?? [];
+}
 
 export async function getDeliveryHistoryPage({
   page = 1,

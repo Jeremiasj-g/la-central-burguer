@@ -2,6 +2,13 @@ export type DeliveryVehicleType = 'moto' | 'auto' | 'bici' | 'otro';
 export type DeliveryAssignmentStatus = 'assigned' | 'accepted' | 'picked_up' | 'in_transit' | 'rejected_by_customer' | 'delivered' | 'cancelled';
 export type DeliverySettlementStatus = 'draft' | 'paid' | 'cancelled';
 
+export interface DeliveryCashPendingItem {
+  orderCode: string;
+  deliveredAt: string;
+  driverName: string;
+  cashAmount: number;
+}
+
 export interface DeliverySummary {
   unassignedOrders: number;
   activeAssignments: number;
@@ -48,6 +55,7 @@ export interface DeliveryOrder {
 export interface DeliveryAssignment {
   id: string;
   orderId: string;
+  orderCreatedAt?: string | null;
   orderCode: string;
   customerName: string;
   customerPhone: string;
