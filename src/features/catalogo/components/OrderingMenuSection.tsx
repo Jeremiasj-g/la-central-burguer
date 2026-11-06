@@ -18,7 +18,7 @@ import { EmptyState } from '@/shared/components/ui/EmptyState';
 import { toast } from 'react-toastify';
 import { getOrderableProductIds } from '@/features/productos/services/productos.service';
 import { useCategoryDiscounts } from '@/features/promociones/hooks/useCategoryDiscounts';
-import { businessDate, discountForCategory, discountedPrice } from '@/features/promociones/utils/descuentos.utils';
+import { businessDate, discountForProduct, discountedPrice } from '@/features/promociones/utils/descuentos.utils';
 import { calculateCartTotals } from '@/features/carrito/services/carrito.service';
 import { useBusinessConfig } from '@/features/configuracion/hooks/useBusinessConfig';
 import { isBusinessOpenBySchedule } from '@/features/configuracion/utils/businessStatus.utils';
@@ -66,7 +66,7 @@ export function OrderingMenuSection({ requestedProductId = null, onRequestHandle
   const isBusinessOpen = config ? isBusinessOpenBySchedule(config,now) : false;
   // Descuentos solo para el menú público: los precios originales del catálogo administrativo no cambian.
   const pricedProducts = useMemo(() => catalogProducts.map(product => {
-    const discountPercent = discountForCategory(campaigns, product.categoryId, today);
+    const discountPercent = discountForProduct(campaigns, product.id, product.categoryId, today);
     return discountPercent > 0
       ? { ...product, originalPrice: product.currentPrice, discountPercent,
           currentPrice: discountedPrice(product.currentPrice, discountPercent) }
