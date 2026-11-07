@@ -83,12 +83,13 @@ begin
     line_qty := (row_item->>'quantity')::int;
     if line_qty not between 1 and 99 then raise exception 'La cantidad supera el máximo.' using errcode='22023'; end if;
     if row_item->>'productId' is null then raise exception 'Falta un producto.' using errcode='22023'; end if;
-    select p.*,c.* into item_product,item_category
+    select p.* into item_product
       from public.products p join public.categories c on c.id=p.category_id
       where p.id=(row_item->>'productId')::uuid and p.active and p.available
         and p.deleted_at is null and c.active and c.deleted_at is null
       for share of p,c;
     if not found then raise exception 'Uno de los productos ya no está disponible.' using errcode='22023'; end if;
+    select c.* into item_category from public.categories c where c.id=item_product.category_id;
     if item_product.id=any(seen) then raise exception 'No repitas el mismo producto.' using errcode='22023'; end if;
     seen := array_append(seen,item_product.id);
     price := public.discounted_product_price(item_product.id,item_product.category_id,item_product.current_price);
@@ -103,9 +104,9 @@ begin
   for row_item in select value from jsonb_array_elements(payload->'items')
   loop
     line_qty := (row_item->>'quantity')::int;
-    select p.*,c.* into item_product,item_category
-      from public.products p join public.categories c on c.id=p.category_id
-      where p.id=(row_item->>'productId')::uuid for share of p,c;
+    select p.* into item_product from public.products p
+      where p.id=(row_item->>'productId')::uuid for share;
+    select c.* into item_category from public.categories c where c.id=item_product.category_id;
     price := public.discounted_product_price(item_product.id,item_product.category_id,item_product.current_price);
     insert into public.order_items(order_id,product_id,category_id,product_name,category_name,image_url,
       is_promotion,quantity,unit_price)
