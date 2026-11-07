@@ -154,6 +154,7 @@ AS $fn$
 DECLARE
   movement public.order_payment_movements%ROWTYPE;
   prior public.order_payment_movements%ROWTYPE;
+  source_order_id uuid;
   order_row public.orders%ROWTYPE;
   reversed_id uuid;
 BEGIN
@@ -164,11 +165,12 @@ BEGIN
     RAISE EXCEPTION 'Indicá el motivo de la corrección (al menos 8 caracteres).' USING ERRCODE = '22023';
   END IF;
   -- Lock order first, consistent with all other payment RPCs.
-  SELECT m.order_id INTO movement.order_id FROM public.order_payment_movements m WHERE m.id = target_movement_id;
+  SELECT m.order_id INTO source_order_id
+  FROM public.order_payment_movements m WHERE m.id = target_movement_id;
   IF NOT FOUND THEN
     RAISE EXCEPTION 'No encontramos el movimiento.' USING ERRCODE = '22023';
   END IF;
-  SELECT * INTO order_row FROM public.orders WHERE id = movement.order_id FOR UPDATE;
+  SELECT * INTO order_row FROM public.orders WHERE id = source_order_id FOR UPDATE;
 
   SELECT * INTO prior FROM public.order_payment_movements WHERE idempotency_key = request_key;
   IF FOUND THEN
