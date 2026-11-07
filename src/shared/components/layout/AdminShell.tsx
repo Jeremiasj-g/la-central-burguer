@@ -208,10 +208,10 @@ function AdminShellContent({ children }: { children: React.ReactNode }) {
           <div className="ml-auto flex items-center gap-3">
             <AdminNotifications />
             <AdminMaintenanceControl />
-            <Link href={ROUTES.menu} onClick={(event) => {
+            <Link href={ROUTES.home} onClick={(event) => {
               if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
               event.preventDefault();
-              requestNavigation(() => router.push(ROUTES.menu));
+              requestNavigation(() => router.push(ROUTES.home));
             }} className="inline-flex min-h-10 items-center justify-center whitespace-nowrap rounded-[11px] bg-central-orange/10 px-4 py-2 text-[12px] font-semibold text-central-ember transition-[background-color,color,transform] duration-200 hover:bg-central-orange hover:text-white active:scale-[.98]">Ver sitio</Link>
           </div>
         </header>

@@ -1,8 +1,15 @@
 import { z } from 'zod';
 
+/** Misma regla en formulario, botón y confirmación, tanto delivery como retiro. */
+export function isValidCustomerPhone(value: string) {
+  const trimmed = value.trim();
+  return trimmed.replace(/\D/g, '').length >= 6
+    && /^[+()\d\s.-]+$/.test(trimmed);
+}
+
 export const checkoutSchema = z.object({
   customerName: z.string().min(2, 'Ingresá tu nombre.'),
-  customerPhone: z.string().min(6, 'Ingresá tu WhatsApp.'),
+  customerPhone: z.string().refine(isValidCustomerPhone, 'Ingresá un teléfono válido de al menos 6 números.'),
   deliveryMethod: z.enum(['retiro_local', 'delivery']),
   address: z.string().optional(),
   customerLocation: z.object({

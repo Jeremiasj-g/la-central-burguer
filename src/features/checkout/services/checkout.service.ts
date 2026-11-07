@@ -1,4 +1,5 @@
 import type { CheckoutFormValues } from '../types/checkout.types';
+import { isValidCustomerPhone } from '../schemas/checkout.schema';
 import type { Order } from '@/features/pedidos/types/pedido.types';
 import type { CartItem } from '@/features/carrito/types/carrito.types';
 import { getBusinessConfig } from '@/features/configuracion/services/configuracion.service';
@@ -29,8 +30,12 @@ function hasValidDeliveryQuote(values: CheckoutFormValues) {
 export function validateCheckout(values: CheckoutFormValues) {
   const errors: Partial<Record<keyof CheckoutFormValues, string>> = {};
 
-  if (!values.customerName.trim()) errors.customerName = 'Ingresá tu nombre.';
-  if (!values.customerPhone.trim()) errors.customerPhone = 'Ingresá tu WhatsApp.';
+  if (values.customerName.trim().length < 2) errors.customerName = 'Ingresá tu nombre (al menos 2 caracteres).';
+  if (!values.customerPhone.trim()) {
+    errors.customerPhone = 'Ingresá tu WhatsApp.';
+  } else if (!isValidCustomerPhone(values.customerPhone)) {
+    errors.customerPhone = 'Ingresá un teléfono válido de al menos 6 números.';
+  }
 
   if (values.deliveryMethod === 'delivery') {
     if (!values.customerLocation) {
