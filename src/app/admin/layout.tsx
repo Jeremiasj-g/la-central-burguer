@@ -1,5 +1,4 @@
 import type { Metadata, Viewport } from 'next';
-import { Manrope } from 'next/font/google';
 import { AdminPwaProvider } from '@/shared/components/layout/AdminPwaProvider';
 
 export const metadata: Metadata = {
@@ -18,11 +17,6 @@ export const viewport: Viewport = {
   themeColor: '#F5F5F5',
 };
 
-const adminFont = Manrope({
-  subsets: ['latin'],
-  display: 'swap',
-});
-
 export default function AdminRootLayout({ children }: { children: React.ReactNode }) {
-  return <div className={`${adminFont.className} min-h-screen`}><AdminPwaProvider>{children}</AdminPwaProvider></div>;
+  return <div className="min-h-screen" style={{ fontFamily: "'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" }}><AdminPwaProvider>{children}</AdminPwaProvider></div>;
 }

@@ -1,9 +1,9 @@
 import { getSupabaseBrowserClient } from '@/lib/supabase/client';
 import { requireSupabaseConfigured } from '@/lib/config/env';
-import type { Database, OrderStatus } from '@/lib/supabase/database.types';
+import type { Database, Json, OrderStatus } from '@/lib/supabase/database.types';
 
 export type CounterServiceMode = 'takeaway' | 'dine_in';
-export type CounterPaymentMethod = 'efectivo' | 'transferencia';
+export type CounterPaymentMethod = 'efectivo' | 'transferencia' | 'combinado';
 
 type OrderRow = Database['public']['Tables']['orders']['Row'];
 type OrderItemRow = Database['public']['Tables']['order_items']['Row'];
@@ -18,6 +18,8 @@ export interface CreateCounterSaleInput {
   customerPhone?: string;
   serviceMode: CounterServiceMode;
   paymentMethod: CounterPaymentMethod;
+  transferAmount?: number;
+  requestKey?: string;
   notes?: string;
   items: CounterSaleItemInput[];
 }
@@ -213,7 +215,7 @@ async function prepareSaleItems(
 }
 
 function mapCounterSale(
-  row: Pick<OrderRow, 'id' | 'order_code' | 'customer_name' | 'customer_phone' | 'payment_method' | 'subtotal' | 'total' | 'status' | 'notes' | 'created_at' | 'updated_at'>,
+  row: Pick<OrderRow, 'id' | 'order_code' | 'customer_name' | 'customer_phone' | 'payment_method' | 'payment_preference' | 'subtotal' | 'total' | 'status' | 'notes' | 'created_at' | 'updated_at'>,
   itemCount: number,
 ): CounterSaleListItem {
   const parsed = parseCounterNotes(row.notes);
@@ -223,7 +225,7 @@ function mapCounterSale(
     customerName: row.customer_name,
     customerPhone: row.customer_phone,
     serviceMode: parsed.serviceMode,
-    paymentMethod: row.payment_method,
+    paymentMethod: row.payment_preference === 'combinado' ? 'combinado' : row.payment_method,
     subtotal: Number(row.subtotal),
     total: Number(row.total),
     status: row.status,
@@ -238,6 +240,20 @@ export async function createCounterSale(input: CreateCounterSaleInput): Promise<
   requireSupabaseConfigured('registrar una venta de mostrador');
 
   const supabase = getSupabaseBrowserClient();
+  if (input.paymentMethod === 'combinado') {
+    if (process.env.NEXT_PUBLIC_ENABLE_MIXED_PAYMENTS !== 'true') throw new Error('El pago combinado no está habilitado.');
+    if (!input.requestKey || !Number.isFinite(input.transferAmount)) throw new Error('Ingresá una transferencia válida.');
+    const { data, error } = await supabase.rpc('admin_create_mixed_counter_sale', { payload: {
+      requestKey: input.requestKey, customerName: input.customerName ?? '',
+      customerPhone: input.customerPhone ?? '', serviceMode: input.serviceMode,
+      transferAmount: input.transferAmount, notes: input.notes ?? '',
+      items: input.items.map(item => ({ productId: item.productId, quantity: item.quantity })),
+    } as Json });
+    if (error) throw new Error(error.message);
+    if (!data || typeof data !== 'object' || Array.isArray(data)) throw new Error('No pudimos verificar la venta registrada.');
+    const response = data as Record<string, unknown>;
+    return { orderId: String(response.orderId), orderCode: String(response.orderCode), total: Number(response.total) };
+  }
   const [{ subtotal, itemRows }, customer] = await Promise.all([
     prepareSaleItems(input),
     resolveCustomer(input.customerName, input.customerPhone),
@@ -305,7 +321,7 @@ export async function getCounterSales({
 
   const { data, error, count } = await supabase
     .from('orders')
-    .select('id,order_code,customer_name,customer_phone,payment_method,subtotal,total,status,notes,created_at,updated_at', { count: 'exact' })
+    .select('id,order_code,customer_name,customer_phone,payment_method,payment_preference,subtotal,total,status,notes,created_at,updated_at', { count: 'exact' })
     .eq('source', 'admin')
     .like('notes', `${COUNTER_NOTE_PREFIX}%`)
     .order('created_at', { ascending: false })
@@ -344,7 +360,7 @@ export async function getCounterSaleForEdit(orderId: string): Promise<CounterSal
   const supabase = getSupabaseBrowserClient();
   const { data: order, error: orderError } = await supabase
     .from('orders')
-    .select('id,order_code,customer_name,customer_phone,payment_method,subtotal,total,status,notes,created_at,updated_at')
+    .select('id,order_code,customer_name,customer_phone,payment_method,payment_preference,subtotal,total,status,notes,created_at,updated_at')
     .eq('id', orderId)
     .eq('source', 'admin')
     .like('notes', `${COUNTER_NOTE_PREFIX}%`)
@@ -352,6 +368,7 @@ export async function getCounterSaleForEdit(orderId: string): Promise<CounterSal
 
   if (orderError) throw new Error(orderError.message);
   if (order.status === 'cancelado') throw new Error('Las ventas canceladas no pueden editarse.');
+  if (order.payment_preference === 'combinado') throw new Error('La venta mixta ya tiene cobros registrados y no puede editarse.');
 
   const { data: items, error: itemsError } = await supabase
     .from('order_items')
@@ -404,6 +421,7 @@ export async function updateCounterSale(
   input: CreateCounterSaleInput,
 ): Promise<CounterSaleResult> {
   requireSupabaseConfigured('actualizar una venta de mostrador');
+  if (input.paymentMethod === 'combinado') throw new Error('No se puede convertir una venta existente a pago combinado.');
 
   const supabase = getSupabaseBrowserClient();
   const { data: currentOrder, error: orderReadError } = await supabase
@@ -416,6 +434,7 @@ export async function updateCounterSale(
 
   if (orderReadError) throw new Error(orderReadError.message);
   if (currentOrder.status === 'cancelado') throw new Error('Las ventas canceladas no pueden editarse.');
+  if (currentOrder.payment_preference === 'combinado') throw new Error('Una venta con cobros confirmados no puede editarse.');
 
   const { data: currentItems, error: itemsReadError } = await supabase
     .from('order_items')

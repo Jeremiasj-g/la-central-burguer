@@ -46,6 +46,7 @@ function mapOrder(row: OrderRow): ReportOrder {
     deliveryDistanceKm: row.delivery_distance_km === null ? null : Number(row.delivery_distance_km),
     deliveryMapsUrl: row.delivery_maps_url,
     paymentMethod: row.payment_method,
+    paymentPreference: row.payment_preference === 'combinado' ? 'combinado' : row.payment_method,
     subtotal: Number(row.subtotal),
     deliveryCost: Number(row.delivery_cost),
     total: Number(row.total),
@@ -106,7 +107,9 @@ async function fetchOrders(filters: ReportFilters): Promise<ReportOrder[]> {
     if (filters.status === 'valid') query = query.neq('status', 'cancelado');
     if (filters.status === 'aceptado') query = query.eq('status', 'aceptado');
     if (filters.status === 'cancelado') query = query.eq('status', 'cancelado');
-    if (filters.paymentMethod !== 'all') query = query.eq('payment_method', filters.paymentMethod);
+    if (filters.paymentMethod === 'combinado') query = query.eq('payment_preference', 'combinado');
+    else if (filters.paymentMethod === 'efectivo') query = query.eq('payment_method','efectivo').or('payment_preference.is.null,payment_preference.neq.combinado');
+    else if (filters.paymentMethod === 'transferencia') query = query.eq('payment_method','transferencia');
     if (filters.deliveryMethod !== 'all') query = query.eq('delivery_method', filters.deliveryMethod);
     if (filters.source && filters.source !== 'all') query = query.eq('source', filters.source);
 
@@ -310,7 +313,9 @@ export async function getReportOrdersPage(
   if (filters.status === 'valid') query = query.neq('status', 'cancelado');
   if (filters.status === 'aceptado') query = query.eq('status', 'aceptado');
   if (filters.status === 'cancelado') query = query.eq('status', 'cancelado');
-  if (filters.paymentMethod !== 'all') query = query.eq('payment_method', filters.paymentMethod);
+  if (filters.paymentMethod === 'combinado') query = query.eq('payment_preference', 'combinado');
+    else if (filters.paymentMethod === 'efectivo') query = query.eq('payment_method','efectivo').or('payment_preference.is.null,payment_preference.neq.combinado');
+    else if (filters.paymentMethod === 'transferencia') query = query.eq('payment_method','transferencia');
   if (filters.deliveryMethod !== 'all') query = query.eq('delivery_method', filters.deliveryMethod);
   if (filters.source && filters.source !== 'all') query = query.eq('source', filters.source);
 
@@ -360,4 +365,27 @@ export async function getCompleteReportData(): Promise<ReportDataset> {
     deliveryMethod: 'all',
     search: '',
   });
+}
+
+/** Collection dates are independent of order creation dates. No presumed legacy receipts. */
+export async function getConfirmedPaymentCollections(
+  filters: ReportFilters,
+): Promise<{cash:number;transfer:number;total:number;payments:number;refunds:number;reversals:number}> {
+  requireSupabaseConfigured('consultar cobros registrados');
+  const from = filters.allTime ? null : toStartIso(filters.from);
+  const to = filters.allTime ? null : new Date(new Date(toEndIso(filters.to)).getTime()+1).toISOString();
+  const { data, error } = await getSupabaseBrowserClient().rpc('admin_payment_collections_summary', {
+    from_ts: from, to_ts: to,
+  });
+  if (error) throw new Error(error.message);
+  const result = data && typeof data === 'object' && !Array.isArray(data)
+    ? data as Record<string, unknown> : {};
+  return {
+    cash: Number(result.cash ?? 0),
+    transfer: Number(result.transfer ?? 0),
+    total: Number(result.total ?? 0),
+    payments: Number(result.payments ?? 0),
+    refunds: Number(result.refunds ?? 0),
+    reversals: Number(result.reversals ?? 0),
+  };
 }

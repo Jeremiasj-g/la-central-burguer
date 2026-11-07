@@ -158,7 +158,7 @@ function orderGroupDescriptor(
   }
 
   if (groupBy === 'payment') {
-    return { key: payment, label: payment === 'transferencia' ? 'Transferencia' : 'Efectivo' };
+    return { key: payment, label: payment === 'combinado' ? 'Combinado' : payment === 'transferencia' ? 'Transferencia' : 'Efectivo' };
   }
 
   if (groupBy === 'source') {
@@ -229,7 +229,7 @@ export function groupReport(dataset: ReportDataset, groupBy: ReportGroupBy): Rep
     const descriptor = orderGroupDescriptor(
       order.createdAt,
       groupBy,
-      order.paymentMethod,
+      order.paymentPreference,
       order.deliveryMethod,
       order.source,
     );

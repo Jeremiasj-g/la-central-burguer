@@ -40,6 +40,7 @@ const PAYMENT_OPTIONS = [
   { value: 'all', label: 'Todos los métodos' },
   { value: 'efectivo', label: 'Efectivo' },
   { value: 'transferencia', label: 'Transferencia' },
+  { value: 'combinado', label: 'Combinado' },
 ] as const;
 
 const DELIVERY_OPTIONS = [

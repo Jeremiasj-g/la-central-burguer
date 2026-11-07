@@ -214,9 +214,12 @@ export interface Database {
       admin_set_order_payment_plan: { Args: { target_order_id: string; transfer_value: number; cash_value: number }; Returns: Json };
       admin_confirm_order_payment: { Args: { target_order_id: string; payment_method: PaymentMethodCode; payment_amount: number; request_key: string }; Returns: Json };
       admin_reverse_order_payment: { Args: { target_movement_id: string; correction_reason: string; request_key: string }; Returns: Json };
+      admin_refund_order_payment: { Args: { target_movement_id: string; refund_reason: string; request_key: string }; Returns: Json };
+      admin_payment_collections_summary: { Args: { from_ts?: string | null; to_ts?: string | null }; Returns: Json };
       create_public_order: { Args: { payload: Json }; Returns: Json };
       create_public_order_from_route: { Args: { payload: Json }; Returns: Json };
       create_public_order_with_payment_plan: { Args: { payload: Json }; Returns: Json };
+      admin_create_mixed_counter_sale: { Args: { payload: Json }; Returns: Json };
       sync_product_ingredients: { Args: { target_product_id: string; ingredient_rows?: Json }; Returns: undefined };
       get_public_best_sellers: { Args: Record<PropertyKey, never>; Returns: { product_id: string; units_sold: number }[] };
       get_dashboard_stats: { Args: { days_back?: number }; Returns: Json };
