@@ -36,7 +36,7 @@ function initialLines(order: Order): EditLine[] {
   }));
 }
 
-const field = '!rounded-[10px] !border-neutral-200 !bg-white !text-[13px] !font-normal !text-neutral-900 !shadow-none';
+const field = '!rounded-[10px] !border-neutral-200 !bg-white !text-[13px] !font-normal !text-neutral-900 !shadow-none placeholder:!text-neutral-400';
 
 export function PedidoEditModal({ order, onClose, onSaved }: {
   order: Order;
@@ -183,13 +183,16 @@ export function PedidoEditModal({ order, onClose, onSaved }: {
                     <Trash2 size={15}/> Quitar
                   </button>
                 </div>
+                <label htmlFor={`order-item-note-${line.key}`} className="mt-2 block text-[11px] font-medium text-neutral-600">
+                  Aclaraciones del producto <span className="font-normal text-neutral-400">(opcional)</span>
+                </label>
                 <Input
+                  id={`order-item-note-${line.key}`}
                   value={line.note}
                   onChange={event => updateLine(line.key, { note: event.target.value })}
                   maxLength={500}
-                  aria-label={`Aclaración de ${line.productName}`}
-                  placeholder="Aclaración (opcional): sin cebolla..."
-                  className={`mt-2 ${field} !h-10`}
+                  placeholder="Ej.: sin cebolla, sin mayonesa..."
+                  className={`mt-1.5 ${field} !h-10`}
                 />
               </div>
             ))}
