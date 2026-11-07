@@ -58,6 +58,14 @@ BEGIN
     updated_by = EXCLUDED.updated_by,
     updated_at = now();
 
+  -- The declared preference is not confirmation of funds. Keep it coherent
+  -- with the final split without changing the legacy payment_method enum.
+  UPDATE public.orders SET payment_preference = CASE
+    WHEN transfer_value = 0 THEN 'efectivo'
+    WHEN cash_value = 0 THEN 'transferencia'
+    ELSE 'combinado'
+  END WHERE id = target_order_id;
+
   RETURN jsonb_build_object(
     'orderId',target_order_id,'total',current_order.total,
     'transfer',transfer_value,'cash',cash_value

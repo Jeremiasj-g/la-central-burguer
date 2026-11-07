@@ -12,6 +12,8 @@
 - Admin → Pedidos: botón **Cobro**, modal mobile-first que muestra saldos, permite distribuir transferencia/efectivo, confirmar dinero verificado y corregir con motivo.
 - El backend no permite confirmar efectivo de delivery desde la administración: ese flujo requiere la confirmación del repartidor en Fase 3.
 - No se infieren pagos a partir de pedidos legacy; los cobros existentes solo pueden registrarse después de una verificación real.
+- Al guardar la distribución, la preferencia declarada también se actualiza sin marcar cobros como recibidos.
+- Prueba SQL reversible disponible en `supabase/tests/20261107_admin_payment_transactions.sql`: idempotencia, límites, reversión y permisos.
 - Los movimientos directos por Data API son solo lectura de administradores; no se otorga permiso INSERT/UPDATE/DELETE.
 - **Pendientes de esta fase ampliada:** reintegros, proteger editor/cancelación de pedidos ya cobrados, referencias de liquidación y prueba integral autenticada en una base aislada.
 
