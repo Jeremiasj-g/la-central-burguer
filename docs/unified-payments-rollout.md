@@ -19,6 +19,11 @@
 
 **Advertencia:** el botón y las funciones están diseñados en esta rama de trabajo. La base de producción **no** tiene estas migraciones todavía. No se debe fusionar a `main` hasta completar el sistema entero y las pruebas end-to-end.
 
+## Control de activación para fusionar sin afectar producción
+- `NEXT_PUBLIC_ENABLE_MIXED_PAYMENTS=true` habilita selector público y botón Cobro administrativo, por defecto permanecen ocultos.
+- `ENABLE_MIXED_PAYMENTS=true` habilita el endpoint de creación combinada del servidor; por defecto responde 409 sin crear pedidos.
+- No configurar estas variables en producción hasta aplicar y probar las migraciones y completar los circuitos de reparto, cancelación, edición y liquidación.
+
 ## Fase 2b — Checkout público combinado (implementado en la rama, NO activado)
 - Selector **Pago combinado** solo cuando efectivo y transferencia estén habilitados.
 - El cliente indica la transferencia; el efectivo restante se calcula automáticamente, sin marcar ningún cobro como confirmado.
