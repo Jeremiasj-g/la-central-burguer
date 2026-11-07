@@ -80,7 +80,7 @@ export async function buildWhatsappUrl(order: Order) {
   const config = await getBusinessConfig();
   const whatsappNumber = config.whatsappNumber.replace(/\D/g, '');
   const mixed = order.paymentPreference === 'combinado' && Boolean(order.paymentPlan);
-  const paymentLabel = mixed ? 'Combinado' : (order.paymentMethod === 'transferencia' || mixed) ? 'Transferencia' : 'Efectivo';
+  const paymentLabel = mixed ? 'Combinado' : order.paymentMethod === 'transferencia' ? 'Transferencia' : 'Efectivo';
   const deliveryLabel = order.deliveryMethod === 'delivery' ? 'Envío a domicilio' : 'Retiro en local';
 
   const lines = [
@@ -114,13 +114,13 @@ export async function buildWhatsappUrl(order: Order) {
     `*Total:* ${formatCurrency(order.total)}`,
     order.notes ? '------------------------------' : '',
     order.notes ? `*Observaciones:* ${order.notes}` : '',
-    order.paymentMethod === 'transferencia' ? '------------------------------' : '',
-    order.paymentMethod === 'transferencia' ? '*Elegiste método de pago transferencia.*' : '',
+    (order.paymentMethod === 'transferencia' || mixed) ? '------------------------------' : '',
+    order.paymentMethod === 'transferencia' ? '*Elegiste pagar por transferencia.*' : '',
     (order.paymentMethod === 'transferencia' || mixed)
       ? 'A continuación te brindamos los datos para realizar el pago:'
       : '',
-    order.paymentMethod === 'transferencia' ? `*Alias:* ${config.transferAlias}` : '',
-    order.paymentMethod === 'transferencia' ? `*CVU:* ${config.transferCvu}` : '',
+    (order.paymentMethod === 'transferencia' || mixed) ? `*Alias:* ${config.transferAlias}` : '',
+    (order.paymentMethod === 'transferencia' || mixed) ? `*CVU:* ${config.transferCvu}` : '',
   ].filter(Boolean);
 
   return `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(lines.join('\n'))}`;
