@@ -1,12 +1,15 @@
 'use client';
 
-import { CalendarDays, ExternalLink, MapPin, Truck, UserRound, XCircle } from 'lucide-react';
+import { CalendarDays, ExternalLink, MapPin, Pencil, Truck, UserRound, XCircle } from 'lucide-react';
+import { businessDate } from '@/features/promociones/utils/descuentos.utils';
 import type { Order } from '../types/pedido.types';
 import { formatCurrency, formatDateTime } from '@/shared/utils/format.utils';
 
 type PedidosTableProps = {
   orders: Order[];
   onCancelOrder: (id: string) => void;
+  onEditOrder: (order: Order) => void;
+  businessTimeZone?: string;
 };
 
 function OrderStatus({ order }: { order: Order }) {
@@ -42,7 +45,36 @@ function CancelOrderButton({ order, onCancelOrder, compact = false }: {
   );
 }
 
-function OrderCard({ order, onCancelOrder }: { order: Order; onCancelOrder: (id: string) => void }) {
+function isEditableToday(order: Order, timezone?: string) {
+  return ['pendiente', 'aceptado', 'en_preparacion'].includes(order.status)
+    && businessDate(new Date(order.createdAt), timezone) === businessDate(new Date(), timezone);
+}
+
+function EditOrderButton({ order, onEditOrder, compact = false }: {
+  order: Order;
+  onEditOrder: (order: Order) => void;
+  compact?: boolean;
+}) {
+  return (
+    <button
+      type="button"
+      title="Agregar o modificar productos del pedido"
+      aria-label={`Editar productos del pedido ${order.orderCode}`}
+      onClick={() => onEditOrder(order)}
+      className={`inline-flex h-10 items-center justify-center gap-1.5 rounded-[10px] bg-[#191b20] px-3 text-[11px] font-medium text-white transition-colors duration-200 hover:bg-neutral-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-central-orange ${compact ? 'px-2.5' : ''}`}
+    >
+      <Pencil size={14} strokeWidth={1.8} />
+      Editar
+    </button>
+  );
+}
+
+function OrderCard({ order, onCancelOrder, onEditOrder, businessTimeZone }: {
+  order: Order;
+  onCancelOrder: (id: string) => void;
+  onEditOrder: (order: Order) => void;
+  businessTimeZone?: string;
+}) {
   const products = order.items.map((item) => `${item.quantity}x ${item.productName}`).join(', ');
   const delivery = order.deliveryMethod === 'delivery';
 
@@ -106,29 +138,32 @@ function OrderCard({ order, onCancelOrder }: { order: Order; onCancelOrder: (id:
             </p>
           ) : null}
         </div>
-        <CancelOrderButton order={order} onCancelOrder={onCancelOrder} />
+        <div className="flex shrink-0 flex-wrap items-center justify-end gap-2">
+          {isEditableToday(order, businessTimeZone) ? <EditOrderButton order={order} onEditOrder={onEditOrder} /> : null}
+          <CancelOrderButton order={order} onCancelOrder={onCancelOrder} compact />
+        </div>
       </div>
     </article>
   );
 }
 
-export function PedidosTable({ orders, onCancelOrder }: PedidosTableProps) {
+export function PedidosTable({ orders, onCancelOrder, onEditOrder, businessTimeZone }: PedidosTableProps) {
   return (
     <section aria-label="Resultados de pedidos" className="min-w-0">
       <div className="grid min-w-0 gap-3 sm:grid-cols-2 xl:hidden">
-        {orders.map((order) => <OrderCard key={order.id} order={order} onCancelOrder={onCancelOrder} />)}
+        {orders.map((order) => <OrderCard key={order.id} order={order} onCancelOrder={onCancelOrder} onEditOrder={onEditOrder} businessTimeZone={businessTimeZone} />)}
       </div>
 
       <div className="hidden min-w-0 overflow-hidden rounded-[20px] border border-neutral-200/75 bg-white shadow-soft xl:block">
         <table className="w-full table-fixed text-left text-[12px] text-neutral-700">
           <colgroup>
-            <col className="w-[31%] 2xl:w-[20%]" />
-            <col className="w-[31%] 2xl:w-[19%]" />
+            <col className="w-[27%] 2xl:w-[19%]" />
+            <col className="w-[27%] 2xl:w-[18%]" />
             <col className="hidden 2xl:table-column 2xl:w-[19%]" />
             <col className="w-[14%] 2xl:w-[11%]" />
             <col className="hidden 2xl:table-column 2xl:w-[14%]" />
             <col className="w-[16%] 2xl:w-[11%]" />
-            <col className="w-[8%] 2xl:w-[6%]" />
+            <col className="w-[16%] 2xl:w-[8%]" />
           </colgroup>
           <thead className="border-b border-neutral-100 bg-[#f8f8f9] text-[10px] font-medium uppercase tracking-[.08em] text-neutral-500">
             <tr>
@@ -190,7 +225,10 @@ export function PedidosTable({ orders, onCancelOrder }: PedidosTableProps) {
                     ) : null}
                   </td>
                   <td className="px-2 py-3.5 text-right align-top">
-                    <CancelOrderButton order={order} onCancelOrder={onCancelOrder} compact />
+                    <div className="flex flex-col items-end gap-2 2xl:flex-row 2xl:justify-end">
+                      {isEditableToday(order, businessTimeZone) ? <EditOrderButton order={order} onEditOrder={onEditOrder} compact /> : null}
+                      <CancelOrderButton order={order} onCancelOrder={onCancelOrder} compact />
+                    </div>
                   </td>
                 </tr>
               );

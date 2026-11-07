@@ -200,6 +200,7 @@ export interface Database {
       };
     };
     Functions: {
+      admin_edit_order_items: { Args: { target_order_id: string; expected_updated_at: string; requested_items: Json }; Returns: Json };
       create_public_order: { Args: { payload: Json }; Returns: Json };
       create_public_order_from_route: { Args: { payload: Json }; Returns: Json };
       sync_product_ingredients: { Args: { target_product_id: string; ingredient_rows?: Json }; Returns: undefined };
