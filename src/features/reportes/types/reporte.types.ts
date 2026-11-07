@@ -24,7 +24,7 @@ export interface ReportFilters {
   to: string;
   allTime: boolean;
   status: ReportStatusFilter;
-  paymentMethod: 'all' | PaymentMethodCode;
+  paymentMethod: 'all' | PaymentMethodCode | 'combinado';
   deliveryMethod: 'all' | DeliveryMethod;
   source?: ReportSourceFilter;
   search: string;
@@ -44,6 +44,7 @@ export interface ReportOrder {
   deliveryDistanceKm: number | null;
   deliveryMapsUrl: string | null;
   paymentMethod: PaymentMethodCode;
+  paymentPreference: PaymentMethodCode | 'combinado';
   subtotal: number;
   deliveryCost: number;
   total: number;
