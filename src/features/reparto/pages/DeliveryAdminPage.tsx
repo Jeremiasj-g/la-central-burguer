@@ -24,6 +24,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'react-toastify';
 import { useBusinessConfig } from '@/features/configuracion/hooks/useBusinessConfig';
+import { OrderPaymentModal } from '@/features/cobros/components/OrderPaymentModal';
 import { formatRouteDuration } from '@/features/delivery/utils/delivery.utils';
 import { Button } from '@/shared/components/ui/Button';
 import { ConfirmDialog } from '@/shared/components/ui/ConfirmDialog';
@@ -308,6 +309,7 @@ export function DeliveryAdminPage() {
   const [historyTotal, setHistoryTotal] = useState(0);
   const [historyLoading, setHistoryLoading] = useState(false);
   const [historyDetail, setHistoryDetail] = useState<DeliveryHistoryItem | null>(null);
+  const [collectingOrderId, setCollectingOrderId] = useState<string | null>(null);
   const [helpTopic, setHelpTopic] = useState<DeliveryHelpTopic | null>(null);
   const [cashDetails, setCashDetails] = useState<DeliveryCashPendingItem[] | null>(null);
   const [cashDetailsLoading, setCashDetailsLoading] = useState(false);
@@ -434,6 +436,14 @@ export function DeliveryAdminPage() {
     if (!createdAt || dateKey(createdAt, businessTimeZone) !== dateKey(new Date(), businessTimeZone)) {
       return toast.warning('Solo podés asignar pedidos creados hoy. Los anteriores son solo de consulta.');
     }
+    const order = data.unassignedOrders.find(item => item.id === orderId);
+    if (order?.paymentTrackingEnabled && (
+      order.transferExpected === null || order.transferExpected === undefined
+      || (order.transferConfirmed ?? 0) < order.transferExpected
+    )) {
+      setCollectingOrderId(order.id);
+      return toast.warning('Definí y verificá la transferencia antes de asignar el reparto.');
+    }
     if (!driverId) return toast.info('Seleccioná un repartidor.');
     const driver = activeDrivers.find((item) => item.id === driverId);
     const baseCommission = driver?.commissionPercent ?? null;
@@ -507,7 +517,9 @@ export function DeliveryAdminPage() {
         deliveryFee: order.deliveryCost,
         commissionPercent: effectiveCommission,
         commissionAmount: order.deliveryCost * effectiveCommission / 100,
-        cashToCollect: order.paymentMethod === 'efectivo' ? order.total : 0,
+        cashToCollect: order.paymentTrackingEnabled
+          ? Math.max(0,order.total-(order.transferConfirmed ?? 0))
+          : order.paymentMethod === 'efectivo' ? order.total : 0,
         assignedAt: new Date().toISOString(),
         acceptedAt: null,
         pickedUpAt: null,
@@ -770,6 +782,10 @@ export function DeliveryAdminPage() {
                     const isCustomCommission = Boolean(selectedDriver && selectedDriver.commissionPercent !== null && Math.abs(commissionPercent - selectedDriver.commissionPercent) >= 0.005);
                     const commissionAmount = order.deliveryCost * commissionPercent / 100;
                     const canAssign = dateKey(order.createdAt, businessTimeZone) === todayKey;
+                    const paymentReady = !order.paymentTrackingEnabled || (
+                      order.transferExpected !== null && order.transferExpected !== undefined
+                      && (order.transferConfirmed ?? 0) >= order.transferExpected
+                    );
 
                     return (
                       <article key={order.id} className="border-b border-neutral-100 px-1 py-4 last:border-b-0 sm:px-2">
@@ -782,7 +798,20 @@ export function DeliveryAdminPage() {
                           <div className="text-right"><p className="font-semibold">{formatCurrency(order.total)}</p><p className="text-xs text-neutral-500">Envío {formatCurrency(order.deliveryCost)}</p></div>
                         </div>
 
-                        {canAssign ? (
+                        <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
+                          <span className={`text-[11px] ${paymentReady ? 'text-emerald-700' : 'text-amber-700'}`}>
+                            {order.paymentTrackingEnabled
+                              ? paymentReady
+                                ? `Transferencia verificada · Efectivo al entregar ${formatCurrency(Math.max(0,order.total-(order.transferConfirmed ?? 0)))}`
+                                : 'Transferencia por definir o verificar'
+                              : 'Cobro histórico según método declarado'}
+                          </span>
+                          <button type="button" onClick={() => setCollectingOrderId(order.id)}
+                            className="min-h-9 rounded-[10px] border border-neutral-200 px-3 text-[12px] font-medium text-neutral-700 hover:bg-neutral-50">
+                            Cobro
+                          </button>
+                        </div>
+                        {canAssign && paymentReady ? (
                           <>
                         <div className="mt-3 grid gap-2 sm:grid-cols-[minmax(0,1fr)_100px_auto]">
                           <SearchableSelect
@@ -825,7 +854,7 @@ export function DeliveryAdminPage() {
                         ) : (
                           <div className="mt-3 flex items-center gap-2 border-t border-neutral-100 pt-3 text-[11px] leading-5 text-neutral-500">
                             <History size={15} className="shrink-0" />
-                            Pedido anterior · disponible para consulta, no para asignar.
+                            {canAssign ? 'Confirmá la transferencia para habilitar la asignación.' : 'Pedido anterior · disponible para consulta, no para asignar.'}
                           </div>
                         )}
                       </article>
@@ -846,7 +875,10 @@ export function DeliveryAdminPage() {
                           <div className="flex flex-wrap items-center gap-2"><p className="break-words font-semibold text-central-carbon">{item.orderCode} · {item.customerName}</p><span className={`rounded-full border px-2.5 py-1 text-[11px] font-semibold ${statusClass(item.status)}`}>{STATUS_LABELS[item.status]}</span></div>
                           <p className="mt-1 text-xs text-neutral-500">{item.driverName} · comisión {formatCurrency(item.commissionAmount)} ({item.commissionPercent}%)</p>
                         </div>
-                        <div className="text-right"><p className="text-sm font-semibold">{item.paymentMethod === 'efectivo' ? `Cobrar ${formatCurrency(item.cashToCollect)}` : 'Transferencia'}</p><p className="text-xs text-neutral-500">Asignado {formatDateTime(item.assignedAt)}</p></div>
+                        <div className="text-right"><p className="text-sm font-semibold">
+                          {item.cashToCollect > 0 ? `Cobrar ${formatCurrency(item.cashToCollect)}`
+                            : item.paymentTrackingEnabled ? 'Sin efectivo a cobrar' : 'Transferencia'}
+                        </p><p className="text-xs text-neutral-500">Asignado {formatDateTime(item.assignedAt)}</p></div>
                       </div>
                       {canReassign ? (
                       <div className="mt-3 grid gap-2 sm:grid-cols-[minmax(0,1fr)_auto_auto]">
@@ -1174,6 +1206,12 @@ export function DeliveryAdminPage() {
           </div>
         ) : null}
       </Modal>
+
+      {collectingOrderId ? (
+        <OrderPaymentModal key={collectingOrderId} orderId={collectingOrderId}
+          onClose={() => setCollectingOrderId(null)}
+          onSaved={() => { void load(true); }}/>
+      ) : null}
 
       {driverModal ? <DriverModal driver={driverModal === 'new' ? undefined : driverModal} onClose={() => setDriverModal(null)} onSaved={() => void load(true)} /> : null}
 

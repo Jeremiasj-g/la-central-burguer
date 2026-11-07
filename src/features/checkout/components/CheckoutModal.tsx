@@ -102,6 +102,13 @@ export function CheckoutModal({ open, onClose, items, onOrderCreated }: Checkout
     () => config?.paymentMethods.filter((method) => method.active) ?? [],
     [config],
   );
+  const paymentChoices = useMemo(() => {
+    const bothEnabled = activePaymentMethods.some(m => m.type === 'efectivo')
+      && activePaymentMethods.some(m => m.type === 'transferencia');
+    return bothEnabled
+      ? [...activePaymentMethods, { id: 'mixto', type: 'mixto' as const, name: 'Efectivo y transferencia' }]
+      : activePaymentMethods;
+  }, [activePaymentMethods]);
   const { isLoading: isGettingLocation, isRetrying: isRetryingLocation, requestLocation, clearLocation } = useCurrentLocation();
   const isDelivery = values.deliveryMethod === 'delivery';
   const hasValidContact = values.customerName.trim().length >= 2
@@ -169,10 +176,10 @@ export function CheckoutModal({ open, onClose, items, onOrderCreated }: Checkout
 
   useEffect(() => {
     if (!activePaymentMethods.length) return;
-    if (!activePaymentMethods.some((method) => method.type === values.paymentMethod)) {
+    if (!paymentChoices.some((method) => method.type === values.paymentMethod)) {
       setValues((current) => ({ ...current, paymentMethod: activePaymentMethods[0].type }));
     }
-  }, [activePaymentMethods, values.paymentMethod]);
+  }, [activePaymentMethods, paymentChoices, values.paymentMethod]);
 
   function update<K extends keyof CheckoutFormValues>(key: K, value: CheckoutFormValues[K]) {
     clearError(key);
@@ -289,7 +296,7 @@ export function CheckoutModal({ open, onClose, items, onOrderCreated }: Checkout
   const canSendOrder = !isSubmitting
     && items.length > 0
     && hasValidContact
-    && activePaymentMethods.some(method => method.type === values.paymentMethod)
+    && paymentChoices.some(method => method.type === values.paymentMethod)
     && hasValidDeliveryQuote;
   const productCount = items.reduce((count, item) => count + item.quantity, 0);
 
@@ -493,9 +500,10 @@ export function CheckoutModal({ open, onClose, items, onOrderCreated }: Checkout
               </div>
               {activePaymentMethods.length ? (
                 <div className="grid grid-cols-2 gap-2.5" role="radiogroup" aria-label="Método de pago">
-                  {activePaymentMethods.map((method) => (
+                  {paymentChoices.map((method) => (
                     <label key={method.id} className={cn(
                       'lcb-checkout-choice flex min-w-0 cursor-pointer items-center gap-2.5 rounded-[12px] border px-3 py-3 text-[12px] font-medium transition-[border-color,background-color] duration-200 sm:px-4',
+                      method.type === 'mixto' ? 'col-span-2' : '',
                       values.paymentMethod === method.type ? 'border-central-orange/75 bg-central-orange/[.09] text-white' : 'border-white/10 bg-white/[.035] text-white/65 hover:border-white/25',
                     )}>
                       <input type="radio" name="checkout-payment-method" className="sr-only" checked={values.paymentMethod === method.type} onChange={() => update('paymentMethod', method.type)}/>
@@ -511,13 +519,15 @@ export function CheckoutModal({ open, onClose, items, onOrderCreated }: Checkout
                   No hay métodos de pago habilitados. Contactá al local.
                 </p>
               )}
-              <div aria-hidden={values.paymentMethod !== 'transferencia'} className={cn(
+              <div aria-hidden={!['transferencia','mixto'].includes(values.paymentMethod)} className={cn(
                 'grid transition-[grid-template-rows,opacity,margin-top] duration-200 ease-out motion-reduce:transition-none',
-                values.paymentMethod === 'transferencia' ? 'mt-2.5 grid-rows-[1fr] opacity-100' : 'mt-0 grid-rows-[0fr] opacity-0',
+                (values.paymentMethod === 'transferencia' || values.paymentMethod === 'mixto') ? 'mt-2.5 grid-rows-[1fr] opacity-100' : 'mt-0 grid-rows-[0fr] opacity-0',
               )}>
                 <div className="min-h-0 overflow-hidden">
                   <p className="text-[11px] leading-5 text-white/45">
-                    Los datos de transferencia se enviarán automáticamente en el mensaje de WhatsApp.
+                    {values.paymentMethod === 'mixto'
+                      ? 'Coordiná cuánto vas a transferir con el local. La acreditación se verificará antes de enviar el delivery.'
+                      : 'Los datos de transferencia se enviarán automáticamente en el mensaje de WhatsApp.'}
                   </p>
                 </div>
               </div>

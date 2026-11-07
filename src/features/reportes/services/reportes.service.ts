@@ -9,6 +9,7 @@ import type {
   ReportOrdersPage,
   ReportSettledDeliveryCommission,
 } from '../types/reporte.types';
+import { getPaymentMovementsForOrders } from '@/features/cobros/services/payment.service';
 
 const PAGE_SIZE = 1000;
 const ITEM_ID_CHUNK_SIZE = 180;
@@ -46,6 +47,8 @@ function mapOrder(row: OrderRow): ReportOrder {
     deliveryDistanceKm: row.delivery_distance_km === null ? null : Number(row.delivery_distance_km),
     deliveryMapsUrl: row.delivery_maps_url,
     paymentMethod: row.payment_method,
+    paymentPreference: row.payment_preference ?? row.payment_method,
+    paymentTrackingEnabled: row.payment_tracking_enabled,
     subtotal: Number(row.subtotal),
     deliveryCost: Number(row.delivery_cost),
     total: Number(row.total),
@@ -106,8 +109,7 @@ async function fetchOrders(filters: ReportFilters): Promise<ReportOrder[]> {
     if (filters.status === 'valid') query = query.neq('status', 'cancelado');
     if (filters.status === 'aceptado') query = query.eq('status', 'aceptado');
     if (filters.status === 'cancelado') query = query.eq('status', 'cancelado');
-    if (filters.paymentMethod !== 'all') query = query.eq('payment_method', filters.paymentMethod);
-    if (filters.deliveryMethod !== 'all') query = query.eq('delivery_method', filters.deliveryMethod);
+      if (filters.deliveryMethod !== 'all') query = query.eq('delivery_method', filters.deliveryMethod);
     if (filters.source && filters.source !== 'all') query = query.eq('source', filters.source);
 
     const search = sanitizeSearch(filters.search);
@@ -290,6 +292,18 @@ export async function getReportOrdersPage(
   }
 
   const safePageSize = Math.max(1, Math.min(10, Math.trunc(pageSize)));
+  // Los pedidos combinados requieren verificar movimientos, no un filtro
+  // directo por orders.payment_method (que conserva compatibilidad).
+  if (filters.paymentMethod !== 'all') {
+    const data = await getReportData(filters);
+    const safePage = Math.max(1, Math.trunc(page));
+    return {
+      orders: data.orders.slice((safePage-1)*safePageSize,safePage*safePageSize),
+      total: data.orders.length,
+      page: safePage,
+      pageSize: safePageSize,
+    };
+  }
   const safePage = Math.max(1, Math.trunc(page));
   const from = (safePage - 1) * safePageSize;
   const to = from + safePageSize - 1;
@@ -310,7 +324,6 @@ export async function getReportOrdersPage(
   if (filters.status === 'valid') query = query.neq('status', 'cancelado');
   if (filters.status === 'aceptado') query = query.eq('status', 'aceptado');
   if (filters.status === 'cancelado') query = query.eq('status', 'cancelado');
-  if (filters.paymentMethod !== 'all') query = query.eq('payment_method', filters.paymentMethod);
   if (filters.deliveryMethod !== 'all') query = query.eq('delivery_method', filters.deliveryMethod);
   if (filters.source && filters.source !== 'all') query = query.eq('source', filters.source);
 
@@ -341,13 +354,36 @@ export async function getReportData(filters: ReportFilters): Promise<ReportDatas
     throw new Error('La fecha desde no puede ser posterior a la fecha hasta.');
   }
 
-  const orders = await fetchOrders(filters);
+  const allOrders = await fetchOrders(filters);
+  const rawPayments = await getPaymentMovementsForOrders(allOrders.map(order => order.id));
+  const paymentBalances = new Map<string, number>();
+  for (const payment of rawPayments) {
+    const key = `${payment.order_id}:${payment.method}`;
+    const signed = payment.movement_type === 'receipt' ? Number(payment.amount) : -Number(payment.amount);
+    paymentBalances.set(key,(paymentBalances.get(key) ?? 0) + signed);
+  }
+  const orders = filters.paymentMethod === 'all'
+    ? allOrders
+    : allOrders.filter(order => order.paymentTrackingEnabled
+      ? (paymentBalances.get(`${order.id}:${filters.paymentMethod}`) ?? 0) > 0
+      : order.paymentMethod === filters.paymentMethod);
+  const ids = new Set(orders.map(order => order.id));
   const [items, settledDeliveryCommissions] = await Promise.all([
     fetchItems(orders.map((order) => order.id)),
     fetchSettledDeliveryCommissions(orders),
   ]);
+  const payments = rawPayments.filter(payment => ids.has(payment.order_id)).map(payment => ({
+    id: payment.id,
+    orderId: payment.order_id,
+    method: payment.method,
+    amount: Number(payment.amount),
+    movementType: payment.movement_type,
+    source: payment.source,
+    assignmentId: payment.assignment_id,
+    confirmedAt: payment.confirmed_at,
+  }));
 
-  return { orders, items, settledDeliveryCommissions };
+  return { orders, items, settledDeliveryCommissions, payments };
 }
 
 export async function getCompleteReportData(): Promise<ReportDataset> {

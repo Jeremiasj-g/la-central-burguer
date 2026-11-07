@@ -218,7 +218,7 @@ export function ReportTables({
                       <td className="px-4 py-3.5"><span className={`rounded-sm px-2 py-1 text-xs font-bold ${order.source === 'admin' ? 'bg-red-50 text-red-700' : order.source === 'import' ? 'bg-violet-50 text-violet-700' : 'bg-sky-50 text-sky-700'}`}>{formatOrderSource(order.source)}</span></td>
                       <td className="px-4 py-3.5"><p className="font-bold text-central-carbon">{order.customerName}</p><p className="text-xs text-neutral-500">{order.customerPhone}</p></td>
                       <td className="px-4 py-3.5 text-neutral-600">{order.deliveryMethod === 'delivery' ? 'Delivery' : 'Retiro local'}</td>
-                      <td className="px-4 py-3.5 text-neutral-600">{order.paymentMethod === 'transferencia' ? 'Transferencia' : 'Efectivo'}</td>
+                      <td className="px-4 py-3.5 text-neutral-600">{order.paymentPreference === 'mixto' ? 'Combinado' : order.paymentMethod === 'transferencia' ? 'Transferencia' : 'Efectivo'}</td>
                       <td className="px-4 py-3.5"><span className={`rounded-sm px-2 py-1 text-xs font-bold ${order.status === 'cancelado' ? 'bg-red-50 text-red-700' : 'bg-emerald-50 text-emerald-700'}`}>{order.status}</span></td>
                       <td className="px-4 py-3.5 text-right text-neutral-600">{formatCurrency(order.subtotal)}</td>
                       <td className="px-4 py-3.5 text-right text-neutral-600">{formatCurrency(order.deliveryCost)}</td>

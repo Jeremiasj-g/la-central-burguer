@@ -48,6 +48,10 @@ export interface DeliveryOrder {
   deliveryCost: number;
   total: number;
   paymentMethod: 'efectivo' | 'transferencia';
+  paymentPreference?: 'efectivo' | 'transferencia' | 'mixto';
+  paymentTrackingEnabled?: boolean;
+  transferExpected?: number | null;
+  transferConfirmed?: number;
   status: string;
   createdAt: string;
 }
@@ -70,6 +74,10 @@ export interface DeliveryAssignment {
   routeVia?: string | null;
   orderTotal: number;
   paymentMethod: 'efectivo' | 'transferencia';
+  paymentPreference?: 'efectivo' | 'transferencia' | 'mixto';
+  paymentTrackingEnabled?: boolean;
+  transferExpected?: number | null;
+  transferConfirmed?: number;
   driverId: string;
   driverName: string;
   status: DeliveryAssignmentStatus;
@@ -130,6 +138,10 @@ export interface DeliveryHistoryItem {
   orderTotal: number;
   deliveryFee: number;
   paymentMethod: 'efectivo' | 'transferencia';
+  paymentPreference?: 'efectivo' | 'transferencia' | 'mixto';
+  paymentTrackingEnabled?: boolean;
+  transferExpected?: number | null;
+  transferConfirmed?: number;
   driverId: string;
   driverName: string;
   vehicleType: DeliveryVehicleType;
@@ -184,6 +196,10 @@ export interface DeliveryDriverAssignment {
   routeVia?: string | null;
   orderTotal: number;
   paymentMethod: 'efectivo' | 'transferencia';
+  paymentPreference?: 'efectivo' | 'transferencia' | 'mixto';
+  paymentTrackingEnabled?: boolean;
+  transferExpected?: number | null;
+  transferConfirmed?: number;
   notes: string | null;
   status: DeliveryAssignmentStatus;
   deliveryFee: number;
@@ -212,6 +228,10 @@ export interface DeliveryDriverDeliveryDetail {
   orderTotal: number;
   deliveryFee: number;
   paymentMethod: 'efectivo' | 'transferencia';
+  paymentPreference?: 'efectivo' | 'transferencia' | 'mixto';
+  paymentTrackingEnabled?: boolean;
+  transferExpected?: number | null;
+  transferConfirmed?: number;
   cashToCollect: number;
   commissionPercent: number;
   commissionAmount: number;

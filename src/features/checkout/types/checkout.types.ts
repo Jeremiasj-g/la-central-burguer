@@ -5,7 +5,7 @@ import type {
 } from '@/features/delivery/types/delivery.types';
 
 export type DeliveryMethod = 'retiro_local' | 'delivery';
-export type PaymentMethodType = 'efectivo' | 'transferencia';
+export type PaymentMethodType = 'efectivo' | 'transferencia' | 'mixto';
 
 export interface CheckoutFormValues {
   customerName: string;

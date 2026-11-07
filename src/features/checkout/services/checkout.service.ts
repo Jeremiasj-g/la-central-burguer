@@ -74,7 +74,9 @@ export async function createCheckoutOrder(
 export async function buildWhatsappUrl(order: Order) {
   const config = await getBusinessConfig();
   const whatsappNumber = config.whatsappNumber.replace(/\D/g, '');
-  const paymentLabel = order.paymentMethod === 'transferencia' ? 'Transferencia' : 'Efectivo';
+  const preference = order.paymentPreference ?? order.paymentMethod;
+  const paymentLabel = preference === 'mixto' ? 'Efectivo y transferencia'
+    : preference === 'transferencia' ? 'Transferencia' : 'Efectivo';
   const deliveryLabel = order.deliveryMethod === 'delivery' ? 'Envío a domicilio' : 'Retiro en local';
 
   const lines = [
@@ -105,13 +107,14 @@ export async function buildWhatsappUrl(order: Order) {
     `*Total:* ${formatCurrency(order.total)}`,
     order.notes ? '------------------------------' : '',
     order.notes ? `*Observaciones:* ${order.notes}` : '',
-    order.paymentMethod === 'transferencia' ? '------------------------------' : '',
-    order.paymentMethod === 'transferencia' ? '*Elegiste método de pago transferencia.*' : '',
+    (preference === 'transferencia' || preference === 'mixto') ? '------------------------------' : '',
+    (preference === 'transferencia' || preference === 'mixto') ? (preference === 'mixto' ? '*Pago combinado: coordiná los importes con el local.*' : '*Elegiste transferencia bancaria.*') : '',
     order.paymentMethod === 'transferencia'
       ? 'A continuación te brindamos los datos para realizar el pago:'
       : '',
-    order.paymentMethod === 'transferencia' ? `*Alias:* ${config.transferAlias}` : '',
-    order.paymentMethod === 'transferencia' ? `*CVU:* ${config.transferCvu}` : '',
+    (preference === 'transferencia' || preference === 'mixto') ? `*Alias:* ${config.transferAlias}` : '',
+    (preference === 'transferencia' || preference === 'mixto') ? `*CVU:* ${config.transferCvu}` : '',
+    preference === 'mixto' ? '_La transferencia debe ser verificada por el local antes de enviar el reparto._' : '',
   ].filter(Boolean);
 
   return `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(lines.join('\n'))}`;

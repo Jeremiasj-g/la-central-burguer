@@ -44,6 +44,8 @@ export interface ReportOrder {
   deliveryDistanceKm: number | null;
   deliveryMapsUrl: string | null;
   paymentMethod: PaymentMethodCode;
+  paymentPreference?: PaymentMethodCode | 'mixto';
+  paymentTrackingEnabled?: boolean;
   subtotal: number;
   deliveryCost: number;
   total: number;
@@ -87,10 +89,27 @@ export interface ReportSettledDeliveryCommission {
   paidAt: string | null;
 }
 
+export interface ReportPayment {
+  id: string;
+  orderId: string;
+  method: PaymentMethodCode;
+  amount: number;
+  movementType: 'receipt' | 'reversal' | 'refund';
+  source: string;
+  assignmentId: string | null;
+  confirmedAt: string;
+}
+
+/** Signed amount: refunds and corrections reduce the confirmed balance. */
+export function signedReportPayment(payment: ReportPayment): number {
+  return payment.movementType === 'receipt' ? payment.amount : -payment.amount;
+}
+
 export interface ReportDataset {
   orders: ReportOrder[];
   items: ReportItem[];
   settledDeliveryCommissions: ReportSettledDeliveryCommission[];
+  payments?: ReportPayment[];
 }
 
 export interface ReportOrdersPage {

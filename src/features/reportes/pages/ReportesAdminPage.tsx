@@ -187,9 +187,24 @@ export function ReportesAdminPage() {
       orders,
       items: data.items.filter((item) => orderIds.has(item.orderId)),
       settledDeliveryCommissions: data.settledDeliveryCommissions.filter((commission) => orderIds.has(commission.orderId)),
+      payments: (data.payments ?? []).filter(payment => orderIds.has(payment.orderId)),
     };
   }, [data, appliedFilters.source]);
   const summary = useMemo(() => getReportSummary(filteredData), [filteredData]);
+  const paymentTotals = useMemo(() => {
+    const validOrders = filteredData.orders.filter(order=>order.status!=='cancelado');
+    const verifiedIds = new Set(validOrders.filter(order=>order.paymentTrackingEnabled).map(order=>order.id));
+    const confirmed = (filteredData.payments ?? []).reduce((sum,payment)=>
+      sum + (verifiedIds.has(payment.orderId) ? (payment.movementType==='receipt' ? payment.amount : -payment.amount) : 0),0);
+    const trackedRevenue = validOrders.filter(order=>order.paymentTrackingEnabled).reduce((sum,order)=>sum+order.total,0);
+    const historicalDeclared = validOrders.filter(order=>!order.paymentTrackingEnabled).length;
+    return {
+      confirmed,
+      pending: Math.max(0,trackedRevenue-confirmed),
+      historicalDeclared,
+      tracked: verifiedIds.size,
+    };
+  },[filteredData]);
   const groups = useMemo(() => groupReport(filteredData, groupBy), [filteredData, groupBy]);
   const earliestOrderDate = useMemo(() => getEarliestOrderDate(filteredData.orders), [filteredData.orders]);
 
@@ -363,6 +378,26 @@ export function ReportesAdminPage() {
         <MetricCard label="Cancelaciones" value={summary.cancelledOrders} detail={`${(summary.cancellationRate * 100).toFixed(1)}% de los pedidos`} icon={Ban} formatter={formatNumber} />
       </section>
 
+      {paymentTotals.tracked>0 || paymentTotals.historicalDeclared>0 ? (
+        <section className="mb-5 border-b border-neutral-200 pb-5" aria-label="Recaudación y cobros">
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div><h2 className="text-[16px] font-semibold text-neutral-900">Cobros y medios de pago</h2>
+              <p className="mt-1 text-[11px] leading-5 text-neutral-500">
+                La facturación se calcula por venta; el cobro se confirma por movimiento.
+              </p>
+            </div>
+            <div className="flex flex-wrap gap-x-5 gap-y-2 text-[12px]">
+              <span><span className="text-neutral-500">Confirmado: </span><strong>{formatCurrency(paymentTotals.confirmed)}</strong></span>
+              <span><span className="text-neutral-500">Pendiente: </span><strong>{formatCurrency(paymentTotals.pending)}</strong></span>
+            </div>
+          </div>
+          {paymentTotals.historicalDeclared>0 ? (
+            <p className="mt-2 text-[11px] leading-5 text-amber-700">
+              Incluye {paymentTotals.historicalDeclared} pedidos anteriores sin verificación de cobros: se clasifican por medio declarado. No representan dinero acreditado.
+            </p>
+          ) : null}
+        </section>
+      ) : null}
       <section className="mb-5 mt-9 flex min-w-0 flex-col justify-between gap-4 border-b border-neutral-200 pb-4 sm:flex-row sm:items-center">
         <div className="min-w-0">
           <h2 className="text-[21px] font-semibold tracking-[-.035em] text-neutral-950">Análisis de actividad</h2>

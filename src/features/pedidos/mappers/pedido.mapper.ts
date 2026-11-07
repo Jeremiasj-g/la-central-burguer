@@ -23,7 +23,8 @@ export function mapOrderRow(row: OrderRow, items: OrderItem[] = [], timeline: Or
     deliveryRouteVia: row.delivery_route_via ?? undefined,
     deliveryRouteQuotedAt: row.delivery_route_quoted_at ?? undefined,
     deliveryMapsUrl: row.delivery_maps_url ?? undefined,
-    paymentMethod: row.payment_method, items, subtotal: Number(row.subtotal), deliveryCost: Number(row.delivery_cost), total: Number(row.total),
+    paymentMethod: row.payment_method, paymentPreference: row.payment_preference ?? row.payment_method,
+    paymentTrackingEnabled: row.payment_tracking_enabled, items, subtotal: Number(row.subtotal), deliveryCost: Number(row.delivery_cost), total: Number(row.total),
     status: row.status, notes: row.notes ?? undefined, timeline, createdAt: row.created_at, updatedAt: row.updated_at,
   };
 }

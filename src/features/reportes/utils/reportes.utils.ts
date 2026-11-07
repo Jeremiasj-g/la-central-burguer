@@ -224,6 +224,45 @@ export function groupReport(dataset: ReportDataset, groupBy: ReportGroupBy): Rep
     return toGroupRows(groups, itemRevenue);
   }
 
+  if (groupBy === 'payment') {
+    const groups = new Map<string, MutableGroup>();
+    const movementsByOrder = new Map<string, NonNullable<ReportDataset['payments']>>();
+    for (const payment of dataset.payments ?? []) {
+      const list = movementsByOrder.get(payment.orderId) ?? [];
+      list.push(payment);
+      movementsByOrder.set(payment.orderId,list);
+    }
+    const add = (method: string, orderId: string, amount: number, units: number, delivery: number) => {
+      if (Math.abs(amount)<0.005) return;
+      const label = method==='transferencia' ? 'Transferencia' : 'Efectivo';
+      const row = groups.get(method) ?? {key:method,label,orderIds:new Set<string>(),
+        cancelledOrders:0,units:0,revenue:0,deliveryRevenue:0};
+      row.orderIds.add(orderId);
+      row.revenue += amount;
+      row.units += units;
+      row.deliveryRevenue += delivery;
+      groups.set(method,row);
+    };
+    for (const order of validOrders) {
+      const units = unitsByOrder.get(order.id) ?? 0;
+      if (!order.paymentTrackingEnabled) {
+        add(order.paymentMethod,order.id,order.total,units,order.deliveryCost);
+        continue;
+      }
+      const balances = { efectivo:0, transferencia:0 };
+      for (const payment of movementsByOrder.get(order.id) ?? []) {
+        balances[payment.method] += payment.movementType==='receipt' ? payment.amount : -payment.amount;
+      }
+      for (const method of ['efectivo','transferencia'] as const) {
+        const amount = balances[method];
+        const share = order.total > 0 ? amount/order.total : 0;
+        add(method,order.id,amount,Math.round(units*share),
+          Math.round(order.deliveryCost*share*100)/100);
+      }
+    }
+    return toGroupRows(groups,totalRevenue);
+  }
+
   const groups = new Map<string, MutableGroup>();
   for (const order of dataset.orders) {
     const descriptor = orderGroupDescriptor(

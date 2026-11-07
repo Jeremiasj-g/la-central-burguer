@@ -108,7 +108,7 @@ export async function getDeliveryHistoryPage({
 
   const { data: orders, error: ordersError } = await supabase
     .from('orders')
-    .select('id,order_code,status,created_at,customer_name,customer_phone,address,delivery_maps_url,delivery_distance_km,delivery_route_distance_km,delivery_straight_distance_km,delivery_route_duration_seconds,delivery_route_provider,delivery_travel_mode,delivery_route_via,subtotal,total,delivery_cost,payment_method')
+    .select('id,order_code,status,created_at,customer_name,customer_phone,address,delivery_maps_url,delivery_distance_km,delivery_route_distance_km,delivery_straight_distance_km,delivery_route_duration_seconds,delivery_route_provider,delivery_travel_mode,delivery_route_via,subtotal,total,delivery_cost,payment_method,payment_preference,payment_tracking_enabled')
     .in('id', orderIds);
 
   if (ordersError) throw new Error(ordersError.message);
@@ -175,6 +175,19 @@ export async function getDeliveryHistoryPage({
   const rateMap = new Map((rates ?? []).map((row) => [row.id, row]));
   const profileMap = new Map((profiles ?? []).map((row) => [row.id, row]));
   const driverMap = new Map((drivers ?? []).map((row) => [row.profile_id, row]));
+  const { data: paymentRows, error: paymentError } = await supabase
+    .from('order_payment_movements')
+    .select('assignment_id,amount,movement_type')
+    .in('assignment_id', assignmentIds);
+  if (paymentError) throw new Error(paymentError.message);
+  const receivedCashByAssignment = new Map<string, number>();
+  for (const payment of paymentRows ?? []) {
+    if (!payment.assignment_id) continue;
+    const sign = payment.movement_type === 'receipt' ? 1 : -1;
+    receivedCashByAssignment.set(payment.assignment_id,
+      (receivedCashByAssignment.get(payment.assignment_id) ?? 0) + sign * Number(payment.amount));
+  }
+
   const compensationMap = new Map((compensations ?? []).map((row) => [row.assignment_id, row]));
   const settlementItemMap = new Map((settlementItems ?? []).map((row) => [row.assignment_id, row]));
   const settlementMap = new Map(settlements.map((row) => [row.id, row]));
@@ -242,7 +255,9 @@ export async function getDeliveryHistoryPage({
         status: assignment.status,
         commissionPercent,
         commissionAmount: Math.round((deliveryFee * commissionPercent / 100) * 100) / 100,
-        cashToCollect: order?.payment_method === 'efectivo' ? Number(order.total) : 0,
+        cashToCollect: order?.payment_tracking_enabled
+          ? Math.max(0,receivedCashByAssignment.get(assignment.id) ?? 0)
+          : order?.payment_method === 'efectivo' ? Number(order.total) : 0,
         assignedAt: assignment.assigned_at,
         acceptedAt: assignment.accepted_at,
         pickedUpAt: assignment.picked_up_at,

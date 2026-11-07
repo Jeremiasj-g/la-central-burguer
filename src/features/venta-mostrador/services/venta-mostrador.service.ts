@@ -3,7 +3,7 @@ import { requireSupabaseConfigured } from '@/lib/config/env';
 import type { Database, OrderStatus } from '@/lib/supabase/database.types';
 
 export type CounterServiceMode = 'takeaway' | 'dine_in';
-export type CounterPaymentMethod = 'efectivo' | 'transferencia';
+export type CounterPaymentMethod = 'efectivo' | 'transferencia' | 'mixto';
 
 type OrderRow = Database['public']['Tables']['orders']['Row'];
 type OrderItemRow = Database['public']['Tables']['order_items']['Row'];
@@ -18,6 +18,7 @@ export interface CreateCounterSaleInput {
   customerPhone?: string;
   serviceMode: CounterServiceMode;
   paymentMethod: CounterPaymentMethod;
+  transferAmount?: number;
   notes?: string;
   items: CounterSaleItemInput[];
 }
@@ -35,6 +36,7 @@ export interface CounterSaleListItem {
   customerPhone: string;
   serviceMode: CounterServiceMode;
   paymentMethod: CounterPaymentMethod;
+  paymentPreference: CounterPaymentMethod;
   subtotal: number;
   total: number;
   status: OrderStatus;
@@ -213,7 +215,7 @@ async function prepareSaleItems(
 }
 
 function mapCounterSale(
-  row: Pick<OrderRow, 'id' | 'order_code' | 'customer_name' | 'customer_phone' | 'payment_method' | 'subtotal' | 'total' | 'status' | 'notes' | 'created_at' | 'updated_at'>,
+  row: Pick<OrderRow, 'id' | 'order_code' | 'customer_name' | 'customer_phone' | 'payment_method' | 'payment_preference' | 'subtotal' | 'total' | 'status' | 'notes' | 'created_at' | 'updated_at'>,
   itemCount: number,
 ): CounterSaleListItem {
   const parsed = parseCounterNotes(row.notes);
@@ -224,6 +226,7 @@ function mapCounterSale(
     customerPhone: row.customer_phone,
     serviceMode: parsed.serviceMode,
     paymentMethod: row.payment_method,
+    paymentPreference: row.payment_preference ?? row.payment_method,
     subtotal: Number(row.subtotal),
     total: Number(row.total),
     status: row.status,
@@ -236,56 +239,25 @@ function mapCounterSale(
 
 export async function createCounterSale(input: CreateCounterSaleInput): Promise<CounterSaleResult> {
   requireSupabaseConfigured('registrar una venta de mostrador');
-
-  const supabase = getSupabaseBrowserClient();
-  const [{ subtotal, itemRows }, customer] = await Promise.all([
-    prepareSaleItems(input),
-    resolveCustomer(input.customerName, input.customerPhone),
-  ]);
-
-  const { data: orderCode, error: orderCodeError } = await (supabase.rpc as unknown as (
-    functionName: string,
-    args?: Record<string, never>,
-  ) => Promise<{ data: string | null; error: { message: string } | null }>)('generate_order_code');
-
-  if (orderCodeError || !orderCode) {
-    throw new Error(orderCodeError?.message || 'No se pudo generar el código de la venta.');
-  }
-
-  const { data: order, error: orderError } = await supabase
-    .from('orders')
-    .insert({
-      order_code: orderCode,
-      customer_id: customer.customerId,
-      customer_name: customer.customerName,
-      customer_phone: customer.customerPhone,
-      delivery_method: 'retiro_local',
-      payment_method: input.paymentMethod,
-      subtotal,
-      delivery_cost: 0,
-      status: 'entregado',
+  if (!input.items.length) throw new Error('Agregá al menos un producto.');
+  const customer = await resolveCustomer(input.customerName, input.customerPhone);
+  const { data, error } = await getSupabaseBrowserClient().rpc('admin_create_counter_sale', {
+    checkout: {
+      customerId: customer.customerId,
+      customerName: customer.customerName,
+      customerPhone: customer.customerPhone,
+      paymentMethod: input.paymentMethod,
+      transferAmount: input.transferAmount ?? null,
       notes: buildCounterNotes(input.serviceMode, input.notes),
-      source: 'admin',
-    })
-    .select('id,order_code,total')
-    .single();
-
-  if (orderError) throw new Error(orderError.message);
-
-  const { error: itemsError } = await supabase.from('order_items').insert(
-    itemRows.map((row) => ({ ...row, order_id: order.id })),
-  );
-
-  if (itemsError) {
-    await supabase.from('orders').delete().eq('id', order.id);
-    throw new Error(itemsError.message);
+      items: input.items,
+    },
+  });
+  if (error) throw new Error(error.message);
+  if (!data || typeof data !== 'object' || Array.isArray(data)) {
+    throw new Error('La venta no devolvió una confirmación válida.');
   }
-
-  return {
-    orderId: order.id,
-    orderCode: order.order_code,
-    total: Number(order.total),
-  };
+  const result = data as { orderId: string; orderCode: string; total: number };
+  return { orderId: result.orderId, orderCode: result.orderCode, total: Number(result.total) };
 }
 
 export async function getCounterSales({
@@ -305,7 +277,7 @@ export async function getCounterSales({
 
   const { data, error, count } = await supabase
     .from('orders')
-    .select('id,order_code,customer_name,customer_phone,payment_method,subtotal,total,status,notes,created_at,updated_at', { count: 'exact' })
+    .select('id,order_code,customer_name,customer_phone,payment_method,payment_preference,subtotal,total,status,notes,created_at,updated_at', { count: 'exact' })
     .eq('source', 'admin')
     .like('notes', `${COUNTER_NOTE_PREFIX}%`)
     .order('created_at', { ascending: false })
@@ -344,7 +316,7 @@ export async function getCounterSaleForEdit(orderId: string): Promise<CounterSal
   const supabase = getSupabaseBrowserClient();
   const { data: order, error: orderError } = await supabase
     .from('orders')
-    .select('id,order_code,customer_name,customer_phone,payment_method,subtotal,total,status,notes,created_at,updated_at')
+    .select('id,order_code,customer_name,customer_phone,payment_method,payment_preference,subtotal,total,status,notes,created_at,updated_at')
     .eq('id', orderId)
     .eq('source', 'admin')
     .like('notes', `${COUNTER_NOTE_PREFIX}%`)
@@ -466,7 +438,7 @@ export async function updateCounterSale(
       customer_id: customer.customerId,
       customer_name: customer.customerName,
       customer_phone: customer.customerPhone,
-      payment_method: input.paymentMethod,
+      payment_method: input.paymentMethod === 'mixto' ? 'efectivo' : input.paymentMethod,
       subtotal,
       notes: buildCounterNotes(input.serviceMode, input.notes),
     })

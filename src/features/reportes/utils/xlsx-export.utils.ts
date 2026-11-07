@@ -306,6 +306,37 @@ function groupColumns(firstHeader = 'Grupo'): ExportColumn[] {
   ];
 }
 
+function paymentMovementSheet(dataset: ReportDataset, subtitle: string): ExportSheet {
+  const orderMap = new Map(dataset.orders.map(order=>[order.id,order]));
+  return {
+    name:'Movimientos cobro',
+    title:'Cobros confirmados y correcciones',
+    subtitle: subtitle + ' · Fecha del cobro distinta de fecha del pedido. No incluye medios antiguos sin verificar.',
+    columns:[
+      {header:'ID movimiento',key:'id',width:38},
+      {header:'ID pedido',key:'orderId',width:38},
+      {header:'Código pedido',key:'orderCode',width:21},
+      {header:'Fecha venta',key:'orderDate',width:23},
+      {header:'Fecha cobro',key:'confirmedAt',width:23},
+      {header:'Medio',key:'method',width:18},
+      {header:'Movimiento',key:'movementType',width:18},
+      {header:'Importe neto',key:'amount',width:18,kind:'currency'},
+      {header:'Origen',key:'source',width:16},
+      {header:'ID reparto',key:'assignmentId',width:38},
+    ],
+    rows:(dataset.payments ?? []).map(payment=>{
+      const order=orderMap.get(payment.orderId);
+      return {
+        id:payment.id,orderId:payment.orderId,orderCode:order?.orderCode??'',
+        orderDate:order?.createdAt??'',confirmedAt:payment.confirmedAt,
+        method:payment.method,movementType:payment.movementType,
+        amount:payment.movementType==='receipt' ? payment.amount : -payment.amount,
+        source:payment.source,assignmentId:payment.assignmentId,
+      };
+    }),
+  };
+}
+
 function buildSheets(
   dataset: ReportDataset,
   filters: ReportFilters,
@@ -333,7 +364,7 @@ function buildSheets(
     cliente: order.customerName,
     telefono: order.customerPhone,
     entrega: order.deliveryMethod === 'delivery' ? 'Delivery' : 'Retiro local',
-    pago: order.paymentMethod === 'transferencia' ? 'Transferencia' : 'Efectivo',
+    pago: order.paymentPreference === 'mixto' ? 'Combinado' : order.paymentMethod === 'transferencia' ? 'Transferencia' : 'Efectivo',
     estado: order.status,
     subtotal: order.subtotal,
     delivery: order.deliveryCost,
@@ -383,7 +414,7 @@ function buildSheets(
         { header: 'Cliente', key: 'cliente', width: 26 },
         { header: 'Teléfono', key: 'telefono', width: 18 },
         { header: 'Entrega', key: 'entrega', width: 16 },
-        { header: 'Pago', key: 'pago', width: 16 },
+        { header: 'Pago declarado', key: 'pago', width: 19 },
         { header: 'Estado', key: 'estado', width: 14 },
         { header: 'Subtotal', key: 'subtotal', width: 15, kind: 'currency' },
         { header: 'Delivery', key: 'delivery', width: 15, kind: 'currency' },
@@ -457,10 +488,11 @@ function buildSheets(
     {
       name: 'Medios de pago',
       title: 'Consolidado por método de pago',
-      subtitle,
+      subtitle: subtitle + ' · Histórico por medio declarado; nuevas ventas por cobros netos confirmados',
       columns: groupColumns('Método de pago'),
       rows: groupRows(groupReport(dataset, 'payment')),
     },
+    paymentMovementSheet(dataset,subtitle),
     {
       name: 'Entregas',
       title: 'Consolidado por tipo de entrega',
@@ -493,7 +525,8 @@ const RAW_COLUMNS: ExportColumn[] = [
   { header: 'Longitud cliente', key: 'longitud', width: 16 },
   { header: 'Distancia delivery km', key: 'distancia', width: 20 },
   { header: 'URL mapa', key: 'mapa', width: 42 },
-  { header: 'Método de pago', key: 'pago', width: 18 },
+  { header: 'Pago declarado', key: 'pago', width: 18 },
+  { header: 'Cobro registrado',key:'cobroRegistrado',width:22 },
   { header: 'Subtotal pedido', key: 'subtotalPedido', width: 18 },
   { header: 'Costo delivery pedido', key: 'deliveryPedido', width: 22 },
   { header: 'Total pedido', key: 'totalPedido', width: 18 },
@@ -575,7 +608,8 @@ function buildRawRows(dataset: ReportDataset) {
         longitud: order.customerLongitude,
         distancia: order.deliveryDistanceKm,
         mapa: order.deliveryMapsUrl,
-        pago: order.paymentMethod,
+        pago: order.paymentPreference ?? order.paymentMethod,
+        cobroRegistrado: order.paymentTrackingEnabled ? 'Movimientos verificados' : 'Histórico · sin verificar',
         subtotalPedido: order.subtotal,
         deliveryPedido: order.deliveryCost,
         totalPedido: order.total,
@@ -660,7 +694,7 @@ export function buildRawReportWorkbookBytes(dataset: ReportDataset) {
     rows: buildRawRows(dataset),
   };
 
-  return buildWorkbookBytes([rawSheet], true);
+  return buildWorkbookBytes([rawSheet,paymentMovementSheet(dataset,'Cobros registrados · fecha de cobro independiente de venta')], true);
 }
 
 export function exportReportToExcel(params: {

@@ -1,6 +1,6 @@
 'use client';
 
-import { CalendarDays, ExternalLink, MapPin, Pencil, Truck, UserRound, XCircle } from 'lucide-react';
+import { Banknote, CalendarDays, ExternalLink, MapPin, Pencil, Truck, UserRound, XCircle } from 'lucide-react';
 import { businessDate } from '@/features/promociones/utils/descuentos.utils';
 import type { Order } from '../types/pedido.types';
 import { formatCurrency, formatDateTime } from '@/shared/utils/format.utils';
@@ -9,6 +9,7 @@ type PedidosTableProps = {
   orders: Order[];
   onCancelOrder: (id: string) => void;
   onEditOrder: (order: Order) => void;
+  onCollectOrder: (order: Order) => void;
   businessTimeZone?: string;
 };
 
@@ -69,10 +70,19 @@ function EditOrderButton({ order, onEditOrder, compact = false }: {
   );
 }
 
-function OrderCard({ order, onCancelOrder, onEditOrder, businessTimeZone }: {
+function CollectOrderButton({ order, onCollectOrder }: { order: Order; onCollectOrder: (order: Order) => void }) {
+  return <button type="button" onClick={() => onCollectOrder(order)}
+    title="Ver cobros y saldos del pedido" aria-label={`Gestionar cobro de ${order.orderCode}`}
+    className="inline-flex min-h-10 items-center justify-center gap-1.5 rounded-[10px] border border-neutral-200 bg-white px-3 text-[11px] font-medium text-neutral-700 transition-colors duration-200 hover:bg-neutral-50">
+    <Banknote size={14} strokeWidth={1.7}/> Cobro
+  </button>;
+}
+
+function OrderCard({ order, onCancelOrder, onEditOrder, onCollectOrder, businessTimeZone }: {
   order: Order;
   onCancelOrder: (id: string) => void;
   onEditOrder: (order: Order) => void;
+  onCollectOrder: (order: Order) => void;
   businessTimeZone?: string;
 }) {
   const products = order.items.map((item) => `${item.quantity}x ${item.productName}`).join(', ');
@@ -139,6 +149,7 @@ function OrderCard({ order, onCancelOrder, onEditOrder, businessTimeZone }: {
           ) : null}
         </div>
         <div className="flex shrink-0 flex-wrap items-center justify-end gap-2">
+          <CollectOrderButton order={order} onCollectOrder={onCollectOrder}/>
           {isEditableToday(order, businessTimeZone) ? <EditOrderButton order={order} onEditOrder={onEditOrder} /> : null}
           <CancelOrderButton order={order} onCancelOrder={onCancelOrder} compact />
         </div>
@@ -147,11 +158,11 @@ function OrderCard({ order, onCancelOrder, onEditOrder, businessTimeZone }: {
   );
 }
 
-export function PedidosTable({ orders, onCancelOrder, onEditOrder, businessTimeZone }: PedidosTableProps) {
+export function PedidosTable({ orders, onCancelOrder, onEditOrder, onCollectOrder, businessTimeZone }: PedidosTableProps) {
   return (
     <section aria-label="Resultados de pedidos" className="min-w-0">
       <div className="grid min-w-0 gap-3 sm:grid-cols-2 xl:hidden">
-        {orders.map((order) => <OrderCard key={order.id} order={order} onCancelOrder={onCancelOrder} onEditOrder={onEditOrder} businessTimeZone={businessTimeZone} />)}
+        {orders.map((order) => <OrderCard key={order.id} order={order} onCancelOrder={onCancelOrder} onEditOrder={onEditOrder} onCollectOrder={onCollectOrder} businessTimeZone={businessTimeZone} />)}
       </div>
 
       <div className="hidden min-w-0 overflow-hidden rounded-[20px] border border-neutral-200/75 bg-white shadow-soft xl:block">
@@ -226,6 +237,7 @@ export function PedidosTable({ orders, onCancelOrder, onEditOrder, businessTimeZ
                   </td>
                   <td className="px-2 py-3.5 text-right align-top">
                     <div className="flex flex-col items-end gap-2 2xl:flex-row 2xl:justify-end">
+                      <CollectOrderButton order={order} onCollectOrder={onCollectOrder}/>
                       {isEditableToday(order, businessTimeZone) ? <EditOrderButton order={order} onEditOrder={onEditOrder} compact /> : null}
                       <CancelOrderButton order={order} onCancelOrder={onCancelOrder} compact />
                     </div>

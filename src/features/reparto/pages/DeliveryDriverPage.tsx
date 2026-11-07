@@ -33,6 +33,7 @@ import {
   isDeliveryDriverLoggedIn,
   logoutDeliveryDriver,
   rejectDeliveryAssignment,
+  reportDeliveryPaymentIssue,
   showLocalDeliveryAssignmentNotification,
   subscribeToDriverDeliveries,
 } from '../services/delivery-driver.service';
@@ -179,11 +180,13 @@ function AssignmentCard({
   busy,
   onAdvance,
   onReject,
+  onPaymentIssue,
 }: {
   item: DeliveryDriverAssignment;
   busy: boolean;
   onAdvance: (item: DeliveryDriverAssignment) => void;
   onReject: (item: DeliveryDriverAssignment) => void;
+  onPaymentIssue: (item: DeliveryDriverAssignment) => void;
 }) {
   const transition = NEXT_STATUS[item.status];
   const meta = STATUS_META[item.status];
@@ -233,7 +236,8 @@ function AssignmentCard({
             <div className="p-3.5">
               <p className="text-[11px] text-[#8E8E93]">Cobro al cliente</p>
               <p className="mt-1 text-[14px] font-semibold text-[#1C1C1E]">
-                {item.paymentMethod === 'efectivo' ? formatCurrency(item.cashToCollect) : 'Transferencia'}
+                {item.cashToCollect > 0 ? formatCurrency(item.cashToCollect)
+                  : item.paymentTrackingEnabled ? 'No cobrar · verificado' : 'Transferencia'}
               </p>
             </div>
             <div className="p-3.5">
@@ -284,6 +288,12 @@ function AssignmentCard({
           </button>
         ) : null}
 
+        {['accepted','picked_up','in_transit'].includes(item.status) ? (
+          <button type="button" onClick={() => onPaymentIssue(item)} disabled={busy}
+            className="flex min-h-10 w-full items-center justify-center gap-2 rounded-[14px] bg-[#FFF7E8] px-3 text-[12px] font-medium text-[#946000] disabled:opacity-50">
+            <WalletCards size={15}/> Problema con el cobro
+          </button>
+        ) : null}
         <button
           type="button"
           onClick={() => onReject(item)}
@@ -380,8 +390,11 @@ function DeliveryDetailSheet({ detail, loading, open, onClose }: { detail: Deliv
             <DetailRow label="Subtotal" value={formatCurrency(detail.subtotal)} />
             <DetailRow label="Envío" value={formatCurrency(detail.deliveryFee)} />
             <DetailRow label="Total del pedido" value={formatCurrency(detail.orderTotal)} />
-            <DetailRow label="Forma de pago" value={detail.paymentMethod === 'efectivo' ? 'Efectivo' : 'Transferencia'} />
-            {detail.paymentMethod === 'efectivo' ? <DetailRow label="Efectivo cobrado" value={formatCurrency(detail.cashToCollect)} /> : null}
+            <DetailRow label="Forma de pago" value={detail.paymentPreference === 'mixto' ? 'Combinado'
+                : detail.paymentMethod === 'efectivo' ? 'Efectivo' : 'Transferencia'} />
+            {detail.cashToCollect > 0 ? <DetailRow label="Efectivo recibido" value={formatCurrency(detail.cashToCollect)} /> : null}
+              {detail.paymentTrackingEnabled && (detail.transferConfirmed ?? 0) > 0
+                ? <DetailRow label="Transferencia verificada por el local" value={formatCurrency(detail.transferConfirmed ?? 0)}/> : null}
             <DetailRow label={`Tu comisión · ${detail.commissionPercent}%`} value={`+${formatCurrency(detail.commissionAmount)}`} accent="#34C759" />
           </div>
 
@@ -415,6 +428,8 @@ export function DeliveryDriverPage() {
   const [rejectingItem, setRejectingItem] = useState<DeliveryDriverAssignment | null>(null);
   const [rejectionReason, setRejectionReason] = useState<string>(REJECTION_REASONS[0]);
   const [rejectionDetail, setRejectionDetail] = useState('');
+  const [paymentIssueItem, setPaymentIssueItem] = useState<DeliveryDriverAssignment | null>(null);
+  const [paymentIssueText, setPaymentIssueText] = useState('');
   const [detailId, setDetailId] = useState<string | null>(null);
   const [deliveryDetail, setDeliveryDetail] = useState<DeliveryDriverDeliveryDetail | null>(null);
   const [detailLoading, setDetailLoading] = useState(false);
@@ -532,10 +547,29 @@ export function DeliveryDriverPage() {
     };
   }, [load, router]);
 
+  async function sendPaymentIssue() {
+    if (!paymentIssueItem || paymentIssueText.trim().length < 8) return;
+    setBusyId(paymentIssueItem.id);
+    try {
+      await reportDeliveryPaymentIssue(paymentIssueItem.id, paymentIssueText.trim());
+      toast.info('Avisamos al local. No marques la entrega como cobrada hasta resolverlo.');
+      setPaymentIssueItem(null);
+      setPaymentIssueText('');
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'No pudimos informar el problema.');
+    } finally {
+      setBusyId(null);
+    }
+  }
+
   async function handleAdvance(item: DeliveryDriverAssignment) {
     const transition = NEXT_STATUS[item.status];
     if (!transition) return;
-    if (transition.next === 'delivered' && !confirm(`¿Confirmás que entregaste el pedido ${item.orderCode}?`)) return;
+    if (transition.next === 'delivered' && !confirm(
+      item.cashToCollect > 0
+        ? `¿Confirmás que entregaste el pedido ${item.orderCode} y recibiste ${formatCurrency(item.cashToCollect)} en efectivo? Se registrará ese importe para rendir al local.`
+        : `¿Confirmás la entrega de ${item.orderCode}? No debés cobrar efectivo al cliente.`,
+    )) return;
 
     setBusyId(item.id);
     try {
@@ -654,7 +688,9 @@ export function DeliveryDriverPage() {
 
           <div className="space-y-4">
             {data.activeAssignments.map((item) => (
-              <AssignmentCard key={item.id} item={item} busy={busyId === item.id} onAdvance={(assignment) => void handleAdvance(assignment)} onReject={setRejectingItem} />
+              <AssignmentCard key={item.id} item={item} busy={busyId === item.id}
+                onAdvance={(assignment) => void handleAdvance(assignment)}
+                onReject={setRejectingItem} onPaymentIssue={setPaymentIssueItem} />
             ))}
 
             {data.activeAssignments.length === 0 ? (
@@ -723,6 +759,31 @@ export function DeliveryDriverPage() {
             <textarea value={rejectionDetail} onChange={(event) => setRejectionDetail(event.target.value)} rows={3} maxLength={240} placeholder={rejectionReason === 'Otro motivo' ? 'Contanos qué ocurrió…' : 'Podés agregar un detalle…'} className="w-full resize-none bg-transparent text-[14px] leading-5 text-[#1C1C1E] outline-none placeholder:text-[#C7C7CC]" />
           </label>
           <button type="button" onClick={() => void handleReject()} disabled={!rejectingItem || busyId === rejectingItem.id} className="flex h-12 w-full cursor-pointer items-center justify-center gap-2 rounded-[15px] bg-[#FF3B30] text-[15px] font-semibold text-white transition active:scale-[0.985] disabled:opacity-50"><XCircle size={16} /> Confirmar rechazo</button>
+        </div>
+      </Sheet>
+
+      <Sheet open={Boolean(paymentIssueItem)} onClose={() => { setPaymentIssueItem(null); setPaymentIssueText(''); }} title="Problema con el cobro">
+        <div className="space-y-4">
+          <p className="text-[13px] leading-5 text-[#636366]">
+            Informá al local qué sucedió. El importe no se modificará ni se marcará como cobrado hasta que el administrador resuelva la incidencia.
+          </p>
+          {paymentIssueItem ? (
+            <div className="rounded-[16px] bg-white px-4 py-3">
+              <p className="text-[12px] text-[#8E8E93]">{paymentIssueItem.orderCode}</p>
+              <p className="text-[18px] font-semibold text-[#1C1C1E]">Efectivo previsto: {formatCurrency(paymentIssueItem.cashToCollect)}</p>
+            </div>
+          ) : null}
+          <label className="block">
+            <span className="mb-2 block text-[12px] font-medium text-[#636366]">¿Qué pasó con el pago?</span>
+            <textarea rows={4} maxLength={300} value={paymentIssueText} onChange={event => setPaymentIssueText(event.target.value)}
+              placeholder="Ej.: el cliente quiere transferir el saldo pendiente..."
+              className="w-full resize-none rounded-[16px] bg-white p-4 text-[14px] text-[#1C1C1E] outline-none placeholder:text-[#AEAEB2]"/>
+          </label>
+          <button type="button" disabled={busyId===paymentIssueItem?.id || paymentIssueText.trim().length<8}
+            onClick={() => void sendPaymentIssue()}
+            className="flex min-h-12 w-full items-center justify-center rounded-[15px] bg-[#1C1C1E] text-[14px] font-semibold text-white disabled:opacity-50">
+            Avisar al local
+          </button>
         </div>
       </Sheet>
 

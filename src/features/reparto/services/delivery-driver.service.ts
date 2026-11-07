@@ -286,6 +286,13 @@ export async function advanceDeliveryAssignment(
   });
 }
 
+export async function reportDeliveryPaymentIssue(assignmentId: string, details: string) {
+  await deliveryRpc<void>('driver_report_payment_issue', {
+    target_assignment_id: assignmentId,
+    details,
+  });
+}
+
 export async function rejectDeliveryAssignment(assignmentId: string, reason: string) {
   await deliveryRpc<unknown>('driver_reject_delivery', {
     assignment_uuid: assignmentId,

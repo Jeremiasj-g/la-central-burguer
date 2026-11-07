@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
+import { OrderPaymentModal } from '@/features/cobros/components/OrderPaymentModal';
 import {
   Banknote,
   CheckCircle2,
@@ -51,6 +52,8 @@ export function VentaMostradorPage() {
   const [submitting, setSubmitting] = useState(false);
   const [serviceMode, setServiceMode] = useState<CounterServiceMode>('takeaway');
   const [paymentMethod, setPaymentMethod] = useState<CounterPaymentMethod>('efectivo');
+  const [transferAmount, setTransferAmount] = useState('');
+  const [collectingSaleId, setCollectingSaleId] = useState<string | null>(null);
   const [customerName, setCustomerName] = useState('');
   const [customerPhone, setCustomerPhone] = useState('');
   const [notes, setNotes] = useState('');
@@ -191,6 +194,7 @@ export function VentaMostradorPage() {
     setNotes('');
     setServiceMode('takeaway');
     setPaymentMethod('efectivo');
+    setTransferAmount('');
     setLastSale(null);
     setEditingSale(null);
   }
@@ -231,7 +235,8 @@ export function VentaMostradorPage() {
       setCustomerName(detail.customerName === 'Venta mostrador' ? '' : detail.customerName);
       setCustomerPhone(detail.customerPhone === 'Sin teléfono' ? '' : detail.customerPhone);
       setServiceMode(detail.serviceMode);
-      setPaymentMethod(detail.paymentMethod);
+      setPaymentMethod(detail.paymentPreference);
+      setTransferAmount('');
       setNotes(detail.notes);
       setEditingSale({ id: detail.id, orderCode: detail.orderCode });
       setLastSale(null);
@@ -269,6 +274,13 @@ export function VentaMostradorPage() {
       return;
     }
 
+    if (!editingSale && paymentMethod === 'mixto' &&
+      (!transferAmount.trim() || !Number.isFinite(Number(transferAmount))
+        || Number(transferAmount) <= 0 || Number(transferAmount) >= total)) {
+      toast.warning('Ingresá una transferencia entre $0 y el total; el resto será en efectivo.');
+      return;
+    }
+
     setSubmitting(true);
     try {
       const payload = {
@@ -276,6 +288,7 @@ export function VentaMostradorPage() {
         customerPhone,
         serviceMode,
         paymentMethod,
+        transferAmount: paymentMethod === 'mixto' && !editingSale ? Number(transferAmount) : undefined,
         notes,
         items: cart.map((line) => ({ productId: line.product.id, quantity: line.quantity })),
       };
@@ -504,9 +517,34 @@ export function VentaMostradorPage() {
             <div className="mt-4">
               <p className="mb-1.5 text-xs font-medium text-neutral-500">Medio de pago</p>
               <div className="grid grid-cols-2 gap-2">
-                <button type="button" onClick={() => setPaymentMethod('efectivo')} className={`flex cursor-pointer items-center justify-center gap-2 rounded-[11px] border px-2 py-2.5 text-[12px] font-medium transition-colors duration-200 ${paymentMethod === 'efectivo' ? 'border-central-orange/25 bg-central-orange/10 text-central-orange' : 'border-transparent bg-[#f7f7f9] text-neutral-500 hover:bg-neutral-100'}`}><Banknote size={15} /> Efectivo</button>
-                <button type="button" onClick={() => setPaymentMethod('transferencia')} className={`flex cursor-pointer items-center justify-center gap-2 rounded-[11px] border px-2 py-2.5 text-[12px] font-medium transition-colors duration-200 ${paymentMethod === 'transferencia' ? 'border-central-orange/25 bg-central-orange/10 text-central-orange' : 'border-transparent bg-[#f7f7f9] text-neutral-500 hover:bg-neutral-100'}`}><CreditCard size={15} /> Transferencia</button>
+                <button type="button" disabled={Boolean(editingSale)} onClick={() => setPaymentMethod('efectivo')} className={`flex cursor-pointer items-center justify-center gap-2 rounded-[11px] border px-2 py-2.5 text-[12px] font-medium transition-colors duration-200 ${paymentMethod === 'efectivo' ? 'border-central-orange/25 bg-central-orange/10 text-central-orange' : 'border-transparent bg-[#f7f7f9] text-neutral-500 hover:bg-neutral-100'}`}><Banknote size={15} /> Efectivo</button>
+                <button type="button" disabled={Boolean(editingSale)} onClick={() => setPaymentMethod('transferencia')} className={`flex cursor-pointer items-center justify-center gap-2 rounded-[11px] border px-2 py-2.5 text-[12px] font-medium transition-colors duration-200 ${paymentMethod === 'transferencia' ? 'border-central-orange/25 bg-central-orange/10 text-central-orange' : 'border-transparent bg-[#f7f7f9] text-neutral-500 hover:bg-neutral-100'}`}><CreditCard size={15} /> Transferencia</button>
+                <button type="button" disabled={Boolean(editingSale)} onClick={() => setPaymentMethod('mixto')}
+                  className={`col-span-2 flex min-h-10 cursor-pointer items-center justify-center gap-2 rounded-[11px] border px-2 py-2.5 text-[12px] font-medium transition-colors duration-200 disabled:cursor-not-allowed disabled:opacity-60 ${paymentMethod === 'mixto' ? 'border-central-orange/25 bg-central-orange/10 text-central-orange' : 'border-transparent bg-[#f7f7f9] text-neutral-500 hover:bg-neutral-100'}`}>
+                  <CreditCard size={15} /> Efectivo y transferencia
+                </button>
               </div>
+              {paymentMethod === 'mixto' && !editingSale ? (
+                <div className="mt-3 space-y-2">
+                  <label className="block text-[12px] font-medium text-neutral-600" htmlFor="counter-transfer-amount">
+                    Importe recibido por transferencia
+                  </label>
+                  <input id="counter-transfer-amount" type="number" inputMode="decimal" min={0} max={total}
+                    step={0.01} value={transferAmount} onChange={event => setTransferAmount(event.target.value)}
+                    placeholder="Importe transferido"
+                    className="h-10 w-full rounded-[10px] border border-neutral-200 bg-white px-3 text-[13px] text-neutral-900 outline-none placeholder:text-neutral-400 focus:border-central-orange/50"/>
+                  <p className="text-[12px] text-neutral-500">
+                    Efectivo restante: <strong className="font-semibold text-neutral-900">
+                      {formatCurrency(Math.max(0,total - (Number(transferAmount) || 0)))}
+                    </strong>
+                  </p>
+                  <p className="text-[11px] leading-5 text-neutral-400">Verificá la transferencia y recibí el efectivo antes de finalizar la venta.</p>
+                </div>
+              ) : editingSale ? (
+                <p className="mt-2 text-[11px] leading-5 text-neutral-500">
+                  Para corregir cobros de esta venta utilizá «Cobro» desde el listado. La edición de productos no altera dinero confirmado.
+                </p>
+              ) : null}
             </div>
 
             <div className="mt-5 border-t border-neutral-100 pt-4">
@@ -600,7 +638,9 @@ export function VentaMostradorPage() {
                       </td>
                       <td className="px-4 py-4">
                         <p className="text-neutral-800">{sale.serviceMode === 'dine_in' ? 'Comer ahí' : 'Para llevar'}</p>
-                        <p className="mt-0.5 text-[11px] text-neutral-400">{sale.paymentMethod === 'transferencia' ? 'Transferencia' : 'Efectivo'}</p>
+                        <p className="mt-0.5 text-[11px] text-neutral-400">
+                          {sale.paymentPreference === 'mixto' ? 'Pago combinado' : sale.paymentPreference === 'transferencia' ? 'Transferencia' : 'Efectivo'}
+                        </p>
                       </td>
                       <td className="px-4 py-4 text-right font-medium text-neutral-600">{sale.itemCount}</td>
                       <td className="whitespace-nowrap px-4 py-4 text-right font-semibold text-neutral-900 [font-variant-numeric:tabular-nums]">{formatCurrency(sale.total)}</td>
@@ -613,6 +653,11 @@ export function VentaMostradorPage() {
                       </td>
                       <td className="px-5 py-4">
                         <div className="flex justify-end gap-1.5">
+                          <button type="button" onClick={() => setCollectingSaleId(sale.id)}
+                            className="inline-flex h-8 items-center rounded-[9px] border border-neutral-200 bg-white px-2 text-[11px] font-medium text-neutral-600 transition-colors duration-200 hover:bg-neutral-50"
+                            title="Consultar y corregir cobro" aria-label={`Cobro de ${sale.orderCode}`}>
+                            Cobro
+                          </button>
                           <button type="button" onClick={() => void startEditingSale(sale)} disabled={cancelled || submitting}
                             className="grid h-8 w-8 cursor-pointer place-items-center rounded-[9px] border border-neutral-200 bg-white text-neutral-500 transition-colors duration-200 hover:bg-neutral-50 hover:text-neutral-900 disabled:cursor-not-allowed disabled:opacity-35"
                             title="Editar venta" aria-label={`Editar ${sale.orderCode}`}>
@@ -643,6 +688,11 @@ export function VentaMostradorPage() {
         />
       </section>
 
+      {collectingSaleId ? (
+        <OrderPaymentModal orderId={collectingSaleId}
+          onClose={() => setCollectingSaleId(null)}
+          onSaved={() => { void loadSales(salesPage,true); }}/>
+      ) : null}
       <ConfirmDialog
         open={Boolean(cancelTarget)}
         title="Cancelar venta de mostrador"

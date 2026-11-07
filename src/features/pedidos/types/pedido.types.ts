@@ -39,6 +39,8 @@ export interface Order {
   deliveryRouteQuotedAt?: string;
   deliveryMapsUrl?: string;
   paymentMethod: PaymentMethodType;
+  paymentPreference?: PaymentMethodType | 'mixto';
+  paymentTrackingEnabled?: boolean;
   items: OrderItem[];
   subtotal: number;
   deliveryCost: number;
