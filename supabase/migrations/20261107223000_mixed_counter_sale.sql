@@ -57,8 +57,8 @@ begin
      or payment_transfer <> round(payment_transfer,2) then
     raise exception 'El importe de transferencia no es válido.' using errcode='22023';
   end if;
-  if not exists(select 1 from public.payment_methods where code='efectivo' and active)
-     or not exists(select 1 from public.payment_methods where code='transferencia' and active) then
+  if not exists(select 1 from public.payment_methods pm where pm.code='efectivo' and pm.active)
+     or not exists(select 1 from public.payment_methods pm where pm.code='transferencia' and pm.active) then
     raise exception 'Los métodos de pago no están habilitados.' using errcode='22023';
   end if;
   name_value := left(coalesce(nullif(btrim(payload->>'customerName'),''),'Venta mostrador'),120);
