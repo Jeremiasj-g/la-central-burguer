@@ -4,6 +4,9 @@ import { useEffect, useState } from 'react';
 import { BadgePercent, CalendarDays, Check, PauseCircle, PlayCircle, Plus, Pencil, Trash2 } from 'lucide-react';
 import { toast } from 'react-toastify';
 import { useCategorias } from '@/features/categorias/hooks/useCategorias';
+import { useProductos } from '@/features/productos/hooks/useProductos';
+import { SearchableSelect } from '@/shared/components/ui/SearchableSelect';
+import { formatCurrency } from '@/shared/utils/format.utils';
 import { useBusinessConfig } from '@/features/configuracion/hooks/useBusinessConfig';
 import { Button } from '@/shared/components/ui/Button';
 import { DatePickerField } from '@/shared/components/ui/DatePickerField';
@@ -26,7 +29,7 @@ const statusColors = {
 };
 
 function emptyForm(today: string): CategoryDiscountInput {
-  return { title: '', category_ids: [], discount_percent: 25, starts_on: today, ends_on: today, enabled: true };
+  return { title: '', category_ids: [], product_id: null, discount_percent: 25, starts_on: today, ends_on: today, enabled: true };
 }
 function displayDate(value: string) {
   const [year, month, day] = value.split('-');
@@ -35,6 +38,7 @@ function displayDate(value: string) {
 
 export function DescuentosAdminPage() {
   const { categorias, error: categoriesError, refresh: refreshCategories } = useCategorias({ active: 'all' });
+  const { productos, error: productsError, refresh: refreshProducts } = useProductos({ active: 'all', available: 'all' });
   const { config } = useBusinessConfig();
   const { campaigns, loading, error, refresh } = useCategoryDiscounts();
   const [now, setNow] = useState(() => new Date());
@@ -45,27 +49,40 @@ export function DescuentosAdminPage() {
   const today = businessDate(now, config?.timezone);
   const [open, setOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | undefined>();
+  const [targetKind, setTargetKind] = useState<'category' | 'product'>('category');
   const [form, setForm] = useState<CategoryDiscountInput>(() => emptyForm(businessDate(new Date())));
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState<CategoryDiscountCampaign | null>(null);
 
   const categoriesById = new Map(categorias.map(c => [c.id, c.name]));
+  const productsById = new Map(productos.map(p => [p.id, p]));
+  const productOptions = productos
+    .filter(p => p.active || p.id === form.product_id)
+    .map(p => ({
+      value: p.id,
+      label: `${p.name} · ${categoriesById.get(p.categoryId) ?? 'Sin categoría'}`,
+    }))
+    .sort((a, b) => a.label.localeCompare(b.label, 'es'));
+  const chosenProduct = form.product_id ? productsById.get(form.product_id) : null;
+  const validTarget = targetKind === 'product' ? Boolean(form.product_id) : form.category_ids.length > 0;
   const activeCount = campaigns.filter(c => campaignStatus(c, today) === 'active').length;
   const futureCount = campaigns.filter(c => campaignStatus(c, today) === 'scheduled').length;
 
   function startNew() {
     setEditingId(undefined);
+    setTargetKind('category');
     setForm(emptyForm(today));
     setOpen(true);
   }
   function startEdit(c: CategoryDiscountCampaign) {
     setEditingId(c.id);
-    setForm({ title: c.title, category_ids: c.category_ids, discount_percent: Number(c.discount_percent),
+    setTargetKind(c.product_id ? 'product' : 'category');
+    setForm({ title: c.title, category_ids: c.category_ids, product_id: c.product_id, discount_percent: Number(c.discount_percent),
       starts_on: c.starts_on, ends_on: c.ends_on, enabled: c.enabled });
     setOpen(true);
   }
   async function save() {
-    if (saving || !form.starts_on || !form.ends_on || form.ends_on < form.starts_on) return;
+    if (saving || !validTarget || !form.starts_on || !form.ends_on || form.ends_on < form.starts_on) return;
     setSaving(true);
     try {
       await saveCategoryDiscount(form, editingId);
@@ -99,8 +116,8 @@ export function DescuentosAdminPage() {
     <div className="min-w-0 pb-8">
       <header className="mb-7 flex flex-wrap items-start justify-between gap-4">
         <div>
-          <h1 className="text-[30px] font-semibold tracking-[-.045em] text-neutral-950">Descuentos por categoría</h1>
-          <p className="mt-1 text-[13px] text-neutral-500">Programá porcentajes y fechas sin modificar los precios de lista.</p>
+          <h1 className="text-[30px] font-semibold tracking-[-.045em] text-neutral-950">Ofertas y descuentos</h1>
+          <p className="mt-1 text-[13px] text-neutral-500">Aplicá promociones a una categoría o a un producto puntual.</p>
         </div>
         <Button className="!h-10 !rounded-[11px] !bg-[#191b20] !px-4 !text-[12px] !font-medium" onClick={startNew}>
           <Plus size={16} /> Nueva campaña
@@ -114,20 +131,20 @@ export function DescuentosAdminPage() {
         <span className="ml-auto flex items-center gap-1.5 text-[11px] text-neutral-500"><CalendarDays size={14} /> Fechas según el horario del local</span>
       </div>
 
-      {error || categoriesError ? (
-        <DataLoadError message={error ?? categoriesError ?? 'No se pudieron cargar los datos.'}
-          onRetry={async () => { await Promise.all([refresh(), refreshCategories()]); }} />
+      {error || categoriesError || productsError ? (
+        <DataLoadError message={error ?? categoriesError ?? productsError ?? 'No se pudieron cargar los datos.'}
+          onRetry={async () => { await Promise.all([refresh(), refreshCategories(), refreshProducts()]); }} />
       ) : (
         <section className="overflow-hidden rounded-[20px] border border-neutral-200 bg-white">
           <div className="flex items-center justify-between border-b border-neutral-100 px-5 py-4">
             <h2 className="text-[15px] font-semibold text-neutral-900">Campañas programadas</h2>
-            <p className="text-[11px] text-neutral-400">El mayor descuento se aplica si coinciden campañas</p>
+            <p className="text-[11px] text-neutral-400">No se acumulan las ofertas</p>
           </div>
           {loading ? <p className="px-5 py-10 text-[13px] text-neutral-500">Cargando campañas…</p> : campaigns.length === 0 ? (
             <div className="px-5 py-14 text-center">
               <BadgePercent size={29} className="mx-auto text-neutral-300" />
               <p className="mt-3 text-[14px] font-medium text-neutral-800">Todavía no hay campañas</p>
-              <p className="mt-1 text-[12px] text-neutral-500">Creá una y elegí qué categoría, porcentaje y días tendrá la oferta.</p>
+              <p className="mt-1 text-[12px] text-neutral-500">Elegí un producto o categorías, porcentaje y fechas.</p>
             </div>
           ) : campaigns.map(c => {
             const status = campaignStatus(c, today);
@@ -135,7 +152,11 @@ export function DescuentosAdminPage() {
               <div key={c.id} className="flex flex-wrap items-center gap-x-5 gap-y-3 border-b border-neutral-100 px-5 py-4 last:border-b-0">
                 <div className="min-w-[200px] flex-1">
                   <p className="text-[13px] font-semibold text-neutral-900">{c.title}</p>
-                  <p className="mt-1 text-[11px] text-neutral-500">{c.category_ids.map(id => categoriesById.get(id) ?? 'Categoría no disponible').join(' · ')}</p>
+                  <p className="mt-1 text-[11px] text-neutral-500">
+                    {c.product_id
+                      ? `Producto · ${productsById.get(c.product_id)?.name ?? 'Producto no disponible'}`
+                      : `Categoría · ${c.category_ids.map(id => categoriesById.get(id) ?? 'Categoría no disponible').join(' · ')}`}
+                  </p>
                 </div>
                 <div className="w-20">
                   <p className="text-[20px] font-semibold tabular-nums tracking-tight text-[#bc7f2c]">-{Number(c.discount_percent).toLocaleString('es-AR')}%</p>
@@ -165,7 +186,7 @@ export function DescuentosAdminPage() {
           })}
         </section>
       )}
-      <p className="mt-4 text-[11px] leading-5 text-neutral-500">Las campañas se activan al comenzar el día de inicio y terminan al finalizar el día de cierre. No se acumulan entre sí.</p>
+      <p className="mt-4 text-[11px] leading-5 text-neutral-500">Las ofertas respetan el horario local: inicio y fin incluidos. Si coinciden una oferta por producto y otra por categoría, se aplica solo la de mayor descuento.</p>
 
       <Modal
         open={open}
@@ -183,8 +204,25 @@ export function DescuentosAdminPage() {
             <Input className={`mt-1.5 ${control}`} value={form.title} maxLength={100} required
               onChange={e => setForm(s => ({ ...s, title: e.target.value }))} placeholder="Ej.: Fin de semana burger" />
           </label>
+
           <fieldset>
-            <legend className="mb-2 text-[12px] font-medium text-neutral-700">Categorías incluidas</legend>
+            <legend className="mb-2 text-[12px] font-medium text-neutral-700">Aplicar oferta a</legend>
+            <div className="grid grid-cols-2 gap-2" role="group" aria-label="Alcance del descuento">
+              <button type="button" aria-pressed={targetKind === 'category'}
+                onClick={() => { setTargetKind('category'); setForm(current => ({ ...current, product_id: null })); }}
+                className={`min-h-11 rounded-[11px] px-3 py-2 text-[12px] font-medium transition-colors duration-200 ${targetKind === 'category' ? 'bg-[#191b20] text-white' : 'bg-neutral-100 text-neutral-600 hover:bg-neutral-200'}`}>
+                Categorías
+              </button>
+              <button type="button" aria-pressed={targetKind === 'product'}
+                onClick={() => { setTargetKind('product'); setForm(current => ({ ...current, category_ids: [] })); }}
+                className={`min-h-11 rounded-[11px] px-3 py-2 text-[12px] font-medium transition-colors duration-200 ${targetKind === 'product' ? 'bg-[#191b20] text-white' : 'bg-neutral-100 text-neutral-600 hover:bg-neutral-200'}`}>
+                Un producto
+              </button>
+            </div>
+          </fieldset>
+          {targetKind === 'category' ? (
+            <fieldset>
+              <legend className="mb-2 text-[12px] font-medium text-neutral-700">Categorías incluidas</legend>
             <div className="grid max-h-[190px] grid-cols-1 gap-x-3 gap-y-1.5 overflow-y-auto sm:grid-cols-2">
               {categorias.map(c => (
                 <label key={c.id} className="group flex min-h-8 cursor-pointer items-center gap-2.5 rounded-[8px] px-1.5 py-1 text-[12px] font-normal text-neutral-700 transition-colors duration-200 hover:bg-neutral-50">
@@ -204,6 +242,31 @@ export function DescuentosAdminPage() {
               ))}
             </div>
           </fieldset>
+          ) : (
+            <div className="min-w-0 space-y-2">
+              <label className="block text-[12px] font-medium text-neutral-700">Producto al que se aplicará la oferta</label>
+              <SearchableSelect
+                value={form.product_id ?? undefined}
+                options={productOptions}
+                onValueChange={(product_id) => setForm(s => ({ ...s, product_id, category_ids: [] }))}
+                placeholder="Buscar y seleccionar un producto"
+                searchPlaceholder="Buscar por producto o categoría…"
+                emptyMessage="No hay productos que coincidan."
+                aria-label="Seleccionar el producto de la oferta"
+                className={control}
+              />
+              {chosenProduct ? (
+                <p className="text-[12px] text-neutral-500">
+                  Precio de lista: <strong className="font-medium text-neutral-900">{formatCurrency(chosenProduct.currentPrice)}</strong>
+                  {' · '}Con oferta: <strong className="font-medium text-emerald-700">
+                    {formatCurrency(Math.round(chosenProduct.currentPrice * (1 - form.discount_percent / 100)))}
+                  </strong>
+                </p>
+              ) : (
+                <p className="text-[11px] text-neutral-500">La oferta afectará únicamente al producto elegido, no al resto de su categoría.</p>
+              )}
+            </div>
+          )}
           <label className="block text-[12px] font-medium text-neutral-700">
             Descuento (%)
             <Input className={`mt-1.5 ${control}`} type="number" min="0.01" max="99.99" step="0.01" required
@@ -254,7 +317,7 @@ export function DescuentosAdminPage() {
           <div className="flex justify-end gap-2 border-t border-neutral-100 pt-4">
             <Button type="button" variant="secondary" onClick={() => setOpen(false)} disabled={saving}
               className="!h-9 !rounded-[10px] !border-neutral-200 !px-4 !text-[12px] !font-medium !shadow-none">Cancelar</Button>
-            <Button type="submit" disabled={saving || !form.category_ids.length || !form.title.trim() || !form.starts_on || !form.ends_on || form.ends_on < form.starts_on}
+            <Button type="submit" disabled={saving || !validTarget || !form.title.trim() || !form.starts_on || !form.ends_on || form.ends_on < form.starts_on}
               className="!h-9 !rounded-[10px] !bg-[#191b20] !px-4 !text-[12px] !font-medium !text-white !shadow-none hover:!bg-neutral-700">
               {saving ? 'Guardando…' : editingId ? 'Guardar cambios' : 'Crear campaña'}
             </Button>

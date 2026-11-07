@@ -26,3 +26,22 @@ export function discountedPrice(base: number, percent: number) {
   // El backend redondea al peso por unidad usando numeric de PostgreSQL.
   return Math.round(Math.max(0, base) * (1 - percent / 100));
 }
+
+/** Calcula la promoción efectiva de un producto sin acumular descuentos.
+ * Si coincide una oferta individual y otra por categoría, se usa la mayor.
+ */
+export function discountForProduct(
+  campaigns: CategoryDiscountCampaign[],
+  productId: string,
+  categoryId: string,
+  today: string,
+): number {
+  return campaigns.reduce((best, campaign) => {
+    if (campaignStatus(campaign, today) !== 'active') return best;
+    const targetsProduct = campaign.product_id === productId;
+    const targetsCategory = campaign.category_ids.includes(categoryId);
+    return targetsProduct || targetsCategory
+      ? Math.max(best, Number(campaign.discount_percent))
+      : best;
+  }, 0);
+}

@@ -5,7 +5,7 @@ import { ArrowUpRight, ShoppingBag, UtensilsCrossed } from 'lucide-react';
 import { useMemo } from 'react';
 import { useProductos } from '@/features/productos/hooks/useProductos';
 import { useCategoryDiscounts } from '@/features/promociones/hooks/useCategoryDiscounts';
-import { businessDate, discountForCategory, discountedPrice } from '@/features/promociones/utils/descuentos.utils';
+import { businessDate, discountForProduct, discountedPrice } from '@/features/promociones/utils/descuentos.utils';
 import { useBusinessConfig } from '@/features/configuracion/hooks/useBusinessConfig';
 import { useBusinessClock } from '@/features/configuracion/hooks/useBusinessClock';
 import { useBestSellers } from '../hooks/useBestSellers';
@@ -31,7 +31,7 @@ export function HomeBestSellers({ onSelectProduct }: HomeBestSellersProps) {
     return ranking.flatMap(({ productId }) => {
       const product = byId.get(productId);
       if (!product) return [];
-      const discountPercent = discountForCategory(campaigns, product.categoryId, today);
+      const discountPercent = discountForProduct(campaigns, product.id, product.categoryId, today);
       const price = discountPercent > 0 ? discountedPrice(product.currentPrice, discountPercent) : product.currentPrice;
       return [{ product, price }];
     });
