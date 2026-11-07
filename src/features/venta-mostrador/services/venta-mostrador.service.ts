@@ -1,6 +1,6 @@
 import { getSupabaseBrowserClient } from '@/lib/supabase/client';
 import { requireSupabaseConfigured } from '@/lib/config/env';
-import type { Database, OrderStatus } from '@/lib/supabase/database.types';
+import type { Database, OrderStatus, Json } from '@/lib/supabase/database.types';
 
 export type CounterServiceMode = 'takeaway' | 'dine_in';
 export type CounterPaymentMethod = 'efectivo' | 'transferencia' | 'mixto';
@@ -250,7 +250,7 @@ export async function createCounterSale(input: CreateCounterSaleInput): Promise<
       transferAmount: input.transferAmount ?? null,
       notes: buildCounterNotes(input.serviceMode, input.notes),
       items: input.items,
-    },
+    } as unknown as Json,
   });
   if (error) throw new Error(error.message);
   if (!data || typeof data !== 'object' || Array.isArray(data)) {
