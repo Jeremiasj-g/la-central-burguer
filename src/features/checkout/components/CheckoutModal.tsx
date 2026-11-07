@@ -6,6 +6,7 @@ import { toast } from 'react-toastify';
 import type { CartItem } from '@/features/carrito/types/carrito.types';
 import type { CheckoutFormValues } from '../types/checkout.types';
 import { useCheckout } from '../hooks/useCheckout';
+import { isValidCustomerPhone } from '../schemas/checkout.schema';
 import { getDeliveryQuote } from '@/features/delivery/services/delivery.service';
 import type { DeliveryQuote } from '@/features/delivery/types/delivery.types';
 import { formatDistanceKm } from '@/features/delivery/utils/delivery.utils';
@@ -103,6 +104,8 @@ export function CheckoutModal({ open, onClose, items, onOrderCreated }: Checkout
   );
   const { isLoading: isGettingLocation, isRetrying: isRetryingLocation, requestLocation, clearLocation } = useCurrentLocation();
   const isDelivery = values.deliveryMethod === 'delivery';
+  const hasValidContact = values.customerName.trim().length >= 2
+    && isValidCustomerPhone(values.customerPhone);
   const hasValidDeliveryQuote = !isDelivery || Boolean(
     values.customerLocation
       && values.deliveryMapsUrl
@@ -285,7 +288,8 @@ export function CheckoutModal({ open, onClose, items, onOrderCreated }: Checkout
 
   const canSendOrder = !isSubmitting
     && items.length > 0
-    && activePaymentMethods.length > 0
+    && hasValidContact
+    && activePaymentMethods.some(method => method.type === values.paymentMethod)
     && hasValidDeliveryQuote;
   const productCount = items.reduce((count, item) => count + item.quantity, 0);
 
@@ -378,11 +382,17 @@ export function CheckoutModal({ open, onClose, items, onOrderCreated }: Checkout
                   </label>
                   <div className="lcb-public-field-shell" data-field-theme={theme}>
                     <Input id="checkout-customer-phone" type="tel" inputMode="tel" autoComplete="tel" enterKeyHint="next"
+                      required aria-required="true"
+                      aria-invalid={Boolean(errors.customerPhone) || Boolean(values.customerPhone.trim() && !isValidCustomerPhone(values.customerPhone))}
                       className={cn('lcb-public-field-input !h-11 !rounded-[11px] !border-0 !bg-transparent !px-3.5 !text-[14px] !font-normal',
                         theme === 'light' ? '!text-[#292d32] placeholder:!text-[#7e858c]' : '!text-white placeholder:!text-white/40')}
                       value={values.customerPhone} onChange={(event) => update('customerPhone', event.target.value)} placeholder="Tu número de WhatsApp"/>
                   </div>
-                  {errors.customerPhone ? <p className="mt-1.5 text-[11px] text-red-300" role="alert">{errors.customerPhone}</p> : null}
+                  {errors.customerPhone ? (
+                    <p className="mt-1.5 text-[11px] text-red-300" role="alert">{errors.customerPhone}</p>
+                  ) : values.customerPhone.trim() && !isValidCustomerPhone(values.customerPhone) ? (
+                    <p className="mt-1.5 text-[11px] text-red-300" role="status">Ingresá un teléfono válido de al menos 6 números.</p>
+                  ) : null}
                 </div>
               </div>
             </section>
