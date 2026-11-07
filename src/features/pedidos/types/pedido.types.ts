@@ -38,7 +38,9 @@ export interface Order {
   deliveryRouteVia?: string;
   deliveryRouteQuotedAt?: string;
   deliveryMapsUrl?: string;
-  paymentMethod: PaymentMethodType;
+  paymentMethod: Exclude<PaymentMethodType, 'combinado'>;
+  paymentPreference?: PaymentMethodType;
+  paymentPlan?: { transfer: number; cash: number };
   items: OrderItem[];
   subtotal: number;
   deliveryCost: number;
