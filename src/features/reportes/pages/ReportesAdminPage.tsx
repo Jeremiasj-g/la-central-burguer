@@ -24,7 +24,7 @@ import { ReportExportDialog, type ReportExportMode } from '../components/ReportE
 import { ReportFilters } from '../components/ReportFilters';
 import { ReportTables } from '../components/ReportTables';
 import { useReportes } from '../hooks/useReportes';
-import { getCompleteReportData, getReportOrdersPage } from '../services/reportes.service';
+import { getCompleteReportData, getReportOrdersPage, getConfirmedPaymentCollections } from '../services/reportes.service';
 import type {
   ReportDatePreset,
   ReportFilters as ReportFilterState,
@@ -172,6 +172,7 @@ export function ReportesAdminPage() {
   const [detailTotal, setDetailTotal] = useState(0);
   const [detailLoading, setDetailLoading] = useState(true);
   const [detailRevision, setDetailRevision] = useState(0);
+  const [collections, setCollections] = useState<Awaited<ReturnType<typeof getConfirmedPaymentCollections>> | null>(null);
   const { config } = useBusinessConfig();
   const { data, isLoading, error, lastLoadedAt, refresh } = useReportes(appliedFilters);
   const cancellationFilters = useMemo(() => ({ ...appliedFilters, status: 'cancelado' as const }), [appliedFilters]);
@@ -220,6 +221,15 @@ export function ReportesAdminPage() {
       active = false;
     };
   }, [appliedFilters, detailPage, detailRevision]);
+
+  useEffect(() => {
+    let active = true;
+    setCollections(null);
+    getConfirmedPaymentCollections(appliedFilters)
+      .then(value => { if (active) setCollections(value); })
+      .catch(error => { if (active) toast.error(error instanceof Error ? error.message : 'No se pudieron consultar los cobros.'); });
+    return () => { active = false; };
+  }, [appliedFilters, detailRevision]);
 
   function handlePresetChange(nextPreset: ReportDatePreset) {
     setPreset(nextPreset);
@@ -361,6 +371,28 @@ export function ReportesAdminPage() {
         <MetricCard label="Delivery cobrado" value={summary.deliveryRevenue} detail="Incluido en facturación" icon={Truck} formatter={formatCurrency} />
         <MetricCard label="Comisiones liquidadas" value={summary.settledDeliveryCommission} detail="Marcadas como pagadas" icon={WalletCards} formatter={formatCurrency} />
         <MetricCard label="Cancelaciones" value={summary.cancelledOrders} detail={`${(summary.cancellationRate * 100).toFixed(1)}% de los pedidos`} icon={Ban} formatter={formatNumber} />
+      </section>
+
+      <section aria-label="Cobros confirmados" className="mt-6 border-t border-neutral-200 pt-5">
+        <div className="flex flex-wrap items-start justify-between gap-2">
+          <h2 className="text-[17px] font-semibold tracking-tight text-neutral-900">Cobros efectivamente registrados</h2>
+          <span className="text-[11px] text-neutral-500">Por fecha del cobro o reintegro, no del pedido</span>
+        </div>
+        <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-3">
+          <div className="border-b border-neutral-100 py-3">
+            <p className="text-xs text-neutral-500">Efectivo confirmado</p>
+            <p className="mt-1 text-lg font-semibold tabular-nums text-neutral-900">{collections ? formatCurrency(collections.cash) : '—'}</p>
+          </div>
+          <div className="border-b border-neutral-100 py-3">
+            <p className="text-xs text-neutral-500">Transferencias confirmadas</p>
+            <p className="mt-1 text-lg font-semibold tabular-nums text-neutral-900">{collections ? formatCurrency(collections.transfer) : '—'}</p>
+          </div>
+          <div className="border-b border-neutral-100 py-3">
+            <p className="text-xs text-neutral-500">Cobros netos registrados</p>
+            <p className="mt-1 text-lg font-semibold tabular-nums text-neutral-900">{collections ? formatCurrency(collections.total) : '—'}</p>
+          </div>
+        </div>
+        <p className="mt-2 text-[11px] leading-5 text-neutral-400">Solo movimientos verificados: {collections ? `${collections.payments} cobros, ${collections.refunds} reintegros y ${collections.reversals} correcciones` : 'cargando…'}. No se consideran cobrados automáticamente los pedidos históricos.</p>
       </section>
 
       <section className="mb-5 mt-9 flex min-w-0 flex-col justify-between gap-4 border-b border-neutral-200 pb-4 sm:flex-row sm:items-center">
