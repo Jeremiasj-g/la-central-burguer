@@ -3,10 +3,12 @@
 import { useEffect, useState } from 'react';
 import { CheckCircle2, ClipboardList, PackageCheck, RefreshCw, Search, XCircle } from 'lucide-react';
 import { PedidosTable } from '../components/PedidosTable';
+import { PedidoEditModal } from '../components/PedidoEditModal';
+import { useBusinessConfig } from '@/features/configuracion/hooks/useBusinessConfig';
 import { PedidosTableSkeleton } from '../components/PedidosTableSkeleton';
 import { usePedidoMutations } from '../hooks/usePedidoMutations';
 import { usePedidos } from '../hooks/usePedidos';
-import type { OrderStatus } from '../types/pedido.types';
+import type { Order, OrderStatus } from '../types/pedido.types';
 import { ConfirmDialog } from '@/shared/components/ui/ConfirmDialog';
 import { Input } from '@/shared/components/ui/Input';
 import { Select } from '@/shared/components/ui/Select';
@@ -21,6 +23,8 @@ export function PedidosAdminPage() {
   const [search, setSearch] = useState('');
   const [status, setStatus] = useState<'all' | OrderStatus>('all');
   const [pendingCancelId, setPendingCancelId] = useState<string | null>(null);
+  const [editingOrder, setEditingOrder] = useState<Order | null>(null);
+  const { config } = useBusinessConfig();
   const { pedidos, isLoading, error, refresh } = usePedidos({ search, status });
   const mutations = usePedidoMutations(refresh);
 
@@ -47,7 +51,7 @@ export function PedidosAdminPage() {
             Gestión de pedidos
           </h1>
           <p className="mt-1 text-[13px] leading-5 text-neutral-500">
-            Seguí los pedidos de tu tienda y administrá sus cancelaciones.
+            Consultá los pedidos y corregí productos antes de prepararlos.
           </p>
         </div>
         <button
@@ -157,7 +161,7 @@ export function PedidosAdminPage() {
       ) : isLoading ? (
         <PedidosTableSkeleton />
       ) : pedidos.length > 0 ? (
-        <PedidosTable orders={pedidos} onCancelOrder={setPendingCancelId} />
+        <PedidosTable orders={pedidos} onCancelOrder={setPendingCancelId} onEditOrder={setEditingOrder} businessTimeZone={config?.timezone} />
       ) : (
         <div className="flex min-h-[240px] flex-col items-center justify-center rounded-[20px] border border-neutral-200/70 bg-white px-5 py-10 text-center shadow-soft">
           <span className="grid h-13 w-13 place-items-center rounded-[16px] bg-[#f7f7f9] text-neutral-400">
@@ -173,6 +177,18 @@ export function PedidosAdminPage() {
           </p>
         </div>
       )}
+
+      {editingOrder ? (
+        <PedidoEditModal
+          key={editingOrder.id}
+          order={editingOrder}
+          onClose={() => setEditingOrder(null)}
+          onSaved={() => {
+            setEditingOrder(null);
+            void refresh();
+          }}
+        />
+      ) : null}
 
       <ConfirmDialog
         open={Boolean(pendingCancelId)}

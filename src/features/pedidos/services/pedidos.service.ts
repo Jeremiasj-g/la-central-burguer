@@ -124,6 +124,44 @@ export async function updatePedidoStatus(id: string, status: OrderStatus): Promi
   return updated;
 }
 
+export type OrderEditItemInput =
+  | { itemId: string; quantity: number; note: string }
+  | { productId: string; quantity: number; note: string };
+
+export interface OrderEditResult {
+  orderId: string;
+  oldTotal: number;
+  newTotal: number;
+  difference: number;
+}
+
+/** Edición atómica de los renglones: los precios siempre los determina la base. */
+export async function editPedidoItems(
+  id: string,
+  expectedUpdatedAt: string,
+  items: OrderEditItemInput[],
+): Promise<OrderEditResult> {
+  requireSupabaseConfigured('editar un pedido');
+  const { data, error } = await getSupabaseBrowserClient()
+    .rpc('admin_edit_order_items', {
+      target_order_id: id,
+      expected_updated_at: expectedUpdatedAt,
+      requested_items: items as unknown as Json,
+    });
+
+  if (error) throw new Error(error.message);
+  if (!data || typeof data !== 'object' || Array.isArray(data)) {
+    throw new Error('No recibimos la confirmación del pedido actualizado.');
+  }
+  const response = data as Record<string, Json | undefined>;
+  return {
+    orderId: String(response.orderId),
+    oldTotal: Number(response.oldTotal),
+    newTotal: Number(response.newTotal),
+    difference: Number(response.difference),
+  };
+}
+
 export function cancelPedido(id: string) {
   return updatePedidoStatus(id, 'cancelado');
 }
