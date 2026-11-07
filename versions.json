@@ -1,0 +1,51 @@
+[
+  {
+    "slug": "manage-delivery-driver",
+    "version": 1,
+    "status": "ACTIVE",
+    "verify_jwt": true,
+    "sha256": "7a37e4459d459fc73318741b8ad79dd51b7ec8470c988aec62b7866ada57146c"
+  },
+  {
+    "slug": "access-invitation-status",
+    "version": 1,
+    "status": "ACTIVE",
+    "verify_jwt": true,
+    "sha256": "4009116c6e737c75f25bb93efd4eb7493ee871a415b716e0e1b89b07f604156a"
+  },
+  {
+    "slug": "activate-invited-user",
+    "version": 1,
+    "status": "ACTIVE",
+    "verify_jwt": true,
+    "sha256": "8e42dfc0be191263925f62ccae4c211125a22663220ad22df3110467b8adff49"
+  },
+  {
+    "slug": "invite-access-user",
+    "version": 1,
+    "status": "ACTIVE",
+    "verify_jwt": true,
+    "sha256": "65f508a0754edcdc85ecbadc7c9471cbdea374f159c981c22cddbf5143dfeee7"
+  },
+  {
+    "slug": "manage-access-user",
+    "version": 3,
+    "status": "ACTIVE",
+    "verify_jwt": true,
+    "sha256": "6359bb417a5fc55908ea35e1b5e0351865ca62b2ebcb035d7ed7c34bc71a01cd"
+  },
+  {
+    "slug": "delivery-push",
+    "version": 2,
+    "status": "ACTIVE",
+    "verify_jwt": true,
+    "sha256": "09ab90978c431ea3b25b2c1281e9f52fbe1bce7c269c4868cef6fe97f6c2516a"
+  },
+  {
+    "slug": "admin-push",
+    "version": 1,
+    "status": "ACTIVE",
+    "verify_jwt": false,
+    "sha256": "0106a18a096320f9d0b87fdcd9e77dc089037686d0cdf2b8724a997e0662fb8b"
+  }
+]
