@@ -107,7 +107,7 @@ BEGIN
       o.order_code::text,
       da.delivered_at,
       p.full_name::text,
-      o.total::numeric
+      private.delivery_cash_due(o.id)::numeric
     FROM public.delivery_assignments da
     JOIN public.orders o ON o.id = da.order_id
     JOIN public.delivery_driver_rates r ON r.id = da.rate_id
