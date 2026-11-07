@@ -96,7 +96,7 @@ CREATE OR REPLACE FUNCTION public.admin_delivery_cash_pending_details()
  LANGUAGE plpgsql
  STABLE SECURITY DEFINER
  SET search_path TO ''
-AS $function$
+AS $function$;
 BEGIN
   IF NOT private.is_admin() THEN
     RAISE EXCEPTION 'No autorizado.' USING ERRCODE = '42501';
@@ -122,7 +122,7 @@ BEGIN
       )
     ORDER BY da.delivered_at DESC, da.id DESC;
 END;
-$function$
+$function$;
 
 
 
@@ -132,7 +132,7 @@ CREATE OR REPLACE FUNCTION public.get_delivery_admin_dashboard()
  LANGUAGE plpgsql
  STABLE SECURITY DEFINER
  SET search_path TO 'public', 'private', 'auth'
-AS $function$
+AS $function$;
 declare result jsonb;
 begin
   if not private.is_admin() then raise exception 'No autorizado.' using errcode = '42501'; end if;
@@ -187,7 +187,7 @@ begin
   ) into result;
   return result;
 end;
-$function$
+$function$;
 
 
 
@@ -197,7 +197,7 @@ CREATE OR REPLACE FUNCTION public.get_delivery_driver_dashboard()
  LANGUAGE plpgsql
  STABLE SECURITY DEFINER
  SET search_path TO 'public', 'private', 'auth'
-AS $function$
+AS $function$;
 declare
   driver uuid := private.current_delivery_driver_id();
   result jsonb;
@@ -220,7 +220,7 @@ begin
     'settlements',coalesce((select jsonb_agg(jsonb_build_object('id',x.id,'periodFrom',x.period_from,'periodTo',x.period_to,'status',x.status,'createdAt',x.created_at,'paidAt',x.paid_at,'deliveries',x.deliveries,'commissionTotal',x.commission_total,'cashCollected',x.cash_collected,'netBalance',x.net_balance) order by x.created_at desc) from (select s.id,s.period_from,s.period_to,s.status,s.created_at,s.paid_at,count(i.assignment_id) deliveries,coalesce(sum(round(dac.delivery_fee_snapshot*coalesce(dac.commission_percent_override,r.commission_percent)/100.0,2)),0) commission_total,coalesce(sum(private.delivery_cash_due(o.id)),0) cash_collected,coalesce(sum(round(dac.delivery_fee_snapshot*coalesce(dac.commission_percent_override,r.commission_percent)/100.0,2)-private.delivery_cash_due(o.id)),0) net_balance from public.delivery_settlements s left join public.delivery_settlement_items i on i.settlement_id=s.id left join public.delivery_assignments da on da.id=i.assignment_id left join public.delivery_assignment_compensation dac on dac.assignment_id=da.id left join public.delivery_driver_rates r on r.id=da.rate_id left join public.orders o on o.id=da.order_id where s.driver_id=driver group by s.id order by s.created_at desc limit 20)x),'[]'::jsonb)
   ) into result;
   return result;
-end; $function$
+end; $function$;
 
 
 
@@ -230,7 +230,7 @@ CREATE OR REPLACE FUNCTION public.get_delivery_driver_delivery_detail(assignment
  LANGUAGE plpgsql
  STABLE SECURITY DEFINER
  SET search_path TO 'public', 'private'
-AS $function$
+AS $function$;
 declare
   driver uuid := private.current_delivery_driver_id();
   result jsonb;
@@ -268,6 +268,6 @@ begin
   if result is null then raise exception 'Entrega finalizada no encontrada.' using errcode = 'P0001'; end if;
   return result;
 end;
-$function$
+$function$;
 
 
