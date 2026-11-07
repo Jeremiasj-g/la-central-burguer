@@ -366,3 +366,26 @@ export async function getCompleteReportData(): Promise<ReportDataset> {
     search: '',
   });
 }
+
+/** Collection dates are independent of order creation dates. No presumed legacy receipts. */
+export async function getConfirmedPaymentCollections(
+  filters: ReportFilters,
+): Promise<{cash:number;transfer:number;total:number;payments:number;refunds:number;reversals:number}> {
+  requireSupabaseConfigured('consultar cobros registrados');
+  const from = filters.allTime ? null : toStartIso(filters.from);
+  const to = filters.allTime ? null : new Date(new Date(toEndIso(filters.to)).getTime()+1).toISOString();
+  const { data, error } = await getSupabaseBrowserClient().rpc('admin_payment_collections_summary', {
+    from_ts: from, to_ts: to,
+  });
+  if (error) throw new Error(error.message);
+  const result = data && typeof data === 'object' && !Array.isArray(data)
+    ? data as Record<string, unknown> : {};
+  return {
+    cash: Number(result.cash ?? 0),
+    transfer: Number(result.transfer ?? 0),
+    total: Number(result.total ?? 0),
+    payments: Number(result.payments ?? 0),
+    refunds: Number(result.refunds ?? 0),
+    reversals: Number(result.reversals ?? 0),
+  };
+}
