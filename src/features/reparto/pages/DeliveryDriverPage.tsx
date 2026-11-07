@@ -233,7 +233,7 @@ function AssignmentCard({
             <div className="p-3.5">
               <p className="text-[11px] text-[#8E8E93]">Cobro al cliente</p>
               <p className="mt-1 text-[14px] font-semibold text-[#1C1C1E]">
-                {item.paymentMethod === 'efectivo' ? formatCurrency(item.cashToCollect) : 'Transferencia'}
+                {item.cashToCollect > 0 ? formatCurrency(item.cashToCollect) : 'Transferencia verificada'}
               </p>
             </div>
             <div className="p-3.5">
@@ -535,7 +535,12 @@ export function DeliveryDriverPage() {
   async function handleAdvance(item: DeliveryDriverAssignment) {
     const transition = NEXT_STATUS[item.status];
     if (!transition) return;
-    if (transition.next === 'delivered' && !confirm(`¿Confirmás que entregaste el pedido ${item.orderCode}?`)) return;
+    if (transition.next === 'delivered') {
+      const message = item.cashToCollect > 0
+        ? `¿Confirmás que entregaste ${item.orderCode} y recibiste ${formatCurrency(item.cashToCollect)} en efectivo? Este importe quedará registrado para tu rendición.`
+        : `¿Confirmás que entregaste el pedido ${item.orderCode}? No tenés efectivo para cobrar.`;
+      if (!confirm(message)) return;
+    }
 
     setBusyId(item.id);
     try {
