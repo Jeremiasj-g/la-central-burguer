@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   Banknote,
   CheckCircle2,
@@ -51,6 +51,9 @@ export function VentaMostradorPage() {
   const [submitting, setSubmitting] = useState(false);
   const [serviceMode, setServiceMode] = useState<CounterServiceMode>('takeaway');
   const [paymentMethod, setPaymentMethod] = useState<CounterPaymentMethod>('efectivo');
+  const [transferAmount, setTransferAmount] = useState('');
+  const saleRequestKey = useRef<string | null>(null);
+  const mixedPaymentsEnabled = process.env.NEXT_PUBLIC_ENABLE_MIXED_PAYMENTS === 'true';
   const [customerName, setCustomerName] = useState('');
   const [customerPhone, setCustomerPhone] = useState('');
   const [notes, setNotes] = useState('');
@@ -152,6 +155,11 @@ export function VentaMostradorPage() {
 
   const itemCount = cart.reduce((total, line) => total + line.quantity, 0);
   const total = cart.reduce((sum, line) => sum + line.product.currentPrice * line.quantity, 0);
+  const parsedTransferAmount = transferAmount.trim() ? Number(transferAmount) : NaN;
+  const validMixedSplit = paymentMethod !== 'combinado' || (
+    !editingSale && Number.isFinite(parsedTransferAmount) && parsedTransferAmount > 0
+    && Number.isInteger(parsedTransferAmount * 100) && parsedTransferAmount < total
+  );
 
   function addProduct(product: Product) {
     setLastSale(null);
@@ -191,6 +199,8 @@ export function VentaMostradorPage() {
     setNotes('');
     setServiceMode('takeaway');
     setPaymentMethod('efectivo');
+    setTransferAmount('');
+    saleRequestKey.current = null;
     setLastSale(null);
     setEditingSale(null);
   }
@@ -232,6 +242,8 @@ export function VentaMostradorPage() {
       setCustomerPhone(detail.customerPhone === 'Sin teléfono' ? '' : detail.customerPhone);
       setServiceMode(detail.serviceMode);
       setPaymentMethod(detail.paymentMethod);
+      setTransferAmount('');
+      saleRequestKey.current = null;
       setNotes(detail.notes);
       setEditingSale({ id: detail.id, orderCode: detail.orderCode });
       setLastSale(null);
@@ -269,6 +281,7 @@ export function VentaMostradorPage() {
       return;
     }
 
+    if (!validMixedSplit) { toast.warning('Ingresá un importe de transferencia mayor a cero y menor que el total.'); return; }
     setSubmitting(true);
     try {
       const payload = {
@@ -276,6 +289,7 @@ export function VentaMostradorPage() {
         customerPhone,
         serviceMode,
         paymentMethod,
+        ...(paymentMethod === 'combinado' ? { transferAmount: parsedTransferAmount, requestKey: saleRequestKey.current ??= crypto.randomUUID() } : {}),
         notes,
         items: cart.map((line) => ({ productId: line.product.id, quantity: line.quantity })),
       };
@@ -506,7 +520,21 @@ export function VentaMostradorPage() {
               <div className="grid grid-cols-2 gap-2">
                 <button type="button" onClick={() => setPaymentMethod('efectivo')} className={`flex cursor-pointer items-center justify-center gap-2 rounded-[11px] border px-2 py-2.5 text-[12px] font-medium transition-colors duration-200 ${paymentMethod === 'efectivo' ? 'border-central-orange/25 bg-central-orange/10 text-central-orange' : 'border-transparent bg-[#f7f7f9] text-neutral-500 hover:bg-neutral-100'}`}><Banknote size={15} /> Efectivo</button>
                 <button type="button" onClick={() => setPaymentMethod('transferencia')} className={`flex cursor-pointer items-center justify-center gap-2 rounded-[11px] border px-2 py-2.5 text-[12px] font-medium transition-colors duration-200 ${paymentMethod === 'transferencia' ? 'border-central-orange/25 bg-central-orange/10 text-central-orange' : 'border-transparent bg-[#f7f7f9] text-neutral-500 hover:bg-neutral-100'}`}><CreditCard size={15} /> Transferencia</button>
+                {mixedPaymentsEnabled && !editingSale ? (
+                  <button type="button" onClick={() => setPaymentMethod('combinado')} className={`col-span-2 flex cursor-pointer items-center justify-center gap-2 rounded-[11px] border px-2 py-2.5 text-[12px] font-medium transition-colors duration-200 ${paymentMethod === 'combinado' ? 'border-central-orange/25 bg-central-orange/10 text-central-orange' : 'border-transparent bg-[#f7f7f9] text-neutral-500 hover:bg-neutral-100'}`}><CreditCard size={15} /> Efectivo + transferencia</button>
+                ) : null}
               </div>
+              {paymentMethod === 'combinado' ? (
+                <div className="mt-3 space-y-2">
+                  <label htmlFor="mixed-counter-transfer" className="block text-xs font-medium text-neutral-600">Transferencia recibida y verificada</label>
+                  <input id="mixed-counter-transfer" type="number" min="0.01" step="0.01" inputMode="decimal" value={transferAmount}
+                    onChange={e => { setTransferAmount(e.target.value); saleRequestKey.current = null; }} placeholder="Ej.: 10000"
+                    className="h-10 w-full rounded-[11px] border border-neutral-200 bg-white px-3 text-[13px] outline-none focus:border-central-orange/50"/>
+                  <div className="flex justify-between text-xs text-neutral-600"><span>Efectivo recibido</span><strong>{Number.isFinite(parsedTransferAmount) ? formatCurrency(Math.max(0,total-parsedTransferAmount)) : '—'}</strong></div>
+                  {!validMixedSplit ? <p className="text-[11px] text-red-600">La transferencia debe ser mayor a cero y menor que el total.</p> : null}
+                  <p className="text-[11px] text-neutral-500">Confirmá los dos importes solo cuando hayas recibido el dinero.</p>
+                </div>
+              ) : null}
             </div>
 
             <div className="mt-5 border-t border-neutral-100 pt-4">
@@ -545,7 +573,7 @@ export function VentaMostradorPage() {
             <button
               type="button"
               onClick={() => void registerSale()}
-              disabled={submitting || !cart.length}
+              disabled={submitting || !cart.length || !validMixedSplit}
               className="mt-5 flex h-11 w-full cursor-pointer items-center justify-center gap-2 rounded-[12px] bg-central-orange px-4 text-[13px] font-semibold text-white transition duration-200 hover:bg-central-ember active:scale-[.99] disabled:cursor-not-allowed disabled:bg-neutral-200 disabled:text-neutral-400"
             >
               {editingSale ? <Edit3 size={17} /> : <Store size={17} />}
@@ -600,7 +628,7 @@ export function VentaMostradorPage() {
                       </td>
                       <td className="px-4 py-4">
                         <p className="text-neutral-800">{sale.serviceMode === 'dine_in' ? 'Comer ahí' : 'Para llevar'}</p>
-                        <p className="mt-0.5 text-[11px] text-neutral-400">{sale.paymentMethod === 'transferencia' ? 'Transferencia' : 'Efectivo'}</p>
+                        <p className="mt-0.5 text-[11px] text-neutral-400">{sale.paymentMethod === 'combinado' ? 'Combinado' : sale.paymentMethod === 'transferencia' ? 'Transferencia' : 'Efectivo'}</p>
                       </td>
                       <td className="px-4 py-4 text-right font-medium text-neutral-600">{sale.itemCount}</td>
                       <td className="whitespace-nowrap px-4 py-4 text-right font-semibold text-neutral-900 [font-variant-numeric:tabular-nums]">{formatCurrency(sale.total)}</td>
@@ -613,7 +641,7 @@ export function VentaMostradorPage() {
                       </td>
                       <td className="px-5 py-4">
                         <div className="flex justify-end gap-1.5">
-                          <button type="button" onClick={() => void startEditingSale(sale)} disabled={cancelled || submitting}
+                          <button type="button" onClick={() => void startEditingSale(sale)} disabled={cancelled || submitting || sale.paymentMethod === 'combinado'}
                             className="grid h-8 w-8 cursor-pointer place-items-center rounded-[9px] border border-neutral-200 bg-white text-neutral-500 transition-colors duration-200 hover:bg-neutral-50 hover:text-neutral-900 disabled:cursor-not-allowed disabled:opacity-35"
                             title="Editar venta" aria-label={`Editar ${sale.orderCode}`}>
                             <Edit3 size={14} />
