@@ -71,6 +71,7 @@ function EditOrderButton({ order, onEditOrder, compact = false }: {
 }
 
 function PaymentOrderButton({ order, onPaymentOrder }: { order: Order; onPaymentOrder: (order: Order) => void; }) {
+  if (process.env.NEXT_PUBLIC_ENABLE_MIXED_PAYMENTS !== 'true') return null;
   return <button type="button" onClick={() => onPaymentOrder(order)}
     title="Consultar o registrar cobros de este pedido"
     aria-label={`Gestionar cobro del pedido ${order.orderCode}`}
