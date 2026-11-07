@@ -45,6 +45,9 @@ export function validateCheckout(values: CheckoutFormValues) {
     }
   }
 
+  if (values.paymentMethod === 'combinado' && (!Number.isFinite(values.transferAmount) || (values.transferAmount ?? 0) <= 0)) {
+    errors.transferAmount = 'Ingresá cuánto vas a transferir.';
+  }
   return errors;
 }
 
@@ -61,7 +64,9 @@ export async function createCheckoutOrder(
     customerLng: values.customerLocation?.lng ?? null,
     expectedDeliveryCost: values.deliveryMethod === 'delivery' ? values.deliveryCost ?? null : null,
     deliveryQuoteToken: values.deliveryMethod === 'delivery' ? values.deliveryQuoteToken ?? null : null,
-    paymentMethod: values.paymentMethod,
+    paymentMethod: values.paymentMethod === 'combinado' ? 'efectivo' : values.paymentMethod,
+    paymentPreference: values.paymentMethod,
+    ...(values.paymentMethod === 'combinado' ? { transferAmount: values.transferAmount } : {}),
     notes: values.notes ?? '',
     items: items.map((item) => ({
       productId: item.productId,
@@ -74,7 +79,8 @@ export async function createCheckoutOrder(
 export async function buildWhatsappUrl(order: Order) {
   const config = await getBusinessConfig();
   const whatsappNumber = config.whatsappNumber.replace(/\D/g, '');
-  const paymentLabel = order.paymentMethod === 'transferencia' ? 'Transferencia' : 'Efectivo';
+  const mixed = order.paymentPreference === 'combinado' && Boolean(order.paymentPlan);
+  const paymentLabel = mixed ? 'Combinado' : (order.paymentMethod === 'transferencia' || mixed) ? 'Transferencia' : 'Efectivo';
   const deliveryLabel = order.deliveryMethod === 'delivery' ? 'Envío a domicilio' : 'Retiro en local';
 
   const lines = [
@@ -93,6 +99,9 @@ export async function buildWhatsappUrl(order: Order) {
       : '',
     order.deliveryRouteVia ? `*Ruta sugerida:* ${order.deliveryRouteVia}` : '',
     `*Método de pago:* ${paymentLabel}`,
+    mixed ? `*Transferencia prevista:* ${formatCurrency(order.paymentPlan!.transfer)}` : '',
+    mixed ? `*Efectivo previsto:* ${formatCurrency(order.paymentPlan!.cash)}` : '',
+    mixed ? '_Los importes son una propuesta; el local confirmará la recepción de cada pago._' : '',
     '------------------------------',
     '*Pedido:*',
     ...order.items.map((item) => {
@@ -107,7 +116,7 @@ export async function buildWhatsappUrl(order: Order) {
     order.notes ? `*Observaciones:* ${order.notes}` : '',
     order.paymentMethod === 'transferencia' ? '------------------------------' : '',
     order.paymentMethod === 'transferencia' ? '*Elegiste método de pago transferencia.*' : '',
-    order.paymentMethod === 'transferencia'
+    (order.paymentMethod === 'transferencia' || mixed)
       ? 'A continuación te brindamos los datos para realizar el pago:'
       : '',
     order.paymentMethod === 'transferencia' ? `*Alias:* ${config.transferAlias}` : '',
