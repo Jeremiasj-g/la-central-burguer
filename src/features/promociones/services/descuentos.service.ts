@@ -15,9 +15,16 @@ export async function saveCategoryDiscount(input: CategoryDiscountInput, id?: st
   requireSupabaseConfigured('guardar la campaña');
   const title = input.title.trim();
   if (title.length < 3) throw new Error('Indicá un nombre de al menos tres caracteres.');
-  if (input.product_id) {
-    if (input.category_ids.length) throw new Error('La oferta debe aplicarse a un producto o a categorías, no a ambos.');
-  } else if (!input.category_ids.length) {
+
+  const productIds = [...new Set(input.product_ids ?? [])];
+  const targetsProducts = Boolean(input.product_id) || productIds.length > 0;
+  if (targetsProducts && input.category_ids.length) {
+    throw new Error('Elegí productos o categorías para esta campaña, no ambas opciones.');
+  }
+  if (input.product_id && productIds.length > 0) {
+    throw new Error('No se pueden combinar el selector antiguo y la selección múltiple.');
+  }
+  if (!targetsProducts && !input.category_ids.length) {
     throw new Error('Seleccioná al menos una categoría o un producto.');
   }
   if (!Number.isFinite(input.discount_percent) || input.discount_percent <= 0 || input.discount_percent >= 100)
@@ -28,7 +35,8 @@ export async function saveCategoryDiscount(input: CategoryDiscountInput, id?: st
     ...input,
     title,
     product_id: input.product_id || null,
-    category_ids: input.product_id ? [] : input.category_ids,
+    product_ids: productIds,
+    category_ids: targetsProducts ? [] : input.category_ids,
     updated_at: new Date().toISOString(),
   };
   const query = id ? table().update(payload).eq('id', id) : table().insert(payload);

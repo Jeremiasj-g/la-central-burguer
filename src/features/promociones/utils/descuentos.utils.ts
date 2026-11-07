@@ -38,7 +38,7 @@ export function discountForProduct(
 ): number {
   return campaigns.reduce((best, campaign) => {
     if (campaignStatus(campaign, today) !== 'active') return best;
-    const targetsProduct = campaign.product_id === productId;
+    const targetsProduct = campaign.product_id === productId || campaign.product_ids.includes(productId);
     const targetsCategory = campaign.category_ids.includes(categoryId);
     return targetsProduct || targetsCategory
       ? Math.max(best, Number(campaign.discount_percent))
