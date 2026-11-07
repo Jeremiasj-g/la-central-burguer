@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { CheckCircle2, ClipboardList, PackageCheck, RefreshCw, Search, XCircle } from 'lucide-react';
 import { PedidosTable } from '../components/PedidosTable';
 import { PedidoEditModal } from '../components/PedidoEditModal';
+import { AdminOrderPaymentModal } from '@/features/payments/components/AdminOrderPaymentModal';
 import { useBusinessConfig } from '@/features/configuracion/hooks/useBusinessConfig';
 import { PedidosTableSkeleton } from '../components/PedidosTableSkeleton';
 import { usePedidoMutations } from '../hooks/usePedidoMutations';
@@ -24,6 +25,7 @@ export function PedidosAdminPage() {
   const [status, setStatus] = useState<'all' | OrderStatus>('all');
   const [pendingCancelId, setPendingCancelId] = useState<string | null>(null);
   const [editingOrder, setEditingOrder] = useState<Order | null>(null);
+  const [paymentOrder, setPaymentOrder] = useState<Order | null>(null);
   const { config } = useBusinessConfig();
   const { pedidos, isLoading, error, refresh } = usePedidos({ search, status });
   const mutations = usePedidoMutations(refresh);
@@ -161,7 +163,7 @@ export function PedidosAdminPage() {
       ) : isLoading ? (
         <PedidosTableSkeleton />
       ) : pedidos.length > 0 ? (
-        <PedidosTable orders={pedidos} onCancelOrder={setPendingCancelId} onEditOrder={setEditingOrder} businessTimeZone={config?.timezone} />
+        <PedidosTable orders={pedidos} onCancelOrder={setPendingCancelId} onEditOrder={setEditingOrder} onPaymentOrder={setPaymentOrder} businessTimeZone={config?.timezone} />
       ) : (
         <div className="flex min-h-[240px] flex-col items-center justify-center rounded-[20px] border border-neutral-200/70 bg-white px-5 py-10 text-center shadow-soft">
           <span className="grid h-13 w-13 place-items-center rounded-[16px] bg-[#f7f7f9] text-neutral-400">
@@ -188,6 +190,11 @@ export function PedidosAdminPage() {
             void refresh();
           }}
         />
+      ) : null}
+
+      {paymentOrder ? (
+        <AdminOrderPaymentModal key={paymentOrder.id} order={paymentOrder}
+          onClose={() => setPaymentOrder(null)} onSaved={() => { void refresh(); }} />
       ) : null}
 
       <ConfirmDialog

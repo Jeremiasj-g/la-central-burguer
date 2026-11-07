@@ -16,4 +16,7 @@ export interface ConfirmedPaymentMovement {
   kind: PaymentMovementKind;
   confirmedAt: string;
   source: 'admin' | 'counter' | 'delivery';
+  relatedMovementId?: string | null;
+  reason?: string | null;
+  confirmedBy?: string | null;
 }
