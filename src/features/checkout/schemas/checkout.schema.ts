@@ -19,7 +19,8 @@ export const checkoutSchema = z.object({
   deliveryDistanceKm: z.number().finite().nonnegative().optional(),
   deliveryCost: z.number().finite().nonnegative().optional(),
   deliveryMapsUrl: z.string().url().optional(),
-  paymentMethod: z.enum(['efectivo', 'transferencia']),
+  paymentMethod: z.enum(['efectivo', 'transferencia', 'combinado']),
+  transferAmount: z.number().finite().positive().optional(),
   notes: z.string().optional(),
 }).superRefine((values, context) => {
   if (values.deliveryMethod !== 'delivery') return;

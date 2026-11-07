@@ -104,6 +104,12 @@ export function CheckoutModal({ open, onClose, items, onOrderCreated }: Checkout
   );
   const { isLoading: isGettingLocation, isRetrying: isRetryingLocation, requestLocation, clearLocation } = useCurrentLocation();
   const isDelivery = values.deliveryMethod === 'delivery';
+  const bothPaymentMethodsEnabled = process.env.NEXT_PUBLIC_ENABLE_MIXED_PAYMENTS === 'true'
+    && ['efectivo', 'transferencia'].every(type =>
+    activePaymentMethods.some(method => method.type === type));
+  const canUseSelectedPayment = values.paymentMethod === 'combinado'
+    ? bothPaymentMethodsEnabled
+    : activePaymentMethods.some(method => method.type === values.paymentMethod);
   const hasValidContact = values.customerName.trim().length >= 2
     && isValidCustomerPhone(values.customerPhone);
   const hasValidDeliveryQuote = !isDelivery || Boolean(
@@ -169,10 +175,11 @@ export function CheckoutModal({ open, onClose, items, onOrderCreated }: Checkout
 
   useEffect(() => {
     if (!activePaymentMethods.length) return;
+    if (values.paymentMethod === 'combinado' && bothPaymentMethodsEnabled) return;
     if (!activePaymentMethods.some((method) => method.type === values.paymentMethod)) {
       setValues((current) => ({ ...current, paymentMethod: activePaymentMethods[0].type }));
     }
-  }, [activePaymentMethods, values.paymentMethod]);
+  }, [activePaymentMethods, bothPaymentMethodsEnabled, values.paymentMethod]);
 
   function update<K extends keyof CheckoutFormValues>(key: K, value: CheckoutFormValues[K]) {
     clearError(key);
@@ -286,10 +293,17 @@ export function CheckoutModal({ open, onClose, items, onOrderCreated }: Checkout
         : `${formatDistanceKm(deliveryQuote.routeDistanceKm)} · Fuera del radio de entrega.`
     : 'Para solicitar delivery, activá el GPS y compartí tu ubicación actual. La utilizaremos para calcular el envío y localizar la entrega.';
 
+  const transferAmount = values.transferAmount ?? 0;
+  const validMixedSplit = values.paymentMethod !== 'combinado' || (
+    Number.isFinite(transferAmount) && transferAmount > 0
+    && Math.round(transferAmount * 100) < Math.round(totals.total * 100)
+  );
+  const cashRemaining = Math.max(0, (Math.round(totals.total * 100) - Math.round(transferAmount * 100)) / 100);
   const canSendOrder = !isSubmitting
     && items.length > 0
     && hasValidContact
-    && activePaymentMethods.some(method => method.type === values.paymentMethod)
+    && canUseSelectedPayment
+    && validMixedSplit
     && hasValidDeliveryQuote;
   const productCount = items.reduce((count, item) => count + item.quantity, 0);
 
@@ -505,12 +519,39 @@ export function CheckoutModal({ open, onClose, items, onOrderCreated }: Checkout
                       <span className="min-w-0 break-words">{method.name}</span>
                     </label>
                   ))}
+                  {bothPaymentMethodsEnabled ? (
+                    <label className={cn(
+                      'lcb-checkout-choice flex min-w-0 cursor-pointer items-center gap-2.5 rounded-[12px] border px-3 py-3 text-[12px] font-medium transition-[border-color,background-color] duration-200 sm:px-4',
+                      values.paymentMethod === 'combinado' ? 'border-central-orange/75 bg-central-orange/[.09] text-white' : 'border-white/10 bg-white/[.035] text-white/65 hover:border-white/25',
+                    )}>
+                      <input type="radio" name="checkout-payment-method" className="sr-only" checked={values.paymentMethod === 'combinado'} onChange={() => update('paymentMethod', 'combinado')}/>
+                      <span className={cn('grid h-[17px] w-[17px] shrink-0 place-items-center rounded-full border', values.paymentMethod === 'combinado' ? 'border-central-orange' : 'border-white/35')}>
+                        {values.paymentMethod === 'combinado' ? <span className="h-[9px] w-[9px] rounded-full bg-central-orange"/> : null}
+                      </span>
+                      <span>Pago combinado</span>
+                    </label>
+                  ) : null}
                 </div>
               ) : (
                 <p className="rounded-[12px] border border-red-400/20 bg-red-500/[.06] p-3 text-[12px] leading-5 text-red-200">
                   No hay métodos de pago habilitados. Contactá al local.
                 </p>
               )}
+              {values.paymentMethod === 'combinado' ? (
+                <div className="mt-4 space-y-2.5">
+                  <p className="text-[11px] leading-5 text-white/55">Indicá cuánto vas a transferir. El resto se paga en efectivo. El local verificará cada cobro.</p>
+                  <label htmlFor="checkout-transfer-amount" className="block text-[12px] font-medium text-white/75">Importe por transferencia</label>
+                  <div className="lcb-public-field-shell" data-field-theme={theme}>
+                    <Input id="checkout-transfer-amount" type="number" min="0" step="0.01" inputMode="decimal"
+                      className={cn('lcb-public-field-input !h-11 !rounded-[11px] !border-0 !bg-transparent !px-3.5 !text-[14px]', theme === 'light' ? '!text-[#292d32]' : '!text-white')}
+                      value={values.transferAmount ?? ''} onChange={event => update('transferAmount', event.target.value === '' ? undefined : Number(event.target.value))}
+                      placeholder="Ej.: 20000" />
+                  </div>
+                  <div className="flex justify-between text-[12px] text-white/70"><span>Efectivo restante</span><strong className="tabular-nums text-white">{formatCurrency(cashRemaining)}</strong></div>
+                  {!validMixedSplit ? <p role="alert" className="text-[11px] text-red-300">La transferencia debe ser mayor a $0 y menor que el total del pedido.</p> : null}
+                  {errors.transferAmount ? <p role="alert" className="text-[11px] text-red-300">{errors.transferAmount}</p> : null}
+                </div>
+              ) : null}
               <div aria-hidden={values.paymentMethod !== 'transferencia'} className={cn(
                 'grid transition-[grid-template-rows,opacity,margin-top] duration-200 ease-out motion-reduce:transition-none',
                 values.paymentMethod === 'transferencia' ? 'mt-2.5 grid-rows-[1fr] opacity-100' : 'mt-0 grid-rows-[0fr] opacity-0',

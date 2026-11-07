@@ -109,7 +109,16 @@ export async function POST(request: Request) {
         {status:503,headers:{'Cache-Control':'no-store'}});
     }
 
-    const { data, error } = await supabase.rpc('create_public_order_from_route', {
+    const isMixed = payload.paymentPreference === 'combinado';
+    if (isMixed && process.env.ENABLE_MIXED_PAYMENTS !== 'true') {
+      return NextResponse.json({ error: 'Los pagos combinados aún no están habilitados.' }, { status: 409 });
+    }
+    if (isMixed && (payload.paymentMethod !== 'efectivo' || typeof payload.transferAmount !== 'number'
+      || !Number.isFinite(payload.transferAmount) || payload.transferAmount <= 0)) {
+      return NextResponse.json({ error: 'El desglose del pago combinado no es válido.' }, { status: 400 });
+    }
+    // The mixed-payment RPC creates the order and stores its plan in one transaction.
+    const { data, error } = await supabase.rpc(isMixed ? 'create_public_order_with_payment_plan' : 'create_public_order_from_route', {
       payload: serverPayload as unknown as Json,
     });
 
