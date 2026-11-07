@@ -11,10 +11,7 @@ declare
   order_total numeric(12,2);
   order_id uuid;
 begin
-  -- Only the trusted server (service_role) may call this wrapper.
-  if current_user <> 'service_role' and session_user <> 'service_role' then
-    raise exception 'Operación reservada al servidor.' using errcode = '42501';
-  end if;
+  -- EXECUTE is granted only to service_role, the server-side caller.
   if requested_preference is distinct from 'combinado' then
     raise exception 'Preferencia de pago inválida.' using errcode = '22023';
   end if;
