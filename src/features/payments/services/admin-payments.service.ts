@@ -97,3 +97,18 @@ export async function reverseAdminOrderPayment(
   });
   if (error) throw new Error(error.message);
 }
+
+/** Record a full refund only AFTER cash has been returned or bank transfer settled. */
+export async function refundAdminOrderPayment(
+  movementId: string,
+  reason: string,
+  idempotencyKey: string,
+): Promise<void> {
+  requireSupabaseConfigured('registrar un reintegro');
+  const { error } = await getSupabaseBrowserClient().rpc('admin_refund_order_payment', {
+    target_movement_id: movementId,
+    refund_reason: reason,
+    request_key: idempotencyKey,
+  });
+  if (error) throw new Error(error.message);
+}
