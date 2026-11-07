@@ -113,6 +113,12 @@ export async function getDeliveryHistoryPage({
 
   if (ordersError) throw new Error(ordersError.message);
 
+  const { data: paymentPlans, error: paymentPlansError } = await supabase
+    .from('order_payment_plans')
+    .select('order_id,cash_amount')
+    .in('order_id', orderIds);
+  if (paymentPlansError) throw new Error(paymentPlansError.message);
+
   const { data: rates, error: ratesError } = await supabase
     .from('delivery_driver_rates')
     .select('id,driver_id,commission_percent')
@@ -172,6 +178,7 @@ export async function getDeliveryHistoryPage({
   }
 
   const orderMap = new Map((orders ?? []).map((row) => [row.id, row]));
+  const cashPlanMap = new Map((paymentPlans ?? []).map(row => [row.order_id, Number(row.cash_amount)]));
   const rateMap = new Map((rates ?? []).map((row) => [row.id, row]));
   const profileMap = new Map((profiles ?? []).map((row) => [row.id, row]));
   const driverMap = new Map((drivers ?? []).map((row) => [row.profile_id, row]));
@@ -242,7 +249,7 @@ export async function getDeliveryHistoryPage({
         status: assignment.status,
         commissionPercent,
         commissionAmount: Math.round((deliveryFee * commissionPercent / 100) * 100) / 100,
-        cashToCollect: order?.payment_method === 'efectivo' ? Number(order.total) : 0,
+        cashToCollect: cashPlanMap.get(assignment.order_id) ?? (order?.payment_method === 'efectivo' ? Number(order.total) : 0),
         assignedAt: assignment.assigned_at,
         acceptedAt: assignment.accepted_at,
         pickedUpAt: assignment.picked_up_at,
