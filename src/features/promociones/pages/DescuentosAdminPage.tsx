@@ -5,7 +5,6 @@ import { BadgePercent, CalendarDays, Check, PauseCircle, PlayCircle, Plus, Penci
 import { toast } from 'react-toastify';
 import { useCategorias } from '@/features/categorias/hooks/useCategorias';
 import { useProductos } from '@/features/productos/hooks/useProductos';
-import { SearchableSelect } from '@/shared/components/ui/SearchableSelect';
 import { formatCurrency } from '@/shared/utils/format.utils';
 import { useBusinessConfig } from '@/features/configuracion/hooks/useBusinessConfig';
 import { Button } from '@/shared/components/ui/Button';
@@ -29,7 +28,7 @@ const statusColors = {
 };
 
 function emptyForm(today: string): CategoryDiscountInput {
-  return { title: '', category_ids: [], product_id: null, discount_percent: 25, starts_on: today, ends_on: today, enabled: true };
+  return { title: '', category_ids: [], product_id: null, product_ids: [], discount_percent: 25, starts_on: today, ends_on: today, enabled: true };
 }
 function displayDate(value: string) {
   const [year, month, day] = value.split('-');
@@ -50,34 +49,39 @@ export function DescuentosAdminPage() {
   const [open, setOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | undefined>();
   const [targetKind, setTargetKind] = useState<'category' | 'product'>('category');
+  const [productSearch, setProductSearch] = useState('');
   const [form, setForm] = useState<CategoryDiscountInput>(() => emptyForm(businessDate(new Date())));
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState<CategoryDiscountCampaign | null>(null);
 
   const categoriesById = new Map(categorias.map(c => [c.id, c.name]));
   const productsById = new Map(productos.map(p => [p.id, p]));
-  const productOptions = productos
-    .filter(p => p.active || p.id === form.product_id)
-    .map(p => ({
-      value: p.id,
-      label: `${p.name} · ${categoriesById.get(p.categoryId) ?? 'Sin categoría'}`,
-    }))
-    .sort((a, b) => a.label.localeCompare(b.label, 'es'));
-  const chosenProduct = form.product_id ? productsById.get(form.product_id) : null;
-  const validTarget = targetKind === 'product' ? Boolean(form.product_id) : form.category_ids.length > 0;
+  const selectedProductIds = new Set(form.product_ids);
+  const normalizedSearch = productSearch.trim().toLocaleLowerCase('es');
+  const filteredProducts = productos
+    .filter(p => p.active || selectedProductIds.has(p.id))
+    .filter(p => !normalizedSearch ||
+      p.name.toLocaleLowerCase('es').includes(normalizedSearch) ||
+      (categoriesById.get(p.categoryId) ?? '').toLocaleLowerCase('es').includes(normalizedSearch))
+    .sort((a, b) => Number(selectedProductIds.has(b.id)) - Number(selectedProductIds.has(a.id))
+      || a.name.localeCompare(b.name, 'es'));
+  const validTarget = targetKind === 'product' ? form.product_ids.length > 0 : form.category_ids.length > 0;
   const activeCount = campaigns.filter(c => campaignStatus(c, today) === 'active').length;
   const futureCount = campaigns.filter(c => campaignStatus(c, today) === 'scheduled').length;
 
   function startNew() {
     setEditingId(undefined);
+    setProductSearch('');
     setTargetKind('category');
     setForm(emptyForm(today));
     setOpen(true);
   }
   function startEdit(c: CategoryDiscountCampaign) {
     setEditingId(c.id);
-    setTargetKind(c.product_id ? 'product' : 'category');
-    setForm({ title: c.title, category_ids: c.category_ids, product_id: c.product_id, discount_percent: Number(c.discount_percent),
+    setProductSearch('');
+    const productIds = c.product_ids?.length ? c.product_ids : (c.product_id ? [c.product_id] : []);
+    setTargetKind(productIds.length ? 'product' : 'category');
+    setForm({ title: c.title, category_ids: c.category_ids, product_id: null, product_ids: productIds, discount_percent: Number(c.discount_percent),
       starts_on: c.starts_on, ends_on: c.ends_on, enabled: c.enabled });
     setOpen(true);
   }
@@ -117,7 +121,7 @@ export function DescuentosAdminPage() {
       <header className="mb-7 flex flex-wrap items-start justify-between gap-4">
         <div>
           <h1 className="text-[30px] font-semibold tracking-[-.045em] text-neutral-950">Ofertas y descuentos</h1>
-          <p className="mt-1 text-[13px] text-neutral-500">Aplicá promociones a una categoría o a un producto puntual.</p>
+          <p className="mt-1 text-[13px] text-neutral-500">Aplicá promociones a categorías o a uno o varios productos.</p>
         </div>
         <Button className="!h-10 !rounded-[11px] !bg-[#191b20] !px-4 !text-[12px] !font-medium" onClick={startNew}>
           <Plus size={16} /> Nueva campaña
@@ -153,9 +157,9 @@ export function DescuentosAdminPage() {
                 <div className="min-w-[200px] flex-1">
                   <p className="text-[13px] font-semibold text-neutral-900">{c.title}</p>
                   <p className="mt-1 text-[11px] text-neutral-500">
-                    {c.product_id
-                      ? `Producto · ${productsById.get(c.product_id)?.name ?? 'Producto no disponible'}`
-                      : `Categoría · ${c.category_ids.map(id => categoriesById.get(id) ?? 'Categoría no disponible').join(' · ')}`}
+                    {c.product_ids?.length || c.product_id
+                      ? `Productos · ${(c.product_ids?.length ? c.product_ids : [c.product_id!]).map(id => productsById.get(id)?.name ?? 'Producto no disponible').join(' · ')}`
+                      : `Categorías · ${c.category_ids.map(id => categoriesById.get(id) ?? 'Categoría no disponible').join(' · ')}`}
                   </p>
                 </div>
                 <div className="w-20">
@@ -209,14 +213,14 @@ export function DescuentosAdminPage() {
             <legend className="mb-2 text-[12px] font-medium text-neutral-700">Aplicar oferta a</legend>
             <div className="grid grid-cols-2 gap-2" role="group" aria-label="Alcance del descuento">
               <button type="button" aria-pressed={targetKind === 'category'}
-                onClick={() => { setTargetKind('category'); setForm(current => ({ ...current, product_id: null })); }}
+                onClick={() => { setTargetKind('category'); setForm(current => ({ ...current, product_id: null, product_ids: [] })); }}
                 className={`min-h-11 rounded-[11px] px-3 py-2 text-[12px] font-medium transition-colors duration-200 ${targetKind === 'category' ? 'bg-[#191b20] text-white' : 'bg-neutral-100 text-neutral-600 hover:bg-neutral-200'}`}>
                 Categorías
               </button>
               <button type="button" aria-pressed={targetKind === 'product'}
-                onClick={() => { setTargetKind('product'); setForm(current => ({ ...current, category_ids: [] })); }}
+                onClick={() => { setTargetKind('product'); setForm(current => ({ ...current, category_ids: [], product_id: null })); }}
                 className={`min-h-11 rounded-[11px] px-3 py-2 text-[12px] font-medium transition-colors duration-200 ${targetKind === 'product' ? 'bg-[#191b20] text-white' : 'bg-neutral-100 text-neutral-600 hover:bg-neutral-200'}`}>
-                Un producto
+                Productos
               </button>
             </div>
           </fieldset>
@@ -243,29 +247,70 @@ export function DescuentosAdminPage() {
             </div>
           </fieldset>
           ) : (
-            <div className="min-w-0 space-y-2">
-              <label className="block text-[12px] font-medium text-neutral-700">Producto al que se aplicará la oferta</label>
-              <SearchableSelect
-                value={form.product_id ?? undefined}
-                options={productOptions}
-                onValueChange={(product_id) => setForm(s => ({ ...s, product_id, category_ids: [] }))}
-                placeholder="Buscar y seleccionar un producto"
-                searchPlaceholder="Buscar por producto o categoría…"
-                emptyMessage="No hay productos que coincidan."
-                aria-label="Seleccionar el producto de la oferta"
+            <fieldset className="min-w-0">
+              <legend className="mb-2 text-[12px] font-medium text-neutral-700">Productos incluidos</legend>
+              <Input
+                type="search"
+                value={productSearch}
+                onChange={(event) => setProductSearch(event.target.value)}
+                placeholder="Buscar productos o categorías..."
+                aria-label="Buscar productos para la oferta"
                 className={control}
               />
-              {chosenProduct ? (
-                <p className="text-[12px] text-neutral-500">
-                  Precio de lista: <strong className="font-medium text-neutral-900">{formatCurrency(chosenProduct.currentPrice)}</strong>
-                  {' · '}Con oferta: <strong className="font-medium text-emerald-700">
-                    {formatCurrency(Math.round(chosenProduct.currentPrice * (1 - form.discount_percent / 100)))}
-                  </strong>
-                </p>
-              ) : (
-                <p className="text-[11px] text-neutral-500">La oferta afectará únicamente al producto elegido, no al resto de su categoría.</p>
-              )}
-            </div>
+              <div className="mt-2 flex min-h-8 items-center justify-between gap-3">
+                <span aria-live="polite" className="text-[11px] font-medium text-neutral-500">
+                  {form.product_ids.length} {form.product_ids.length === 1 ? 'producto seleccionado' : 'productos seleccionados'}
+                </span>
+                {form.product_ids.length > 0 ? (
+                  <button type="button" onClick={() => setForm(current => ({ ...current, product_ids: [] }))}
+                    className="min-h-8 text-[11px] font-medium text-neutral-500 transition-colors duration-200 hover:text-red-600">
+                    Limpiar selección
+                  </button>
+                ) : null}
+              </div>
+              <div className="custom-scrollbar mt-1 max-h-[260px] space-y-0.5 overflow-y-auto" role="group" aria-label="Seleccionar productos de la promoción">
+                {filteredProducts.length === 0 ? (
+                  <p className="py-5 text-center text-[12px] text-neutral-500">No encontramos productos con esa búsqueda.</p>
+                ) : filteredProducts.map(product => {
+                  const checked = selectedProductIds.has(product.id);
+                  return (
+                    <label key={product.id} className={`group flex min-h-12 cursor-pointer items-center gap-3 rounded-[10px] px-2.5 py-2 transition-colors duration-200 ${checked ? 'bg-central-orange/10' : 'hover:bg-neutral-50'}`}>
+                      <span className="relative grid h-[18px] w-[18px] shrink-0 place-items-center">
+                        <input
+                          type="checkbox"
+                          checked={checked}
+                          className="peer absolute inset-0 z-10 h-full w-full cursor-pointer opacity-0"
+                          onChange={(event) => setForm(current => ({
+                            ...current,
+                            product_id: null,
+                            product_ids: event.target.checked
+                              ? [...current.product_ids, product.id]
+                              : current.product_ids.filter(id => id !== product.id),
+                          }))}
+                        />
+                        <span aria-hidden="true" className="pointer-events-none absolute inset-0 rounded-[5px] border border-neutral-300 bg-white transition-colors duration-200 peer-checked:border-central-orange peer-checked:bg-central-orange peer-focus-visible:ring-2 peer-focus-visible:ring-central-orange/30" />
+                        <Check size={13} strokeWidth={2.8} aria-hidden="true" className="pointer-events-none relative text-white opacity-0 peer-checked:opacity-100" />
+                      </span>
+                      <span className="min-w-0 flex-1">
+                        <span className="block break-words text-[12px] font-medium text-neutral-800">{product.name}</span>
+                        <span className="block text-[11px] text-neutral-400">{categoriesById.get(product.categoryId) ?? 'Sin categoría'}{!product.active ? ' · Inactivo' : ''}</span>
+                      </span>
+                      <span className="shrink-0 text-right text-[11px] tabular-nums text-neutral-500">
+                        {checked ? (
+                          <>
+                            <span className="block text-[10px] line-through">{formatCurrency(product.currentPrice)}</span>
+                            <span className="block font-semibold text-emerald-700">{formatCurrency(Math.round(product.currentPrice * (1 - form.discount_percent / 100)))}</span>
+                          </>
+                        ) : formatCurrency(product.currentPrice)}
+                      </span>
+                    </label>
+                  );
+                })}
+              </div>
+              <p className="mt-2 text-[11px] leading-5 text-neutral-500">
+                Todos los productos marcados reciben el mismo porcentaje. Los demás conservan su precio, salvo que tengan otra oferta.
+              </p>
+            </fieldset>
           )}
           <label className="block text-[12px] font-medium text-neutral-700">
             Descuento (%)

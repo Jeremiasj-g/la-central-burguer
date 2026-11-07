@@ -3,6 +3,7 @@ export interface CategoryDiscountCampaign {
   title: string;
   category_ids: string[];
   product_id: string | null;
+  product_ids: string[];
   discount_percent: number;
   starts_on: string;
   ends_on: string;
@@ -13,5 +14,5 @@ export interface CategoryDiscountCampaign {
 
 export type CategoryDiscountInput = Pick<
   CategoryDiscountCampaign,
-  'title' | 'category_ids' | 'product_id' | 'discount_percent' | 'starts_on' | 'ends_on' | 'enabled'
+  'title' | 'category_ids' | 'product_id' | 'product_ids' | 'discount_percent' | 'starts_on' | 'ends_on' | 'enabled'
 >;
