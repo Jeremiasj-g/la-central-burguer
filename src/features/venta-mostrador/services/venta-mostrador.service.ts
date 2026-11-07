@@ -1,6 +1,6 @@
 import { getSupabaseBrowserClient } from '@/lib/supabase/client';
 import { requireSupabaseConfigured } from '@/lib/config/env';
-import type { Database, OrderStatus } from '@/lib/supabase/database.types';
+import type { Database, Json, OrderStatus } from '@/lib/supabase/database.types';
 
 export type CounterServiceMode = 'takeaway' | 'dine_in';
 export type CounterPaymentMethod = 'efectivo' | 'transferencia' | 'combinado';
@@ -247,8 +247,8 @@ export async function createCounterSale(input: CreateCounterSaleInput): Promise<
       requestKey: input.requestKey, customerName: input.customerName ?? '',
       customerPhone: input.customerPhone ?? '', serviceMode: input.serviceMode,
       transferAmount: input.transferAmount, notes: input.notes ?? '',
-      items: input.items,
-    } });
+      items: input.items.map(item => ({ productId: item.productId, quantity: item.quantity })),
+    } as Json });
     if (error) throw new Error(error.message);
     if (!data || typeof data !== 'object' || Array.isArray(data)) throw new Error('No pudimos verificar la venta registrada.');
     const response = data as Record<string, unknown>;
