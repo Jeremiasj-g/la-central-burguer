@@ -110,6 +110,9 @@ export async function POST(request: Request) {
     }
 
     const isMixed = payload.paymentPreference === 'combinado';
+    if (isMixed && process.env.ENABLE_MIXED_PAYMENTS !== 'true') {
+      return NextResponse.json({ error: 'Los pagos combinados aún no están habilitados.' }, { status: 409 });
+    }
     if (isMixed && (payload.paymentMethod !== 'efectivo' || typeof payload.transferAmount !== 'number'
       || !Number.isFinite(payload.transferAmount) || payload.transferAmount <= 0)) {
       return NextResponse.json({ error: 'El desglose del pago combinado no es válido.' }, { status: 400 });
