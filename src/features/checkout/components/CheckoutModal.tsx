@@ -104,7 +104,8 @@ export function CheckoutModal({ open, onClose, items, onOrderCreated }: Checkout
   );
   const { isLoading: isGettingLocation, isRetrying: isRetryingLocation, requestLocation, clearLocation } = useCurrentLocation();
   const isDelivery = values.deliveryMethod === 'delivery';
-  const bothPaymentMethodsEnabled = ['efectivo', 'transferencia'].every(type =>
+  const bothPaymentMethodsEnabled = process.env.NEXT_PUBLIC_ENABLE_MIXED_PAYMENTS === 'true'
+    && ['efectivo', 'transferencia'].every(type =>
     activePaymentMethods.some(method => method.type === type));
   const canUseSelectedPayment = values.paymentMethod === 'combinado'
     ? bothPaymentMethodsEnabled
