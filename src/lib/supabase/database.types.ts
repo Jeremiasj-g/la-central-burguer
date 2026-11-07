@@ -215,6 +215,7 @@ export interface Database {
       admin_confirm_order_payment: { Args: { target_order_id: string; payment_method: PaymentMethodCode; payment_amount: number; request_key: string }; Returns: Json };
       admin_reverse_order_payment: { Args: { target_movement_id: string; correction_reason: string; request_key: string }; Returns: Json };
       admin_refund_order_payment: { Args: { target_movement_id: string; refund_reason: string; request_key: string }; Returns: Json };
+      admin_payment_collections_summary: { Args: { from_ts?: string | null; to_ts?: string | null }; Returns: Json };
       create_public_order: { Args: { payload: Json }; Returns: Json };
       create_public_order_from_route: { Args: { payload: Json }; Returns: Json };
       create_public_order_with_payment_plan: { Args: { payload: Json }; Returns: Json };
