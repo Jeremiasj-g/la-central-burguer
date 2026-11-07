@@ -19,8 +19,17 @@
 
 **Advertencia:** el botón y las funciones están diseñados en esta rama de trabajo. La base de producción **no** tiene estas migraciones todavía. No se debe fusionar a `main` hasta completar el sistema entero y las pruebas end-to-end.
 
+## Fase 2b — Checkout público combinado (implementado en la rama, NO activado)
+- Selector **Pago combinado** solo cuando efectivo y transferencia estén habilitados.
+- El cliente indica la transferencia; el efectivo restante se calcula automáticamente, sin marcar ningún cobro como confirmado.
+- El endpoint verifica la cotización del reparto y utiliza `create_public_order_with_payment_plan(jsonb)` para crear pedido y desglose en una transacción.
+- Los importes se verifican contra el total final recalculado por PostgreSQL; si cambió el precio, se cancela la creación sin dejar un pedido a medias.
+- WhatsApp muestra ambos importes y los datos de transferencia; se indica explícitamente que no están acreditados.
+- El histórico y los pedidos normales siguen por la RPC existente, sin interpretar `orders.payment_method` como dinero recibido.
+- **No funciona hasta aplicar las migraciones de la fase 1 y 2b en una base de pruebas.** No ejecutar en producción.
+
 ## Fase 3 — Integración completa (pendiente)
-- Checkout público: opción combinado y WhatsApp sin declarar cobro confirmado.
+- Checkout público: implementado en fase 2b; pendiente de prueba integrada y habilitación.
 - Pedidos: modal Cobro independiente de Editar pedido.
 - Venta mostrador: cobro completo con desglose en una sola transacción.
 - Delivery: transferencia verificada antes de asignar, efectivo exacto a cobrar y confirmación de repartidor.
