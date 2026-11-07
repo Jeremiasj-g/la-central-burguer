@@ -14,6 +14,7 @@ import {
   setAdminOrderPaymentPlan,
   confirmAdminOrderPayment,
   reverseAdminOrderPayment,
+  refundAdminOrderPayment,
   type AdminOrderPaymentState,
 } from '../services/admin-payments.service';
 import { splitPayment } from '../utils/payment.utils';
@@ -43,6 +44,7 @@ export function AdminOrderPaymentModal({ order, onClose, onSaved }: {
   const [reversalId, setReversalId] = useState<string | null>(null);
   const [reverseReason, setReverseReason] = useState('');
   const [reverseConfirmOpen, setReverseConfirmOpen] = useState(false);
+  const [adjustmentKind, setAdjustmentKind] = useState<'reversal' | 'refund'>('reversal');
   const paymentKey = useRef<string | null>(null);
   const reverseKey = useRef<string | null>(null);
 
@@ -91,7 +93,10 @@ export function AdminOrderPaymentModal({ order, onClose, onSaved }: {
     && amount !== null && amount > 0 && amount <= methodRemaining && !deliveryCashBlocked);
   const selectedReversal = data?.movements.find(m => m.id === reversalId);
   const isReversed = (id: string) => Boolean(data?.movements.some(m => m.relatedMovementId === id));
-  const canReverse = Boolean(selectedReversal?.kind === 'payment' && selectedReversal.source === 'admin'
+  const canReverse = Boolean(selectedReversal?.kind === 'payment'
+    && (adjustmentKind === 'refund'
+      ? ['admin','counter'].includes(selectedReversal.source)
+      : selectedReversal.source === 'admin')
     && !isReversed(selectedReversal.id) && reverseReason.trim().length >= 8 && !busy);
 
   async function savePlan() {
@@ -131,14 +136,18 @@ export function AdminOrderPaymentModal({ order, onClose, onSaved }: {
     setBusy(true);
     try {
       reverseKey.current ??= crypto.randomUUID();
-      await reverseAdminOrderPayment(selectedReversal.id, reverseReason, reverseKey.current);
+      if (adjustmentKind === 'refund') {
+        await refundAdminOrderPayment(selectedReversal.id, reverseReason, reverseKey.current);
+      } else {
+        await reverseAdminOrderPayment(selectedReversal.id, reverseReason, reverseKey.current);
+      }
       reverseKey.current = null;
       setReverseConfirmOpen(false);
       setReversalId(null);
       setReverseReason('');
       await load();
       onSaved();
-      toast.success('Corrección registrada con su motivo.');
+      toast.success(adjustmentKind === 'refund' ? 'Reintegro registrado con su motivo.' : 'Corrección registrada con su motivo.');
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'No se pudo corregir el cobro.');
     } finally { setBusy(false); }
@@ -289,13 +298,14 @@ export function AdminOrderPaymentModal({ order, onClose, onSaved }: {
                         </p>
                         <p className="mt-0.5 text-[10px] text-neutral-500">{formatDateTime(movement.confirmedAt)}</p>
                         {movement.reason ? <p className="mt-1 text-[10px] text-neutral-500">{movement.reason}</p> : null}
-                        {movement.kind === 'payment' && movement.source === 'admin' && !isReversed(movement.id) && !isCanceled ? (
+                        {movement.kind === 'payment' && ['admin','counter'].includes(movement.source) && !isReversed(movement.id) && !isCanceled ? (
                           <button type="button" onClick={() => {
                             setReversalId(movement.id);
+                            setAdjustmentKind(movement.source === 'counter' ? 'refund' : 'reversal');
                             setReverseReason('');
                             reverseKey.current = null;
                           }} className="mt-1 inline-flex items-center gap-1 text-[11px] text-red-600 hover:underline">
-                            <RotateCcw size={12}/> Corregir cobro
+                            <RotateCcw size={12}/> {movement.source === 'counter' ? 'Registrar reintegro' : 'Corregir o reintegrar'}
                           </button>
                         ) : null}
                       </div>
@@ -309,8 +319,17 @@ export function AdminOrderPaymentModal({ order, onClose, onSaved }: {
               {selectedReversal && !isReversed(selectedReversal.id) ? (
                 <div className="space-y-2 border-t border-neutral-100 pt-3">
                   <p className="text-[12px] font-medium text-neutral-700">
-                    Corregir {formatCurrency(selectedReversal.amount)} de {selectedReversal.method}
+                    {adjustmentKind === 'refund' ? 'Reintegrar' : 'Corregir'} {formatCurrency(selectedReversal.amount)} de {selectedReversal.method}
                   </p>
+                  {selectedReversal.source === 'admin' ? (
+                    <div className="flex gap-2 text-[11px]">
+                      <button type="button" className={adjustmentKind === 'reversal' ? 'font-semibold text-neutral-900' : 'text-neutral-500'} onClick={() => { setAdjustmentKind('reversal'); reverseKey.current = null; }}>Error de registro</button>
+                      <button type="button" className={adjustmentKind === 'refund' ? 'font-semibold text-neutral-900' : 'text-neutral-500'} onClick={() => { setAdjustmentKind('refund'); reverseKey.current = null; }}>Dinero devuelto</button>
+                    </div>
+                  ) : null}
+                  {adjustmentKind === 'refund' ? (
+                    <p className="text-[11px] text-amber-800">Registrá este reintegro únicamente después de devolver la totalidad del importe al cliente.</p>
+                  ) : null}
                   <label htmlFor="payment-reversal-reason" className="text-[11px] text-neutral-600">
                     Motivo de corrección
                   </label>
@@ -323,7 +342,7 @@ export function AdminOrderPaymentModal({ order, onClose, onSaved }: {
                       disabled={busy} className="!rounded-[10px] !text-[11px]">Cancelar</Button>
                     <Button type="button" variant="danger" size="sm" disabled={!canReverse}
                       onClick={() => setReverseConfirmOpen(true)} className="!rounded-[10px] !text-[11px]">
-                      Confirmar corrección
+                      {adjustmentKind === 'refund' ? 'Registrar reintegro' : 'Confirmar corrección'}
                     </Button>
                   </div>
                 </div>
@@ -338,9 +357,9 @@ export function AdminOrderPaymentModal({ order, onClose, onSaved }: {
         confirmLabel="Sí, registrar cobro" isLoading={busy}
         onCancel={() => { if (!busy) setConfirmOpen(false); }}
         onConfirm={() => void confirmPayment()} />
-      <ConfirmDialog open={reverseConfirmOpen} theme="light" title="Revertir cobro"
+      <ConfirmDialog open={reverseConfirmOpen} theme="light" title={adjustmentKind === 'refund' ? 'Registrar dinero reintegrado' : 'Revertir cobro'}
         tone="danger"
-        description={`Se registrará la reversión de ${formatCurrency(selectedReversal?.amount ?? 0)}. El movimiento original permanecerá en el historial.`}
+        description={adjustmentKind === 'refund' ? `¿Confirmás que ya devolviste ${formatCurrency(selectedReversal?.amount ?? 0)} al cliente por ${selectedReversal?.method}? Quedará registrado en el historial.` : `Se registrará la reversión de ${formatCurrency(selectedReversal?.amount ?? 0)}. El movimiento original permanecerá en el historial.`}
         confirmLabel="Sí, corregir" isLoading={busy}
         onCancel={() => { if (!busy) setReverseConfirmOpen(false); }}
         onConfirm={() => void reversePayment()} />
