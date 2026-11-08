@@ -465,16 +465,11 @@ export function ConfiguracionAdminPage() {
 
       {activeTab === 'delivery' ? (
         <section id="config-panel-delivery" role="tabpanel" aria-labelledby="config-tab-delivery" className={cn(panelClass, 'max-w-5xl')}>
-          <div className="mb-5">
-            <h2 className={sectionTitleClass}>Delivery y ubicación</h2>
-            <p className="mt-1 text-[12px] text-neutral-500">Definí desde dónde sale el pedido, las distancias y las tarifas de envío.</p>
-          </div>
-          <div>
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <div>
-                <h3 className="flex items-center gap-2 text-[15px] font-semibold tracking-tight text-neutral-900"><Truck size={16} className="text-central-orange" /> Delivery y ubicación</h3>
-                <p className="mt-1 text-[12px] leading-5 text-neutral-500">Esta ubicación se usa para estimar el envío por distancia aproximada.</p>
-              </div>
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <h2 className={sectionTitleClass}>Delivery y ubicación</h2>
+              <p className="mt-1 text-[12px] leading-5 text-neutral-500">Configurá el origen, las distancias y las tarifas para calcular el envío.</p>
+            </div>
               <Button type="button" variant="secondary" size="sm" className={actionClass} title="Usar la ubicación actual como ubicación del local" onClick={setStoreCurrentLocation} disabled={isGettingLocation}>
                 <Navigation size={16} /> {isGettingLocation ? 'Buscando...' : 'Usar ubicación actual'}
               </Button>
@@ -537,7 +532,6 @@ export function ConfiguracionAdminPage() {
                 </div>
               </div>
             ) : null}
-          </div>
         </section>
       ) : null}
 
