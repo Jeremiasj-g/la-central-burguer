@@ -169,7 +169,7 @@ export function ReportTables({
           <div className="report-table-enter">
             {view === 'consolidated' ? (
               <table className="w-full min-w-[940px] text-left text-sm">
-                <thead className="bg-neutral-50 text-[11px] font-extrabold uppercase tracking-wider text-neutral-500">
+                <thead className="bg-neutral-50 text-[11px] font-semibold uppercase tracking-wider text-neutral-500">
                   <tr>
                     <th className="px-5 py-3">{REPORT_GROUP_LABELS[groupBy]}</th>
                     <th className="px-4 py-3 text-right">Pedidos</th>
@@ -183,20 +183,20 @@ export function ReportTables({
                 <tbody className="divide-y divide-neutral-100">
                   {paginatedGroups.map((row) => (
                     <tr key={row.key} className="transition hover:bg-neutral-50/70">
-                      <td className="px-5 py-3.5 font-bold text-central-carbon">{row.label}</td>
+                      <td className="px-5 py-3.5 font-semibold text-central-carbon">{row.label}</td>
                       <td className="px-4 py-3.5 text-right text-neutral-600">{formatNumber(row.orders)}</td>
                       <td className="px-4 py-3.5 text-right text-neutral-600">{formatNumber(row.cancelledOrders)}</td>
                       <td className="px-4 py-3.5 text-right text-neutral-600">{formatNumber(row.units)}</td>
-                      <td className="px-4 py-3.5 text-right font-extrabold text-central-carbon">{formatCurrency(row.revenue)}</td>
+                      <td className="px-4 py-3.5 text-right font-semibold text-central-carbon">{formatCurrency(row.revenue)}</td>
                       <td className="px-4 py-3.5 text-right text-neutral-600">{formatCurrency(row.averageTicket)}</td>
-                      <td className="px-5 py-3.5 text-right font-bold text-central-orange">{(row.share * 100).toFixed(1)}%</td>
+                      <td className="px-5 py-3.5 text-right font-semibold text-central-orange">{(row.share * 100).toFixed(1)}%</td>
                     </tr>
                   ))}
                 </tbody>
               </table>
             ) : (
               <table className="w-full min-w-[1240px] text-left text-sm">
-                <thead className="bg-neutral-50 text-[11px] font-extrabold uppercase tracking-wider text-neutral-500">
+                <thead className="bg-neutral-50 text-[11px] font-semibold uppercase tracking-wider text-neutral-500">
                   <tr>
                     <th className="px-5 py-3">Fecha</th>
                     <th className="px-4 py-3">Pedido</th>
@@ -214,15 +214,15 @@ export function ReportTables({
                   {detailOrders.map((order) => (
                     <tr key={order.id} className="transition hover:bg-neutral-50/70">
                       <td className="whitespace-nowrap px-5 py-3.5 text-neutral-600">{formatReportDateTime(order.createdAt)}</td>
-                      <td className="px-4 py-3.5 font-extrabold text-central-orange">{order.orderCode}</td>
-                      <td className="px-4 py-3.5"><span className={`rounded-sm px-2 py-1 text-xs font-bold ${order.source === 'admin' ? 'bg-red-50 text-red-700' : order.source === 'import' ? 'bg-violet-50 text-violet-700' : 'bg-sky-50 text-sky-700'}`}>{formatOrderSource(order.source)}</span></td>
-                      <td className="px-4 py-3.5"><p className="font-bold text-central-carbon">{order.customerName}</p><p className="text-xs text-neutral-500">{order.customerPhone}</p></td>
+                      <td className="px-4 py-3.5 font-semibold text-central-orange">{order.orderCode}</td>
+                      <td className="px-4 py-3.5"><span className={`rounded-sm px-2 py-1 text-xs font-semibold ${order.source === 'admin' ? 'bg-red-50 text-red-700' : order.source === 'import' ? 'bg-violet-50 text-violet-700' : 'bg-sky-50 text-sky-700'}`}>{formatOrderSource(order.source)}</span></td>
+                      <td className="px-4 py-3.5"><p className="font-semibold text-central-carbon">{order.customerName}</p><p className="text-xs text-neutral-500">{order.customerPhone}</p></td>
                       <td className="px-4 py-3.5 text-neutral-600">{order.deliveryMethod === 'delivery' ? 'Delivery' : 'Retiro local'}</td>
                       <td className="px-4 py-3.5 text-neutral-600">{order.paymentMethod === 'transferencia' ? 'Transferencia' : 'Efectivo'}</td>
-                      <td className="px-4 py-3.5"><span className={`rounded-sm px-2 py-1 text-xs font-bold ${order.status === 'cancelado' ? 'bg-red-50 text-red-700' : 'bg-emerald-50 text-emerald-700'}`}>{order.status}</span></td>
+                      <td className="px-4 py-3.5"><span className={`rounded-sm px-2 py-1 text-xs font-semibold ${order.status === 'cancelado' ? 'bg-red-50 text-red-700' : 'bg-emerald-50 text-emerald-700'}`}>{order.status}</span></td>
                       <td className="px-4 py-3.5 text-right text-neutral-600">{formatCurrency(order.subtotal)}</td>
                       <td className="px-4 py-3.5 text-right text-neutral-600">{formatCurrency(order.deliveryCost)}</td>
-                      <td className="px-5 py-3.5 text-right font-extrabold text-central-carbon">{formatCurrency(order.total)}</td>
+                      <td className="px-5 py-3.5 text-right font-semibold text-central-carbon">{formatCurrency(order.total)}</td>
                     </tr>
                   ))}
                 </tbody>
