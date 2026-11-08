@@ -258,7 +258,7 @@ export function ConfiguracionAdminPage() {
       ) : null}
 
       {activeTab === 'general' ? (
-        <section className={panelClass}>
+        <section id="config-panel-general" role="tabpanel" aria-labelledby="config-tab-general" className={panelClass}>
           <div className="mb-5"><h2 className={sectionTitleClass}>Identidad del negocio</h2><p className="mt-1 text-[12px] text-neutral-500">Los datos que se muestran a tus clientes en la web y el checkout.</p></div>
 
           <div className="rounded-[15px] border border-neutral-200/70 bg-[#f8f8fa] p-4">
@@ -365,7 +365,7 @@ export function ConfiguracionAdminPage() {
       ) : null}
 
       {activeTab === 'horarios' ? (
-        <section className={cn(panelClass, 'max-w-5xl')}>
+        <section id="config-panel-horarios" role="tabpanel" aria-labelledby="config-tab-horarios" className={cn(panelClass, 'max-w-5xl')}>
           <div className="flex items-center gap-3">
             <span className="grid h-10 w-10 shrink-0 place-items-center rounded-[12px] bg-central-orange/10 text-central-orange"><Clock3 size={18} /></span>
             <div>
@@ -460,11 +460,11 @@ export function ConfiguracionAdminPage() {
           <p className="mt-4 rounded-[13px] border border-neutral-200/70 bg-[#f8f8fa] p-3 text-[12px] leading-5 text-neutral-600">
             Con la configuración actual, el sitio muestra el local como <strong className={previewConfig?.maintenanceMode ? 'text-central-ember' : effectiveOpen ? 'text-emerald-700' : 'text-red-700'}>{previewConfig?.maintenanceMode ? 'en mantenimiento' : effectiveOpen ? 'abierto' : 'cerrado'}</strong>.
           </p>
-        </section
+        </section>
       ) : null}
 
       {activeTab === 'delivery' ? (
-        <section className={cn(panelClass, 'max-w-5xl')}>
+        <section id="config-panel-delivery" role="tabpanel" aria-labelledby="config-tab-delivery" className={cn(panelClass, 'max-w-5xl')}>
           <div className="mb-5">
             <h2 className={sectionTitleClass}>Delivery y ubicación</h2>
             <p className="mt-1 text-[12px] text-neutral-500">Definí desde dónde sale el pedido, las distancias y las tarifas de envío.</p>
@@ -541,10 +541,10 @@ export function ConfiguracionAdminPage() {
         </section>
       ) : null}
 
-      {activeTab === 'galeria' ? <GalleryAdmin /> : null}
+      {activeTab === 'galeria' ? <section id="config-panel-galeria" role="tabpanel" aria-labelledby="config-tab-galeria"><GalleryAdmin /></section> : null}
 
       {activeTab === 'pagos' ? (
-      <section className={cn(panelClass, 'max-w-5xl')}>
+      <section id="config-panel-pagos" role="tabpanel" aria-labelledby="config-tab-pagos" className={cn(panelClass, 'max-w-5xl')}>
         <div className="mb-5">
           <h2 className={sectionTitleClass}>Datos para transferencias</h2>
           <p className="mt-1 text-[12px] text-neutral-500">Información que se muestra a los clientes que pagan por transferencia.</p>
@@ -598,7 +598,6 @@ export function ConfiguracionAdminPage() {
               </label>
             </div>
           ))}
-        </div>
         </div>
       </section>
       ) : null}
