@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
-import { Clock3, ImageUp, MapPin, Navigation, Pencil, Save, Trash2, Store, Truck, MessageCircle, CreditCard, Share2 } from 'lucide-react';
+import { Clock3, ImageUp, MapPin, Navigation, Pencil, Save, Trash2, Store, Truck, MessageCircle, CreditCard, Share2, Images } from 'lucide-react';
 import { useBusinessConfig } from '../hooks/useBusinessConfig';
 import type { BusinessConfig } from '../types/configuracion.types';
 import { getBusinessStatusLabel, isBusinessOpenBySchedule } from '../utils/businessStatus.utils';
@@ -24,6 +24,15 @@ const labelClass = 'mb-1.5 block text-[11px] font-medium text-neutral-500';
 const panelClass = 'min-w-0 rounded-[20px] border border-neutral-200/70 bg-white p-4 shadow-[0_8px_24px_rgba(15,23,42,.035)] sm:p-6';
 const sectionTitleClass = 'text-[16px] font-semibold tracking-[-.02em] text-neutral-900';
 const actionClass = '!h-9 !rounded-[11px] !px-3 !text-[12px] !font-medium !shadow-none';
+
+type ConfigurationTab = 'general' | 'horarios' | 'delivery' | 'pagos' | 'galeria';
+const configurationTabs = [
+  { id: 'general', label: 'General', icon: Store },
+  { id: 'horarios', label: 'Horarios', icon: Clock3 },
+  { id: 'delivery', label: 'Delivery', icon: Truck },
+  { id: 'pagos', label: 'Pagos', icon: CreditCard },
+  { id: 'galeria', label: 'Galería', icon: Images },
+] as const satisfies ReadonlyArray<{ id: ConfigurationTab; label: string; icon: typeof Store }>;
 
 function EditableControl({ children, multiline = false }: { children: ReactNode; multiline?: boolean }) {
   return (
@@ -92,6 +101,7 @@ export function ConfiguracionAdminPage() {
   const [isSaving, setIsSaving] = useState(false);
   const [confirmSaveOpen, setConfirmSaveOpen] = useState(false);
   const [confirmStatusOpen, setConfirmStatusOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState<ConfigurationTab>('general');
 
   useEffect(() => {
     document.body.classList.add('config-wallet-active');
@@ -194,6 +204,32 @@ export function ConfiguracionAdminPage() {
         </div>
       </div>
 
+      <nav aria-label="Secciones de configuración" className="mb-6 min-w-0 border-b border-neutral-200/80">
+        <div role="tablist" aria-label="Configuración del negocio" className="flex min-w-0 gap-1 overflow-x-auto pb-px [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          {configurationTabs.map(({ id, label, icon: Icon }) => (
+            <button
+              key={id}
+              type="button"
+              role="tab"
+              id={`config-tab-${id}`}
+              aria-controls={`config-panel-${id}`}
+              aria-selected={activeTab === id}
+              onClick={() => setActiveTab(id)}
+              className={cn(
+                'relative inline-flex min-h-11 shrink-0 items-center justify-center gap-2 whitespace-nowrap border-b-2 px-3.5 py-2 text-[12px] font-medium transition-[color,border-color,background-color] duration-200 focus-visible:rounded-t-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-central-orange/30 sm:px-4',
+                activeTab === id
+                  ? 'border-central-orange text-neutral-950'
+                  : 'border-transparent text-neutral-500 hover:border-neutral-300 hover:text-neutral-800',
+              )}
+            >
+              <Icon size={15} strokeWidth={1.8} />
+              {label}
+            </button>
+          ))}
+        </div>
+      </nav>
+
+      {activeTab === 'general' ? (
       <div className="mb-6 grid min-w-0 gap-3 sm:grid-cols-2 xl:grid-cols-4">
         <div className="min-w-0 rounded-[18px] border border-neutral-200/70 bg-white p-4 shadow-[0_8px_22px_rgba(15,23,42,.03)]">
           <div className="flex items-center gap-2 text-[11px] font-medium text-neutral-500"><Store size={14} className="text-neutral-400" /> Identidad</div>
@@ -219,9 +255,10 @@ export function ConfiguracionAdminPage() {
           <p className="mt-1 text-[11px] text-neutral-400">{previewConfig?.maintenanceMode ? 'El sitio no recibe pedidos' : values.autoScheduleEnabled ? 'Según horario automático' : 'Control manual'}</p>
         </div>
       </div>
+      ) : null}
 
-      <div className="grid min-w-0 items-start gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(290px,360px)]">
-        <section className={panelClass}>
+      {activeTab === 'general' ? (
+        <section id="config-panel-general" role="tabpanel" aria-labelledby="config-tab-general" className={panelClass}>
           <div className="mb-5"><h2 className={sectionTitleClass}>Identidad del negocio</h2><p className="mt-1 text-[12px] text-neutral-500">Los datos que se muestran a tus clientes en la web y el checkout.</p></div>
 
           <div className="rounded-[15px] border border-neutral-200/70 bg-[#f8f8fa] p-4">
@@ -276,18 +313,6 @@ export function ConfiguracionAdminPage() {
               </EditableControl>
             </div>
             <div>
-              <label className={labelClass}>Alias de transferencia</label>
-              <EditableControl>
-                <Input className={adminInputClass} value={values.transferAlias} onChange={(event) => setValues({ ...values, transferAlias: event.target.value })} />
-              </EditableControl>
-            </div>
-            <div>
-              <label className={labelClass}>CVU / CBU</label>
-              <EditableControl>
-                <Input className={adminInputClass} value={values.transferCvu} onChange={(event) => setValues({ ...values, transferCvu: event.target.value })} />
-              </EditableControl>
-            </div>
-            <div>
               <label className={labelClass}>Dirección</label>
               <EditableControl>
                 <Input className={adminInputClass} value={values.address} onChange={(event) => setValues({ ...values, address: event.target.value })} />
@@ -336,78 +361,11 @@ export function ConfiguracionAdminPage() {
             </div>
           </div>
 
-          <div className="mt-7 border-t border-neutral-100 pt-6">
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <div>
-                <h3 className="flex items-center gap-2 text-[15px] font-semibold tracking-tight text-neutral-900"><Truck size={16} className="text-central-orange" /> Delivery y ubicación</h3>
-                <p className="mt-1 text-[12px] leading-5 text-neutral-500">Esta ubicación se usa para estimar el envío por distancia aproximada.</p>
-              </div>
-              <Button type="button" variant="secondary" size="sm" className={actionClass} title="Usar la ubicación actual como ubicación del local" onClick={setStoreCurrentLocation} disabled={isGettingLocation}>
-                <Navigation size={16} /> {isGettingLocation ? 'Buscando...' : 'Usar ubicación actual'}
-              </Button>
-            </div>
-
-            <div className="mt-4 grid min-w-0 gap-4 md:grid-cols-2">
-              <div>
-                <label className={labelClass}>Latitud del local</label>
-                <EditableControl>
-                  <Input className={adminInputClass} type="number" step="any" value={values.storeLatitude ?? ''} onChange={(event) => setValues({ ...values, storeLatitude: event.target.value === '' ? undefined : Number(event.target.value) })} />
-                </EditableControl>
-              </div>
-              <div>
-                <label className={labelClass}>Longitud del local</label>
-                <EditableControl>
-                  <Input className={adminInputClass} type="number" step="any" value={values.storeLongitude ?? ''} onChange={(event) => setValues({ ...values, storeLongitude: event.target.value === '' ? undefined : Number(event.target.value) })} />
-                </EditableControl>
-              </div>
-              <div>
-                <label className={labelClass}>Precio base de envío</label>
-                <EditableControl>
-                  <Input className={adminInputClass} type="number" min={0} value={values.deliveryBaseFee} onChange={(event) => setValues({ ...values, deliveryBaseFee: Number(event.target.value) })} />
-                </EditableControl>
-              </div>
-              <div>
-                <label className={labelClass}>Precio por kilómetro</label>
-                <EditableControl>
-                  <Input className={adminInputClass} type="number" min={0} value={values.deliveryPricePerKm} onChange={(event) => setValues({ ...values, deliveryPricePerKm: Number(event.target.value) })} />
-                </EditableControl>
-              </div>
-              <div>
-                <label className={labelClass}>Radio máximo de entrega (km)</label>
-                <EditableControl>
-                  <Input className={adminInputClass} type="number" min={0} step="0.5" value={values.deliveryMaxDistanceKm} onChange={(event) => setValues({ ...values, deliveryMaxDistanceKm: Number(event.target.value) })} />
-                </EditableControl>
-              </div>
-              <div>
-                <label className={labelClass}>Redondeo del envío</label>
-                <EditableControl>
-                  <Input className={adminInputClass} type="number" min={1} value={values.deliveryRoundingValue} onChange={(event) => setValues({ ...values, deliveryRoundingValue: Number(event.target.value) })} />
-                </EditableControl>
-              </div>
-            </div>
-
-            {typeof values.storeLatitude === 'number' && typeof values.storeLongitude === 'number' ? (
-              <div className="mt-4 space-y-3">
-                <a className="inline-flex items-center gap-2 rounded-[11px] border border-neutral-200 bg-[#f8f8fa] px-3 py-2 text-[12px] font-medium text-neutral-700 transition-colors duration-200 hover:border-central-orange/40 hover:text-central-orange" href={buildGoogleMapsUrl({ lat: values.storeLatitude, lng: values.storeLongitude })} target="_blank" rel="noreferrer">
-                  <MapPin size={16} /> Ver ubicación del local en Google Maps
-                </a>
-
-                <div className="w-full overflow-hidden rounded-[15px] border border-neutral-200/70 bg-neutral-100">
-                  <iframe
-                    title={`Ubicación de ${values.businessName} en Google Maps`}
-                    src={`https://www.google.com/maps?q=${values.storeLatitude},${values.storeLongitude}&z=16&output=embed`}
-                    className="block h-[320px] w-full border-0 sm:h-[380px] lg:h-[420px]"
-                    loading="lazy"
-                    referrerPolicy="no-referrer-when-downgrade"
-                    allowFullScreen
-                  />
-                </div>
-              </div>
-            ) : null}
-          </div>
         </section>
+      ) : null}
 
-        <section className={cn(panelClass, 'xl:sticky xl:top-6')}>
+      {activeTab === 'horarios' ? (
+        <section id="config-panel-horarios" role="tabpanel" aria-labelledby="config-tab-horarios" className={cn(panelClass, 'max-w-5xl')}>
           <div className="flex items-center gap-3">
             <span className="grid h-10 w-10 shrink-0 place-items-center rounded-[12px] bg-central-orange/10 text-central-orange"><Clock3 size={18} /></span>
             <div>
@@ -503,12 +461,103 @@ export function ConfiguracionAdminPage() {
             Con la configuración actual, el sitio muestra el local como <strong className={previewConfig?.maintenanceMode ? 'text-central-ember' : effectiveOpen ? 'text-emerald-700' : 'text-red-700'}>{previewConfig?.maintenanceMode ? 'en mantenimiento' : effectiveOpen ? 'abierto' : 'cerrado'}</strong>.
           </p>
         </section>
-      </div>
+      ) : null}
 
-      <GalleryAdmin />
+      {activeTab === 'delivery' ? (
+        <section id="config-panel-delivery" role="tabpanel" aria-labelledby="config-tab-delivery" className={cn(panelClass, 'max-w-5xl')}>
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <h2 className={sectionTitleClass}>Delivery y ubicación</h2>
+              <p className="mt-1 text-[12px] leading-5 text-neutral-500">Configurá el origen, las distancias y las tarifas para calcular el envío.</p>
+            </div>
+              <Button type="button" variant="secondary" size="sm" className={actionClass} title="Usar la ubicación actual como ubicación del local" onClick={setStoreCurrentLocation} disabled={isGettingLocation}>
+                <Navigation size={16} /> {isGettingLocation ? 'Buscando...' : 'Usar ubicación actual'}
+              </Button>
+            </div>
 
-      <section className={cn(panelClass, 'mt-4')}>
-        <div>
+            <div className="mt-4 grid min-w-0 gap-4 md:grid-cols-2">
+              <div>
+                <label className={labelClass}>Latitud del local</label>
+                <EditableControl>
+                  <Input className={adminInputClass} type="number" step="any" value={values.storeLatitude ?? ''} onChange={(event) => setValues({ ...values, storeLatitude: event.target.value === '' ? undefined : Number(event.target.value) })} />
+                </EditableControl>
+              </div>
+              <div>
+                <label className={labelClass}>Longitud del local</label>
+                <EditableControl>
+                  <Input className={adminInputClass} type="number" step="any" value={values.storeLongitude ?? ''} onChange={(event) => setValues({ ...values, storeLongitude: event.target.value === '' ? undefined : Number(event.target.value) })} />
+                </EditableControl>
+              </div>
+              <div>
+                <label className={labelClass}>Precio base de envío</label>
+                <EditableControl>
+                  <Input className={adminInputClass} type="number" min={0} value={values.deliveryBaseFee} onChange={(event) => setValues({ ...values, deliveryBaseFee: Number(event.target.value) })} />
+                </EditableControl>
+              </div>
+              <div>
+                <label className={labelClass}>Precio por kilómetro</label>
+                <EditableControl>
+                  <Input className={adminInputClass} type="number" min={0} value={values.deliveryPricePerKm} onChange={(event) => setValues({ ...values, deliveryPricePerKm: Number(event.target.value) })} />
+                </EditableControl>
+              </div>
+              <div>
+                <label className={labelClass}>Radio máximo de entrega (km)</label>
+                <EditableControl>
+                  <Input className={adminInputClass} type="number" min={0} step="0.5" value={values.deliveryMaxDistanceKm} onChange={(event) => setValues({ ...values, deliveryMaxDistanceKm: Number(event.target.value) })} />
+                </EditableControl>
+              </div>
+              <div>
+                <label className={labelClass}>Redondeo del envío</label>
+                <EditableControl>
+                  <Input className={adminInputClass} type="number" min={1} value={values.deliveryRoundingValue} onChange={(event) => setValues({ ...values, deliveryRoundingValue: Number(event.target.value) })} />
+                </EditableControl>
+              </div>
+            </div>
+
+            {typeof values.storeLatitude === 'number' && typeof values.storeLongitude === 'number' ? (
+              <div className="mt-4 space-y-3">
+                <a className="inline-flex items-center gap-2 rounded-[11px] border border-neutral-200 bg-[#f8f8fa] px-3 py-2 text-[12px] font-medium text-neutral-700 transition-colors duration-200 hover:border-central-orange/40 hover:text-central-orange" href={buildGoogleMapsUrl({ lat: values.storeLatitude, lng: values.storeLongitude })} target="_blank" rel="noreferrer">
+                  <MapPin size={16} /> Ver ubicación del local en Google Maps
+                </a>
+
+                <div className="w-full overflow-hidden rounded-[15px] border border-neutral-200/70 bg-neutral-100">
+                  <iframe
+                    title={`Ubicación de ${values.businessName} en Google Maps`}
+                    src={`https://www.google.com/maps?q=${values.storeLatitude},${values.storeLongitude}&z=16&output=embed`}
+                    className="block h-[320px] w-full border-0 sm:h-[380px] lg:h-[420px]"
+                    loading="lazy"
+                    referrerPolicy="no-referrer-when-downgrade"
+                    allowFullScreen
+                  />
+                </div>
+              </div>
+            ) : null}
+        </section>
+      ) : null}
+
+      {activeTab === 'galeria' ? <section id="config-panel-galeria" role="tabpanel" aria-labelledby="config-tab-galeria"><GalleryAdmin /></section> : null}
+
+      {activeTab === 'pagos' ? (
+      <section id="config-panel-pagos" role="tabpanel" aria-labelledby="config-tab-pagos" className={cn(panelClass, 'max-w-5xl')}>
+        <div className="mb-5">
+          <h2 className={sectionTitleClass}>Datos para transferencias</h2>
+          <p className="mt-1 text-[12px] text-neutral-500">Información que se muestra a los clientes que pagan por transferencia.</p>
+        </div>
+        <div className="grid min-w-0 gap-4 md:grid-cols-2">
+            <div>
+              <label className={labelClass}>Alias de transferencia</label>
+              <EditableControl>
+                <Input className={adminInputClass} value={values.transferAlias} onChange={(event) => setValues({ ...values, transferAlias: event.target.value })} />
+              </EditableControl>
+            </div>
+            <div>
+              <label className={labelClass}>CVU / CBU</label>
+              <EditableControl>
+                <Input className={adminInputClass} value={values.transferCvu} onChange={(event) => setValues({ ...values, transferCvu: event.target.value })} />
+              </EditableControl>
+            </div>
+        </div>
+        <div className="mt-7 border-t border-neutral-100 pt-6">
           <h2 className="flex items-center gap-2 text-[16px] font-semibold tracking-tight text-neutral-900"><CreditCard size={17} className="text-central-orange" /> Métodos de pago</h2>
           <p className="mt-1 text-[12px] leading-5 text-neutral-500">Definí cuáles opciones aparecen en el checkout. El alias y el CVU se usan cuando el cliente elige transferencia.</p>
         </div>
@@ -545,6 +594,7 @@ export function ConfiguracionAdminPage() {
           ))}
         </div>
       </section>
+      ) : null}
 
       <ConfirmDialog
         open={confirmSaveOpen}
