@@ -203,7 +203,6 @@ export function ConfiguracionAdminPage() {
           </Button>
         </div>
       </div>
-      ) : null}
 
       <nav aria-label="Secciones de configuración" className="mb-6 min-w-0 border-b border-neutral-200/80">
         <div role="tablist" aria-label="Configuración del negocio" className="flex min-w-0 gap-1 overflow-x-auto pb-px [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
@@ -256,6 +255,7 @@ export function ConfiguracionAdminPage() {
           <p className="mt-1 text-[11px] text-neutral-400">{previewConfig?.maintenanceMode ? 'El sitio no recibe pedidos' : values.autoScheduleEnabled ? 'Según horario automático' : 'Control manual'}</p>
         </div>
       </div>
+      ) : null}
 
       {activeTab === 'general' ? (
         <section className={panelClass}>
@@ -469,7 +469,7 @@ export function ConfiguracionAdminPage() {
             <h2 className={sectionTitleClass}>Delivery y ubicación</h2>
             <p className="mt-1 text-[12px] text-neutral-500">Definí desde dónde sale el pedido, las distancias y las tarifas de envío.</p>
           </div>
-          <div className="">
+          <div>
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div>
                 <h3 className="flex items-center gap-2 text-[15px] font-semibold tracking-tight text-neutral-900"><Truck size={16} className="text-central-orange" /> Delivery y ubicación</h3>
