@@ -88,7 +88,7 @@ export function ReportFilters({
     <aside aria-label="Filtros del reporte" className="flex min-w-0 flex-col rounded-[22px] border border-neutral-200/80 bg-white p-4 shadow-[0_8px_30px_-24px_rgba(20,20,20,.35)] sm:p-5">
       <div className="mb-5 flex items-center justify-between gap-3">
         <div className="min-w-0">
-          <h2 className="text-[15px] font-bold tracking-[-.025em] text-neutral-900">Personalizá el análisis</h2>
+          <h2 className="text-[15px] font-semibold tracking-[-.025em] text-neutral-900">Personalizá el análisis</h2>
           <p className="mt-0.5 text-[11px] leading-5 text-neutral-500">Elegí qué movimientos querés ver.</p>
         </div>
         <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-neutral-100 text-neutral-600">
@@ -147,7 +147,7 @@ export function ReportFilters({
           <span className="flex items-center gap-2">
             Más criterios
             {activeCriteria > 0 ? (
-              <span className="grid min-h-5 min-w-5 place-items-center rounded-full bg-central-orange/10 px-1.5 text-[10px] font-bold text-central-orange">
+              <span className="grid min-h-5 min-w-5 place-items-center rounded-full bg-central-orange/10 px-1.5 text-[10px] font-semibold text-central-orange">
                 {activeCriteria}
               </span>
             ) : null}
