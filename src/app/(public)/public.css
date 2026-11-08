@@ -1,3 +1,6 @@
+/* Restaurar Outfit (texto) y Oswald (títulos) sin next/font ni cambios visuales. */
+@import url('https://fonts.googleapis.com/css2?family=Oswald:wght@600;700&family=Outfit:wght@400;500;600&display=swap');
+
 .public-site {
   /* Paleta pública: negro carbón profundo y amarillo cálido más cercano al naranja. */
   --lcb-public-bg: #111111;
