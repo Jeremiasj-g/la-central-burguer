@@ -43,7 +43,7 @@ import {
   getReportSummary,
   groupReport,
 } from '../utils/reportes.utils';
-import { exportRawDataToExcel, exportReportToExcel } from '../utils/xlsx-export.utils';
+import { exportRawDataToExcel, exportReportToExcel, exportProductMarginsToExcel } from '../utils/xlsx-export.utils';
 
 function createDefaultFilters(): ReportFilterState {
   return {
@@ -269,7 +269,7 @@ export function ReportesAdminPage() {
   }
 
   async function handleExport(mode: ReportExportMode) {
-    if (mode === 'analytical' && !filteredData.orders.length) return void toast.info('No hay datos para exportar con los filtros seleccionados.');
+    if (mode !== 'raw' && !filteredData.orders.length) return void toast.info('No hay datos para exportar con los filtros seleccionados.');
     setExportingMode(mode);
     try {
       if (mode === 'raw') {
@@ -284,7 +284,11 @@ export function ReportesAdminPage() {
         return;
       }
       const exportFilters = appliedFilters.allTime && earliestOrderDate ? { ...appliedFilters, from: formatDateInput(earliestOrderDate), to: formatDateInput(new Date()) } : appliedFilters;
-      exportReportToExcel({ dataset: filteredData, filters: exportFilters, groupBy, businessName: config?.businessName ?? 'La Central Burger' });
+      if (mode === 'margins') {
+        exportProductMarginsToExcel({ dataset: filteredData, filters: exportFilters, businessName: config?.businessName ?? 'La Central Burger' });
+      } else {
+        exportReportToExcel({ dataset: filteredData, filters: exportFilters, groupBy, businessName: config?.businessName ?? 'La Central Burger' });
+      }
       toast.success('Reporte Excel generado correctamente.');
       setExportDialogOpen(false);
     } catch (caught: unknown) {
