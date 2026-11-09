@@ -67,7 +67,8 @@ function mapItem(row: OrderItemRow): ReportItem {
     productId: row.product_id,
     categoryId: row.category_id,
     productName: row.product_name,
-    categoryName: row.category_name,
+    categoryName: row.category_name?.trim() || null,
+    categoryNameSource: row.category_name?.trim() ? 'sale_snapshot' : 'missing',
     imageUrl: row.image_url,
     isPromotion: row.is_promotion,
     discountCampaignId: row.discount_campaign_id,
@@ -162,6 +163,38 @@ async function fetchItems(orderIds: string[]): Promise<ReportItem[]> {
   }
 
   return rows.map(mapItem);
+}
+
+/** Older order_items can keep category_id but lack category_name.
+ * Never rewrite historical sales; annotate when the label comes from today's catalog.
+ */
+async function resolveMissingCategoryNames(items: ReportItem[]): Promise<ReportItem[]> {
+  const missingIds = [...new Set(items
+    .filter((item) => item.categoryNameSource === 'missing' && item.categoryId)
+    .map((item) => item.categoryId as string))];
+  if (!missingIds.length) return items;
+
+  const client = getSupabaseBrowserClient();
+  const categoryNames = new Map<string, string>();
+  for (let index = 0; index < missingIds.length; index += ITEM_ID_CHUNK_SIZE) {
+    const { data, error } = await client
+      .from('categories')
+      .select('id,name')
+      .in('id', missingIds.slice(index, index + ITEM_ID_CHUNK_SIZE));
+    if (error) throw new Error(`No se pudieron verificar las categorías del histórico: ${error.message}`);
+    for (const category of data ?? []) {
+      const name = String(category.name ?? '').trim();
+      if (name) categoryNames.set(category.id, name);
+    }
+  }
+
+  return items.map((item) => {
+    if (item.categoryNameSource !== 'missing' || !item.categoryId) return item;
+    const currentName = categoryNames.get(item.categoryId);
+    return currentName
+      ? { ...item, categoryName: currentName, categoryNameSource: 'current_catalog' as const }
+      : item;
+  });
 }
 
 async function fetchSettledDeliveryCommissions(
@@ -356,7 +389,7 @@ export async function getReportData(filters: ReportFilters): Promise<ReportDatas
     fetchSettledDeliveryCommissions(orders),
   ]);
 
-  return { orders, items, settledDeliveryCommissions };
+  return { orders, items: await resolveMissingCategoryNames(items), settledDeliveryCommissions };
 }
 
 export async function getCompleteReportData(): Promise<ReportDataset> {
