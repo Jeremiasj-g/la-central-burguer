@@ -64,6 +64,8 @@ export interface ReportItem {
   categoryId: string | null;
   productName: string;
   categoryName: string | null;
+  /** Historical snapshot, or current catalog fallback for older sales. */
+  categoryNameSource: 'sale_snapshot' | 'current_catalog' | 'missing';
   imageUrl: string | null;
   isPromotion: boolean;
   /** Historical snapshot: null for sales before snapshot tracking. */
