@@ -71,6 +71,11 @@ export interface ReportItem {
   discountCampaignTitle: string | null;
   discountPercent: number | null;
   originalUnitPrice: number | null;
+  /** Cost captured for this sale, never the current recipe cost. */
+  unitCostSnapshot: number | null;
+  totalCostSnapshot: number | null;
+  costSnapshotStatus: 'complete' | 'missing' | null;
+  costSnapshotSource: 'order_insert' | 'order_edit' | 'backfill_current' | null;
   quantity: number;
   unitPrice: number;
   total: number;

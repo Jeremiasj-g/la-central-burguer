@@ -23,6 +23,8 @@ import { ReportCharts } from '../components/ReportCharts';
 import { ReportExportDialog, type ReportExportMode } from '../components/ReportExportDialog';
 import { ReportFilters } from '../components/ReportFilters';
 import { ReportTables } from '../components/ReportTables';
+import { ProductMarginReport } from '../components/ProductMarginReport';
+import { analyzeProductMargins } from '../utils/product-margin.utils';
 import { useReportes } from '../hooks/useReportes';
 import { getCompleteReportData, getReportOrdersPage, getConfirmedPaymentCollections } from '../services/reportes.service';
 import type {
@@ -41,7 +43,7 @@ import {
   getReportSummary,
   groupReport,
 } from '../utils/reportes.utils';
-import { exportRawDataToExcel, exportReportToExcel } from '../utils/xlsx-export.utils';
+import { exportRawDataToExcel, exportReportToExcel, exportProductMarginsToExcel } from '../utils/xlsx-export.utils';
 
 function createDefaultFilters(): ReportFilterState {
   return {
@@ -191,6 +193,7 @@ export function ReportesAdminPage() {
     };
   }, [data, appliedFilters.source]);
   const summary = useMemo(() => getReportSummary(filteredData), [filteredData]);
+  const marginAnalysis = useMemo(() => analyzeProductMargins(filteredData), [filteredData]);
   const groups = useMemo(() => groupReport(filteredData, groupBy), [filteredData, groupBy]);
   const earliestOrderDate = useMemo(() => getEarliestOrderDate(filteredData.orders), [filteredData.orders]);
 
@@ -266,7 +269,7 @@ export function ReportesAdminPage() {
   }
 
   async function handleExport(mode: ReportExportMode) {
-    if (mode === 'analytical' && !filteredData.orders.length) return void toast.info('No hay datos para exportar con los filtros seleccionados.');
+    if (mode !== 'raw' && !filteredData.orders.length) return void toast.info('No hay datos para exportar con los filtros seleccionados.');
     setExportingMode(mode);
     try {
       if (mode === 'raw') {
@@ -281,7 +284,11 @@ export function ReportesAdminPage() {
         return;
       }
       const exportFilters = appliedFilters.allTime && earliestOrderDate ? { ...appliedFilters, from: formatDateInput(earliestOrderDate), to: formatDateInput(new Date()) } : appliedFilters;
-      exportReportToExcel({ dataset: filteredData, filters: exportFilters, groupBy, businessName: config?.businessName ?? 'La Central Burger' });
+      if (mode === 'margins') {
+        exportProductMarginsToExcel({ dataset: filteredData, filters: exportFilters, businessName: config?.businessName ?? 'La Central Burger' });
+      } else {
+        exportReportToExcel({ dataset: filteredData, filters: exportFilters, groupBy, businessName: config?.businessName ?? 'La Central Burger' });
+      }
       toast.success('Reporte Excel generado correctamente.');
       setExportDialogOpen(false);
     } catch (caught: unknown) {
@@ -302,7 +309,7 @@ export function ReportesAdminPage() {
       <div className="mb-5 flex min-w-0 flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div className="min-w-0">
           <h1 className="text-[28px] font-semibold leading-tight tracking-[-.045em] text-neutral-950 sm:text-[34px]">Finanzas y movimientos</h1>
-          <p className="mt-1 text-[13px] leading-5 text-neutral-500">Toda la actividad comercial, en un solo lugar.</p>
+
         </div>
         <div className="flex shrink-0 items-center gap-2">
           <Button
@@ -395,10 +402,12 @@ export function ReportesAdminPage() {
         <p className="mt-2 text-[11px] leading-5 text-neutral-400">Solo movimientos verificados: {collections ? `${collections.payments} cobros, ${collections.refunds} reintegros y ${collections.reversals} correcciones` : 'cargando…'}. No se consideran cobrados automáticamente los pedidos históricos.</p>
       </section>
 
+      <ProductMarginReport analysis={marginAnalysis} isLoading={isLoading} />
+
       <section className="mb-5 mt-9 flex min-w-0 flex-col justify-between gap-4 border-b border-neutral-200 pb-4 sm:flex-row sm:items-center">
         <div className="min-w-0">
           <h2 className="text-[21px] font-semibold tracking-[-.035em] text-neutral-950">Análisis de actividad</h2>
-          <p className="mt-0.5 text-xs text-neutral-500">Consultá las tendencias o explorá cada movimiento.</p>
+
         </div>
         <div role="group" aria-label="Modo de visualización" className="inline-grid w-full shrink-0 grid-cols-2 rounded-[12px] bg-[#eaeaec] p-1 sm:w-auto">
           <button

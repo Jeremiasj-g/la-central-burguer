@@ -4,7 +4,7 @@ import { ArrowUpRight, Database, FileSpreadsheet, Info, LoaderCircle } from 'luc
 import { Modal } from '@/shared/components/ui/Modal';
 import { cn } from '@/shared/utils/cn';
 
-export type ReportExportMode = 'analytical' | 'raw';
+export type ReportExportMode = 'analytical' | 'margins' | 'raw';
 
 interface ReportExportDialogProps {
   open: boolean;
@@ -118,6 +118,17 @@ export function ReportExportDialog({
           onSelect={onExport}
         />
         <ExportOption
+          mode="margins"
+          icon={FileSpreadsheet}
+          title="Rentabilidad de productos"
+          badge="Filtros actuales"
+          description="Costo, precio de venta y margen por artículo, con una hoja plana para crear tablas dinámicas."
+          disabled={isExporting || !hasFilteredData}
+          isLoading={exportingMode === 'margins'}
+          featured
+          onSelect={onExport}
+        />
+        <ExportOption
           mode="raw"
           icon={Database}
           title="Base cruda completa"
@@ -125,7 +136,6 @@ export function ReportExportDialog({
           description="Una fila por producto vendido, con pedido, cliente, entrega y pago. Ideal para tablas dinámicas."
           disabled={isExporting}
           isLoading={exportingMode === 'raw'}
-          featured
           onSelect={onExport}
         />
         <div className="flex items-start gap-2.5 pt-2 text-[10.5px] leading-[1.65] text-neutral-500">
