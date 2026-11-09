@@ -746,6 +746,20 @@ export function exportReportToExcel(params: {
   );
 }
 
+export function exportProductMarginsToExcel(params: {
+  dataset: ReportDataset;
+  filters: ReportFilters;
+  businessName: string;
+}) {
+  const sheets = buildSheets(params.dataset, params.filters, 'product', params.businessName)
+    .filter(sheet => sheet.name === 'Rentabilidad' || sheet.name === 'Margen pivote');
+  const bytes = buildWorkbookBytes(sheets);
+  downloadWorkbook(
+    bytes,
+    `${slugifyFile(params.businessName) || 'reporte'}-margenes-${params.filters.from}-a-${params.filters.to}.xlsx`,
+  );
+}
+
 export function exportRawDataToExcel(params: {
   dataset: ReportDataset;
   businessName: string;
