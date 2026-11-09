@@ -136,7 +136,12 @@ export function buildProductMarginExportRows(dataset: ReportDataset) {
       pedido: order.orderCode,
       productoId: item.productId ?? '',
       producto: item.productName,
-      categoria: item.categoryName ?? 'Sin categoría',
+      categoria: item.categoryName ?? 'Sin dato de categoría',
+      fuenteCategoria: item.categoryNameSource === 'sale_snapshot'
+        ? 'Registrada al vender'
+        : item.categoryNameSource === 'current_catalog'
+          ? 'Categoría actual (referencia)'
+          : 'Sin dato histórico ni actual',
       origen: order.source,
       estado: order.status,
       valido: isValid ? 'Sí' : 'No',

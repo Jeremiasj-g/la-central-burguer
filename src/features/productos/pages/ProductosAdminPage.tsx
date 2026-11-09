@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'react-toastify';
 import { getProductoById } from '../services/productos.service';
 import { CheckCircle2, Eye, Package, Plus, RefreshCw, Search, Star, XCircle } from 'lucide-react';
@@ -18,6 +18,13 @@ import { Input } from '@/shared/components/ui/Input';
 import { Modal } from '@/shared/components/ui/Modal';
 import { Select } from '@/shared/components/ui/Select';
 import { DataLoadError } from '@/shared/components/feedback/DataLoadError';
+
+const UNCATEGORIZED_FILTER = 'without_category';
+
+/** Misma coincidencia con o sin acentos y sin distinguir mayúsculas. */
+function normalizeProductText(value: string) {
+  return value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLocaleLowerCase('es').replace(/\s+/g, ' ').trim();
+}
 
 type ProductFormValues = {
   name: string;
@@ -55,9 +62,12 @@ export function ProductosAdminPage() {
   const [pendingAction, setPendingAction] = useState<PendingAction | null>(null);
   const [pendingFormValues, setPendingFormValues] = useState<PendingProductSave | null>(null);
   const [formError, setFormError] = useState<string | null>(null);
-  const { categorias, error: categoriesError, refresh: refreshCategories } = useCategorias({ active: 'all' });
+  const { categorias, isLoading: categoriesLoading, error: categoriesError, refresh: refreshCategories } = useCategorias({ active: 'all' });
   const { ingredientes, error: ingredientsError, refresh: refreshIngredients } = useIngredientes({ active: 'active' });
-  const { productos, isLoading, error: productsError, refresh } = useProductos({ search, categoryId, active: 'all', available: 'all' });
+  // Cargar el catálogo completo una sola vez. La búsqueda local evita que PostgreSQL
+  // ILIKE excluya términos con tildes (ej.: "clasica" / "clásica").
+  const { productos, isLoading: productsLoading, error: productsError, refresh } = useProductos({ active: 'all', available: 'all' });
+  const isLoading = productsLoading || categoriesLoading;
   const mutations = useProductoMutations(refresh);
 
   useEffect(() => {
@@ -128,19 +138,35 @@ export function ProductosAdminPage() {
     }
   }
 
-  // Inactivos incluye tanto los desactivados como los que no se pueden pedir.
+  const categoryById = useMemo(
+    () => new Map(categorias.map((category) => [category.id, category.name])),
+    [categorias],
+  );
+
+  // Detecta no sólo IDs vacíos sino también vínculos que ya no figuran en
+  // el catálogo de categorías visible (p. ej. una categoría archivada).
+  const isWithoutCategory = (product: Product) =>
+    !product.categoryId || !categoryById.has(product.categoryId);
+
+  // Inactivos incluye tanto desactivados como no disponibles.
+  // Todas las condiciones se combinan; el buscador también considera la categoría.
   const filteredProducts = productos.filter((product) => {
-    if (statusFilter === 'active') return product.active && product.available;
-    if (statusFilter === 'inactive') return !product.active || !product.available;
-    if (statusFilter === 'disabled') return !product.active;
-    if (statusFilter === 'unavailable') return !product.available;
-    return true;
+    if (categoryId === UNCATEGORIZED_FILTER && !isWithoutCategory(product)) return false;
+    if (categoryId !== 'all' && categoryId !== UNCATEGORIZED_FILTER && product.categoryId !== categoryId) return false;
+    if (statusFilter === 'active' && !(product.active && product.available)) return false;
+    if (statusFilter === 'inactive' && product.active && product.available) return false;
+    if (statusFilter === 'disabled' && product.active) return false;
+    if (statusFilter === 'unavailable' && product.available) return false;
+    const term = normalizeProductText(search);
+    return !term || [product.name, product.description, categoryById.get(product.categoryId) ?? '']
+      .some((text) => normalizeProductText(text).includes(term));
   });
   const activeCount = filteredProducts.filter((product) => product.active).length;
   const availableCount = filteredProducts.filter((product) => product.available).length;
   const featuredCount = filteredProducts.filter((product) => product.featured).length;
   const withoutRecipeCount = filteredProducts.filter((product) => !(product.ingredientIds?.length)).length;
   const withoutImageCount = filteredProducts.filter((product) => !product.imageUrl?.trim()).length;
+  const withoutCategoryCount = filteredProducts.filter(isWithoutCategory).length;
   const hasFilters = Boolean(search.trim()) || categoryId !== 'all' || statusFilter !== 'all';
 
   return (
@@ -195,6 +221,7 @@ export function ProductosAdminPage() {
             { label: 'Destacados', value: featuredCount, icon: Star, color: 'text-white/85' },
             { label: 'Sin receta', value: withoutRecipeCount, icon: null, color: 'text-amber-200' },
             { label: 'Sin imagen', value: withoutImageCount, icon: null, color: 'text-amber-200' },
+            { label: 'Sin categoría', value: withoutCategoryCount, icon: null, color: 'text-amber-200' },
           ] as const).map(({ label, value, icon: Icon, color }) => (
             <div key={label} className="flex min-h-[62px] min-w-0 flex-col justify-start border-l border-white/10 pl-3 sm:pl-4">
               <div className="flex min-h-[17px] items-center gap-1.5 text-white/55">
@@ -235,6 +262,7 @@ export function ProductosAdminPage() {
               value={categoryId}
               options={[
                 { value: 'all', label: 'Todas las categorías' },
+                { value: UNCATEGORIZED_FILTER, label: 'Sin categoría' },
                 ...categorias.map((category) => ({ value: category.id, label: category.name })),
               ]}
               onValueChange={setCategoryId}
