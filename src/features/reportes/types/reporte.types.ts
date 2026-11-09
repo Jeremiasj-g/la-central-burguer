@@ -77,7 +77,7 @@ export interface ReportItem {
   unitCostSnapshot: number | null;
   totalCostSnapshot: number | null;
   costSnapshotStatus: 'complete' | 'missing' | null;
-  costSnapshotSource: 'order_insert' | 'order_edit' | 'backfill_current' | null;
+  costSnapshotSource: 'order_insert' | 'order_edit' | 'backfill_current' | 'backfill_client_confirmed' | null;
   quantity: number;
   unitPrice: number;
   total: number;

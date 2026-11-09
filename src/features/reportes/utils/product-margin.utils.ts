@@ -61,12 +61,14 @@ export function analyzeProductMargins(dataset: ReportDataset): ProductMarginAnal
       && Number.isFinite(item.totalCostSnapshot)
       && Number.isFinite(item.unitCostSnapshot);
     const lineCost = known ? Number(item.totalCostSnapshot) : 0;
+    const reconstructedCost = item.costSnapshotSource === 'backfill_current'
+      || item.costSnapshotSource === 'backfill_client_confirmed';
     revenue += lineRevenue;
     if (known) {
       cost += lineCost;
       coveredRevenue += lineRevenue;
       coveredUnits += item.quantity;
-      if (item.costSnapshotSource === 'backfill_current') estimatedUnits += item.quantity;
+      if (reconstructedCost) estimatedUnits += item.quantity;
     } else {
       uncoveredRevenue += lineRevenue;
       uncoveredUnits += item.quantity;
@@ -86,7 +88,7 @@ export function analyzeProductMargins(dataset: ReportDataset): ProductMarginAnal
       current.missingSales += lineRevenue;
     } else {
       current.knownUnits += item.quantity;
-      if (item.costSnapshotSource === 'backfill_current') current.estimatedUnits += item.quantity;
+      if (reconstructedCost) current.estimatedUnits += item.quantity;
     }
     rows.set(key, current);
   }
@@ -153,7 +155,15 @@ export function buildProductMarginExportRows(dataset: ReportDataset) {
       margen: productCost !== null ? round(productSale-productCost) : null,
       margenPorcentaje: productCost !== null && productSale > 0 ? (productSale-productCost)/productSale : null,
       cobertura: hasCost ? 'Completo' : 'Sin costo',
-      fuente: item.costSnapshotSource ?? 'Sin captura histórica',
+      fuente: item.costSnapshotSource === 'backfill_client_confirmed'
+        ? (hasCost ? 'Costo reconstruido · vigencia confirmada desde 31/10/2026' : 'Receta sin costo completo · revisión desde 31/10/2026')
+        : item.costSnapshotSource === 'backfill_current'
+          ? 'Costo reconstruido con valores actuales (sin vigencia confirmada)'
+          : item.costSnapshotSource === 'order_insert'
+            ? 'Costo capturado al vender'
+            : item.costSnapshotSource === 'order_edit'
+              ? 'Costo recalculado por edición'
+              : 'Sin captura histórica',
       promocion: item.isPromotion ? 'Sí' : 'No',
     };
   }).filter((row): row is NonNullable<typeof row> => row !== null);

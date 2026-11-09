@@ -60,7 +60,7 @@ export function ProductMarginReport({ analysis, isLoading }: { analysis: Product
       <div className="mt-4 flex items-start gap-2 text-[11px] leading-5 text-neutral-500">
         <Info size={15} className="mt-0.5 shrink-0" strokeWidth={1.8}/>
         <p>Margen bruto de productos = ingreso de productos − costo de ingredientes conocido. <strong className="font-semibold">No es ganancia neta:</strong> aún faltan sueldos, gastos fijos, impuestos y otros costos. Los productos sin receta completa se excluyen del margen, no se toman como costo cero.
-        {summary.estimatedUnits > 0 ? ` ${summary.estimatedUnits} unidades usan costo actual reconstruido, no histórico exacto.` : ''}</p>
+        {summary.estimatedUnits > 0 ? ` ${summary.estimatedUnits} unidades tienen costo reconstruido. Para las ventas desde el 31/10/2026 se utilizaron recetas y precios confirmados por el cliente; no fueron costos capturados originalmente al vender.` : ''}</p>
       </div>
 
       <div className="mt-5 flex flex-wrap items-center justify-between gap-3">
