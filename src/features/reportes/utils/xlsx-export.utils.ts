@@ -331,7 +331,7 @@ function buildSheets(
     { indicador: 'Costo de ingredientes identificado', valor: margins.summary.cost },
     { indicador: 'Margen bruto identificado (no neto)', valor: margins.summary.grossMargin },
     { indicador: 'Ventas sin costo completo', valor: margins.summary.uncoveredRevenue },
-    { indicador: 'Unidades con costo estimado (retroactivo hoy)', valor: margins.summary.estimatedUnits },
+    { indicador: 'Unidades con costo reconstruido (vigencia confirmada desde 31/10)', valor: margins.summary.estimatedUnits },
   ];
 
   const orderRows = dataset.orders.map((order) => ({
