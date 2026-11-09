@@ -132,7 +132,7 @@ export function buildProductMarginExportRows(dataset: ReportDataset) {
     const productSale = isValid ? item.total : 0;
     const productCost = isValid && hasCost ? item.totalCostSnapshot! : null;
     return {
-      fecha: order.createdAt.slice(0,10),
+      fecha: new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Argentina/Buenos_Aires', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date(order.createdAt)),
       pedido: order.orderCode,
       productoId: item.productId ?? '',
       producto: item.productName,
