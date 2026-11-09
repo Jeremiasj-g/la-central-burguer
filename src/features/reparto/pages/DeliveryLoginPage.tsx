@@ -1,8 +1,9 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Bike, LockKeyhole, Mail, ShieldCheck } from 'lucide-react';
+import { ArrowRight, Bike, LockKeyhole, Mail } from 'lucide-react';
 import { toast } from 'react-toastify';
 import { Button } from '@/shared/components/ui/Button';
 import { PasswordInput } from '@/shared/components/ui/PasswordInput';
@@ -29,27 +30,40 @@ export function DeliveryLoginPage() {
   }
 
   return (
-    <main className="min-h-screen bg-central-carbon px-4 py-8 text-white sm:grid sm:place-items-center">
-      <div className="mx-auto w-full max-w-md">
-        <div className="mb-6 text-center">
-          <span className="mx-auto grid h-16 w-16 place-items-center rounded-2xl bg-central-orange text-white shadow-orange"><Bike size={30} /></span>
-          <p className="mt-5 text-xs font-black uppercase tracking-[.28em] text-central-orange">La Central Burger</p>
-          <h1 className="mt-2 text-3xl font-black tracking-tight">Panel de repartidor</h1>
-          <p className="mt-2 text-sm leading-6 text-white/55">Tus pedidos asignados, navegación, cobros y ganancias en un solo lugar.</p>
+    <main className="relative flex min-h-dvh items-center justify-center overflow-hidden bg-[#111111] px-4 py-12 text-[#f6f4f0] sm:px-6">
+      <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_50%_0%,rgba(255,178,26,.12),transparent_55%),linear-gradient(180deg,#161616_0%,#111111_75%)]" />
+      <div className="relative w-full max-w-[400px]">
+        <div className="mb-9 flex items-center justify-between gap-4">
+          <Link href="/" className="inline-flex items-center gap-3 text-[13px] font-semibold tracking-[-.02em] text-white transition-colors duration-200 hover:text-[#ffb21a]">
+            <span className="grid h-10 w-10 place-items-center rounded-[12px] border border-[#ffb21a]/30 bg-[#ffb21a]/10 text-[#ffb21a]">
+              <Bike size={20} strokeWidth={1.8} />
+            </span>
+            La Central Burger
+          </Link>
+          <span className="rounded-full border border-white/10 px-3 py-1.5 text-[11px] font-medium text-white/55">Repartidores</span>
         </div>
 
-        <form onSubmit={submit} className="rounded-2xl border border-white/10 bg-white/[.05] p-5 shadow-2xl backdrop-blur sm:p-6">
-          <label className="block">
-            <span className="mb-2 flex items-center gap-2 text-xs font-bold uppercase tracking-wide text-white/55"><Mail size={14} /> Email</span>
-            <input type="email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} required className="h-12 w-full rounded-xl border border-white/10 bg-black/20 px-4 text-base text-white outline-none transition focus:border-central-orange focus:ring-2 focus:ring-central-orange/20" />
-          </label>
-          <label className="mt-4 block">
-            <span className="mb-2 flex items-center gap-2 text-xs font-bold uppercase tracking-wide text-white/55"><LockKeyhole size={14} /> Contraseña</span>
-            <PasswordInput autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} required className="h-12 rounded-xl border-white/10 bg-black/20 px-4 pr-12 text-base text-white focus:ring-central-orange/20" />
-          </label>
-          <Button type="submit" className="mt-6 h-12 w-full rounded-xl" disabled={loading}>{loading ? 'Ingresando…' : 'Ingresar a mis entregas'}</Button>
-          <div className="mt-5 flex items-start gap-2 rounded-xl bg-white/[.04] p-3 text-xs leading-5 text-white/50"><ShieldCheck size={16} className="mt-0.5 shrink-0 text-central-orange" /> El acceso está limitado a cuentas de repartidor habilitadas por administración.</div>
+        <h1 className="text-[30px] font-semibold leading-tight tracking-[-.045em] text-white sm:text-[34px]">Iniciar sesión</h1>
+        <form onSubmit={submit} className="mt-8 space-y-5">
+          <div>
+            <label htmlFor="delivery-login-email" className="mb-2 flex items-center gap-2 text-[12px] font-medium text-white/70">
+              <Mail size={14} strokeWidth={1.8} /> Correo electrónico
+            </label>
+            <input id="delivery-login-email" type="email" autoComplete="username" value={email} onChange={(e) => setEmail(e.target.value)} required placeholder="correo@ejemplo.com" className="h-12 w-full rounded-[12px] border border-white/10 bg-white/[.055] px-4 text-[13px] font-normal text-white outline-none placeholder:text-white/35 transition-all duration-200 focus:border-[#ffb21a]/60 focus:ring-2 focus:ring-[#ffb21a]/15" />
+          </div>
+          <div>
+            <label htmlFor="delivery-login-password" className="mb-2 flex items-center gap-2 text-[12px] font-medium text-white/70">
+              <LockKeyhole size={14} strokeWidth={1.8} /> Contraseña
+            </label>
+            <PasswordInput id="delivery-login-password" autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} required placeholder="Ingresá tu contraseña" className="!h-12 !rounded-[12px] !border-white/10 !bg-white/[.055] !px-4 !pr-12 !text-[13px] !font-normal !text-white focus:!border-[#ffb21a]/60 focus:!ring-2 focus:!ring-[#ffb21a]/15" />
+          </div>
+          <Button type="submit" className="!mt-7 !h-12 w-full !rounded-[12px] !bg-[#ffb21a] !text-[13px] !font-semibold !text-[#17130e] !shadow-none transition-colors duration-200 hover:!bg-[#ffc44c]" disabled={loading}>
+            {loading ? 'Ingresando…' : 'Ingresar a mis entregas'} {!loading && <ArrowRight size={16} strokeWidth={1.8} />}
+          </Button>
         </form>
+        <div className="mt-8 border-t border-white/10 pt-5 text-center">
+          <Link href="/" className="text-[12px] font-medium text-white/50 transition-colors duration-200 hover:text-[#ffb21a]">Volver al inicio</Link>
+        </div>
       </div>
     </main>
   );
