@@ -61,12 +61,14 @@ export function analyzeProductMargins(dataset: ReportDataset): ProductMarginAnal
       && Number.isFinite(item.totalCostSnapshot)
       && Number.isFinite(item.unitCostSnapshot);
     const lineCost = known ? Number(item.totalCostSnapshot) : 0;
+    const reconstructedCost = item.costSnapshotSource === 'backfill_current'
+      || item.costSnapshotSource === 'backfill_client_confirmed';
     revenue += lineRevenue;
     if (known) {
       cost += lineCost;
       coveredRevenue += lineRevenue;
       coveredUnits += item.quantity;
-      if (((item.costSnapshotSource === 'backfill_current' || item.costSnapshotSource === 'backfill_client_confirmed') || item.costSnapshotSource === 'backfill_client_confirmed')) estimatedUnits += item.quantity;
+      if (reconstructedCost) estimatedUnits += item.quantity;
     } else {
       uncoveredRevenue += lineRevenue;
       uncoveredUnits += item.quantity;
@@ -86,7 +88,7 @@ export function analyzeProductMargins(dataset: ReportDataset): ProductMarginAnal
       current.missingSales += lineRevenue;
     } else {
       current.knownUnits += item.quantity;
-      if (item.costSnapshotSource === 'backfill_current') current.estimatedUnits += item.quantity;
+      if (reconstructedCost) current.estimatedUnits += item.quantity;
     }
     rows.set(key, current);
   }
