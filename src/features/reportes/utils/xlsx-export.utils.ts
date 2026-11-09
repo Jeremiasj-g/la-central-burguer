@@ -1,4 +1,5 @@
 import { summarizePromotionSales } from './report-promotions.utils';
+import { analyzeProductMargins, buildProductMarginExportRows } from './product-margin.utils';
 import type {
   ReportDataset,
   ReportFilters,
@@ -313,6 +314,7 @@ function buildSheets(
   businessName: string,
 ): ExportSheet[] {
   const summary = getReportSummary(dataset);
+  const margins = analyzeProductMargins(dataset);
   const subtitle = `Período: ${formatReportDate(`${filters.from}T12:00:00`)} al ${formatReportDate(`${filters.to}T12:00:00`)} · Generado: ${formatReportDateTime(new Date().toISOString())}`;
   const validOrderIds = new Set(dataset.orders.filter((order) => order.status !== 'cancelado').map((order) => order.id));
   const orderMap = new Map(dataset.orders.map((order) => [order.id, order]));
@@ -325,6 +327,11 @@ function buildSheets(
     { indicador: 'Unidades vendidas', valor: summary.unitsSold },
     { indicador: 'Delivery cobrado', valor: formatCurrency(summary.deliveryRevenue) },
     { indicador: 'Tasa de cancelación', valor: `${(summary.cancellationRate * 100).toFixed(1)}%` },
+    { indicador: 'Venta de productos con costo identificado', valor: margins.summary.coveredRevenue },
+    { indicador: 'Costo de ingredientes identificado', valor: margins.summary.cost },
+    { indicador: 'Margen bruto identificado (no neto)', valor: margins.summary.grossMargin },
+    { indicador: 'Ventas sin costo completo', valor: margins.summary.uncoveredRevenue },
+    { indicador: 'Unidades con costo estimado (retroactivo hoy)', valor: margins.summary.estimatedUnits },
   ];
 
   const orderRows = dataset.orders.map((order) => ({
@@ -372,6 +379,37 @@ function buildSheets(
         { header: 'Valor', key: 'valor', width: 22 },
       ],
       rows: summaryRows,
+    },
+    {
+      name: 'Rentabilidad',
+      title: 'Margen bruto por producto',
+      subtitle: subtitle + ' · Margen conocido; excluye ingresos sin costo; no incluye gastos del negocio',
+      columns: [
+        { header: 'ID producto', key: 'id', width: 38 },
+        { header: 'Producto', key: 'producto', width: 34 },
+        { header: 'Categoría', key: 'categoria', width: 24 },
+        { header: 'Unidades', key: 'unidades', width: 13, kind: 'number' },
+        { header: 'Ventas producto', key: 'ventas', width: 19, kind: 'currency' },
+        { header: 'Costo identificado', key: 'costo', width: 19, kind: 'currency' },
+        { header: 'Margen identificado', key: 'margen', width: 20, kind: 'currency' },
+        { header: 'Margen % (costeado)', key: 'porcentaje', width: 18, kind: 'percent' },
+        { header: 'Unidades sin costo', key: 'sinCosto', width: 19, kind: 'number' },
+        { header: 'Ventas sin costo', key: 'ventasSinCosto', width: 20, kind: 'currency' },
+      ],
+      rows: margins.rows.map(row => ({
+        id: row.productId, producto: row.productName, categoria: row.categoryName, unidades: row.units,
+        ventas: row.sales, costo: row.knownUnits ? row.cost : null,
+        margen: row.knownUnits ? row.margin : null,
+        porcentaje: row.knownUnits ? row.marginPercent / 100 : null,
+        sinCosto: row.missingUnits, ventasSinCosto: row.missingSales,
+      })),
+    },
+    {
+      name: 'Margen pivote',
+      title: '',
+      subtitle: '',
+      columns: MARGIN_PIVOT_COLUMNS,
+      rows: buildProductMarginExportRows(dataset),
     },
     {
       name: 'Pedidos',
@@ -471,6 +509,27 @@ function buildSheets(
   ];
 }
 
+const MARGIN_PIVOT_COLUMNS: ExportColumn[] = [
+  { header: 'Fecha', key: 'fecha', width: 14 },
+  { header: 'Pedido', key: 'pedido', width: 20 },
+  { header: 'ID producto', key: 'productoId', width: 38 },
+  { header: 'Producto', key: 'producto', width: 34 },
+  { header: 'Categoría', key: 'categoria', width: 25 },
+  { header: 'Origen', key: 'origen', width: 14 },
+  { header: 'Estado', key: 'estado', width: 16 },
+  { header: 'Venta válida', key: 'valido', width: 14 },
+  { header: 'Cantidad válida', key: 'cantidad', width: 17 },
+  { header: 'Precio de venta/u.', key: 'unitario', width: 20 },
+  { header: 'Ingreso productos', key: 'ingreso', width: 21 },
+  { header: 'Costo ingredientes/u.', key: 'costoUnitario', width: 22 },
+  { header: 'Costo total', key: 'costo', width: 20 },
+  { header: 'Margen bruto', key: 'margen', width: 20 },
+  { header: 'Margen %', key: 'margenPorcentaje', width: 15 },
+  { header: 'Costo registrado', key: 'cobertura', width: 20 },
+  { header: 'Fuente costo', key: 'fuente', width: 28 },
+  { header: 'Es promoción', key: 'promocion', width: 15 },
+];
+
 const RAW_COLUMNS: ExportColumn[] = [
   { header: 'Período', key: 'periodo', width: 12 },
   { header: 'Año', key: 'anio', width: 8 },
@@ -516,6 +575,11 @@ const RAW_COLUMNS: ExportColumn[] = [
   { header: 'Cantidad', key: 'cantidad', width: 12 },
   { header: 'Precio unitario', key: 'precioUnitario', width: 18 },
   { header: 'Importe producto', key: 'importeProducto', width: 18 },
+  { header: 'Costo ingredientes unitario', key: 'costoIngredientesUnitario', width: 25 },
+  { header: 'Costo ingredientes total', key: 'costoIngredientesTotal', width: 24 },
+  { header: 'Margen bruto producto', key: 'margenBrutoProducto', width: 24 },
+  { header: 'Estado costo', key: 'estadoCosto', width: 18 },
+  { header: 'Fuente costo', key: 'fuenteCosto', width: 26 },
   { header: 'Nota producto', key: 'notaProducto', width: 32 },
   { header: 'URL imagen producto', key: 'imagenProducto', width: 42 },
   { header: 'Cantidad pedidos imputable', key: 'pedidosImputables', width: 26 },
@@ -599,6 +663,11 @@ function buildRawRows(dataset: ReportDataset) {
         cantidad: item?.quantity,
         precioUnitario: item?.unitPrice,
         importeProducto: item?.total,
+        costoIngredientesUnitario: item?.unitCostSnapshot,
+        costoIngredientesTotal: item?.totalCostSnapshot,
+        margenBrutoProducto: order.status !== 'cancelado' && item?.totalCostSnapshot != null ? item.total - item.totalCostSnapshot : null,
+        estadoCosto: item?.costSnapshotStatus ?? 'Sin captura',
+        fuenteCosto: item?.costSnapshotSource ?? '',
         notaProducto: item?.note,
         imagenProducto: item?.imageUrl,
         pedidosImputables: firstItem ? 1 : 0,
@@ -631,7 +700,7 @@ function buildWorkbookBytes(sheets: ExportSheet[], raw = false) {
     { name: 'xl/styles.xml', data: encoder.encode(stylesXml()) },
     ...sheets.map((sheet, index) => ({
       name: `xl/worksheets/sheet${index + 1}.xml`,
-      data: encoder.encode(raw ? rawSheetXml(sheet.columns, sheet.rows) : sheetXml(sheet)),
+      data: encoder.encode(raw || sheet.name === 'Margen pivote' ? rawSheetXml(sheet.columns, sheet.rows) : sheetXml(sheet)),
     })),
   ];
 
