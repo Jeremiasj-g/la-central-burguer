@@ -37,7 +37,7 @@ export function ProductMarginReport({ analysis, isLoading }: { analysis: Product
   const lossCount = rows.filter(row=>row.knownUnits>0 && row.margin<0).length;
 
   return (
-    <section className="mt-8 min-w-0 border-t border-neutral-200 pt-6" aria-label="Rentabilidad bruta por producto">
+    <section className="min-w-0" aria-label="Rentabilidad bruta por producto">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h2 className="text-[20px] font-semibold tracking-[-.035em] text-neutral-950">Margen por producto</h2>
         <span className="text-[11px] font-medium text-neutral-500">Costos de recetas registrados por venta</span>

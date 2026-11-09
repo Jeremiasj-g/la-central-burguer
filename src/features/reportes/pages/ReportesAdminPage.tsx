@@ -12,6 +12,7 @@ import {
   RefreshCw,
   ShoppingBag,
   Table2,
+  TrendingUp,
   Truck,
   WalletCards,
 } from 'lucide-react';
@@ -166,7 +167,7 @@ export function ReportesAdminPage() {
   const [draftFilters, setDraftFilters] = useState<ReportFilterState>(initial);
   const [appliedFilters, setAppliedFilters] = useState<ReportFilterState>(initial);
   const [groupBy, setGroupBy] = useState<ReportGroupBy>('day');
-  const [analysisView, setAnalysisView] = useState<'tables' | 'charts'>('charts');
+  const [analysisView, setAnalysisView] = useState<'tables' | 'charts' | 'profit'>('charts');
   const [exportDialogOpen, setExportDialogOpen] = useState(false);
   const [exportingMode, setExportingMode] = useState<ReportExportMode | null>(null);
   const [detailOrders, setDetailOrders] = useState<ReportOrder[]>([]);
@@ -402,42 +403,68 @@ export function ReportesAdminPage() {
         <p className="mt-2 text-[11px] leading-5 text-neutral-400">Solo movimientos verificados: {collections ? `${collections.payments} cobros, ${collections.refunds} reintegros y ${collections.reversals} correcciones` : 'cargando…'}. No se consideran cobrados automáticamente los pedidos históricos.</p>
       </section>
 
-      <ProductMarginReport analysis={marginAnalysis} isLoading={isLoading} />
-
       <section className="mb-5 mt-9 flex min-w-0 flex-col justify-between gap-4 border-b border-neutral-200 pb-4 sm:flex-row sm:items-center">
         <div className="min-w-0">
-          <h2 className="text-[21px] font-semibold tracking-[-.035em] text-neutral-950">Análisis de actividad</h2>
+          <h2 className="text-[21px] font-semibold tracking-[-.035em] text-neutral-950">Análisis</h2>
 
         </div>
-        <div role="group" aria-label="Modo de visualización" className="inline-grid w-full shrink-0 grid-cols-2 rounded-[12px] bg-[#eaeaec] p-1 sm:w-auto">
+        <div role="tablist" aria-label="Vistas del análisis" className="inline-grid w-full shrink-0 grid-cols-3 rounded-[12px] bg-[#eaeaec] p-1 sm:w-auto">
           <button
             type="button"
-            aria-pressed={analysisView === 'charts'}
+            id="reports-tab-charts"
+            role="tab"
+            aria-selected={analysisView === 'charts'}
+            aria-controls="reports-panel-charts"
             onClick={() => setAnalysisView('charts')}
-            className={`inline-flex min-h-9 cursor-pointer items-center justify-center gap-2 rounded-[9px] px-4 text-[12px] font-semibold transition-all duration-200 ${analysisView === 'charts' ? 'bg-white text-neutral-900 shadow-[0_1px_4px_rgba(0,0,0,.10)]' : 'text-neutral-500 hover:text-neutral-900'}`}
+            className={`inline-flex min-h-9 cursor-pointer items-center justify-center gap-1.5 rounded-[9px] px-2 text-[11px] font-semibold transition-all duration-200 sm:gap-2 sm:px-4 sm:text-[12px] ${analysisView === 'charts' ? 'bg-white text-neutral-900 shadow-[0_1px_4px_rgba(0,0,0,.10)]' : 'text-neutral-500 hover:text-neutral-900'}`}
           >
             <BarChart3 size={15} />
             Gráficos
           </button>
           <button
             type="button"
-            aria-pressed={analysisView === 'tables'}
+            id="reports-tab-tables"
+            role="tab"
+            aria-selected={analysisView === 'tables'}
+            aria-controls="reports-panel-tables"
             onClick={() => setAnalysisView('tables')}
-            className={`inline-flex min-h-9 cursor-pointer items-center justify-center gap-2 rounded-[9px] px-4 text-[12px] font-semibold transition-all duration-200 ${analysisView === 'tables' ? 'bg-white text-neutral-900 shadow-[0_1px_4px_rgba(0,0,0,.10)]' : 'text-neutral-500 hover:text-neutral-900'}`}
+            className={`inline-flex min-h-9 cursor-pointer items-center justify-center gap-1.5 rounded-[9px] px-2 text-[11px] font-semibold transition-all duration-200 sm:gap-2 sm:px-4 sm:text-[12px] ${analysisView === 'tables' ? 'bg-white text-neutral-900 shadow-[0_1px_4px_rgba(0,0,0,.10)]' : 'text-neutral-500 hover:text-neutral-900'}`}
           >
             <Table2 size={15} />
             Tablas
+          </button>
+          <button
+            type="button"
+            id="reports-tab-profit"
+            role="tab"
+            aria-selected={analysisView === 'profit'}
+            aria-controls="reports-panel-profit"
+            onClick={() => setAnalysisView('profit')}
+            className={`inline-flex min-h-9 cursor-pointer items-center justify-center gap-1.5 rounded-[9px] px-2 text-[11px] font-semibold transition-all duration-200 sm:gap-2 sm:px-4 sm:text-[12px] ${analysisView === 'profit' ? 'bg-white text-neutral-900 shadow-[0_1px_4px_rgba(0,0,0,.10)]' : 'text-neutral-500 hover:text-neutral-900'}`}
+          >
+            <TrendingUp size={15} />
+            Rentabilidad
           </button>
         </div>
       </section>
 
       {analysisView === 'tables' ? (
-        isLoading
-          ? <div className="rounded-[18px] border border-neutral-200 bg-white p-12 text-center text-sm text-neutral-500 shadow-soft">Preparando movimientos…</div>
-          : <ReportTables dataset={filteredData} groups={groups} groupBy={groupBy} onGroupByChange={setGroupBy} detailOrders={detailOrders} detailTotal={detailTotal} detailPage={detailPage} detailLoading={detailLoading} onDetailPageChange={setDetailPage} />
-      ) : (
-        <ReportCharts dataset={filteredData} filters={appliedFilters} periodLabel={periodDescription} isLoading={isLoading} />
-      )}
+        <div id="reports-panel-tables" role="tabpanel" aria-labelledby="reports-tab-tables">
+          {isLoading
+            ? <div className="rounded-[18px] border border-neutral-200 bg-white p-12 text-center text-sm text-neutral-500 shadow-soft">Preparando movimientos…</div>
+            : <ReportTables dataset={filteredData} groups={groups} groupBy={groupBy} onGroupByChange={setGroupBy} detailOrders={detailOrders} detailTotal={detailTotal} detailPage={detailPage} detailLoading={detailLoading} onDetailPageChange={setDetailPage} />}
+        </div>
+      ) : null}
+
+      {analysisView === 'charts' ? (
+        <div id="reports-panel-charts" role="tabpanel" aria-labelledby="reports-tab-charts">
+          <ReportCharts dataset={filteredData} filters={appliedFilters} periodLabel={periodDescription} isLoading={isLoading} />
+        </div>
+      ) : null}
+
+      <div id="reports-panel-profit" role="tabpanel" aria-labelledby="reports-tab-profit" hidden={analysisView !== 'profit'}>
+        <ProductMarginReport analysis={marginAnalysis} isLoading={isLoading} />
+      </div>
 
       <ReportExportDialog
         open={exportDialogOpen}
