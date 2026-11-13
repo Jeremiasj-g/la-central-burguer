@@ -159,7 +159,8 @@ export function VentaMostradorPage() {
   const parsedTransferAmount = parseLocalizedNumber(transferAmount, 'money') ?? NaN;
   const validMixedSplit = paymentMethod !== 'combinado' || (
     !editingSale && Number.isFinite(parsedTransferAmount) && parsedTransferAmount > 0
-    && Number.isInteger(parsedTransferAmount * 100) && parsedTransferAmount < total
+    && Math.abs(parsedTransferAmount * 100 - Math.round(parsedTransferAmount * 100)) < 0.000001
+    && parsedTransferAmount < total
   );
 
   function addProduct(product: Product) {
