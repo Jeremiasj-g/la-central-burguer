@@ -103,5 +103,4 @@ begin
          (recipe_element->>'quantity')::numeric,(ordinality-1)::integer
   from jsonb_array_elements(component_rows) with ordinality as rows(recipe_element,ordinality);
 end;
-$function$
-
+$function$;
