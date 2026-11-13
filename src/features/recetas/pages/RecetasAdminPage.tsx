@@ -229,6 +229,10 @@ export function RecetasAdminPage() {
 
   async function saveRecipe() {
     if (!selectedProduct || !hasRecipeChanges || saving) return;
+    if (draftComponents.some(row => !Number.isFinite(row.quantity) || row.quantity <= 0)) {
+      toast.warning('Cada producto de la receta debe tener una cantidad mayor que cero.');
+      return;
+    }
     setSaving(true);
     try {
       await updateProductoReceta({
@@ -449,7 +453,7 @@ export function RecetasAdminPage() {
 
               <div className="grid min-w-0 grid-cols-2 gap-px border-b border-neutral-100 bg-neutral-100 md:grid-cols-3 2xl:grid-cols-5">
                 <ProfitCell label="Precio de venta" value={formatCurrency(selectedProduct.currentPrice)} />
-                <ProfitCell label="Costo ingredientes" value={formatCurrency(currentCost)} helper={currentComplete ? 'Costo completo' : 'Parcial · faltan datos'} />
+                <ProfitCell label="Costo receta" value={formatCurrency(currentCost)} helper={currentComplete ? 'Costo completo' : 'Parcial · faltan datos'} />
                 <ProfitCell label="Ganancia bruta / u." value={currentComplete ? formatCurrency(currentProfitability.grossProfit) : "—"} />
                 <ProfitCell label="Margen bruto" value={currentComplete ? percent(currentProfitability.marginPercent) : '—'} highlight />
                 <ProfitCell label="Food cost" value={currentComplete ? percent(currentProfitability.foodCostPercent) : '—'} helper={currentComplete && currentProfitability.markup ? currentProfitability.markup.toFixed(2) + 'x sobre costo' : undefined} />
@@ -459,7 +463,7 @@ export function RecetasAdminPage() {
                 <div className="mb-4 flex min-w-0 flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
                   <div className="min-w-0">
                     <h3 className="text-[15px] font-semibold tracking-[-.025em] text-neutral-900">Ingredientes de la receta</h3>
-                    <p className="mt-1 text-[11px] leading-5 text-neutral-500">Los costos se actualizan al cambiar cantidades y unidades.</p>
+
                   </div>
                   <div className="flex min-w-0 flex-col gap-2 sm:flex-row sm:items-center">
                     <div className="min-w-0 sm:w-[210px]">
@@ -563,10 +567,100 @@ export function RecetasAdminPage() {
                 ) : (
                   <div className="rounded-[15px] border border-dashed border-neutral-200 bg-[#fafafb] px-5 py-10 text-center">
                     <Beef className="mx-auto text-neutral-300" size={28} strokeWidth={1.7} />
-                    <p className="mt-3 text-[13px] font-semibold text-neutral-700">Este producto todavía no tiene receta</p>
-                    <p className="mt-1 text-[11px] text-neutral-400">Agregá ingredientes para comenzar el cálculo.</p>
+                    <p className="mt-3 text-[13px] font-semibold text-neutral-700">{draftComponents.length ? "Sin ingredientes adicionales" : "Sin ingredientes cargados"}</p>
+
                   </div>
                 )}
+
+                <div className="mt-7 border-t border-neutral-100 pt-5">
+                  <div className="mb-4 flex min-w-0 flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                    <h3 className="text-[15px] font-semibold tracking-[-.025em] text-neutral-900">Productos de la receta</h3>
+                    <div className="flex min-w-0 flex-col gap-2 sm:flex-row">
+                      <div className="min-w-0 sm:w-[250px]">
+                        <SearchableSelect
+                          aria-label="Agregar producto costeado a la receta"
+                          className="!h-10 !rounded-[11px] !border-neutral-300 !bg-white !text-[13px] !font-normal !shadow-none"
+                          value={componentToAdd}
+                          options={addableProducts.map(product => ({ value: product.id, label: product.name }))}
+                          onValueChange={setComponentToAdd}
+                          placeholder="Elegir producto costeado"
+                          searchPlaceholder="Buscar producto..."
+                          emptyMessage="No hay más productos costeados disponibles."
+                        />
+                      </div>
+                      <Button type="button" variant="secondary" onClick={addProductComponent}
+                        disabled={!componentToAdd || !addableProducts.some(p => p.id === componentToAdd)}
+                        className="!h-10 !rounded-[11px] !border-neutral-200 !px-3 !text-[12px] !font-medium !shadow-none">
+                        <Plus size={15} strokeWidth={1.9} /> Agregar
+                      </Button>
+                    </div>
+                  </div>
+
+                  {draftComponents.length ? (
+                    <div className={styles.recipeLedger}>
+                      <div aria-hidden="true" className={styles.recipeHeader}>
+                        <span>Producto</span><span>Cantidad</span><span>Unidad</span>
+                        <span>Costo / u.</span><span>Costo en receta</span><span />
+                      </div>
+                      <div className={styles.recipeRows}>
+                        {draftComponents.map(row => {
+                          const component = productById.get(row.componentProductId);
+                          const detail = productCostById.get(row.componentProductId);
+                          const name = component?.name ?? 'Producto no disponible';
+                          const valid = Boolean(detail?.complete && row.quantity > 0);
+                          return (
+                            <div key={row.id} className={styles.recipeRow}>
+                              <div className={styles.ingredient}>
+                                <p className={styles.ingredientName} title={name}>{name}</p>
+                                <p className={styles.ingredientHint}>
+                                  {detail?.complete ? 'Receta costeada' : 'Costo pendiente · revisar receta del producto'}
+                                </p>
+                              </div>
+                              <div className={styles.recipeFields}>
+                                <label className={styles.quantityField}>
+                                  <span className={styles.fieldLabel}>Cantidad</span>
+                                  <Input
+                                    aria-label={'Unidades de ' + name}
+                                    type="number" min="0.001" step="0.001" inputMode="decimal"
+                                    value={row.quantity || ''}
+                                    onChange={event => updateDraftComponent(row.id, Number(event.target.value))}
+                                    placeholder="0"
+                                    className={adminInputClass + ' !h-9 !bg-white'}
+                                  />
+                                </label>
+                                <div className={styles.unitField}>
+                                  <span className={styles.fieldLabel}>Unidad</span>
+                                  <p className={styles.baseCostValue}>unidad</p>
+                                </div>
+                                <div className={styles.baseCostField}>
+                                  <span className={styles.fieldLabel}>Costo / u.</span>
+                                  <p className={styles.baseCostValue}>{detail?.complete ? formatCurrency(detail.cost) : '—'}</p>
+                                </div>
+                                <div className={styles.lineCostField}>
+                                  <span className={styles.fieldLabel}>Costo en receta</span>
+                                  <p className={cn(styles.lineCostValue, !valid && styles.pendingCost)}>
+                                    {valid && detail ? formatCurrency(detail.cost * row.quantity) : 'A definir'}
+                                  </p>
+                                </div>
+                              </div>
+                              <button type="button"
+                                onClick={() => setDraftComponents(current => current.filter(item => item.id !== row.id))}
+                                aria-label={'Quitar ' + name}
+                                title={'Quitar ' + name}
+                                className={styles.removeButton}>
+                                <Trash2 size={15} strokeWidth={1.8} />
+                              </button>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  ) : (
+                    <p className="py-2 text-[12px] text-neutral-400">
+                      Agregá productos ya costeados si la preparación es una promoción o combo.
+                    </p>
+                  )}
+                </div>
 
                 <div className="mt-7 border-t border-neutral-100 pt-5">
                   <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
@@ -574,7 +668,7 @@ export function RecetasAdminPage() {
                       <h3 className="text-[14px] font-semibold text-neutral-900">Precios de referencia</h3>
                       <p className="mt-1 text-[11px] text-neutral-500">Precio sugerido para distintos márgenes brutos</p>
                     </div>
-                    <span className="rounded-full bg-[#f7f7f8] px-2.5 py-1 text-[10px] font-medium text-neutral-500">Solo ingredientes</span>
+                    
                   </div>
                   <div className="grid min-w-0 gap-2.5 sm:grid-cols-3">
                     {[40, 50, 60].map((target) => (
