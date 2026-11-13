@@ -26,7 +26,8 @@ import { formatCurrency } from '@/shared/utils/format.utils';
 import { cn } from '@/shared/utils/cn';
 import { useRecetas } from '../hooks/useRecetas';
 import { updateProductoReceta } from '../services/recetas.service';
-import type { RecipeIngredient } from '../types/receta.types';
+import type { RecipeIngredient, RecipeProductComponent } from '../types/receta.types';
+import { buildProductRecipeCosts, draftRecipeCost, wouldCreateRecipeCycle } from '../utils/recipe-cost.utils';
 import { RentabilidadOverview } from '../components/RentabilidadOverview';
 import styles from './RecetasAdminPage.module.css';
 import { useAdminUnsavedChanges } from '@/shared/components/layout/AdminUnsavedChanges';
@@ -89,7 +90,9 @@ export function RecetasAdminPage() {
   const [costStatus, setCostStatus] = useState<'all' | 'complete' | 'pending'>('all');
   const [productId, setProductId] = useState('');
   const [draftIngredients, setDraftIngredients] = useState<RecipeIngredient[]>([]);
+  const [draftComponents, setDraftComponents] = useState<RecipeProductComponent[]>([]);
   const [ingredientToAdd, setIngredientToAdd] = useState('');
+  const [componentToAdd, setComponentToAdd] = useState('');
   const [saving, setSaving] = useState(false);
 
   const { productos, isLoading: productsLoading, error: productsError, refresh: refreshProducts } = useProductos({ active: 'all', available: 'all' });
@@ -100,27 +103,24 @@ export function RecetasAdminPage() {
   const ingredientById = useMemo(() => new Map(ingredientes.map((item) => [item.id, item])), [ingredientes]);
   const categoryById = useMemo(() => new Map(categorias.map((item) => [item.id, item])), [categorias]);
   const recipeByProductId = useMemo(() => new Map(recetas.map((item) => [item.productId, item])), [recetas]);
+  const productById = useMemo(() => new Map(productos.map((item) => [item.id, item])), [productos]);
+  const productCostById = useMemo(
+    () => buildProductRecipeCosts(productos, recipeByProductId, ingredientById),
+    [productos, recipeByProductId, ingredientById],
+  );
 
   const filteredProducts = useMemo(() => {
     const normalized = search.trim().toLocaleLowerCase('es');
     return productos.filter((product) => {
       if (categoryId !== 'all' && product.categoryId !== categoryId) return false;
-      const recipe = recipeByProductId.get(product.id)?.ingredients;
-      const rows = recipe ?? (product.ingredientIds ?? []).map((ingredientId) => ({
-        id: `${product.id}-${ingredientId}`,
-        productId: product.id,
-        ingredientId,
-        quantity: 0,
-        unit: ingredientById.get(ingredientId)?.unit ?? 'unidad' as IngredientUnit,
-      }));
-      const complete = isRecipeCostComplete(rows, ingredientById);
+      const complete = productCostById.get(product.id)?.complete ?? false;
       if (costStatus === 'complete' && !complete) return false;
       if (costStatus === 'pending' && complete) return false;
       if (!normalized) return true;
       const category = categoryById.get(product.categoryId)?.name ?? '';
       return [product.name, product.description, category].some((value) => value.toLocaleLowerCase('es').includes(normalized));
     });
-  }, [categoryById, categoryId, costStatus, ingredientById, productos, recipeByProductId, search]);
+  }, [categoryById, categoryId, costStatus, productCostById, productos, search]);
 
   useEffect(() => {
     if (!productId && filteredProducts[0]) setProductId(filteredProducts[0].id);
@@ -133,14 +133,14 @@ export function RecetasAdminPage() {
   useEffect(() => {
     if (!selectedProduct) {
       setDraftIngredients([]);
+      setDraftComponents([]);
       return;
     }
-
-    if (selectedRecipe?.ingredients.length) {
-      setDraftIngredients(selectedRecipe.ingredients.map((item) => ({ ...item })));
+    setDraftComponents((selectedRecipe?.components ?? []).map(item => ({ ...item })));
+    if (selectedRecipe) {
+      setDraftIngredients(selectedRecipe.ingredients.map(item => ({ ...item })));
       return;
     }
-
     setDraftIngredients((selectedProduct.ingredientIds ?? []).map((ingredientId) => ({
       id: `${selectedProduct.id}-${ingredientId}`,
       productId: selectedProduct.id,
@@ -151,18 +151,11 @@ export function RecetasAdminPage() {
   }, [ingredientById, selectedProduct, selectedRecipe]);
 
   const productAnalytics = useMemo(() => productos.map((product) => {
-    const rows = recipeByProductId.get(product.id)?.ingredients
-      ?? (product.ingredientIds ?? []).map((ingredientId) => ({
-        id: `${product.id}-${ingredientId}`,
-        productId: product.id,
-        ingredientId,
-        quantity: 0,
-        unit: ingredientById.get(ingredientId)?.unit ?? 'unidad' as IngredientUnit,
-      }));
-    const cost = recipeCost(rows, ingredientById);
-    const complete = isRecipeCostComplete(rows, ingredientById);
-    return { product, rows, cost, complete, ...profitability(product.currentPrice, cost) };
-  }), [ingredientById, productos, recipeByProductId]);
+    const savedCost = productCostById.get(product.id) ?? { cost: 0, complete: false };
+    return { product, rows: recipeByProductId.get(product.id)?.ingredients ?? [],
+      cost: savedCost.cost, complete: savedCost.complete,
+      ...profitability(product.currentPrice, savedCost.cost) };
+  }), [productos, recipeByProductId, productCostById]);
 
   const analyticsByProductId = useMemo(() => new Map(productAnalytics.map((item) => [item.product.id, item])), [productAnalytics]);
   const filteredProductIds = useMemo(() => new Set(filteredProducts.map((product) => product.id)), [filteredProducts]);
@@ -173,20 +166,33 @@ export function RecetasAdminPage() {
   const averageFoodCost = completeAnalytics.length ? completeAnalytics.reduce((sum, item) => sum + item.foodCostPercent, 0) / completeAnalytics.length : 0;
   const bestMargin = completeAnalytics.length ? [...completeAnalytics].sort((a, b) => b.marginPercent - a.marginPercent)[0] : null;
 
-  const currentCost = recipeCost(draftIngredients, ingredientById);
-  const currentComplete = isRecipeCostComplete(draftIngredients, ingredientById);
+  const currentCostResult = draftRecipeCost(draftIngredients, draftComponents, ingredientById, productCostById);
+  const currentCost = currentCostResult.cost;
+  const currentComplete = currentCostResult.complete;
   const currentProfitability = profitability(selectedProduct?.currentPrice ?? 0, currentCost);
-  const savedRows = selectedRecipe?.ingredients?.length
-    ? selectedRecipe.ingredients
-    : (selectedProduct?.ingredientIds ?? []).map(id => ({
-        ingredientId: id, quantity: 0, unit: ingredientById.get(id)?.unit ?? 'unidad',
-      }));
-  const fingerprint = (rows: { ingredientId: string; quantity: number; unit: IngredientUnit }[]) =>
-    JSON.stringify(rows.map(row => ({ ingredientId: row.ingredientId, quantity: row.quantity, unit: row.unit })).sort((a,b) => a.ingredientId.localeCompare(b.ingredientId)));
-  const hasRecipeChanges = Boolean(selectedProduct && fingerprint(draftIngredients) !== fingerprint(savedRows));
+  const savedRows = selectedRecipe?.ingredients ?? (selectedProduct?.ingredientIds ?? []).map(id => ({
+    ingredientId: id, quantity: 0, unit: ingredientById.get(id)?.unit ?? 'unidad' as IngredientUnit,
+  }));
+  const fingerprint = (ingredients: { ingredientId: string; quantity: number; unit: IngredientUnit }[],
+    components: { componentProductId: string; quantity: number }[]) =>
+    JSON.stringify({
+      ingredients: ingredients.map(row => ({ ingredientId: row.ingredientId, quantity: row.quantity, unit: row.unit }))
+        .sort((a,b) => a.ingredientId.localeCompare(b.ingredientId)),
+      components: components.map(row => ({ componentProductId: row.componentProductId, quantity: row.quantity }))
+        .sort((a,b) => a.componentProductId.localeCompare(b.componentProductId)),
+    });
+  const hasRecipeChanges = Boolean(selectedProduct &&
+    fingerprint(draftIngredients,draftComponents) !== fingerprint(savedRows,selectedRecipe?.components ?? []));
   const requestNavigation = useAdminUnsavedChanges(hasRecipeChanges);
-  const selectedIngredientIds = new Set(draftIngredients.map((item) => item.ingredientId));
-  const addableIngredients = ingredientes.filter((item) => item.active && !selectedIngredientIds.has(item.id));
+  const selectedIngredientIds = new Set(draftIngredients.map(item => item.ingredientId));
+  const addableIngredients = ingredientes.filter(item => item.active && !selectedIngredientIds.has(item.id));
+  const selectedComponentIds = new Set(draftComponents.map(item => item.componentProductId));
+  const addableProducts = productos.filter(item =>
+    item.id !== productId
+    && item.active && !selectedComponentIds.has(item.id)
+    && productCostById.get(item.id)?.complete
+    && !wouldCreateRecipeCycle(productId,item.id,recipeByProductId)
+  );
 
   function updateDraftIngredient(id: string, patch: Partial<RecipeIngredient>) {
     setDraftIngredients((current) => current.map((item) => item.id === id ? { ...item, ...patch } : item));
@@ -206,6 +212,21 @@ export function RecetasAdminPage() {
     setIngredientToAdd('');
   }
 
+  function updateDraftComponent(id: string, quantity: number) {
+    setDraftComponents(current => current.map(item =>
+      item.id === id ? { ...item, quantity } : item));
+  }
+
+  function addProductComponent() {
+    if (!selectedProduct || !componentToAdd ||
+        !addableProducts.some(item => item.id === componentToAdd)) return;
+    setDraftComponents(current => [...current, {
+      id: crypto.randomUUID(), productId: selectedProduct.id,
+      componentProductId: componentToAdd, quantity: 1,
+    }]);
+    setComponentToAdd('');
+  }
+
   async function saveRecipe() {
     if (!selectedProduct || !hasRecipeChanges || saving) return;
     setSaving(true);
@@ -213,6 +234,7 @@ export function RecetasAdminPage() {
       await updateProductoReceta({
         productId: selectedProduct.id,
         ingredients: draftIngredients,
+        components: draftComponents,
         packagingCost: 0,
         extraCost: 0,
       });
