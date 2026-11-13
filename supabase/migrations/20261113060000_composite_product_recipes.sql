@@ -226,3 +226,48 @@ grant execute on function public.sync_product_recipe(uuid,jsonb,jsonb) to authen
 
 comment on table public.product_recipe_components is
   'Productos completos utilizados como componentes de la receta de otro producto; el costo se obtiene recursivamente de sus ingredientes, nunca de su precio de venta.';
+
+
+-- Recuperación EXPLÍCITA de snapshots faltantes para una receta finalizada.
+-- No se recalculan ventas históricas sin confirmar que la composición del
+-- producto/promo fue la misma desde el 31/10/2026.
+create or replace function public.admin_backfill_product_recipe_costs(
+  target_product_id uuid
+) returns integer
+language plpgsql security definer
+set search_path = ''
+as $$
+declare
+  cost_per_unit numeric;
+  changed integer := 0;
+begin
+  if not private.is_admin() then
+    raise exception 'No autorizado.' using errcode='42501';
+  end if;
+  cost_per_unit := private.recipe_cost_unit(target_product_id);
+  if cost_per_unit is null then
+    raise exception 'Completá todos los ingredientes y productos antes de recuperar los costos.';
+  end if;
+
+  update public.order_items oi
+     set unit_cost_snapshot = cost_per_unit,
+         total_cost_snapshot = round(cost_per_unit * oi.quantity,4),
+         cost_snapshot_status = 'complete',
+         cost_snapshot_source = 'backfill_client_confirmed',
+         cost_snapshot_at = now()
+    from public.orders o
+   where oi.order_id = o.id
+     and oi.product_id = target_product_id
+     and o.status <> 'cancelado'
+     and o.created_at >= (timestamp '2026-10-31 00:00:00' at time zone 'America/Argentina/Buenos_Aires')
+     and o.created_at <= now()
+     and oi.cost_snapshot_status is distinct from 'complete'
+     and oi.unit_cost_snapshot is null
+     and oi.total_cost_snapshot is null;
+
+  get diagnostics changed = row_count;
+  return changed;
+end;
+$$;
+revoke all on function public.admin_backfill_product_recipe_costs(uuid) from public,anon;
+grant execute on function public.admin_backfill_product_recipe_costs(uuid) to authenticated;
