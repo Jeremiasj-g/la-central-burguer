@@ -97,6 +97,16 @@ export async function updateProductoReceta(input: UpdateRecipeInput): Promise<Pr
   return { id: `recipe-${input.productId}`, ...input };
 }
 
+/** Solo reconstruye costos históricos faltantes, tras confirmación expresa del administrador. */
+export async function recoverMissingProductCosts(productId: string): Promise<number> {
+  requireSupabaseConfigured('recuperar costos pendientes');
+  const { data, error } = await getSupabaseBrowserClient().rpc('admin_backfill_product_recipe_costs', {
+    target_product_id: productId,
+  });
+  if (error) throw new Error(error.message);
+  return Number(data ?? 0);
+}
+
 export async function ensureRecipeFromIngredientIds(
   productId: string,
   ingredientIds: string[],
