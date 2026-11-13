@@ -8,10 +8,19 @@ export interface RecipeIngredient {
   unit: IngredientUnit;
 }
 
+/** Producto final incorporado en una receta (cantidad en unidades). */
+export interface RecipeProductComponent {
+  id: string;
+  productId: string;
+  componentProductId: string;
+  quantity: number;
+}
+
 export interface ProductRecipe {
   id: string;
   productId: string;
   ingredients: RecipeIngredient[];
+  components: RecipeProductComponent[];
   packagingCost: number;
   extraCost: number;
 }
@@ -19,6 +28,7 @@ export interface ProductRecipe {
 export interface UpdateRecipeInput {
   productId: string;
   ingredients: RecipeIngredient[];
+  components: RecipeProductComponent[];
   packagingCost: number;
   extraCost: number;
 }
