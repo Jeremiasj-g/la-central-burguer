@@ -6,6 +6,7 @@ import type { Category } from '@/features/categorias/types/categoria.types';
 import type { Product } from '@/features/productos/types/producto.types';
 import { formatCurrency } from '@/shared/utils/format.utils';
 import { cn } from '@/shared/utils/cn';
+import { NumericInput } from '@/shared/components/ui/NumericInput';
 
 export type RecipeProfitRow = {
   product: Product;
@@ -135,8 +136,8 @@ export function RentabilidadOverview({
             <label htmlFor="recipe-target-margin" className="mb-2 flex items-center justify-between gap-3">
               <span className="text-[11px] font-medium text-neutral-600">Margen objetivo</span>
               <span className="inline-flex h-9 items-center gap-1 rounded-[10px] border border-neutral-300 bg-white px-2">
-                <input id="recipe-target-margin" type="number" inputMode="numeric" min={1} max={95} step={1}
-                  value={targetMargin} onChange={(event) => updateMargin(Number(event.target.value))}
+                <NumericInput id="recipe-target-margin" kind="integer" min={1} max={95}
+                  value={targetMargin} onValueChange={(value) => { if (value !== undefined) updateMargin(value); }}
                   className="w-[42px] bg-transparent text-right text-[15px] font-semibold tabular-nums text-neutral-900 outline-none" />
                 <span className="text-[12px] text-neutral-500">%</span>
               </span>
