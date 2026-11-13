@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { ComponentPropsWithoutRef, FocusEvent, ChangeEvent } from 'react';
 import { Input } from './Input';
 import { displayLocalizedNumber, parseLocalizedNumber, type LocalizedNumberKind } from '@/shared/utils/localized-number.utils';
@@ -33,12 +33,15 @@ export function NumericInput({
   onBlur,
   ...props
 }: NumericInputProps) {
-  const [focused, setFocused] = useState(false);
+  // El texto que se está editando (p. ej. "0.", "0,0") no equivale
+  // todavía al valor numérico que el formulario debe guardar.
+  const editingRef = useRef(false);
   const [draft, setDraft] = useState(() => displayLocalizedNumber(value, kind, zeroAsEmpty));
 
   useEffect(() => {
-    if (!focused) setDraft(displayLocalizedNumber(value, kind, zeroAsEmpty));
-  }, [value, kind, focused, zeroAsEmpty]);
+    // No sobrescribir el separador decimal al re-renderizar el formulario.
+    if (!editingRef.current) setDraft(displayLocalizedNumber(value, kind, zeroAsEmpty));
+  }, [value, kind, zeroAsEmpty]);
 
   function errorMessage(text: string) {
     const parsed = parseLocalizedNumber(text, kind, maxDecimals);
@@ -60,13 +63,21 @@ export function NumericInput({
     setDraft(text);
     event.currentTarget.setCustomValidity(errorMessage(text));
     const parsed = parseLocalizedNumber(text, kind, maxDecimals);
-    onValueChange(parsed === null ? undefined : parsed);
+    if (text.trim() === '') {
+      onValueChange(undefined);
+      return;
+    }
+    // Conservar prefijos de edición como "0." y "0," hasta escribir
+    // el siguiente decimal: no disparar cálculos ni reformateos al padre.
+    if (/[.,]$/.test(text.trim()) || parsed === null || parsed === undefined) return;
+    if (parsed !== value) onValueChange(parsed);
   }
 
   function handleBlur(event: FocusEvent<HTMLInputElement>) {
-    setFocused(false);
+    editingRef.current = false;
     const parsed = parseLocalizedNumber(draft, kind, maxDecimals);
     if (parsed !== null && parsed !== undefined) {
+      if (parsed !== value) onValueChange(parsed);
       setDraft(displayLocalizedNumber(parsed, kind, false));
     } else if (parsed === undefined) {
       setDraft('');
@@ -83,7 +94,7 @@ export function NumericInput({
       autoComplete="off"
       value={draft}
       onChange={handleChange}
-      onFocus={(event) => { setFocused(true); onFocus?.(event); }}
+      onFocus={(event) => { editingRef.current = true; onFocus?.(event); }}
       onBlur={handleBlur}
     />
   );
