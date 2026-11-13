@@ -21,6 +21,7 @@ import { Button } from '@/shared/components/ui/Button';
 import { ConfirmDialog } from '@/shared/components/ui/ConfirmDialog';
 import { TablePagination } from '@/shared/components/ui/TablePagination';
 import { formatCurrency, formatDateTime } from '@/shared/utils/format.utils';
+import { parseLocalizedNumber } from '@/shared/utils/localized-number.utils';
 import { getProductos, subscribeToProducts } from '@/features/productos/services/productos.service';
 import type { Product } from '@/features/productos/types/producto.types';
 import { getCategorias, subscribeToCategories } from '@/features/categorias/services/categorias.service';
@@ -155,7 +156,7 @@ export function VentaMostradorPage() {
 
   const itemCount = cart.reduce((total, line) => total + line.quantity, 0);
   const total = cart.reduce((sum, line) => sum + line.product.currentPrice * line.quantity, 0);
-  const parsedTransferAmount = transferAmount.trim() ? Number(transferAmount) : NaN;
+  const parsedTransferAmount = parseLocalizedNumber(transferAmount, 'money') ?? NaN;
   const validMixedSplit = paymentMethod !== 'combinado' || (
     !editingSale && Number.isFinite(parsedTransferAmount) && parsedTransferAmount > 0
     && Number.isInteger(parsedTransferAmount * 100) && parsedTransferAmount < total
@@ -527,7 +528,7 @@ export function VentaMostradorPage() {
               {paymentMethod === 'combinado' ? (
                 <div className="mt-3 space-y-2">
                   <label htmlFor="mixed-counter-transfer" className="block text-xs font-medium text-neutral-600">Transferencia recibida y verificada</label>
-                  <input id="mixed-counter-transfer" type="number" min="0.01" step="0.01" inputMode="decimal" value={transferAmount}
+                  <input id="mixed-counter-transfer" type="text" inputMode="decimal" value={transferAmount}
                     onChange={e => { setTransferAmount(e.target.value); saleRequestKey.current = null; }} placeholder="Ej.: 10000"
                     className="h-10 w-full rounded-[11px] border border-neutral-200 bg-white px-3 text-[13px] outline-none focus:border-central-orange/50"/>
                   <div className="flex justify-between text-xs text-neutral-600"><span>Efectivo recibido</span><strong>{Number.isFinite(parsedTransferAmount) ? formatCurrency(Math.max(0,total-parsedTransferAmount)) : '—'}</strong></div>
