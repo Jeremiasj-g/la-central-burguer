@@ -4,6 +4,7 @@ import { useState } from 'react';
 import type { Ingredient } from '../types/ingrediente.types';
 import { Button } from '@/shared/components/ui/Button';
 import { Input } from '@/shared/components/ui/Input';
+import { NumericInput } from '@/shared/components/ui/NumericInput';
 import { Select } from '@/shared/components/ui/Select';
 import { SupplierCombobox } from './SupplierCombobox';
 import { formatCurrency } from '@/shared/utils/format.utils';
@@ -82,10 +83,10 @@ export function IngredienteForm({ ingredient, suppliers, isSaving, onSubmit, onC
       </div>
       <div className="min-w-0">
         <label htmlFor="ingredient-unit-cost" className={labelClass}>Costo por {values.unit}</label>
-        <Input id="ingredient-unit-cost" type="number" min="0" step="0.01" inputMode="decimal" required
+        <NumericInput id="ingredient-unit-cost" kind="money" min={0} required
           className={inputClass + ' !border-neutral-300 !bg-white hover:!border-neutral-400'}
           value={values.unitCost}
-          onChange={(event) => setValues({ ...values, unitCost: Number(event.target.value) })}
+          onValueChange={(value) => setValues({ ...values, unitCost: value ?? 0 })}
         />
         <p className="mt-1.5 text-[11px] leading-5 text-neutral-500">
           Costo por unidad base de compra. {values.unitCost > 0 ? 'Costo actual: ' + formatCurrency(values.unitCost) + ' / ' + values.unit : 'Cargá un costo mayor que cero para completar los análisis de recetas.'}
