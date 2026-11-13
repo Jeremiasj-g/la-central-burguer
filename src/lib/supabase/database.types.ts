@@ -227,6 +227,7 @@ export interface Database {
       admin_create_mixed_counter_sale: { Args: { payload: Json }; Returns: Json };
       sync_product_ingredients: { Args: { target_product_id: string; ingredient_rows?: Json }; Returns: undefined };
       sync_product_recipe: { Args: { target_product_id: string; ingredient_rows?: Json; component_rows?: Json }; Returns: undefined };
+      admin_backfill_product_recipe_costs: { Args: { target_product_id: string }; Returns: number };
       get_public_best_sellers: { Args: Record<PropertyKey, never>; Returns: { product_id: string; units_sold: number }[] };
       get_dashboard_stats: { Args: { days_back?: number }; Returns: Json };
       is_business_open: { Args: Record<PropertyKey, never>; Returns: boolean };
