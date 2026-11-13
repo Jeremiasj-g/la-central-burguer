@@ -4,6 +4,7 @@ import { useState } from 'react';
 import type { Category } from '../types/categoria.types';
 import { Button } from '@/shared/components/ui/Button';
 import { Input } from '@/shared/components/ui/Input';
+import { NumericInput } from '@/shared/components/ui/NumericInput';
 import { Textarea } from '@/shared/components/ui/Textarea';
 
 const labelClass = 'mb-1.5 block text-[11px] font-medium text-neutral-500';
@@ -24,7 +25,7 @@ export function CategoriaForm({ category, isSaving, onSubmit, onCancel }: { cate
       </div>
       <div>
         <label htmlFor="category-order" className={labelClass}>Orden de visualización</label>
-        <Input id="category-order" className={inputClass} type="number" value={values.order} onChange={(event) => setValues({ ...values, order: Number(event.target.value) })} />
+        <NumericInput id="category-order" className={inputClass} kind="integer" value={values.order} onValueChange={(value) => setValues({ ...values, order: value ?? 0 })} />
         <p className="mt-1.5 text-[11px] text-neutral-400">Define la posición de esta sección en el menú.</p>
       </div>
       <div className="rounded-[13px] border border-neutral-200/80 bg-[#fafafa] p-3">

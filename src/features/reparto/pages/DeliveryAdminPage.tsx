@@ -33,6 +33,7 @@ import { PasswordInput } from '@/shared/components/ui/PasswordInput';
 import { SearchableSelect } from '@/shared/components/ui/SearchableSelect';
 import { Select } from '@/shared/components/ui/Select';
 import { TablePagination } from '@/shared/components/ui/TablePagination';
+import { NumericInput } from '@/shared/components/ui/NumericInput';
 import { formatCurrency, formatDateTime } from '@/shared/utils/format.utils';
 import { DeliveryAdminSkeleton } from '../components/DeliveryAdminSkeleton';
 import { DeliveryMetricCard } from '../components/DeliveryMetricCard';
@@ -211,14 +212,11 @@ function DriverModal({ driver, onClose, onSaved }: { driver?: DeliveryDriver; on
           </div>
           <label>
             <span className={labelClass}>Comisión sobre el envío (%)</span>
-            <input
-              type="number"
-              min="0"
-              max="100"
-              step="0.01"
+            <NumericInput
+              kind="decimal" maxDecimals={2} min={0} max={100}
               className={fieldClass}
               value={form.commissionPercent}
-              onChange={(event) => setForm({ ...form, commissionPercent: Number(event.target.value) })}
+              onValueChange={(value) => setForm({ ...form, commissionPercent: value ?? 0 })}
               required
             />
           </label>
@@ -797,14 +795,11 @@ export function DeliveryAdminPage() {
                           />
                           <label className="relative block">
                             <span className="sr-only">Comisión para este pedido</span>
-                            <input
-                              type="number"
-                              min="0"
-                              max="100"
-                              step="0.5"
+                            <NumericInput
+                              kind="decimal" maxDecimals={2} min={0} max={100}
                               disabled={!selectedDriver}
-                              value={selectedDriver ? commissionPercent : ''}
-                              onChange={(event) => setCommissionByOrder((current) => ({ ...current, [order.id]: Number(event.target.value) }))}
+                              value={selectedDriver ? commissionPercent : undefined}
+                              onValueChange={(value) => setCommissionByOrder((current) => ({ ...current, [order.id]: value ?? 0 }))}
                               className="h-10 w-full rounded-[11px] border border-neutral-200/80 bg-[#f7f7f9] px-3 pr-8 text-[12px] font-medium text-neutral-900 outline-none transition focus:border-central-orange/40 focus:ring-2 focus:ring-central-orange/10 disabled:bg-neutral-50 disabled:text-neutral-300"
                               placeholder="%"
                             />

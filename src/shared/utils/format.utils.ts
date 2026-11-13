@@ -1,7 +1,7 @@
 export function formatCurrency(value: number) {
   return `$${new Intl.NumberFormat('es-AR', {
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
+    minimumFractionDigits: Number.isInteger(value) ? 0 : 2,
+    maximumFractionDigits: 2,
   }).format(value)}`;
 }
 

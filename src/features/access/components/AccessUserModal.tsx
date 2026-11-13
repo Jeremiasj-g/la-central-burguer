@@ -7,6 +7,7 @@ import { Button } from '@/shared/components/ui/Button';
 import { Modal } from '@/shared/components/ui/Modal';
 import { PasswordInput } from '@/shared/components/ui/PasswordInput';
 import { Select } from '@/shared/components/ui/Select';
+import { NumericInput } from '@/shared/components/ui/NumericInput';
 import { saveAccessUser } from '../services/access.service';
 import type {
   AccessRole,
@@ -181,7 +182,7 @@ export function AccessUserModal({ user, roles, onClose, onSaved, defaultRoleCode
             <div className="mb-4 flex items-center gap-3"><span className="grid h-9 w-9 place-items-center rounded-sm bg-central-orange/10 text-central-orange"><Bike size={17} /></span><div><p className="text-sm font-semibold text-central-carbon">Configuración de repartidor</p><p className="text-xs text-neutral-500">Estos datos sólo aplican mientras el usuario tenga el rol Delivery.</p></div></div>
             <div className="grid gap-4 sm:grid-cols-2">
               <div><span className={labelClass}>Vehículo</span><Select variant="light" value={form.vehicleType ?? 'moto'} options={vehicleOptions} onValueChange={(value) => setForm({ ...form, vehicleType: value as AccessVehicleType })} aria-label="Vehículo del repartidor" /></div>
-              <label><span className={labelClass}>Comisión sobre el envío (%)</span><input type="number" min="0" max="100" step="0.01" className={fieldClass} value={form.commissionPercent ?? 0} onChange={(event) => setForm({ ...form, commissionPercent: Number(event.target.value) })} required /></label>
+              <label><span className={labelClass}>Comisión sobre el envío (%)</span><NumericInput kind="decimal" maxDecimals={2} min={0} max={100} className={fieldClass} value={form.commissionPercent} onValueChange={(value) => setForm({ ...form, commissionPercent: value ?? 0 })} required /></label>
             </div>
           </div>
         ) : null}

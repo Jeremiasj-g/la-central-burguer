@@ -20,6 +20,7 @@ import { useCategorias } from '@/features/categorias/hooks/useCategorias';
 import { SearchableSelect } from '@/shared/components/ui/SearchableSelect';
 import { Select } from '@/shared/components/ui/Select';
 import { Input } from '@/shared/components/ui/Input';
+import { NumericInput } from '@/shared/components/ui/NumericInput';
 import { Button } from '@/shared/components/ui/Button';
 import { ConfirmDialog } from '@/shared/components/ui/ConfirmDialog';
 import { DataLoadError } from '@/shared/components/feedback/DataLoadError';
@@ -542,11 +543,11 @@ export function RecetasAdminPage() {
                             <div className={styles.recipeFields}>
                               <label className={styles.quantityField}>
                                 <span className={styles.fieldLabel}>Cantidad</span>
-                                <Input
+                                <NumericInput
                                   aria-label={'Cantidad de ' + ingredientName}
-                                  type="number" min="0" step="0.001" inputMode="decimal"
-                                  value={row.quantity || ''}
-                                  onChange={(event) => updateDraftIngredient(row.id, { quantity: Number(event.target.value) })}
+                                  kind="decimal" min={0} maxDecimals={4}
+                                  value={row.quantity}
+                                  onValueChange={(value) => updateDraftIngredient(row.id, { quantity: value ?? 0 })}
                                   placeholder="0"
                                   className={adminInputClass + ' !h-9 !bg-white'}
                                 />
@@ -647,11 +648,11 @@ export function RecetasAdminPage() {
                               <div className={styles.recipeFields}>
                                 <label className={styles.quantityField}>
                                   <span className={styles.fieldLabel}>Cantidad</span>
-                                  <Input
+                                  <NumericInput
                                     aria-label={'Unidades de ' + name}
-                                    type="number" min="0.001" step="0.001" inputMode="decimal"
-                                    value={row.quantity || ''}
-                                    onChange={event => updateDraftComponent(row.id, Number(event.target.value))}
+                                    kind="decimal" min={0.001} maxDecimals={3}
+                                    value={row.quantity}
+                                    onValueChange={value => updateDraftComponent(row.id, value ?? 0)}
                                     placeholder="0"
                                     className={adminInputClass + ' !h-9 !bg-white'}
                                   />

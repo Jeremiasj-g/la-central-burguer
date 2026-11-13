@@ -9,6 +9,7 @@ import { Input } from '@/shared/components/ui/Input';
 import { Button } from '@/shared/components/ui/Button';
 import { ConfirmDialog } from '@/shared/components/ui/ConfirmDialog';
 import { formatCurrency, formatDateTime } from '@/shared/utils/format.utils';
+import { parseLocalizedNumber } from '@/shared/utils/localized-number.utils';
 import {
   getAdminOrderPaymentState,
   setAdminOrderPaymentPlan,
@@ -23,9 +24,8 @@ import type { PaymentMethod } from '../types/payment.types';
 const fieldClass = '!h-11 !rounded-[11px] !border-neutral-200 !bg-white !text-neutral-900 !text-[13px] !font-normal placeholder:!text-neutral-400';
 
 function moneyInput(value: string): number | null {
-  if (!/^\d+(?:[.,]\d{1,2})?$/.test(value.trim())) return null;
-  const result = Number(value.replace(',', '.'));
-  return Number.isFinite(result) ? result : null;
+  const parsed = parseLocalizedNumber(value, 'money');
+  return typeof parsed === 'number' && parsed >= 0 ? parsed : null;
 }
 
 export function AdminOrderPaymentModal({ order, onClose, onSaved }: {

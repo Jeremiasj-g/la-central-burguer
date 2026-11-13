@@ -9,6 +9,7 @@ import type { Category } from '@/features/categorias/types/categoria.types';
 import type { Ingredient } from '@/features/ingredientes/types/ingrediente.types';
 import { Button } from '@/shared/components/ui/Button';
 import { Input } from '@/shared/components/ui/Input';
+import { NumericInput } from '@/shared/components/ui/NumericInput';
 import { Select } from '@/shared/components/ui/Select';
 import { Textarea } from '@/shared/components/ui/Textarea';
 import { ProductImageMedia } from './ProductImageMedia';
@@ -195,7 +196,7 @@ export function ProductoForm({ product, categories, ingredients, isSaving, onSub
               <label htmlFor="product-price" className={labelClass}>Precio de venta <span className="text-red-500">*</span></label>
               <div className="relative">
                 <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[13px] font-medium text-neutral-400">$</span>
-                <Input id="product-price" className={fieldClass + ' !pl-7'} type="number" min={0} step="any" inputMode="decimal" value={values.currentPrice || ''} onChange={(event) => setValues({ ...values, currentPrice: Number(event.target.value) })} placeholder="0" required />
+                <NumericInput id="product-price" className={fieldClass + ' !pl-7'} kind="money" min={0} value={values.currentPrice} onValueChange={(value) => setValues({ ...values, currentPrice: value ?? 0 })} placeholder="0" required />
               </div>
             </div>
             <div>

@@ -11,6 +11,7 @@ import { Button } from '@/shared/components/ui/Button';
 import { DatePickerField } from '@/shared/components/ui/DatePickerField';
 import { ConfirmDialog } from '@/shared/components/ui/ConfirmDialog';
 import { Input } from '@/shared/components/ui/Input';
+import { NumericInput } from '@/shared/components/ui/NumericInput';
 import { Modal } from '@/shared/components/ui/Modal';
 import { DataLoadError } from '@/shared/components/feedback/DataLoadError';
 import { useCategoryDiscounts } from '../hooks/useCategoryDiscounts';
@@ -314,8 +315,8 @@ export function DescuentosAdminPage() {
           )}
           <label className="block text-[12px] font-medium text-neutral-700">
             Descuento (%)
-            <Input className={`mt-1.5 ${control}`} type="number" min="0.01" max="99.99" step="0.01" required
-              value={form.discount_percent} onChange={e => setForm(s => ({ ...s, discount_percent: Number(e.target.value) }))} />
+            <NumericInput className={`mt-1.5 ${control}`} kind="decimal" maxDecimals={2} min={0.01} max={99.99} required
+              value={form.discount_percent} onValueChange={value => setForm(s => ({ ...s, discount_percent: value ?? 0 }))} />
           </label>
           <div className="grid gap-3 sm:grid-cols-2">
             <div className="min-w-0">

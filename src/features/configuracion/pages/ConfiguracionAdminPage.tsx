@@ -8,6 +8,7 @@ import { getBusinessStatusLabel, isBusinessOpenBySchedule } from '../utils/busin
 import { Button } from '@/shared/components/ui/Button';
 import { ConfirmDialog } from '@/shared/components/ui/ConfirmDialog';
 import { Input } from '@/shared/components/ui/Input';
+import { NumericInput } from '@/shared/components/ui/NumericInput';
 import { Textarea } from '@/shared/components/ui/Textarea';
 import { formatCurrency } from '@/shared/utils/format.utils';
 import { useCurrentLocation } from '@/features/delivery/hooks/useCurrentLocation';
@@ -479,37 +480,37 @@ export function ConfiguracionAdminPage() {
               <div>
                 <label className={labelClass}>Latitud del local</label>
                 <EditableControl>
-                  <Input className={adminInputClass} type="number" step="any" value={values.storeLatitude ?? ''} onChange={(event) => setValues({ ...values, storeLatitude: event.target.value === '' ? undefined : Number(event.target.value) })} />
+                  <NumericInput className={adminInputClass} kind="decimal" maxDecimals={8} min={-90} max={90} value={values.storeLatitude} onValueChange={(value) => setValues({ ...values, storeLatitude: value })} />
                 </EditableControl>
               </div>
               <div>
                 <label className={labelClass}>Longitud del local</label>
                 <EditableControl>
-                  <Input className={adminInputClass} type="number" step="any" value={values.storeLongitude ?? ''} onChange={(event) => setValues({ ...values, storeLongitude: event.target.value === '' ? undefined : Number(event.target.value) })} />
+                  <NumericInput className={adminInputClass} kind="decimal" maxDecimals={8} min={-180} max={180} value={values.storeLongitude} onValueChange={(value) => setValues({ ...values, storeLongitude: value })} />
                 </EditableControl>
               </div>
               <div>
                 <label className={labelClass}>Precio base de envío</label>
                 <EditableControl>
-                  <Input className={adminInputClass} type="number" min={0} value={values.deliveryBaseFee} onChange={(event) => setValues({ ...values, deliveryBaseFee: Number(event.target.value) })} />
+                  <NumericInput className={adminInputClass} kind="money" min={0} value={values.deliveryBaseFee} onValueChange={(value) => setValues({ ...values, deliveryBaseFee: value ?? 0 })} />
                 </EditableControl>
               </div>
               <div>
                 <label className={labelClass}>Precio por kilómetro</label>
                 <EditableControl>
-                  <Input className={adminInputClass} type="number" min={0} value={values.deliveryPricePerKm} onChange={(event) => setValues({ ...values, deliveryPricePerKm: Number(event.target.value) })} />
+                  <NumericInput className={adminInputClass} kind="money" min={0} value={values.deliveryPricePerKm} onValueChange={(value) => setValues({ ...values, deliveryPricePerKm: value ?? 0 })} />
                 </EditableControl>
               </div>
               <div>
                 <label className={labelClass}>Radio máximo de entrega (km)</label>
                 <EditableControl>
-                  <Input className={adminInputClass} type="number" min={0} step="0.5" value={values.deliveryMaxDistanceKm} onChange={(event) => setValues({ ...values, deliveryMaxDistanceKm: Number(event.target.value) })} />
+                  <NumericInput className={adminInputClass} kind="decimal" min={0} value={values.deliveryMaxDistanceKm} onValueChange={(value) => setValues({ ...values, deliveryMaxDistanceKm: value ?? 0 })} />
                 </EditableControl>
               </div>
               <div>
                 <label className={labelClass}>Redondeo del envío</label>
                 <EditableControl>
-                  <Input className={adminInputClass} type="number" min={1} value={values.deliveryRoundingValue} onChange={(event) => setValues({ ...values, deliveryRoundingValue: Number(event.target.value) })} />
+                  <NumericInput className={adminInputClass} kind="integer" min={1} value={values.deliveryRoundingValue} onValueChange={(value) => setValues({ ...values, deliveryRoundingValue: value ?? 0 })} />
                 </EditableControl>
               </div>
             </div>
