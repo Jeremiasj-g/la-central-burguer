@@ -52,7 +52,11 @@ export function NumericInput({
   function handleChange(event: ChangeEvent<HTMLInputElement>) {
     const text = event.target.value;
     // Letras, signos extraños y decimales mal formados nunca llegan al dominio.
-    if (!/^-?[\d.,]*$/.test(text) || text.length > 32) return;
+    // Un importe también puede pegarse como "$ 26.000,50".
+    const characters = kind === 'money'
+      ? text.replace(/[\s\u00a0\u202f]/g, '').replace(/^\$/, '')
+      : text;
+    if (!/^-?[\d.,]*$/.test(characters) || text.length > 40) return;
     setDraft(text);
     event.currentTarget.setCustomValidity(errorMessage(text));
     const parsed = parseLocalizedNumber(text, kind, maxDecimals);
