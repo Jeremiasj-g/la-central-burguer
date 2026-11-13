@@ -13,6 +13,7 @@ import { formatDistanceKm } from '@/features/delivery/utils/delivery.utils';
 import { useCurrentLocation } from '@/features/delivery/hooks/useCurrentLocation';
 import { ConfirmDialog } from '@/shared/components/ui/ConfirmDialog';
 import { Input } from '@/shared/components/ui/Input';
+import { NumericInput } from '@/shared/components/ui/NumericInput';
 import { Modal } from '@/shared/components/ui/Modal';
 import { Textarea } from '@/shared/components/ui/Textarea';
 import { formatCurrency } from '@/shared/utils/format.utils';
@@ -542,9 +543,9 @@ export function CheckoutModal({ open, onClose, items, onOrderCreated }: Checkout
                   <p className="text-[11px] leading-5 text-white/55">Indicá cuánto vas a transferir. El resto se paga en efectivo. El local verificará cada cobro.</p>
                   <label htmlFor="checkout-transfer-amount" className="block text-[12px] font-medium text-white/75">Importe por transferencia</label>
                   <div className="lcb-public-field-shell" data-field-theme={theme}>
-                    <Input id="checkout-transfer-amount" type="number" min="0" step="0.01" inputMode="decimal"
+                    <NumericInput id="checkout-transfer-amount" kind="money" min={0}
                       className={cn('lcb-public-field-input !h-11 !rounded-[11px] !border-0 !bg-transparent !px-3.5 !text-[14px]', theme === 'light' ? '!text-[#292d32]' : '!text-white')}
-                      value={values.transferAmount ?? ''} onChange={event => update('transferAmount', event.target.value === '' ? undefined : Number(event.target.value))}
+                      value={values.transferAmount} onValueChange={value => update('transferAmount', value)}
                       placeholder="Ej.: 20000" />
                   </div>
                   <div className="flex justify-between text-[12px] text-white/70"><span>Efectivo restante</span><strong className="tabular-nums text-white">{formatCurrency(cashRemaining)}</strong></div>
