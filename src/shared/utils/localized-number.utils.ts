@@ -64,7 +64,10 @@ export function displayLocalizedNumber(
   zeroAsEmpty = true,
 ): string {
   if (value === null || value === undefined || !Number.isFinite(value) || (zeroAsEmpty && value === 0)) return '';
-  if (kind === 'money') return new Intl.NumberFormat('es-AR', { maximumFractionDigits: 2 }).format(value);
+  if (kind === 'money') return new Intl.NumberFormat('es-AR', {
+    minimumFractionDigits: Number.isInteger(value) ? 0 : 2,
+    maximumFractionDigits: 2,
+  }).format(value);
   if (kind === 'integer') return String(value);
   return String(value).replace('.', ',');
 }
