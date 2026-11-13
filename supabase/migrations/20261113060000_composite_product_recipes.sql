@@ -92,7 +92,7 @@ revoke all on function private.recipe_cost_unit(uuid,uuid[]) from public,anon,au
 
 -- Misma captura existente por venta, ampliada para preparaciones compuestas.
 create or replace function public.capture_order_item_cost_snapshot()
-returns trigger language plpgsql
+returns trigger language plpgsql security definer
 set search_path = ''
 as $$
 declare
