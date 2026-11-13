@@ -137,6 +137,11 @@ export interface Database {
         { id?: string; product_id: string; ingredient_id: string; quantity?: number | null; unit?: IngredientUnit | null; display_order?: number; created_at?: string; updated_at?: string },
         { quantity?: number | null; unit?: IngredientUnit | null; display_order?: number; updated_at?: string }
       >;
+      product_recipe_components: TableDefinition<
+        { id: string; product_id: string; component_product_id: string; quantity: number; display_order: number; created_at: string; updated_at: string },
+        { id?: string; product_id: string; component_product_id: string; quantity: number; display_order?: number; created_at?: string; updated_at?: string },
+        { component_product_id?: string; quantity?: number; display_order?: number; updated_at?: string }
+      >;
       customers: TableDefinition<
         { id: string; full_name: string; phone: string; normalized_phone: string; email: string | null; default_address: string | null; default_latitude: number | null; default_longitude: number | null; order_count: number; last_order_at: string | null; created_at: string; updated_at: string },
         { id?: string; full_name: string; phone: string; normalized_phone: string; email?: string | null; default_address?: string | null; default_latitude?: number | null; default_longitude?: number | null; order_count?: number; last_order_at?: string | null; created_at?: string; updated_at?: string },
@@ -221,6 +226,8 @@ export interface Database {
       create_public_order_with_payment_plan: { Args: { payload: Json }; Returns: Json };
       admin_create_mixed_counter_sale: { Args: { payload: Json }; Returns: Json };
       sync_product_ingredients: { Args: { target_product_id: string; ingredient_rows?: Json }; Returns: undefined };
+      sync_product_recipe: { Args: { target_product_id: string; ingredient_rows?: Json; component_rows?: Json }; Returns: undefined };
+      admin_backfill_product_recipe_costs: { Args: { target_product_id: string }; Returns: number };
       get_public_best_sellers: { Args: Record<PropertyKey, never>; Returns: { product_id: string; units_sold: number }[] };
       get_dashboard_stats: { Args: { days_back?: number }; Returns: Json };
       is_business_open: { Args: Record<PropertyKey, never>; Returns: boolean };

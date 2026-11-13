@@ -21,12 +21,14 @@ import { SearchableSelect } from '@/shared/components/ui/SearchableSelect';
 import { Select } from '@/shared/components/ui/Select';
 import { Input } from '@/shared/components/ui/Input';
 import { Button } from '@/shared/components/ui/Button';
+import { ConfirmDialog } from '@/shared/components/ui/ConfirmDialog';
 import { DataLoadError } from '@/shared/components/feedback/DataLoadError';
 import { formatCurrency } from '@/shared/utils/format.utils';
 import { cn } from '@/shared/utils/cn';
 import { useRecetas } from '../hooks/useRecetas';
-import { updateProductoReceta } from '../services/recetas.service';
-import type { RecipeIngredient } from '../types/receta.types';
+import { updateProductoReceta, recoverMissingProductCosts } from '../services/recetas.service';
+import type { RecipeIngredient, RecipeProductComponent } from '../types/receta.types';
+import { buildProductRecipeCosts, draftRecipeCost, wouldCreateRecipeCycle } from '../utils/recipe-cost.utils';
 import { RentabilidadOverview } from '../components/RentabilidadOverview';
 import styles from './RecetasAdminPage.module.css';
 import { useAdminUnsavedChanges } from '@/shared/components/layout/AdminUnsavedChanges';
@@ -89,8 +91,12 @@ export function RecetasAdminPage() {
   const [costStatus, setCostStatus] = useState<'all' | 'complete' | 'pending'>('all');
   const [productId, setProductId] = useState('');
   const [draftIngredients, setDraftIngredients] = useState<RecipeIngredient[]>([]);
+  const [draftComponents, setDraftComponents] = useState<RecipeProductComponent[]>([]);
   const [ingredientToAdd, setIngredientToAdd] = useState('');
+  const [componentToAdd, setComponentToAdd] = useState('');
   const [saving, setSaving] = useState(false);
+  const [confirmRecovery, setConfirmRecovery] = useState(false);
+  const [recovering, setRecovering] = useState(false);
 
   const { productos, isLoading: productsLoading, error: productsError, refresh: refreshProducts } = useProductos({ active: 'all', available: 'all' });
   const { ingredientes, isLoading: ingredientsLoading, error: ingredientsError, refresh: refreshIngredients } = useIngredientes({ active: 'all' });
@@ -100,27 +106,24 @@ export function RecetasAdminPage() {
   const ingredientById = useMemo(() => new Map(ingredientes.map((item) => [item.id, item])), [ingredientes]);
   const categoryById = useMemo(() => new Map(categorias.map((item) => [item.id, item])), [categorias]);
   const recipeByProductId = useMemo(() => new Map(recetas.map((item) => [item.productId, item])), [recetas]);
+  const productById = useMemo(() => new Map(productos.map((item) => [item.id, item])), [productos]);
+  const productCostById = useMemo(
+    () => buildProductRecipeCosts(productos, recipeByProductId, ingredientById),
+    [productos, recipeByProductId, ingredientById],
+  );
 
   const filteredProducts = useMemo(() => {
     const normalized = search.trim().toLocaleLowerCase('es');
     return productos.filter((product) => {
       if (categoryId !== 'all' && product.categoryId !== categoryId) return false;
-      const recipe = recipeByProductId.get(product.id)?.ingredients;
-      const rows = recipe ?? (product.ingredientIds ?? []).map((ingredientId) => ({
-        id: `${product.id}-${ingredientId}`,
-        productId: product.id,
-        ingredientId,
-        quantity: 0,
-        unit: ingredientById.get(ingredientId)?.unit ?? 'unidad' as IngredientUnit,
-      }));
-      const complete = isRecipeCostComplete(rows, ingredientById);
+      const complete = productCostById.get(product.id)?.complete ?? false;
       if (costStatus === 'complete' && !complete) return false;
       if (costStatus === 'pending' && complete) return false;
       if (!normalized) return true;
       const category = categoryById.get(product.categoryId)?.name ?? '';
       return [product.name, product.description, category].some((value) => value.toLocaleLowerCase('es').includes(normalized));
     });
-  }, [categoryById, categoryId, costStatus, ingredientById, productos, recipeByProductId, search]);
+  }, [categoryById, categoryId, costStatus, productCostById, productos, search]);
 
   useEffect(() => {
     if (!productId && filteredProducts[0]) setProductId(filteredProducts[0].id);
@@ -133,14 +136,14 @@ export function RecetasAdminPage() {
   useEffect(() => {
     if (!selectedProduct) {
       setDraftIngredients([]);
+      setDraftComponents([]);
       return;
     }
-
-    if (selectedRecipe?.ingredients.length) {
-      setDraftIngredients(selectedRecipe.ingredients.map((item) => ({ ...item })));
+    setDraftComponents((selectedRecipe?.components ?? []).map(item => ({ ...item })));
+    if (selectedRecipe) {
+      setDraftIngredients(selectedRecipe.ingredients.map(item => ({ ...item })));
       return;
     }
-
     setDraftIngredients((selectedProduct.ingredientIds ?? []).map((ingredientId) => ({
       id: `${selectedProduct.id}-${ingredientId}`,
       productId: selectedProduct.id,
@@ -151,18 +154,11 @@ export function RecetasAdminPage() {
   }, [ingredientById, selectedProduct, selectedRecipe]);
 
   const productAnalytics = useMemo(() => productos.map((product) => {
-    const rows = recipeByProductId.get(product.id)?.ingredients
-      ?? (product.ingredientIds ?? []).map((ingredientId) => ({
-        id: `${product.id}-${ingredientId}`,
-        productId: product.id,
-        ingredientId,
-        quantity: 0,
-        unit: ingredientById.get(ingredientId)?.unit ?? 'unidad' as IngredientUnit,
-      }));
-    const cost = recipeCost(rows, ingredientById);
-    const complete = isRecipeCostComplete(rows, ingredientById);
-    return { product, rows, cost, complete, ...profitability(product.currentPrice, cost) };
-  }), [ingredientById, productos, recipeByProductId]);
+    const savedCost = productCostById.get(product.id) ?? { cost: 0, complete: false };
+    return { product, rows: recipeByProductId.get(product.id)?.ingredients ?? [],
+      cost: savedCost.cost, complete: savedCost.complete,
+      ...profitability(product.currentPrice, savedCost.cost) };
+  }), [productos, recipeByProductId, productCostById]);
 
   const analyticsByProductId = useMemo(() => new Map(productAnalytics.map((item) => [item.product.id, item])), [productAnalytics]);
   const filteredProductIds = useMemo(() => new Set(filteredProducts.map((product) => product.id)), [filteredProducts]);
@@ -173,20 +169,33 @@ export function RecetasAdminPage() {
   const averageFoodCost = completeAnalytics.length ? completeAnalytics.reduce((sum, item) => sum + item.foodCostPercent, 0) / completeAnalytics.length : 0;
   const bestMargin = completeAnalytics.length ? [...completeAnalytics].sort((a, b) => b.marginPercent - a.marginPercent)[0] : null;
 
-  const currentCost = recipeCost(draftIngredients, ingredientById);
-  const currentComplete = isRecipeCostComplete(draftIngredients, ingredientById);
+  const currentCostResult = draftRecipeCost(draftIngredients, draftComponents, ingredientById, productCostById);
+  const currentCost = currentCostResult.cost;
+  const currentComplete = currentCostResult.complete;
   const currentProfitability = profitability(selectedProduct?.currentPrice ?? 0, currentCost);
-  const savedRows = selectedRecipe?.ingredients?.length
-    ? selectedRecipe.ingredients
-    : (selectedProduct?.ingredientIds ?? []).map(id => ({
-        ingredientId: id, quantity: 0, unit: ingredientById.get(id)?.unit ?? 'unidad',
-      }));
-  const fingerprint = (rows: { ingredientId: string; quantity: number; unit: IngredientUnit }[]) =>
-    JSON.stringify(rows.map(row => ({ ingredientId: row.ingredientId, quantity: row.quantity, unit: row.unit })).sort((a,b) => a.ingredientId.localeCompare(b.ingredientId)));
-  const hasRecipeChanges = Boolean(selectedProduct && fingerprint(draftIngredients) !== fingerprint(savedRows));
+  const savedRows = selectedRecipe?.ingredients ?? (selectedProduct?.ingredientIds ?? []).map(id => ({
+    ingredientId: id, quantity: 0, unit: ingredientById.get(id)?.unit ?? 'unidad' as IngredientUnit,
+  }));
+  const fingerprint = (ingredients: { ingredientId: string; quantity: number; unit: IngredientUnit }[],
+    components: { componentProductId: string; quantity: number }[]) =>
+    JSON.stringify({
+      ingredients: ingredients.map(row => ({ ingredientId: row.ingredientId, quantity: row.quantity, unit: row.unit }))
+        .sort((a,b) => a.ingredientId.localeCompare(b.ingredientId)),
+      components: components.map(row => ({ componentProductId: row.componentProductId, quantity: row.quantity }))
+        .sort((a,b) => a.componentProductId.localeCompare(b.componentProductId)),
+    });
+  const hasRecipeChanges = Boolean(selectedProduct &&
+    fingerprint(draftIngredients,draftComponents) !== fingerprint(savedRows,selectedRecipe?.components ?? []));
   const requestNavigation = useAdminUnsavedChanges(hasRecipeChanges);
-  const selectedIngredientIds = new Set(draftIngredients.map((item) => item.ingredientId));
-  const addableIngredients = ingredientes.filter((item) => item.active && !selectedIngredientIds.has(item.id));
+  const selectedIngredientIds = new Set(draftIngredients.map(item => item.ingredientId));
+  const addableIngredients = ingredientes.filter(item => item.active && !selectedIngredientIds.has(item.id));
+  const selectedComponentIds = new Set(draftComponents.map(item => item.componentProductId));
+  const addableProducts = productos.filter(item =>
+    item.id !== productId
+    && item.active && !selectedComponentIds.has(item.id)
+    && productCostById.get(item.id)?.complete
+    && !wouldCreateRecipeCycle(productId,item.id,recipeByProductId)
+  );
 
   function updateDraftIngredient(id: string, patch: Partial<RecipeIngredient>) {
     setDraftIngredients((current) => current.map((item) => item.id === id ? { ...item, ...patch } : item));
@@ -206,13 +215,33 @@ export function RecetasAdminPage() {
     setIngredientToAdd('');
   }
 
+  function updateDraftComponent(id: string, quantity: number) {
+    setDraftComponents(current => current.map(item =>
+      item.id === id ? { ...item, quantity } : item));
+  }
+
+  function addProductComponent() {
+    if (!selectedProduct || !componentToAdd ||
+        !addableProducts.some(item => item.id === componentToAdd)) return;
+    setDraftComponents(current => [...current, {
+      id: crypto.randomUUID(), productId: selectedProduct.id,
+      componentProductId: componentToAdd, quantity: 1,
+    }]);
+    setComponentToAdd('');
+  }
+
   async function saveRecipe() {
     if (!selectedProduct || !hasRecipeChanges || saving) return;
+    if (draftComponents.some(row => !Number.isFinite(row.quantity) || row.quantity <= 0)) {
+      toast.warning('Cada producto de la receta debe tener una cantidad mayor que cero.');
+      return;
+    }
     setSaving(true);
     try {
       await updateProductoReceta({
         productId: selectedProduct.id,
         ingredients: draftIngredients,
+        components: draftComponents,
         packagingCost: 0,
         extraCost: 0,
       });
@@ -222,6 +251,22 @@ export function RecetasAdminPage() {
       toast.error(error instanceof Error ? error.message : 'No se pudo guardar la receta.');
     } finally {
       setSaving(false);
+    }
+  }
+
+  async function recoverCosts() {
+    if (!selectedProduct || !currentComplete || hasRecipeChanges || recovering) return;
+    try {
+      setRecovering(true);
+      const count = await recoverMissingProductCosts(selectedProduct.id);
+      setConfirmRecovery(false);
+      toast.success(count > 0
+        ? `Se completaron ${count} líneas de ventas pendientes en Reportes.`
+        : 'No había ventas pendientes de costear para esta receta.');
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'No se pudieron recuperar los costos.');
+    } finally {
+      setRecovering(false);
     }
   }
 
@@ -419,15 +464,24 @@ export function RecetasAdminPage() {
                     <p className="mt-1 text-[11px] text-neutral-400">Editá cantidades y unidades de la receta</p>
                   </div>
                 </div>
-                <Button type="button" onClick={() => void saveRecipe()} disabled={saving || !hasRecipeChanges}
-                  className="!h-10 !w-full !rounded-[11px] !bg-[#eaa42f] !px-4 !text-[12px] !font-semibold !text-[#211a12] !shadow-none hover:!bg-[#f0b64d] sm:!w-auto">
-                  <Save size={15} strokeWidth={1.9} /> {saving ? 'Guardando...' : 'Guardar receta'}
-                </Button>
+                <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
+                  {selectedProduct.isPromotion && currentComplete && !hasRecipeChanges ? (
+                    <Button type="button" variant="secondary" onClick={() => setConfirmRecovery(true)}
+                      disabled={recovering}
+                      className="!h-10 !w-full !rounded-[11px] !border-neutral-200 !px-3 !text-[12px] !font-medium !shadow-none sm:!w-auto">
+                      Completar costos históricos
+                    </Button>
+                  ) : null}
+                  <Button type="button" onClick={() => void saveRecipe()} disabled={saving || !hasRecipeChanges}
+                    className="!h-10 !w-full !rounded-[11px] !bg-[#eaa42f] !px-4 !text-[12px] !font-semibold !text-[#211a12] !shadow-none hover:!bg-[#f0b64d] sm:!w-auto">
+                    <Save size={15} strokeWidth={1.9} /> {saving ? 'Guardando...' : 'Guardar receta'}
+                  </Button>
+                </div>
               </div>
 
               <div className="grid min-w-0 grid-cols-2 gap-px border-b border-neutral-100 bg-neutral-100 md:grid-cols-3 2xl:grid-cols-5">
                 <ProfitCell label="Precio de venta" value={formatCurrency(selectedProduct.currentPrice)} />
-                <ProfitCell label="Costo ingredientes" value={formatCurrency(currentCost)} helper={currentComplete ? 'Costo completo' : 'Parcial · faltan datos'} />
+                <ProfitCell label="Costo receta" value={formatCurrency(currentCost)} helper={currentComplete ? 'Costo completo' : 'Parcial · faltan datos'} />
                 <ProfitCell label="Ganancia bruta / u." value={currentComplete ? formatCurrency(currentProfitability.grossProfit) : "—"} />
                 <ProfitCell label="Margen bruto" value={currentComplete ? percent(currentProfitability.marginPercent) : '—'} highlight />
                 <ProfitCell label="Food cost" value={currentComplete ? percent(currentProfitability.foodCostPercent) : '—'} helper={currentComplete && currentProfitability.markup ? currentProfitability.markup.toFixed(2) + 'x sobre costo' : undefined} />
@@ -437,7 +491,7 @@ export function RecetasAdminPage() {
                 <div className="mb-4 flex min-w-0 flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
                   <div className="min-w-0">
                     <h3 className="text-[15px] font-semibold tracking-[-.025em] text-neutral-900">Ingredientes de la receta</h3>
-                    <p className="mt-1 text-[11px] leading-5 text-neutral-500">Los costos se actualizan al cambiar cantidades y unidades.</p>
+
                   </div>
                   <div className="flex min-w-0 flex-col gap-2 sm:flex-row sm:items-center">
                     <div className="min-w-0 sm:w-[210px]">
@@ -541,10 +595,100 @@ export function RecetasAdminPage() {
                 ) : (
                   <div className="rounded-[15px] border border-dashed border-neutral-200 bg-[#fafafb] px-5 py-10 text-center">
                     <Beef className="mx-auto text-neutral-300" size={28} strokeWidth={1.7} />
-                    <p className="mt-3 text-[13px] font-semibold text-neutral-700">Este producto todavía no tiene receta</p>
-                    <p className="mt-1 text-[11px] text-neutral-400">Agregá ingredientes para comenzar el cálculo.</p>
+                    <p className="mt-3 text-[13px] font-semibold text-neutral-700">{draftComponents.length ? "Sin ingredientes adicionales" : "Sin ingredientes cargados"}</p>
+
                   </div>
                 )}
+
+                <div className="mt-7 border-t border-neutral-100 pt-5">
+                  <div className="mb-4 flex min-w-0 flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                    <h3 className="text-[15px] font-semibold tracking-[-.025em] text-neutral-900">Productos de la receta</h3>
+                    <div className="flex min-w-0 flex-col gap-2 sm:flex-row">
+                      <div className="min-w-0 sm:w-[250px]">
+                        <SearchableSelect
+                          aria-label="Agregar producto costeado a la receta"
+                          className="!h-10 !rounded-[11px] !border-neutral-300 !bg-white !text-[13px] !font-normal !shadow-none"
+                          value={componentToAdd}
+                          options={addableProducts.map(product => ({ value: product.id, label: product.name }))}
+                          onValueChange={setComponentToAdd}
+                          placeholder="Elegir producto costeado"
+                          searchPlaceholder="Buscar producto..."
+                          emptyMessage="No hay más productos costeados disponibles."
+                        />
+                      </div>
+                      <Button type="button" variant="secondary" onClick={addProductComponent}
+                        disabled={!componentToAdd || !addableProducts.some(p => p.id === componentToAdd)}
+                        className="!h-10 !rounded-[11px] !border-neutral-200 !px-3 !text-[12px] !font-medium !shadow-none">
+                        <Plus size={15} strokeWidth={1.9} /> Agregar
+                      </Button>
+                    </div>
+                  </div>
+
+                  {draftComponents.length ? (
+                    <div className={styles.recipeLedger}>
+                      <div aria-hidden="true" className={styles.recipeHeader}>
+                        <span>Producto</span><span>Cantidad</span><span>Unidad</span>
+                        <span>Costo / u.</span><span>Costo en receta</span><span />
+                      </div>
+                      <div className={styles.recipeRows}>
+                        {draftComponents.map(row => {
+                          const component = productById.get(row.componentProductId);
+                          const detail = productCostById.get(row.componentProductId);
+                          const name = component?.name ?? 'Producto no disponible';
+                          const valid = Boolean(detail?.complete && row.quantity > 0);
+                          return (
+                            <div key={row.id} className={styles.recipeRow}>
+                              <div className={styles.ingredient}>
+                                <p className={styles.ingredientName} title={name}>{name}</p>
+                                <p className={styles.ingredientHint}>
+                                  {detail?.complete ? 'Receta costeada' : 'Costo pendiente · revisar receta del producto'}
+                                </p>
+                              </div>
+                              <div className={styles.recipeFields}>
+                                <label className={styles.quantityField}>
+                                  <span className={styles.fieldLabel}>Cantidad</span>
+                                  <Input
+                                    aria-label={'Unidades de ' + name}
+                                    type="number" min="0.001" step="0.001" inputMode="decimal"
+                                    value={row.quantity || ''}
+                                    onChange={event => updateDraftComponent(row.id, Number(event.target.value))}
+                                    placeholder="0"
+                                    className={adminInputClass + ' !h-9 !bg-white'}
+                                  />
+                                </label>
+                                <div className={styles.unitField}>
+                                  <span className={styles.fieldLabel}>Unidad</span>
+                                  <p className={styles.baseCostValue}>unidad</p>
+                                </div>
+                                <div className={styles.baseCostField}>
+                                  <span className={styles.fieldLabel}>Costo / u.</span>
+                                  <p className={styles.baseCostValue}>{detail?.complete ? formatCurrency(detail.cost) : '—'}</p>
+                                </div>
+                                <div className={styles.lineCostField}>
+                                  <span className={styles.fieldLabel}>Costo en receta</span>
+                                  <p className={cn(styles.lineCostValue, !valid && styles.pendingCost)}>
+                                    {valid && detail ? formatCurrency(detail.cost * row.quantity) : 'A definir'}
+                                  </p>
+                                </div>
+                              </div>
+                              <button type="button"
+                                onClick={() => setDraftComponents(current => current.filter(item => item.id !== row.id))}
+                                aria-label={'Quitar ' + name}
+                                title={'Quitar ' + name}
+                                className={styles.removeButton}>
+                                <Trash2 size={15} strokeWidth={1.8} />
+                              </button>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  ) : (
+                    <p className="py-2 text-[12px] text-neutral-400">
+                      Agregá productos ya costeados si la preparación es una promoción o combo.
+                    </p>
+                  )}
+                </div>
 
                 <div className="mt-7 border-t border-neutral-100 pt-5">
                   <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
@@ -552,7 +696,7 @@ export function RecetasAdminPage() {
                       <h3 className="text-[14px] font-semibold text-neutral-900">Precios de referencia</h3>
                       <p className="mt-1 text-[11px] text-neutral-500">Precio sugerido para distintos márgenes brutos</p>
                     </div>
-                    <span className="rounded-full bg-[#f7f7f8] px-2.5 py-1 text-[10px] font-medium text-neutral-500">Solo ingredientes</span>
+                    
                   </div>
                   <div className="grid min-w-0 gap-2.5 sm:grid-cols-3">
                     {[40, 50, 60].map((target) => (
@@ -577,6 +721,17 @@ export function RecetasAdminPage() {
           )}
         </div>
       )}
+      <ConfirmDialog
+        open={confirmRecovery}
+        title="Completar costos históricos"
+        description="¿Confirmás que esta promoción se preparaba con exactamente la misma receta desde el 31/10/2026? Se calcularán únicamente las ventas válidas sin costo registrado. Las ventas ya costeadas no se modificarán."
+        confirmLabel="Sí, completar costos"
+        cancelLabel="Volver"
+        theme="light"
+        isLoading={recovering}
+        onCancel={() => { if (!recovering) setConfirmRecovery(false); }}
+        onConfirm={() => void recoverCosts()}
+      />
     </div>
   );
 }
