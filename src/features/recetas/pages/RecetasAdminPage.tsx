@@ -21,11 +21,12 @@ import { SearchableSelect } from '@/shared/components/ui/SearchableSelect';
 import { Select } from '@/shared/components/ui/Select';
 import { Input } from '@/shared/components/ui/Input';
 import { Button } from '@/shared/components/ui/Button';
+import { ConfirmDialog } from '@/shared/components/ui/ConfirmDialog';
 import { DataLoadError } from '@/shared/components/feedback/DataLoadError';
 import { formatCurrency } from '@/shared/utils/format.utils';
 import { cn } from '@/shared/utils/cn';
 import { useRecetas } from '../hooks/useRecetas';
-import { updateProductoReceta } from '../services/recetas.service';
+import { updateProductoReceta, recoverMissingProductCosts } from '../services/recetas.service';
 import type { RecipeIngredient, RecipeProductComponent } from '../types/receta.types';
 import { buildProductRecipeCosts, draftRecipeCost, wouldCreateRecipeCycle } from '../utils/recipe-cost.utils';
 import { RentabilidadOverview } from '../components/RentabilidadOverview';
@@ -94,6 +95,8 @@ export function RecetasAdminPage() {
   const [ingredientToAdd, setIngredientToAdd] = useState('');
   const [componentToAdd, setComponentToAdd] = useState('');
   const [saving, setSaving] = useState(false);
+  const [confirmRecovery, setConfirmRecovery] = useState(false);
+  const [recovering, setRecovering] = useState(false);
 
   const { productos, isLoading: productsLoading, error: productsError, refresh: refreshProducts } = useProductos({ active: 'all', available: 'all' });
   const { ingredientes, isLoading: ingredientsLoading, error: ingredientsError, refresh: refreshIngredients } = useIngredientes({ active: 'all' });
@@ -248,6 +251,22 @@ export function RecetasAdminPage() {
       toast.error(error instanceof Error ? error.message : 'No se pudo guardar la receta.');
     } finally {
       setSaving(false);
+    }
+  }
+
+  async function recoverCosts() {
+    if (!selectedProduct || !currentComplete || hasRecipeChanges || recovering) return;
+    try {
+      setRecovering(true);
+      const count = await recoverMissingProductCosts(selectedProduct.id);
+      setConfirmRecovery(false);
+      toast.success(count > 0
+        ? `Se completaron ${count} líneas de ventas pendientes en Reportes.`
+        : 'No había ventas pendientes de costear para esta receta.');
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'No se pudieron recuperar los costos.');
+    } finally {
+      setRecovering(false);
     }
   }
 
@@ -445,10 +464,19 @@ export function RecetasAdminPage() {
                     <p className="mt-1 text-[11px] text-neutral-400">Editá cantidades y unidades de la receta</p>
                   </div>
                 </div>
-                <Button type="button" onClick={() => void saveRecipe()} disabled={saving || !hasRecipeChanges}
-                  className="!h-10 !w-full !rounded-[11px] !bg-[#eaa42f] !px-4 !text-[12px] !font-semibold !text-[#211a12] !shadow-none hover:!bg-[#f0b64d] sm:!w-auto">
-                  <Save size={15} strokeWidth={1.9} /> {saving ? 'Guardando...' : 'Guardar receta'}
-                </Button>
+                <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
+                  {selectedProduct.isPromotion && currentComplete && !hasRecipeChanges ? (
+                    <Button type="button" variant="secondary" onClick={() => setConfirmRecovery(true)}
+                      disabled={recovering}
+                      className="!h-10 !w-full !rounded-[11px] !border-neutral-200 !px-3 !text-[12px] !font-medium !shadow-none sm:!w-auto">
+                      Completar costos históricos
+                    </Button>
+                  ) : null}
+                  <Button type="button" onClick={() => void saveRecipe()} disabled={saving || !hasRecipeChanges}
+                    className="!h-10 !w-full !rounded-[11px] !bg-[#eaa42f] !px-4 !text-[12px] !font-semibold !text-[#211a12] !shadow-none hover:!bg-[#f0b64d] sm:!w-auto">
+                    <Save size={15} strokeWidth={1.9} /> {saving ? 'Guardando...' : 'Guardar receta'}
+                  </Button>
+                </div>
               </div>
 
               <div className="grid min-w-0 grid-cols-2 gap-px border-b border-neutral-100 bg-neutral-100 md:grid-cols-3 2xl:grid-cols-5">
@@ -693,6 +721,17 @@ export function RecetasAdminPage() {
           )}
         </div>
       )}
+      <ConfirmDialog
+        open={confirmRecovery}
+        title="Completar costos históricos"
+        description="¿Confirmás que esta promoción se preparaba con exactamente la misma receta desde el 31/10/2026? Se calcularán únicamente las ventas válidas sin costo registrado. Las ventas ya costeadas no se modificarán."
+        confirmLabel="Sí, completar costos"
+        cancelLabel="Volver"
+        theme="light"
+        isLoading={recovering}
+        onCancel={() => { if (!recovering) setConfirmRecovery(false); }}
+        onConfirm={() => void recoverCosts()}
+      />
     </div>
   );
 }
