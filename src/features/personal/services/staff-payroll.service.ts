@@ -1,4 +1,4 @@
-import { requireSupabaseConfigured } from '@/lib/config/env';
+import { env, requireSupabaseConfigured } from '@/lib/config/env';
 import { getSupabaseBrowserClient } from '@/lib/supabase/client';
 import type { StaffDashboard, StaffAttendanceKind, StaffPaymentKind } from '../types/staff-payroll.types';
 
@@ -7,6 +7,10 @@ type RpcInvoker = <T>(name: string, args?: Record<string, unknown>) => Promise<{
 
 async function staffRpc<T>(name: string, args?: Record<string, unknown>): Promise<T> {
   requireSupabaseConfigured('gestionar pagos a empleados');
+  // Primera versión de prueba: no permitir lecturas ni operaciones contra producción.
+  if (new URL(env.supabaseUrl).hostname !== 'vsfcjmyiiviyydvbdlrn.supabase.co') {
+    throw new Error('Pago a empleados V1 está habilitado únicamente para Supabase central-burguer-dev. Revisá .env.local.');
+  }
   const client = getSupabaseBrowserClient();
   const invoke = client.rpc.bind(client) as unknown as RpcInvoker;
   const { data, error } = await invoke<T>(name, args);
