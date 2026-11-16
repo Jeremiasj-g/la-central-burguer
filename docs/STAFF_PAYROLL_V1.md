@@ -18,7 +18,7 @@ Tablas específicas en tercera forma normal: staff_employees, staff_pay_rates, s
    - NEXT_PUBLIC_SUPABASE_URL=https://vsfcjmyiiviyydvbdlrn.supabase.co
    - NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=<clave pública de central-burguer-dev> (Supabase → Settings → API Keys).
 3. Ejecutar npm install y npm run dev. Ingresar como administrador y abrir /admin/personal.
-4. Las migraciones supabase/migrations/20261116095000_staff_payroll_v1.sql y supabase/migrations/20261116113000_staff_payroll_money_validation.sql **ya están aplicadas al proyecto dev**. No aplicarlas en producción sin una revisión y autorización expresa.
+4. Las migraciones supabase/migrations/20261116095000_staff_payroll_v1.sql y supabase/migrations/20261116113000_staff_payroll_money_validation.sql y supabase/migrations/20261116121000_staff_advance_allocation_idempotency.sql **ya están aplicadas al proyecto dev**. No aplicarlas en producción sin una revisión y autorización expresa.
 
 ## Recorrido de aceptación
 
