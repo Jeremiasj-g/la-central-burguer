@@ -21,11 +21,6 @@ async function staffRpc<T>(name: string, args?: Record<string, unknown>): Promis
 export const readStaffDashboard = (fromDay: string, toDay: string) =>
   staffRpc<StaffDashboard>('admin_staff_dashboard', { from_day: fromDay, to_day: toDay });
 
-export const saveStaffEmployee = (id: string | null, fullName: string, notes: string, active: boolean) =>
-  staffRpc<string>('admin_staff_save_employee', {
-    employee_uuid: id, employee_name: fullName, employee_notes: notes, employee_active: active,
-  });
-
 export const addStaffRate = (employeeId: string, effectiveFrom: string, weekday: number, saturday: number, sunday: number) =>
   staffRpc<string>('admin_staff_add_rate', {
     employee_uuid: employeeId, valid_from: effectiveFrom,
