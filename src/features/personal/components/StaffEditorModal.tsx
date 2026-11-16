@@ -1,5 +1,6 @@
 'use client';
 
+import { Check } from 'lucide-react';
 import { Button } from '@/shared/components/ui/Button';
 import { DatePickerField } from '@/shared/components/ui/DatePickerField';
 import { Input } from '@/shared/components/ui/Input';
@@ -65,7 +66,7 @@ export function StaffEditorModal({
       footer={
         <div className="flex justify-end gap-2">
           <Button variant="secondary" type="button" onClick={onClose} disabled={busy}>Cancelar</Button>
-          <Button variant={draft.type === 'reverse' ? 'danger' : 'dark'} type="submit" form="staff-editor" disabled={busy}>
+          <Button variant={draft.type === 'reverse' ? 'danger' : 'primary'} type="submit" form="staff-editor" disabled={busy}>
             {busy ? 'Guardando…' : draft.type === 'reverse' ? 'Confirmar reversión' : 'Guardar'}
           </Button>
         </div>
@@ -81,8 +82,13 @@ export function StaffEditorModal({
               <Textarea value={draft.notes} rows={3} className={controlClass + ' !h-auto !py-3'}
                 onChange={(event) => onChange({ ...draft, notes: event.target.value })}/>
             </Field>
-            <label className="flex items-center gap-2 text-[13px] text-neutral-700">
-              <input type="checkbox" checked={draft.active} onChange={(event) => onChange({ ...draft, active: event.target.checked })}/>
+            <label className="inline-flex cursor-pointer items-center gap-2.5 text-[13px] text-neutral-700">
+              <input type="checkbox" className="peer sr-only" checked={draft.active}
+                onChange={(event) => onChange({ ...draft, active: event.target.checked })}/>
+              <span aria-hidden="true" className={'grid h-5 w-5 shrink-0 place-items-center rounded-[5px] border transition-colors duration-200 peer-focus-visible:ring-2 peer-focus-visible:ring-central-orange/30 ' +
+                (draft.active ? 'border-central-orange bg-central-orange text-white' : 'border-neutral-300 bg-white text-transparent')}>
+                <Check size={13} strokeWidth={2.5}/>
+              </span>
               Empleado activo
             </label>
           </>
