@@ -32,6 +32,8 @@ interface DatePickerFieldProps {
   disabled?: boolean;
   /** Optional earliest selectable day (YYYY-MM-DD). */
   minDate?: string;
+  /** Optional latest selectable day (YYYY-MM-DD). */
+  maxDate?: string;
   /** Hide the clear action when the parent form requires a date. */
   allowClear?: boolean;
   className?: string;
@@ -99,6 +101,7 @@ export function DatePickerField({
   ariaLabel,
   disabled = false,
   minDate,
+  maxDate,
   allowClear = true,
   className,
 }: DatePickerFieldProps) {
@@ -114,6 +117,7 @@ export function DatePickerField({
 
   const selected = useMemo(() => parseIsoDate(value), [value]);
   const minimum = useMemo(() => parseIsoDate(minDate ?? ''), [minDate]);
+  const maximum = useMemo(() => parseIsoDate(maxDate ?? ''), [maxDate]);
   const [visibleMonth, setVisibleMonth] = useState<Date>(selected ?? new Date());
   const calendarDays = useMemo(() => buildCalendarDays(visibleMonth), [visibleMonth]);
 
@@ -189,7 +193,7 @@ export function DatePickerField({
   }, [calendarView, open]);
 
   function chooseDate(date: Date) {
-    if (minimum && date < minimum) return;
+    if ((minimum && date < minimum) || (maximum && date > maximum)) return;
     onChange(formatIsoDate(date));
     setVisibleMonth(date);
     setOpen(false);
@@ -198,7 +202,7 @@ export function DatePickerField({
 
   function handleToday() {
     const now = new Date();
-    if (minimum && now < minimum) return;
+    if ((minimum && now < minimum) || (maximum && now > maximum)) return;
     chooseDate(now);
   }
 
@@ -335,13 +339,15 @@ export function DatePickerField({
                     const isSelected = sameDay(selected, date);
                     const isToday = sameDay(today, date);
                     const beforeMinimum = Boolean(minimum && date < minimum);
+                    const afterMaximum = Boolean(maximum && date > maximum);
+                    const unavailable = beforeMinimum || afterMaximum;
 
                     return (
                       <button
                         key={formatIsoDate(date)}
                         type="button"
                         onClick={() => chooseDate(date)}
-                        disabled={beforeMinimum}
+                        disabled={unavailable}
                         className={cn(
                           'mx-auto grid h-9 w-9 place-items-center rounded-[11px] text-xs font-semibold transition-[background-color,color,transform,opacity] duration-150 active:scale-90',
                           outside
@@ -349,7 +355,7 @@ export function DatePickerField({
                             : 'text-neutral-700 hover:bg-neutral-100',
                           isToday && !isSelected && 'bg-central-orange/10 font-black text-central-orange ring-1 ring-central-orange/20',
                           isSelected && 'bg-central-orange/12 opacity-100 ring-1 ring-central-orange/35 shadow-[0_5px_12px_rgba(216,137,24,.14)]',
-                          beforeMinimum && 'cursor-not-allowed bg-transparent text-neutral-300 opacity-40 hover:bg-transparent hover:text-neutral-300',
+                          unavailable && 'cursor-not-allowed bg-transparent text-neutral-300 opacity-40 hover:bg-transparent hover:text-neutral-300',
                         )}
                         aria-label={new Intl.DateTimeFormat('es-AR', { dateStyle: 'full' }).format(date)}
                         aria-pressed={isSelected}
@@ -377,7 +383,7 @@ export function DatePickerField({
             <button
               type="button"
               onClick={handleToday}
-              disabled={Boolean(minimum && today < minimum)}
+              disabled={Boolean((minimum && today < minimum) || (maximum && today > maximum))}
               className="rounded-[9px] px-2.5 py-1.5 text-xs font-bold text-central-orange transition hover:bg-central-orange/10 disabled:cursor-not-allowed disabled:opacity-30"
             >
               Hoy
