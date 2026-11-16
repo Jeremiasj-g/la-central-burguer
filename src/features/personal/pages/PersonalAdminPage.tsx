@@ -163,6 +163,12 @@ export function PersonalAdminPage() {
 
   async function saveEditor() {
     if (!editor) return;
+    // No reabrir asistencias aprobadas ni tocar perfiles sin cambios reales.
+    if (((editor.type === 'employee' && editor.id) || (editor.type === 'attendance' && editor.locked))
+      && JSON.stringify(editor) === editorInitial.current) {
+      setEditor(null);
+      return;
+    }
     const draft = editor;
     await runAction(async () => {
       switch (draft.type) {
