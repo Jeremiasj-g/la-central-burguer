@@ -55,9 +55,9 @@ export const recordStaffPayment = (
   payment_day: date, payment_type: kind, payment_notes: notes, request_uuid: requestKey,
 });
 
-export const applyStaffAdvance = (advanceId: string, payrollId: string, amount: number) =>
+export const applyStaffAdvance = (advanceId: string, payrollId: string, amount: number, requestKey: string) =>
   staffRpc<string>('admin_staff_apply_advance', {
-    advance_uuid: advanceId, payroll_uuid: payrollId, allocation_value: amount,
+    advance_uuid: advanceId, payroll_uuid: payrollId, allocation_value: amount, request_uuid: requestKey,
   });
 
 export const reverseStaffPayment = (id: string, reason: string) =>
