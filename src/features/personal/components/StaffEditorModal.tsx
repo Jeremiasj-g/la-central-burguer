@@ -35,6 +35,7 @@ export function StaffEditorModal({
   busy: boolean;
   dashboard: StaffDashboard;
 }) {
+  const today = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Argentina/Buenos_Aires', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date());
   const employees = dashboard.employees.filter((employee) => employee.active || draft.type === 'payroll' || (draft.type === 'payment' && Boolean(draft.payrollId)))
     .map((employee) => ({ value: employee.id, label: employee.full_name }));
   const employeeName = (id: string) => dashboard.employees.find((employee) => employee.id === id)?.full_name ?? 'Empleado';
@@ -83,7 +84,7 @@ export function StaffEditorModal({
               ] as const).map(([field, label]) => (
                 <Field key={field} label={label}>
                   <NumericInput kind="money" min={0} value={draft[field]} onValueChange={(value) => onChange({ ...draft, [field]: value })}
-                    className={controlClass} placeholder="0"/>
+                    className={controlClass} placeholder="Ej.: 2500,50"/>
                 </Field>
               ))}
             </div>
@@ -95,7 +96,7 @@ export function StaffEditorModal({
           <>
             {employeeSelector(draft.employeeId, (value) => onChange({ ...draft, employeeId: value }), draft.locked)}
             <Field label="Fecha">
-              <DatePickerField ariaLabel="Fecha de asistencia" disabled={draft.locked} value={draft.day} onChange={(value) => onChange({ ...draft, day: value })}/>
+              <DatePickerField ariaLabel="Fecha de asistencia" disabled={draft.locked} maxDate={today} value={draft.day} onChange={(value) => onChange({ ...draft, day: value })}/>
             </Field>
             <Field label="Registro">
               <Select variant="light" value={draft.kind} onValueChange={(value) => onChange({ ...draft, kind: value as StaffAttendanceKind })}
@@ -103,12 +104,12 @@ export function StaffEditorModal({
                 className="!rounded-[11px] !border-neutral-200 !bg-[#f7f7f9]"/>
             </Field>
             <Field label="Observaciones">
-              <Textarea value={draft.notes} rows={2} className={controlClass + ' !h-auto !py-3'}
+              <Textarea value={draft.notes} rows={2} className={controlClass + ' !h-auto !py-3'} placeholder="Detalle de la asistencia"
                 onChange={(event) => onChange({ ...draft, notes: event.target.value })}/>
             </Field>
             {draft.previouslyApproved ? (
               <Field label="Motivo obligatorio de corrección">
-                <Textarea value={draft.reason} required minLength={5} rows={2} className={controlClass + ' !h-auto !py-3'}
+                <Textarea value={draft.reason} required minLength={5} rows={2} placeholder="Motivo de la corrección" className={controlClass + ' !h-auto !py-3'}
                   onChange={(event) => onChange({ ...draft, reason: event.target.value })}/>
               </Field>
             ) : null}
@@ -121,14 +122,14 @@ export function StaffEditorModal({
             {employeeSelector(draft.employeeId, (value) => onChange({ ...draft, employeeId: value }))}
             <div className="grid gap-3 sm:grid-cols-2">
               <Field label="Desde">
-                <DatePickerField ariaLabel="Desde" value={draft.from} onChange={(value) => onChange({ ...draft, from: value })}/>
+                <DatePickerField ariaLabel="Desde" maxDate={today} value={draft.from} onChange={(value) => onChange({ ...draft, from: value })}/>
               </Field>
               <Field label="Hasta">
-                <DatePickerField ariaLabel="Hasta" value={draft.to} onChange={(value) => onChange({ ...draft, to: value })}/>
+                <DatePickerField ariaLabel="Hasta" maxDate={today} value={draft.to} onChange={(value) => onChange({ ...draft, to: value })}/>
               </Field>
             </div>
             <Field label="Observaciones">
-              <Textarea rows={2} value={draft.notes} className={controlClass + ' !h-auto !py-3'}
+              <Textarea rows={2} value={draft.notes} placeholder="Detalle de la liquidación" className={controlClass + ' !h-auto !py-3'} placeholder="Detalle del registro"
                 onChange={(event) => onChange({ ...draft, notes: event.target.value })}/>
             </Field>
             <p className="text-[12px] text-amber-700">La liquidación fija los importes de las asistencias aprobadas y no se puede editar después. No incluye feriados especiales ni jornadas parciales.</p>
@@ -145,7 +146,7 @@ export function StaffEditorModal({
                 className={controlClass} placeholder="0"/>
             </Field>
             <Field label="Fecha de pago">
-              <DatePickerField ariaLabel="Fecha del pago" value={draft.day} onChange={(value) => onChange({ ...draft, day: value })}/>
+              <DatePickerField ariaLabel="Fecha del pago" maxDate={today} value={draft.day} onChange={(value) => onChange({ ...draft, day: value })}/>
             </Field>
             <Field label="Observaciones">
               <Textarea rows={2} value={draft.notes} className={controlClass + ' !h-auto !py-3'}
@@ -175,7 +176,7 @@ export function StaffEditorModal({
           <>
             <p className="text-[13px] text-neutral-600">La operación quedará en el historial como revertida. No se borrarán los registros originales.</p>
             <Field label="Motivo de reversión">
-              <Textarea value={draft.reason} required minLength={5} rows={3} className={controlClass + ' !h-auto !py-3'}
+              <Textarea value={draft.reason} required minLength={5} rows={3} placeholder="Motivo de la reversión" className={controlClass + ' !h-auto !py-3'}
                 onChange={(event) => onChange({ ...draft, reason: event.target.value })}/>
             </Field>
           </>
