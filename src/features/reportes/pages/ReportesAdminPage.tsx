@@ -248,8 +248,10 @@ export function ReportesAdminPage() {
   }
 
   function applyFilters() {
+    const today = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Argentina/Buenos_Aires', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date());
     if (!draftFilters.allTime && (!draftFilters.from || !draftFilters.to)) return void toast.warning('Seleccioná las fechas del reporte.');
     if (!draftFilters.allTime && draftFilters.from > draftFilters.to) return void toast.warning('La fecha desde no puede ser posterior a la fecha hasta.');
+    if (!draftFilters.allTime && (draftFilters.from > today || draftFilters.to > today)) return void toast.warning('El reporte no puede incluir fechas posteriores a hoy.');
     setDetailPage(1);
     setAppliedFilters({ ...draftFilters });
   }
