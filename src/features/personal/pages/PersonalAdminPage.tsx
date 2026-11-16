@@ -230,7 +230,7 @@ export function PersonalAdminPage() {
             title={row.work_date > today ? 'No se puede aprobar una asistencia futura' : undefined}
             onClick={() => void runAction(() => approveStaffAttendance(row.id), 'Asistencia aprobada.')}>
             <Check size={12} className="mr-1 inline"/>{row.work_date > today ? 'Fecha futura' : 'Aprobar'}</button> : null}
-          <button type="button" className={actionClass} onClick={() => editAttendance(row)}>Corregir</button>
+          <button type="button" className={actionClass} disabled={row.work_date > today} title={row.work_date > today ? "No se puede corregir una asistencia futura" : undefined} onClick={() => editAttendance(row)}>Corregir</button>
         </> : <span className="text-[11px] text-emerald-700">Liquidada</span>}
       </div>
     ) },
