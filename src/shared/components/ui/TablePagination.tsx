@@ -31,13 +31,13 @@ export function TablePagination({
           type="button"
           onClick={() => onPageChange(safePage - 1)}
           disabled={safePage <= 1}
-          className="inline-flex h-8 items-center gap-1 rounded-sm border border-neutral-200 bg-white px-2.5 text-xs font-bold text-neutral-600 transition hover:border-central-orange hover:text-central-orange disabled:cursor-not-allowed disabled:opacity-40"
+          className="inline-flex h-8 items-center gap-1 rounded-sm border border-neutral-200 bg-white px-2.5 text-xs font-semibold text-neutral-600 transition hover:border-central-orange hover:text-central-orange disabled:cursor-not-allowed disabled:opacity-40"
           aria-label="Página anterior"
         >
           <ChevronLeft size={14} /> Anterior
         </button>
 
-        <span className="min-w-20 text-center text-xs font-bold text-neutral-600">
+        <span className="min-w-20 text-center text-xs font-semibold text-neutral-600">
           {safePage} / {totalPages}
         </span>
 
@@ -45,7 +45,7 @@ export function TablePagination({
           type="button"
           onClick={() => onPageChange(safePage + 1)}
           disabled={safePage >= totalPages}
-          className="inline-flex h-8 items-center gap-1 rounded-sm border border-neutral-200 bg-white px-2.5 text-xs font-bold text-neutral-600 transition hover:border-central-orange hover:text-central-orange disabled:cursor-not-allowed disabled:opacity-40"
+          className="inline-flex h-8 items-center gap-1 rounded-sm border border-neutral-200 bg-white px-2.5 text-xs font-semibold text-neutral-600 transition hover:border-central-orange hover:text-central-orange disabled:cursor-not-allowed disabled:opacity-40"
           aria-label="Página siguiente"
         >
           Siguiente <ChevronRight size={14} />
