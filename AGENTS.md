@@ -88,6 +88,16 @@ Estas reglas aplican a **toda interfaz nueva y toda interfaz existente que se mo
 - **Estados y accesibilidad obligatorios:** normal, hover, focus visible, abierto/seleccionado, disabled, loading, vacío y error donde apliquen. Asegurar etiqueta accesible, navegación por teclado, Escape, contraste, touch targets y foco predecible; no ocultar opciones importantes por desbordes o z-index.
 - **Revisión de reutilización:** antes de finalizar, contrastar visualmente los nuevos controles con sus componentes de referencia en escritorio y móvil; verificar apertura/cierre, scroll, superposición con modales y tablas, selección, búsqueda, validaciones y mensajes. No afirmar que se probó un estado sin haberlo comprobado.
 
+## Estándar visual de modales, botones y controles de selección
+
+- **Referencia de administración:** `src/features/access/components/AccessUserModal.tsx` (modal «Nuevo usuario») es el patrón visual para formularios administrativos. Reutilizar su apariencia de encabezados, campos, márgenes y controles sin copiar elementos irrelevantes.
+- **Tipografía:** títulos de modales, botones, dropdowns y opciones seleccionadas con pesos entre 400 y 600; evitar `font-bold`, `font-extrabold` y `font-black`, incluso en componentes compartidos.
+- **Botones:** usar `Button.tsx`; Guardar/Crear/Enviar en `primary` (naranja), Cancelar en `secondary`, acciones destructivas en `danger`. El pie de un modal debe tener padding lateral e inferior proporcional al formulario y no pegar los botones al borde.
+- **Checkbox:** cuadrado de bordes suaves, color neutro sin seleccionar, naranja con tilde blanca seleccionado, foco naranja y estados accesibles. Evitar checkbox azul nativo en el panel.
+- **Switch:** pista gris al desactivar, naranja al activar, círculo blanco y transición ~200 ms; etiqueta y control por teclado. Usarlo para activar/desactivar, no para selección múltiple.
+- **Selects y calendarios:** reutilizar `Select.tsx`, `SearchableSelect.tsx` y `DatePickerField.tsx`; conservar pesos <=600, estados hover/focus/disabled, y comprobar que popovers no se recorten.
+- **Antes de entregar:** comparar cada nuevo formulario con el modal de usuarios en escritorio y móvil, incluyendo checkbox, switch, selects, placeholders, botón primario, cancelación y márgenes.
+
 ## Tablas: un único patrón visual y funcional
 
 **Toda tabla de datos nueva o modificada debe seguir un estándar uniforme**, también en Reportes; no crear estilos de tabla diferentes por módulo.
@@ -101,6 +111,17 @@ Estas reglas aplican a **toda interfaz nueva y toda interfaz existente que se mo
 - Estados de **carga, vacío, error y sin resultados** dentro del mismo patrón, no diseños independientes. El skeleton debe reproducir cabecera, columnas, filas y dimensiones reales de la tabla para evitar saltos.
 - Conservar filtros, orden y página cuando el usuario alterna entre pestañas y vuelve a la misma vista, siempre que siga siendo válido. No reiniciarlos por remount innecesario.
 - Cuando se toque una tabla existente con estética distinta, alinearla al patrón compartido **dentro del alcance solicitado**; no iniciar una reescritura global de tablas sin pedirla.
+
+## Validaciones y mensajes en formularios (obligatorio)
+
+- **Validar en dos capas:** bloquear opciones inválidas desde la UI y volver a validar datos y permisos en servidor/RPC/SQL. No confiar solamente en `disabled`, límites visuales, tipos de input o campos obligatorios del navegador; ni dar por exitoso un guardado sin confirmación del backend.
+- **Analizar reglas de negocio antes de implementar cada operación:** campos obligatorios y opcionales; tipos, longitudes, formatos, rangos, precisión monetaria, valores extremos, relaciones, roles, duplicados, coherencia entre campos, estados y transiciones, concurrencia e idempotencia. No imponer restricciones arbitrarias sin respaldo funcional.
+- **Fechas y zonas horarias:** distinguir fechas de hechos (asistencia realizada, pago efectivamente entregado, aprobación de hecho) de planificación (vigencias futuras, reservas, programación). **No permitir fechas futuras en registros de hechos ya ocurridos**, salvo regla expresa; para fechas programables permitir futuro según el caso. Calcular el «hoy» del negocio con zona `America/Argentina/Buenos_Aires`, comparar días calendario (YYYY-MM-DD) y no convertir fechas locales a UTC inadvertidamente. En calendarios deshabilitar fechas fuera de rango; validar nuevamente antes de guardar y en base de datos. Una fecha futura que quedó registrada por error no debe aprobarse automáticamente.
+- **Validaciones cruzadas:** fecha inicial <= final, no liquidar jornadas pendientes ni períodos solapados, no pagar por encima del saldo, no reutilizar una clave de idempotencia para datos distintos; conservar instantáneas e historial en correcciones y reversiones. Comprobar que el recurso elegido existe y sigue habilitado para la operación, incluso si cambió mientras el formulario estaba abierto.
+- **Campos y placeholders:** todo campo de texto libre, búsqueda, importes y observaciones debe tener etiqueta visible y un placeholder **breve, descriptivo y específico**, que muestre qué ingresar (p. ej. «Nombre y apellido», «Buscar empleado», «Ej.: 2500,50», «Motivo de corrección»). No usar placeholders genéricos («Escribir aquí», «Opcional», «0») cuando no aportan información. Un placeholder no reemplaza el label, la ayuda necesaria ni el valor existente.
+- **Mensajes accionables:** mostrar el error junto al campo cuando sea posible y/o toast consistente, indicando exactamente qué corregir («No se puede registrar una asistencia posterior a hoy»), sin errores técnicos ni avisos genéricos. Marcar/deshabilitar acciones inválidas sin ocultar el motivo. Evitar datos inválidos silenciosos o truncamientos sorpresivos.
+- **Pruebas mínimas por campo y operación:** caso válido, vacío, formato incorrecto, límites incluidos/excluidos, fecha anterior/hoy/mañana y cambio de día, duplicidad, permisos insuficientes, errores de red y doble envío. Para pagos y asistencias comprobar también intentos de eludir la interfaz mediante RPC y que los rechazos no generen cambios parciales.
+- **Alcance:** aplicar estas reglas a todo módulo **nuevo o que se modifique**, revisando consumidores compartidos; no lanzar cambios masivos en módulos ajenos al pedido sin auditoría y pruebas.
 
 ## Formularios, edición y cambios sin guardar
 
