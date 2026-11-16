@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { ChevronDown, RotateCcw, Search, SlidersHorizontal } from 'lucide-react';
+import { Button } from '@/shared/components/ui/Button';
 import { DatePickerField } from '@/shared/components/ui/DatePickerField';
 import { Input } from '@/shared/components/ui/Input';
 import { Select } from '@/shared/components/ui/Select';
@@ -58,6 +59,9 @@ const SOURCE_OPTIONS = [
 
 const compactSelect = '!h-9 !rounded-[11px] !border-neutral-200/80 !bg-[#f8f8f9] !px-2.5 !text-[12px] !font-medium !shadow-none';
 const compactDate = '!h-9 !rounded-[11px] !border-neutral-200/80 !bg-[#f8f8f9] !px-2.5 !text-[12px]';
+const todayInArgentina = () => new Intl.DateTimeFormat('en-CA', {
+  timeZone: 'America/Argentina/Buenos_Aires', year: 'numeric', month: '2-digit', day: '2-digit',
+}).format(new Date());
 const labelClass = 'mb-1.5 block text-[11px] font-semibold text-neutral-500';
 
 export function ReportFilters({
@@ -71,6 +75,7 @@ export function ReportFilters({
   onReset,
 }: ReportFiltersProps) {
   const [advancedOpen, setAdvancedOpen] = useState(false);
+  const today = todayInArgentina();
 
   function patch(values: Partial<ReportFilters>) {
     onChange({ ...filters, ...values });
@@ -89,7 +94,6 @@ export function ReportFilters({
       <div className="mb-5 flex items-center justify-between gap-3">
         <div className="min-w-0">
           <h2 className="text-[15px] font-semibold tracking-[-.025em] text-neutral-900">Personalizá el análisis</h2>
-          <p className="mt-0.5 text-[11px] leading-5 text-neutral-500">Elegí qué movimientos querés ver.</p>
         </div>
         <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-neutral-100 text-neutral-600">
           <SlidersHorizontal size={17} strokeWidth={1.9} />
@@ -117,6 +121,7 @@ export function ReportFilters({
             value={filters.from}
             onChange={(from) => patch({ from, allTime: false })}
             ariaLabel="Fecha desde del reporte"
+            maxDate={today}
             className={compactDate}
           />
         </div>
@@ -126,6 +131,7 @@ export function ReportFilters({
             value={filters.to}
             onChange={(to) => patch({ to, allTime: false })}
             ariaLabel="Fecha hasta del reporte"
+            maxDate={today}
             className={compactDate}
           />
         </div>
@@ -218,15 +224,11 @@ export function ReportFilters({
       </div>
 
       <div className="mt-auto flex items-center gap-2 pt-4">
-        <button
-          type="button"
-          onClick={onApply}
-          disabled={isLoading}
-          className="inline-flex h-9 min-w-0 flex-1 cursor-pointer items-center justify-center gap-2 rounded-[11px] bg-central-carbon px-3 text-[12px] font-semibold text-white transition duration-200 hover:bg-neutral-800 active:scale-[.98] disabled:cursor-not-allowed disabled:opacity-50"
-        >
+        <Button type="button" variant="primary" size="sm" onClick={onApply}
+          disabled={isLoading} className="!h-9 min-w-0 flex-1 !rounded-[11px] !px-3 !text-[12px]">
           {isLoading ? 'Actualizando…' : 'Aplicar filtros'}
-          {hasPendingChanges && !isLoading ? <span className="h-1.5 w-1.5 rounded-full bg-central-orange" aria-label="Cambios pendientes" /> : null}
-        </button>
+          {hasPendingChanges && !isLoading ? <span className="h-1.5 w-1.5 rounded-full bg-white" aria-label="Cambios pendientes" /> : null}
+        </Button>
         <button
           type="button"
           onClick={onReset}
