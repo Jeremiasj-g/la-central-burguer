@@ -1,7 +1,9 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { ArrowDownUp, Info, Search, TrendingDown, TrendingUp } from 'lucide-react';
+import { Info, Search, TrendingDown, TrendingUp } from 'lucide-react';
+import { Select } from '@/shared/components/ui/Select';
+import { TablePagination } from '@/shared/components/ui/TablePagination';
 import { cn } from '@/shared/utils/cn';
 import { formatCurrency } from '@/shared/utils/format.utils';
 import type { ProductMarginAnalysis, ProductMarginRow } from '../utils/product-margin.utils';
@@ -10,6 +12,7 @@ type MarginFilter = 'all' | 'positive' | 'negative' | 'missing';
 type SortMode = 'margin-desc' | 'margin-asc' | 'sales-desc' | 'units-desc';
 
 function money(value: number) { return formatCurrency(value); }
+const normalizeSearch = (text: string) => text.normalize('NFD').replace(/[\\u0300-\\u036f]/g, '').toLocaleLowerCase('es-AR');
 
 export function ProductMarginReport({ analysis, isLoading }: { analysis: ProductMarginAnalysis; isLoading: boolean }) {
   const [query, setQuery] = useState('');
@@ -19,7 +22,7 @@ export function ProductMarginReport({ analysis, isLoading }: { analysis: Product
   const { rows, summary } = analysis;
 
   const filtered = useMemo(() => rows
-    .filter(row => !query.trim() || `${row.productName} ${row.categoryName}`.toLocaleLowerCase('es').includes(query.trim().toLocaleLowerCase('es')))
+    .filter(row => !query.trim() || normalizeSearch(`${row.productName} ${row.categoryName}`).includes(normalizeSearch(query.trim())))
     .filter(row => filter === 'all'
       || (filter === 'missing' && row.missingUnits > 0)
       || (filter === 'positive' && row.knownUnits > 0 && row.margin > 0)
@@ -79,15 +82,17 @@ export function ProductMarginReport({ analysis, isLoading }: { analysis: Product
             <Search size={14} className="shrink-0 text-neutral-400"/>
             <input aria-label="Buscar producto" value={query} onChange={e=>{setQuery(e.target.value);setPage(1);}} placeholder="Buscar producto" className="min-w-0 w-full bg-transparent text-[12px] text-neutral-900 outline-none placeholder:text-neutral-400" />
           </label>
-          <label className="flex h-9 items-center gap-1 rounded-[10px] border border-neutral-200 bg-white px-2">
-            <ArrowDownUp size={13} className="text-neutral-400"/>
-            <select aria-label="Ordenar margen por producto" value={sort} onChange={e=>{setSort(e.target.value as SortMode);setPage(1);}} className="max-w-[150px] bg-transparent text-[11px] font-medium text-neutral-700 outline-none">
-              <option value="margin-desc">Mayor margen</option>
-              <option value="margin-asc">Menor margen</option>
-              <option value="sales-desc">Más facturación</option>
-              <option value="units-desc">Más unidades</option>
-            </select>
-          </label>
+          <div className="w-full sm:w-[190px]">
+            <Select aria-label="Ordenar margen por producto" variant="light" value={sort}
+              options={[
+                { value: 'margin-desc', label: 'Mayor margen' },
+                { value: 'margin-asc', label: 'Menor margen' },
+                { value: 'sales-desc', label: 'Más facturación' },
+                { value: 'units-desc', label: 'Más unidades' },
+              ]}
+              onValueChange={value=>{setSort(value as SortMode);setPage(1);}}
+              className="!h-9 !rounded-[10px] !border-neutral-200 !text-[12px]"/>
+          </div>
         </div>
       </div>
 
@@ -132,15 +137,7 @@ export function ProductMarginReport({ analysis, isLoading }: { analysis: Product
           </tbody>
         </table>
       </div>
-      {filtered.length>12 && (
-        <div className="mt-3 flex items-center justify-between gap-3 text-[11px] text-neutral-500">
-          <span>{filtered.length} productos · Página {currentPage} de {maxPage}</span>
-          <div className="flex gap-2">
-            <button type="button" disabled={currentPage<=1} onClick={()=>setPage(p=>p-1)} className="rounded-[9px] border border-neutral-200 px-3 py-2 disabled:opacity-40">Anterior</button>
-            <button type="button" disabled={currentPage>=maxPage} onClick={()=>setPage(p=>p+1)} className="rounded-[9px] border border-neutral-200 px-3 py-2 disabled:opacity-40">Siguiente</button>
-          </div>
-        </div>
-      )}
+      <TablePagination page={currentPage} pageSize={12} totalItems={filtered.length} onPageChange={setPage} />
     </section>
   );
 }
