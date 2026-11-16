@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
+import Link from 'next/link';
 import { Check, CreditCard, Plus, RefreshCw, Wallet } from 'lucide-react';
 import { toast } from 'react-toastify';
 import { Button } from '@/shared/components/ui/Button';
@@ -8,11 +9,12 @@ import { DatePickerField } from '@/shared/components/ui/DatePickerField';
 import { Input } from '@/shared/components/ui/Input';
 import { Select } from '@/shared/components/ui/Select';
 import { formatCurrency } from '@/shared/utils/format.utils';
+import { ROUTES } from '@/shared/constants/routes';
 import { useAdminUnsavedChanges } from '@/shared/components/layout/AdminUnsavedChanges';
 import {
   addStaffRate, applyStaffAdvance, approveStaffAttendance, createStaffPayroll,
   readStaffDashboard, recordStaffPayment, reverseStaffAllocation, reverseStaffPayment,
-  saveStaffAttendance, saveStaffEmployee,
+  saveStaffAttendance,
 } from '../services/staff-payroll.service';
 import { StaffEditorModal, type StaffEditor } from '../components/StaffEditorModal';
 import { StaffTable, type StaffColumn } from '../components/StaffTable';
@@ -126,12 +128,6 @@ export function PersonalAdminPage() {
     }
   }
 
-  function editEmployee(employee?: StaffEmployee) {
-    openEditor({
-      type: 'employee', id: employee?.id ?? null, name: employee?.full_name ?? '',
-      notes: employee?.notes ?? '', active: employee?.active ?? true,
-    });
-  }
   function editAttendance(attendance?: StaffAttendance) {
     openEditor({
       type: 'attendance', employeeId: attendance?.employee_id ?? '',
@@ -163,8 +159,8 @@ export function PersonalAdminPage() {
 
   async function saveEditor() {
     if (!editor) return;
-    // No reabrir asistencias aprobadas ni tocar perfiles sin cambios reales.
-    if (((editor.type === 'employee' && editor.id) || (editor.type === 'attendance' && editor.locked))
+    // Evitar reabrir asistencias sin modificaciones.
+    if (editor.type === 'attendance' && editor.locked
       && JSON.stringify(editor) === editorInitial.current) {
       setEditor(null);
       return;
@@ -172,9 +168,6 @@ export function PersonalAdminPage() {
     const draft = editor;
     await runAction(async () => {
       switch (draft.type) {
-        case 'employee':
-          if (draft.name.trim().length < 2) throw Error('Ingresá el nombre del empleado.');
-          return saveStaffEmployee(draft.id, draft.name, draft.notes, draft.active);
         case 'rate':
           if (!draft.employeeId || !draft.from || [draft.weekday, draft.saturday, draft.sunday]
             .some((value) => value === undefined || value < 0)) throw Error('Completá el empleado, la fecha y las tres tarifas.');
@@ -216,7 +209,6 @@ export function PersonalAdminPage() {
         ? money(latestRates.get(row.id)!.saturday_rate) + ' / ' + money(latestRates.get(row.id)!.sunday_rate)
         : '—' },
     { id: 'action', title: 'Acción', render: (row) => <div className="flex flex-wrap gap-2">
-      <button type="button" className={actionClass} onClick={() => editEmployee(row)}>Editar</button>
       <button type="button" className={actionClass} disabled={!row.active} onClick={() => newRate(row.id)}>Tarifas</button>
     </div> },
   ];
@@ -355,8 +347,8 @@ export function PersonalAdminPage() {
           </div>
         </div>
         <div className="flex flex-wrap gap-2">
-          {tab === 'employees' ? <Button variant="dark" type="button" onClick={() => editEmployee()}>
-            <Plus size={14} className="mr-1 inline"/>Empleado
+          {tab === 'employees' ? <Button variant="primary" asChild href={ROUTES.adminUsuarios}>
+            Gestionar personal
           </Button> : null}
           {tab === 'attendance' ? <Button variant="dark" type="button" onClick={() => editAttendance()}>
             <Plus size={14} className="mr-1 inline"/>Asistencia
@@ -384,7 +376,7 @@ export function PersonalAdminPage() {
       {loading ? <TableLoading/> : null}
       <div className={tab === 'employees' && !loading ? '' : 'hidden'}>
         <StaffTable rows={displayedEmployees} columns={employeeColumns} getId={rowId}
-          initialSort="name" emptyMessage="Todavía no hay empleados. Agregá el primero para empezar."/>
+          initialSort="name" emptyMessage="No hay usuarios con rol Personal. Asigná ese rol desde Usuarios para comenzar."/>
       </div>
       <div className={tab === 'attendance' && !loading ? '' : 'hidden'}>
         <StaffTable rows={displayedAttendance} columns={attendanceColumns} getId={rowId}
