@@ -12,6 +12,7 @@ export const ROUTES = {
   adminPedidos: '/admin/pedidos',
   adminVentaMostrador: '/admin/venta-mostrador',
   adminDelivery: '/admin/delivery',
+  adminPersonal: '/admin/personal',
   adminUsuarios: '/admin/usuarios',
   adminReportes: '/admin/reportes',
   adminConfiguracion: '/admin/configuracion',
