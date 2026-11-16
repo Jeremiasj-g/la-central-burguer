@@ -158,7 +158,7 @@ export function PersonalAdminPage() {
       payment.employee_id === payroll.employee_id && payment.payment_kind === 'advance'
       && getUnallocatedAdvance(payment.id, dashboard) > 0);
     openEditor({ type: 'apply', employeeId: payroll.employee_id, payrollId: payroll.id,
-      advanceId: available?.id ?? '', amount: undefined });
+      advanceId: available?.id ?? '', amount: undefined, requestKey: crypto.randomUUID() });
   }
 
   async function saveEditor() {
@@ -192,7 +192,7 @@ export function PersonalAdminPage() {
             draft.payrollId ? 'payroll' : 'advance', draft.notes, draft.requestKey);
         case 'apply':
           if (!draft.advanceId || !(draft.amount && draft.amount > 0)) throw Error('Seleccioná anticipo e importe.');
-          return applyStaffAdvance(draft.advanceId, draft.payrollId, draft.amount);
+          return applyStaffAdvance(draft.advanceId, draft.payrollId, draft.amount, draft.requestKey);
         case 'reverse':
           if (draft.reason.trim().length < 5) throw Error('Ingresá un motivo de reversión.');
           return draft.kind === 'payment'
