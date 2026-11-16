@@ -16,7 +16,7 @@ Tablas específicas en tercera forma normal: staff_employees, staff_pay_rates, s
 1. Usar la rama **feat/staff-payroll-v1-dev-20261116** del repositorio Jeremiasj-g/la-central-burguer.
 2. Configurar en .env.local:
    - NEXT_PUBLIC_SUPABASE_URL=https://vsfcjmyiiviyydvbdlrn.supabase.co
-   - NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY = clave pública de central-burguer-dev (Supabase → Settings → API Keys).
+   - NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=<clave pública de central-burguer-dev> (Supabase → Settings → API Keys).
 3. Ejecutar npm install y npm run dev. Ingresar como administrador y abrir /admin/personal.
 4. La migración supabase/migrations/20261116095000_staff_payroll_v1.sql **ya está aplicada al proyecto dev**. No aplicarla en producción sin una revisión y autorización expresa.
 
