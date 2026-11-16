@@ -14,7 +14,7 @@ import { formatCurrency } from '@/shared/utils/format.utils';
 export type StaffEditor =
   | { type: 'employee'; id: string | null; name: string; notes: string; active: boolean }
   | { type: 'rate'; employeeId: string; from: string; weekday: number | undefined; saturday: number | undefined; sunday: number | undefined }
-  | { type: 'attendance'; employeeId: string; day: string; kind: StaffAttendanceKind; notes: string; reason: string; previouslyApproved: boolean }
+  | { type: 'attendance'; employeeId: string; day: string; kind: StaffAttendanceKind; notes: string; reason: string; previouslyApproved: boolean; locked: boolean }
   | { type: 'payroll'; employeeId: string; from: string; to: string; notes: string }
   | { type: 'payment'; employeeId: string; payrollId: string | null; amount: number | undefined; day: string; notes: string; requestKey: string }
   | { type: 'apply'; payrollId: string; employeeId: string; advanceId: string; amount: number | undefined }
@@ -53,10 +53,10 @@ export function StaffEditorModal({
     reverse: 'Revertir movimiento',
   }[draft.type];
 
-  const employeeSelector = (id: string, change: (value: string) => void) => (
+  const employeeSelector = (id: string, change: (value: string) => void, disabled = false) => (
     <Field label="Empleado">
       <Select variant="light" value={id || undefined} placeholder="Seleccionar empleado"
-        options={employees} onValueChange={change} className="!rounded-[11px] !border-neutral-200 !bg-[#f7f7f9]" />
+        options={employees} onValueChange={change} disabled={disabled} className="!rounded-[11px] !border-neutral-200 !bg-[#f7f7f9]" />
     </Field>
   );
 
@@ -112,9 +112,9 @@ export function StaffEditorModal({
 
         {draft.type === 'attendance' ? (
           <>
-            {employeeSelector(draft.employeeId, (value) => onChange({ ...draft, employeeId: value }))}
+            {employeeSelector(draft.employeeId, (value) => onChange({ ...draft, employeeId: value }), draft.locked)}
             <Field label="Fecha">
-              <DatePickerField ariaLabel="Fecha de asistencia" value={draft.day} onChange={(value) => onChange({ ...draft, day: value })}/>
+              <DatePickerField ariaLabel="Fecha de asistencia" disabled={draft.locked} value={draft.day} onChange={(value) => onChange({ ...draft, day: value })}/>
             </Field>
             <Field label="Registro">
               <Select variant="light" value={draft.kind} onValueChange={(value) => onChange({ ...draft, kind: value as StaffAttendanceKind })}
