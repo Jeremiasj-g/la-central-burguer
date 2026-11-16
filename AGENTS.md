@@ -26,7 +26,20 @@ Estas reglas aplican a **toda interfaz nueva y toda interfaz existente que se mo
 - Usar **naranja de marca con moderación**, para acciones primarias, selección y avisos relevantes; no colorear todo. Semántica coherente para éxito, advertencia y error, sin colores decorativos arbitrarios.
 - Botones principales, secundarios, destructivos y de cancelación deben conservar un estilo y tamaño predecibles. Evitar botones enormes, iconos gratuitos y badges que no informen nada.
 - Transiciones discretas de **~200 ms** (hover, foco, tabs y modales); evitar movimientos bruscos, efectos excesivos o saltos de layout.
-- Usar **los mismos componentes compartidos** para inputs, selectores, calendarios, modales, confirmaciones y botones en vez de crear variantes de apariencia distinta.
+- **Componentes compartidos como única referencia visual:** los dropdowns, calendarios, popovers, modales y mensajes deben seguir el estándar y las rutas de la sección siguiente; no usar variantes improvisadas.
+
+## Componentes compartidos y consistencia visual
+
+**Regla central: un componente, una identidad visual.** Antes de crear un control, buscar si ya existe uno compartido. Reutilizarlo; si hace falta mejorar un comportamiento o apariencia, adaptar el componente compartido con una variante explícita y comprobar los demás lugares donde se usa. No copiar estilos ni crear alternativas locales sin una necesidad funcional justificada. Las variantes pueden diferir en interacción, pero deben conservar la misma identidad.
+
+- **Dropdown estándar:** usar `src/shared/components/ui/Select.tsx` (variantes `light` / `dark`). **Dropdown con búsqueda:** usar `src/shared/components/ui/SearchableSelect.tsx` cuando haya muchas opciones. Respetar trigger, panel, tipografía, radio, espaciado, iconos, opción activa y seleccionada, estados de foco y animación. **No introducir `<select>` nativos sin estilo ni menús desplegables hechos desde cero** cuando estos componentes resuelven la necesidad; justificar excepciones técnicas o de accesibilidad.
+- **Calendarios:** usar `src/shared/components/ui/DatePickerField.tsx` y conservar su presentación, navegación, selección, formato argentino, límites de fecha y comportamiento al abrir/cerrar. No incorporar `<input type="date">` sin estilo, librerías o calendarios visualmente distintos salvo que el caso lo exija y se integre al mismo sistema.
+- **Menús, popovers y tooltips:** aplicar el estilo de los selectores existentes: bordes, colores, sombras, tamaño de texto y animaciones consistentes. Deben abrir en posición visible, ajustarse al viewport y **no quedar tapados o recortados** por tablas, drawers o modales. Usar portal cuando sea necesario; cerrar al seleccionar, hacer clic fuera o presionar Escape, y permitir uso con teclado, foco y dispositivos táctiles. No abusar de tooltips si la etiqueta puede ser clara.
+- **Modales y drawers:** reutilizar `src/shared/components/ui/Modal.tsx`, `Drawer.tsx` y `ConfirmDialog.tsx`; respetar sus temas, tamaños, foco, scroll, bloqueo de fondo, cierre y transiciones. Confirmaciones destructivas o relevantes deben indicar qué acción se ejecutará. Para ediciones pendientes seguir además el flujo de «Seguir editando / Salir sin guardar» ya definido.
+- **Avisos y notificaciones:** reutilizar los toasts existentes de `react-toastify`, configurados en `src/providers/AppProviders.tsx`; mantener apariencia, duración y ubicación coherentes para éxito, información, advertencia y error. No introducir `alert()`, `confirm()`, `prompt()` ni sistemas de notificaciones paralelos en la interfaz.
+- **Dimensiones y espaciados:** tomar como referencia `src/shared/components/ui/Button.tsx`, `Input.tsx`, `NumericInput.tsx`, `Select.tsx` y los controles equivalentes ya aprobados. Altura, padding, bordes, radios, sombra, tipografía y separación deben ser consistentes en una misma pantalla; no mezclar tamaños arbitrarios ni forzar estilos con overrides innecesarios. Respetar las variantes claro/oscuro de cada contexto.
+- **Estados y accesibilidad obligatorios:** normal, hover, focus visible, abierto/seleccionado, disabled, loading, vacío y error donde apliquen. Asegurar etiqueta accesible, navegación por teclado, Escape, contraste, touch targets y foco predecible; no ocultar opciones importantes por desbordes o z-index.
+- **Revisión de reutilización:** antes de finalizar, contrastar visualmente los nuevos controles con sus componentes de referencia en escritorio y móvil; verificar apertura/cierre, scroll, superposición con modales y tablas, selección, búsqueda, validaciones y mensajes. No afirmar que se probó un estado sin haberlo comprobado.
 
 ## Tablas: un único patrón visual y funcional
 
@@ -61,7 +74,7 @@ Estas reglas aplican a **toda interfaz nueva y toda interfaz existente que se mo
 ## Verificación mínima antes de entregar
 
 - Comparar visualmente con el diseño existente y comprobar que no se cambiaron fuentes, colores ni componentes ajenos al pedido.
-- Revisar escritorio y móvil, estados de carga/vacío/error, hover/foco, filtros combinados, orden asc/desc, paginación y persistencia al navegar.
+- Revisar escritorio y móvil, estados de carga/vacío/error, hover/foco, dropdowns y calendarios abiertos, menús sin recortes, filtros combinados, orden asc/desc, paginación y persistencia al navegar.
 - Para formularios, probar **editar → intentar salir → seguir editando / salir sin guardar → guardar**, incluido el regreso a pestañas. Probar campos vacíos, coma/punto decimal y validaciones.
 - Ejecutar las verificaciones disponibles del proyecto (`npm run typecheck`, `npm run lint`, `npm run build` cuando correspondan) y **no declarar pruebas que no se realizaron**.
 - Mantener los cambios acotados, validar antes de integrar a `main` y declarar si algo todavía requiere prueba manual.
