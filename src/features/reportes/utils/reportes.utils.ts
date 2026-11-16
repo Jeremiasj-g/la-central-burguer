@@ -55,7 +55,9 @@ export function formatReportDateTime(value: string) {
 }
 
 export function getPresetRange(preset: ReportDatePreset, now = new Date()): ReportPresetRange {
-  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const businessDay = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Argentina/Buenos_Aires', year: 'numeric', month: '2-digit', day: '2-digit' }).format(now);
+  const [year, month, day] = businessDay.split('-').map(Number);
+  const today = new Date(year, month - 1, day);
   const from = new Date(today);
   const to = new Date(today);
 
