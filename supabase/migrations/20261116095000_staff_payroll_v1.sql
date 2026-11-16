@@ -332,7 +332,7 @@ end $$;
 create function public.admin_staff_dashboard(from_day date default null,to_day date default null)
 returns jsonb language plpgsql stable security definer set search_path='' as $$
 declare v_from date:=coalesce(from_day,(date_trunc('month',now() at time zone 'America/Argentina/Buenos_Aires'))::date);
-declare v_to date:=coalesce(to_day,(now() at time zone 'America/Argentina/Buenos_Aires')::date);
+v_to date:=coalesce(to_day,(now() at time zone 'America/Argentina/Buenos_Aires')::date);
 begin
  if not private.is_admin() then raise exception 'No autorizado'; end if;
  if v_to<v_from or v_to-v_from>366 then raise exception 'Período inválido'; end if;
