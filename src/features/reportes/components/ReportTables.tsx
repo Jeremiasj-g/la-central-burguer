@@ -70,6 +70,31 @@ export function ReportTables({
   const [view, setView] = useState<'consolidated' | 'promotions' | 'detail'>('consolidated');
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [consolidatedPage, setConsolidatedPage] = useState(1);
+  const [sortKey, setSortKey] = useState<'label' | 'orders' | 'cancelledOrders' | 'units' | 'revenue' | 'averageTicket' | 'share' | null>(null);
+  const [sortDescending, setSortDescending] = useState(true);
+  const sortedGroups = useMemo(() => {
+    if (!sortKey) return groups;
+    return [...groups].sort((left, right) => {
+      const result = sortKey === 'label'
+        ? left.label.localeCompare(right.label, 'es-AR', { numeric: true })
+        : left[sortKey] - right[sortKey];
+      return (sortDescending ? -result : result) || left.label.localeCompare(right.label, 'es-AR');
+    });
+  }, [groups, sortKey, sortDescending]);
+  const toggleSort = (key: NonNullable<typeof sortKey>) => {
+    if (key === sortKey) setSortDescending(value => !value);
+    else { setSortKey(key); setSortDescending(key !== 'label'); }
+    setConsolidatedPage(1);
+  };
+  const sortableHeader = (label: string, key: NonNullable<typeof sortKey>, align: 'left' | 'right' = 'right') => (
+    <th scope="col" aria-sort={sortKey === key ? (sortDescending ? 'descending' : 'ascending') : 'none'}
+      className={align === 'left' ? 'px-5 py-3 text-left' : 'px-4 py-3 text-right'}>
+      <button type="button" onClick={() => toggleSort(key)}
+        className={'inline-flex items-center gap-1.5 font-semibold hover:text-central-orange focus-visible:outline-2 focus-visible:outline-central-orange ' + (align === 'right' ? 'justify-end' : '')}>
+        {label}<span aria-hidden="true" className="text-[10px]">{sortKey === key ? (sortDescending ? '↓' : '↑') : '↕'}</span>
+      </button>
+    </th>
+  );
   const transitionTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const groupOptions = (Object.entries(REPORT_GROUP_LABELS) as [ReportGroupBy, string][]).map(([value, label]) => ({ value, label: `Agrupar por ${label.toLocaleLowerCase('es-AR')}` }));
 
@@ -78,8 +103,8 @@ export function ReportTables({
 
   const paginatedGroups = useMemo(() => {
     const start = (consolidatedPage - 1) * ROWS_PER_PAGE;
-    return groups.slice(start, start + ROWS_PER_PAGE);
-  }, [groups, consolidatedPage]);
+    return sortedGroups.slice(start, start + ROWS_PER_PAGE);
+  }, [sortedGroups, consolidatedPage]);
 
   useEffect(() => () => {
     if (transitionTimerRef.current) clearTimeout(transitionTimerRef.current);
@@ -171,13 +196,13 @@ export function ReportTables({
               <table className="w-full min-w-[940px] text-left text-sm">
                 <thead className="bg-neutral-50 text-[11px] font-semibold uppercase tracking-wider text-neutral-500">
                   <tr>
-                    <th className="px-5 py-3">{REPORT_GROUP_LABELS[groupBy]}</th>
-                    <th className="px-4 py-3 text-right">Pedidos</th>
-                    <th className="px-4 py-3 text-right">Cancelados</th>
-                    <th className="px-4 py-3 text-right">Unidades</th>
-                    <th className="px-4 py-3 text-right">Facturación</th>
-                    <th className="px-4 py-3 text-right">Ticket medio</th>
-                    <th className="px-5 py-3 text-right">Participación</th>
+                    {sortableHeader(REPORT_GROUP_LABELS[groupBy], 'label', 'left')}
+                    {sortableHeader('Pedidos', 'orders')}
+                    {sortableHeader('Cancelados', 'cancelledOrders')}
+                    {sortableHeader('Unidades', 'units')}
+                    {sortableHeader('Facturación', 'revenue')}
+                    {sortableHeader('Ticket medio', 'averageTicket')}
+                    {sortableHeader('Participación', 'share')}
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-neutral-100">
