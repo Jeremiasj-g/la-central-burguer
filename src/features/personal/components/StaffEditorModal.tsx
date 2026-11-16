@@ -1,9 +1,7 @@
 'use client';
 
-import { Check } from 'lucide-react';
 import { Button } from '@/shared/components/ui/Button';
 import { DatePickerField } from '@/shared/components/ui/DatePickerField';
-import { Input } from '@/shared/components/ui/Input';
 import { Modal } from '@/shared/components/ui/Modal';
 import { NumericInput } from '@/shared/components/ui/NumericInput';
 import { Select } from '@/shared/components/ui/Select';
@@ -13,7 +11,6 @@ import { getUnallocatedAdvance } from '../types/staff-payroll.types';
 import { formatCurrency } from '@/shared/utils/format.utils';
 
 export type StaffEditor =
-  | { type: 'employee'; id: string | null; name: string; notes: string; active: boolean }
   | { type: 'rate'; employeeId: string; from: string; weekday: number | undefined; saturday: number | undefined; sunday: number | undefined }
   | { type: 'attendance'; employeeId: string; day: string; kind: StaffAttendanceKind; notes: string; reason: string; previouslyApproved: boolean; locked: boolean }
   | { type: 'payroll'; employeeId: string; from: string; to: string; notes: string }
@@ -38,14 +35,14 @@ export function StaffEditorModal({
   busy: boolean;
   dashboard: StaffDashboard;
 }) {
-  const employees = dashboard.employees.map((employee) => ({ value: employee.id, label: employee.full_name }));
+  const employees = dashboard.employees.filter((employee) => employee.active || draft.type === 'payroll' || (draft.type === 'payment' && Boolean(draft.payrollId)))
+    .map((employee) => ({ value: employee.id, label: employee.full_name }));
   const employeeName = (id: string) => dashboard.employees.find((employee) => employee.id === id)?.full_name ?? 'Empleado';
   const advances = dashboard.payments
     .filter((payment) => payment.employee_id === (draft.type === 'apply' ? draft.employeeId : '') && payment.payment_kind === 'advance')
     .filter((payment) => getUnallocatedAdvance(payment.id, dashboard) > 0)
     .map((payment) => ({ value: payment.id, label: payment.paid_on + ' · Disponible ' + formatCurrency(getUnallocatedAdvance(payment.id, dashboard)) }));
   const title = {
-    employee: draft.type === 'employee' && draft.id ? 'Editar empleado' : 'Agregar empleado',
     rate: 'Nueva tarifa',
     attendance: 'Registrar asistencia',
     payroll: 'Generar liquidación',
@@ -72,28 +69,6 @@ export function StaffEditorModal({
         </div>
       }>
       <form id="staff-editor" onSubmit={(event) => { event.preventDefault(); onSave(); }} className="space-y-4">
-        {draft.type === 'employee' ? (
-          <>
-            <Field label="Nombre y apellido">
-              <Input value={draft.name} required maxLength={120} placeholder="Nombre del empleado" className={controlClass}
-                onChange={(event) => onChange({ ...draft, name: event.target.value })}/>
-            </Field>
-            <Field label="Observaciones">
-              <Textarea value={draft.notes} rows={3} className={controlClass + ' !h-auto !py-3'}
-                onChange={(event) => onChange({ ...draft, notes: event.target.value })}/>
-            </Field>
-            <label className="inline-flex cursor-pointer items-center gap-2.5 text-[13px] text-neutral-700">
-              <input type="checkbox" className="peer sr-only" checked={draft.active}
-                onChange={(event) => onChange({ ...draft, active: event.target.checked })}/>
-              <span aria-hidden="true" className={'grid h-5 w-5 shrink-0 place-items-center rounded-[5px] border transition-colors duration-200 peer-focus-visible:ring-2 peer-focus-visible:ring-central-orange/30 ' +
-                (draft.active ? 'border-central-orange bg-central-orange text-white' : 'border-neutral-300 bg-white text-transparent')}>
-                <Check size={13} strokeWidth={2.5}/>
-              </span>
-              Empleado activo
-            </label>
-          </>
-        ) : null}
-
         {draft.type === 'rate' ? (
           <>
             {employeeSelector(draft.employeeId, (value) => onChange({ ...draft, employeeId: value }))}
