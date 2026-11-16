@@ -10,7 +10,7 @@ Estas reglas aplican a toda modificación de código, base de datos, configuraci
 
 ## Antes de programar
 
-1. Leer `AGENTS.md`, inspeccionar el **código real y el esquema vigente** e identificar dependencias y consumidores; los documentos pueden estar desactualizados. No tomar `PROGRESO.md` ni una descripción antigua como fuente de verdad.
+1. Leer `AGENTS.md`, inspeccionar el **código real y el esquema vigente** e identificar dependencias y consumidores; los documentos pueden estar desactualizados. No tomar ninguna descripción antigua como fuente de verdad.
 2. Determinar qué debe cambiar y qué debe permanecer igual. Revisar los flujos relacionados antes de intervenir: Recetas ↔ Costos ↔ Reportes, Pedidos ↔ Cobros ↔ Delivery, etc.
 3. Resolver la causa raíz, no tapar síntomas ni introducir soluciones temporales. Mantener el cambio acotado; no reorganizar módulos ajenos al pedido.
 4. **Todo debe ser intuitivo y fácil de usar:** priorizar recorridos predecibles, nombres claros, pocos pasos, instrucciones precisas y errores accionables. No exigir conocimientos técnicos al usuario ni trasladarle complejidad interna del sistema.
