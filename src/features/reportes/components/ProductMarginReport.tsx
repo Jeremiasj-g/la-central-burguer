@@ -133,7 +133,15 @@ export function ProductMarginReport({ analysis, isLoading }: { analysis: Product
               </tr>
             ))}
             {!isLoading && visible.length===0 && <tr><td colSpan={7} className="px-4 py-12 text-center text-[12px] text-neutral-500">No hay productos para estos filtros.</td></tr>}
-            {isLoading && <tr><td colSpan={7} className="px-4 py-12 text-center text-[12px] text-neutral-500">Calculando márgenes…</td></tr>}
+            {isLoading && Array.from({ length: 6 }, (_, index) => (
+              <tr key={index} className="border-t border-neutral-100" aria-hidden="true">
+                {Array.from({ length: 7 }, (_, cell) => (
+                  <td key={cell} className="px-4 py-4">
+                    <div className={'h-3 animate-pulse rounded bg-neutral-100 ' + (cell === 0 ? 'w-3/4' : 'ml-auto w-2/3')} />
+                  </td>
+                ))}
+              </tr>
+            ))}
           </tbody>
         </table>
       </div>
