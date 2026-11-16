@@ -4,7 +4,7 @@ Implementación inicial **solo en Supabase central-burguer-dev** (ref: vsfcjmyii
 
 ## Alcance
 
-- **Personal:** alta, edición, desactivación y tarifas versionadas para lunes-viernes, sábado y domingo.
+- **Personal:** usuarios con rol `staff` gestionados desde `/admin/usuarios`, con identidad y estado sincronizados; tarifas versionadas para lunes-viernes, sábado y domingo.
 - **Asistencias:** presente o ausente por fecha; aprobación que fija tarifa; corrección de aprobadas con motivo; jornadas liquidadas inmutables.
 - **Liquidaciones:** período manual por empleado; incorpora una sola vez las asistencias aprobadas y evita períodos superpuestos; congela importes de cada jornada.
 - **Pagos:** registrar egresos parciales, anticipos independientes, aplicaciones de anticipos a liquidaciones y reversiones motivadas y auditables.
@@ -22,7 +22,7 @@ Tablas específicas en tercera forma normal: staff_employees, staff_pay_rates, s
 
 ## Recorrido de aceptación
 
-1. Agregar empleado y tarifa con vigencia.
+1. Asignar rol Personal a un usuario desde Usuarios, comprobar que aparece en Pago a empleados y crear su tarifa con vigencia.
 2. Registrar presente y aprobarlo; comprobar tarifa según día. Registrar ausente; comprobar importe cero.
 3. Corregir una asistencia aprobada con motivo y volver a aprobarla.
 4. Generar liquidación; comprobar que no se permite duplicar jornadas, solapar períodos ni liquidar pendientes.
@@ -38,6 +38,8 @@ Tablas específicas en tercera forma normal: staff_employees, staff_pay_rates, s
 - Anticipos no se aplican automáticamente: se asignan a una liquidación de forma explícita.
 - No se realizan transferencias bancarias ni se emiten recibos PDF. Se registran pagos ya realizados fuera de la aplicación.
 - No se modifica el esquema ni las liquidaciones de repartidores.
+- No se crean empleados independientes del sistema de usuarios; `staff_employees.profile_id` vincula al perfil y conserva las FK financieras. Las bajas de rol desactivan operaciones nuevas, no borran históricos.
+- La migración `staff_identity_from_access_roles` está aplicada exclusivamente a central-burguer-dev.
 - No se cargan empleados ficticios. Las pruebas de transacciones se ejecutaron con ROLLBACK.
 - Los previews de Vercel pueden tener variables de otro proyecto; comprobarlas antes de probar contra la base de desarrollo.
 
