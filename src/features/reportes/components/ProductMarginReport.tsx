@@ -12,7 +12,7 @@ type MarginFilter = 'all' | 'positive' | 'negative' | 'missing';
 type SortMode = 'margin-desc' | 'margin-asc' | 'sales-desc' | 'units-desc';
 
 function money(value: number) { return formatCurrency(value); }
-const normalizeSearch = (text: string) => text.normalize('NFD').replace(/[\\u0300-\\u036f]/g, '').toLocaleLowerCase('es-AR');
+const normalizeSearch = (text: string) => text.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLocaleLowerCase('es-AR');
 
 export function ProductMarginReport({ analysis, isLoading }: { analysis: ProductMarginAnalysis; isLoading: boolean }) {
   const [query, setQuery] = useState('');
