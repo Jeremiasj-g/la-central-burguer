@@ -173,13 +173,16 @@ export function PersonalAdminPage() {
           return addStaffRate(draft.employeeId, draft.from, draft.weekday!, draft.saturday!, draft.sunday!);
         case 'attendance':
           if (!draft.employeeId || !draft.day) throw Error('Seleccioná empleado y fecha.');
+          if (draft.day > argentinaDay()) throw Error('No se puede registrar una asistencia posterior a hoy.');
           if (draft.previouslyApproved && draft.reason.trim().length < 5) throw Error('Ingresá un motivo de corrección.');
           return saveStaffAttendance(draft.employeeId, draft.day, draft.kind, draft.notes, draft.reason);
         case 'payroll':
           if (!draft.employeeId || !draft.from || !draft.to || draft.to < draft.from) throw Error('Ingresá un período válido.');
+          if (draft.to > argentinaDay()) throw Error('El período de liquidación no puede terminar después de hoy.');
           return createStaffPayroll(draft.employeeId, draft.from, draft.to, draft.notes);
         case 'payment':
           if (!draft.employeeId || !draft.day || !(draft.amount && draft.amount > 0)) throw Error('Completá empleado, fecha e importe.');
+          if (draft.day > argentinaDay()) throw Error('No se puede registrar un pago con fecha futura.');
           return recordStaffPayment(draft.employeeId, draft.payrollId, draft.amount, draft.day,
             draft.payrollId ? 'payroll' : 'advance', draft.notes, draft.requestKey);
         case 'apply':
@@ -223,9 +226,10 @@ export function PersonalAdminPage() {
     { id: 'action', title: 'Acción', render: (row) => (
       <div className="flex flex-wrap gap-2">
         {!dashboard.lines.some((line) => line.attendance_id === row.id) ? <>
-          {row.approval_status === 'pending' ? <button type="button" className={actionClass} disabled={busy}
+          {row.approval_status === 'pending' ? <button type="button" className={actionClass} disabled={busy || row.work_date > today}
+            title={row.work_date > today ? 'No se puede aprobar una asistencia futura' : undefined}
             onClick={() => void runAction(() => approveStaffAttendance(row.id), 'Asistencia aprobada.')}>
-            <Check size={12} className="mr-1 inline"/>Aprobar</button> : null}
+            <Check size={12} className="mr-1 inline"/>{row.work_date > today ? 'Fecha futura' : 'Aprobar'}</button> : null}
           <button type="button" className={actionClass} onClick={() => editAttendance(row)}>Corregir</button>
         </> : <span className="text-[11px] text-emerald-700">Liquidada</span>}
       </div>
@@ -335,7 +339,7 @@ export function PersonalAdminPage() {
           <div className="min-w-[180px] flex-1 sm:max-w-[290px]">
             <span className="mb-1 block text-[11px] text-neutral-500">Buscar empleado</span>
             <Input value={search} onChange={(event) => setSearch(event.target.value)}
-              placeholder="Nombre y apellido"
+              placeholder="Buscar por nombre"
               className="!h-10 !rounded-[11px] !border-neutral-200 !bg-white !text-[13px] !text-neutral-900 !placeholder:text-neutral-400"/>
           </div>
           <div className="min-w-[180px] flex-1 sm:max-w-[270px]">
