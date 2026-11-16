@@ -4,6 +4,53 @@
 This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` before writing any code. Heed deprecation notices.
 <!-- END:nextjs-agent-rules -->
 
+# La Central Burger — ingeniería y calidad obligatorias
+
+Estas reglas aplican a toda modificación de código, base de datos, configuración o despliegue. **Prioridad: soluciones intuitivas, simples, seguras y mantenibles.** No autorizan modificar datos ni módulos fuera del alcance pedido.
+
+## Antes de programar
+
+1. Leer `AGENTS.md`, inspeccionar el **código real y el esquema vigente** e identificar dependencias y consumidores; los documentos pueden estar desactualizados. No tomar `PROGRESO.md` ni una descripción antigua como fuente de verdad.
+2. Determinar qué debe cambiar y qué debe permanecer igual. Revisar los flujos relacionados antes de intervenir: Recetas ↔ Costos ↔ Reportes, Pedidos ↔ Cobros ↔ Delivery, etc.
+3. Resolver la causa raíz, no tapar síntomas ni introducir soluciones temporales. Mantener el cambio acotado; no reorganizar módulos ajenos al pedido.
+4. **Todo debe ser intuitivo y fácil de usar:** priorizar recorridos predecibles, nombres claros, pocos pasos, instrucciones precisas y errores accionables. No exigir conocimientos técnicos al usuario ni trasladarle complejidad interna del sistema.
+
+## Arquitectura, cohesión y acoplamiento
+
+- **Código corto, preciso y conciso:** funciones, componentes y módulos con una responsabilidad clara y **alta cohesión** (todo lo que contienen sirve a un único propósito) y **bajo acoplamiento** (dependen lo mínimo posible entre sí). Evitar componentes gigantes, funciones que hacen todo, estados globales innecesarios y parámetros excesivos. Extraer piezas cuando tengan responsabilidades distintas; no fragmentar artificialmente ni imponer límites arbitrarios de líneas.
+- Mantener el flujo actual **UI → hooks → services → Supabase**: los componentes presentan e interactúan, los hooks organizan estado, los services concentran acceso a datos y las utilidades puras encapsulan cálculos. No ejecutar consultas Supabase directamente en componentes visuales ni duplicar la misma regla de negocio en frontend y backend sin necesidad.
+- Reutilizar lógica y tipos existentes, preferir nombres expresivos, interfaces explícitas y funciones pequeñas que se puedan probar. Aplicar **KISS, DRY y YAGNI**: la implementación más simple que resuelva el requisito real, sin abstracciones o dependencias especulativas.
+- Conservar contratos, rutas y comportamientos vigentes. Si se modifica una función compartida, revisar sus consumidores y prevenir regresiones. No mezclar cambios de estilo, lógica y persistencia sin motivo.
+
+## Supabase y diseño de base de datos
+
+- **Toda tabla nueva debe ser escalable, específica de un dominio y diseñada como mínimo en tercera forma normal (3FN)**: atributos atómicos (1FN), dependencias de la clave completa (2FN) y **sin dependencias transitivas entre atributos no clave** (3FN). No crear tablas «todoterreno», columnas repetidas, listas separadas por comas o duplicación de entidades. Para relaciones muchos-a-muchos, usar tablas de unión y claves foráneas.
+- Garantizar **alta cohesión y bajo acoplamiento entre entidades**: cada tabla representa un concepto bien definido; relacionarlas mediante PK/FK y restricciones explícitas, no mediante campos duplicados o convenciones implícitas. Definir `NOT NULL`, `UNIQUE`, `CHECK`, FK, reglas de eliminación e índices según integridad y consultas reales. Evitar borrados en cascada que destruyan historial.
+- **Las excepciones de desnormalización deben justificarse y documentarse** (p. ej., instantáneas históricas inmutables de precio/costo al vender o agregados medidos por rendimiento). No recalcular ni reemplazar un dato histórico porque cambió el catálogo actual.
+- Antes de cambiar esquema, funciones, triggers, políticas o Edge Functions, revisar dependencias, RLS y permisos. Registrar cada cambio de esquema en **migraciones SQL versionadas** y verificar su ejecución; preparar reversión y evitar operaciones destructivas en producción. Los backfills deben ser explícitos, acotados, auditables e idempotentes; **no modificar datos reales ni corregir históricos sin autorización expresa**.
+- **Supabase es la fuente de verdad** de pedidos, costos, usuarios y datos administrativos. No usar `localStorage` como sustituto de datos de negocio; reservarlo para estados temporales previstos (carrito y borrador del checkout).
+
+## Seguridad, pagos e integridad histórica
+
+- Validar **autenticación y autorización en el servidor y la base** (roles, RLS y funciones privilegiadas); ocultar un botón no sustituye permisos. No exponer secretos ni claves `service_role` en cliente, logs o Git; minimizar acceso y verificar entradas también en el backend.
+- **Preservar ventas, precios aplicados, costos snapshot, cobros, reintegros, cancelaciones y auditoría.** Cambiar recetas o precios actuales nunca modifica automáticamente instantáneas históricas. Un backfill necesita alcance, fecha de vigencia y confirmación del negocio.
+- Para cobros y movimientos financieros, priorizar **transacciones atómicas**, validaciones de saldo, idempotencia y trazabilidad. Evitar dobles confirmaciones y operaciones parcialmente guardadas; no inferir un pago confirmado sólo a partir del método de pago elegido.
+
+## Validación, rendimiento y configuración
+
+- Validar datos en las fronteras de entrada y en servidor/SQL: tipos, rangos, cantidades, importes, unidades compatibles, referencias, ciclos y estados permitidos. Errores concretos y recuperables; no silenciar excepciones ni declarar éxito antes de confirmar persistencia.
+- Diseñar consultas eficientes: filtrar, ordenar y paginar en servidor cuando el volumen lo requiera; evitar N+1, lecturas redundantes y descargar toda la historia para mostrar una página. Crear índices según patrones reales de consulta y comprobar el impacto antes de optimizar.
+- Toda variable de entorno nueva debe quedar documentada en `.env.example` con propósito, obligatoriedad y alcance. Distinguir `NEXT_PUBLIC_*` de variables sólo servidor; comprobar activaciones de funcionalidades, RPC y dependencias. Clonar código, BD y Edge Functions **no replica automáticamente** secretos, Auth, Storage ni configuraciones del proveedor.
+
+## Pruebas, Git y entrega
+
+- Para cada cambio, comprobar caso normal, límites, error y regresiones de módulos relacionados. Agregar o adaptar pruebas automatizadas para cálculos, permisos, validaciones, recetas, cobros y otros flujos críticos; cuando sea posible probar cambios SQL con transacciones reversibles.
+- Ejecutar al menos las verificaciones pertinentes disponibles (`npm run typecheck`, `npm run lint`, `npm run build`) y revisar el resultado real. **Compilar no sustituye probar el flujo**; separar lo verificado de lo pendiente de prueba manual.
+- Trabajar sobre una rama específica, mantener diffs pequeños y revisar antes de fusionar a `main`. Registrar cambios de esquema en el repositorio y mantener documentación afectada sin duplicarla; no actualizar documentación obsoleta como sustituto de analizar el código.
+- Verificar CI, despliegue de Vercel y ambiente de destino antes de afirmar que producción está lista. No confundir merge exitoso con despliegue completado. No ejecutar migraciones o cambios de datos de producción fuera de lo autorizado.
+
+---
+
 # La Central Burger — reglas UI/UX obligatorias
 
 Estas reglas aplican a **toda interfaz nueva y toda interfaz existente que se modifique** (público, administración, reparto y checkout). Son un estándar de diseño; no autorizan refactors ni cambios funcionales fuera del pedido.
