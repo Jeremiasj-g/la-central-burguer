@@ -17,7 +17,7 @@ export type StaffEditor =
   | { type: 'attendance'; employeeId: string; day: string; kind: StaffAttendanceKind; notes: string; reason: string; previouslyApproved: boolean; locked: boolean }
   | { type: 'payroll'; employeeId: string; from: string; to: string; notes: string }
   | { type: 'payment'; employeeId: string; payrollId: string | null; amount: number | undefined; day: string; notes: string; requestKey: string }
-  | { type: 'apply'; payrollId: string; employeeId: string; advanceId: string; amount: number | undefined }
+  | { type: 'apply'; payrollId: string; employeeId: string; advanceId: string; amount: number | undefined; requestKey: string }
   | { type: 'reverse'; id: string; kind: 'payment' | 'allocation'; reason: string };
 
 const controlClass = '!h-10 !rounded-[11px] !border-neutral-200 !bg-[#f7f7f9] !px-3 !text-[13px] !font-normal !text-neutral-900 !shadow-none !placeholder:text-neutral-400';
