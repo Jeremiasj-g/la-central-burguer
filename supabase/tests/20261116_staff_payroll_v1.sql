@@ -13,7 +13,8 @@ declare v_employee uuid; v_attendance uuid; v_payroll uuid; v_payment uuid;
  v_amount numeric; v_rejected boolean;
 begin
  if not private.is_admin() then raise exception 'Se necesita un administrador de prueba'; end if;
- v_employee:=public.admin_staff_save_employee(null,'Empleado Test Payroll','no persistir',true);
+ select id into v_employee from public.staff_employees where active and profile_id is not null order by created_at limit 1;
+ if v_employee is null then raise exception 'Necesitás un usuario activo con rol Personal en DEV'; end if;
  perform public.admin_staff_add_rate(v_employee,'2026-10-01',100,150,200);
  v_attendance:=public.admin_staff_save_attendance(v_employee,'2026-11-14','present','sábado');
  v_amount:=public.admin_staff_approve_attendance(v_attendance);
@@ -65,6 +66,18 @@ begin
  perform public.admin_staff_reverse_allocation(v_allocation,'motivo prueba');
  perform public.admin_staff_reverse_payment(v_advance,'motivo prueba');
  perform public.admin_staff_reverse_payment(v_payment,'motivo prueba');
+ -- Verificar que quitar el rol retira permisos de jornadas y conserva el historial.
+ delete from public.user_roles ur using public.roles r
+ where ur.role_id=r.id and r.code='staff'
+ and ur.user_id=(select profile_id from public.staff_employees where id=v_employee);
+ if (select active from public.staff_employees where id=v_employee)
+ then raise exception 'La baja del rol Personal no desactivó al empleado'; end if;
+ if (select count(*) from public.staff_payrolls where employee_id=v_employee)<>1
+ then raise exception 'La baja de rol alteró liquidaciones históricas'; end if;
+ v_rejected:=false;
+ begin perform public.admin_staff_save_attendance(v_employee,'2026-11-17','present','rol retirado');
+ exception when others then v_rejected:=true; end;
+ if not v_rejected then raise exception 'Un empleado sin rol Personal registró asistencia'; end if;
 end $smoke$;
 rollback;
 
