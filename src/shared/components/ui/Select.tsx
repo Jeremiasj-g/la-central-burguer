@@ -39,8 +39,8 @@ const contentVariants: Record<SelectVariant, string> = {
 };
 
 const itemVariants: Record<SelectVariant, string> = {
-  light: 'text-neutral-700 data-[highlighted]:bg-central-orange/10 data-[highlighted]:text-central-ember data-[state=checked]:bg-central-orange/8 data-[state=checked]:font-extrabold data-[state=checked]:text-central-ember',
-  dark: 'text-white/78 data-[highlighted]:bg-central-orange/12 data-[highlighted]:text-white data-[state=checked]:bg-central-orange/10 data-[state=checked]:font-extrabold data-[state=checked]:text-central-cream',
+  light: 'text-neutral-700 data-[highlighted]:bg-central-orange/10 data-[highlighted]:text-central-ember data-[state=checked]:bg-central-orange/8 data-[state=checked]:font-semibold data-[state=checked]:text-central-ember',
+  dark: 'text-white/78 data-[highlighted]:bg-central-orange/12 data-[highlighted]:text-white data-[state=checked]:bg-central-orange/10 data-[state=checked]:font-semibold data-[state=checked]:text-central-cream',
 };
 
 export function Select({

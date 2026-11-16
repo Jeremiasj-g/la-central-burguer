@@ -13,6 +13,7 @@ import {
   Tags,
   Truck,
   Users,
+  HandCoins,
   Utensils,
 } from 'lucide-react';
 import { ROUTES } from './routes';
@@ -32,6 +33,7 @@ export const ADMIN_NAVIGATION = [
   { label: 'Pedidos', group: 'Operación', href: ROUTES.adminPedidos, icon: ClipboardList, development: false },
   { label: 'Venta mostrador', group: 'Operación', href: ROUTES.adminVentaMostrador, icon: Store, development: false },
   { label: 'Delivery', group: 'Operación', href: ROUTES.adminDelivery, icon: Truck, development: true },
+  { label: 'Pago a empleados', group: 'Administración', href: ROUTES.adminPersonal, icon: HandCoins, development: true },
   { label: 'Usuarios y roles', group: 'Administración', href: ROUTES.adminUsuarios, icon: Users, development: false },
   { label: 'Reportes', group: 'Administración', href: ROUTES.adminReportes, icon: FileSpreadsheet, development: false },
   { label: 'Configuración', group: 'Administración', href: ROUTES.adminConfiguracion, icon: Settings, development: false },
