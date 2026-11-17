@@ -6,6 +6,25 @@ This version has breaking changes — APIs, conventions, and file structure may 
 
 # La Central Burger — ingeniería y calidad obligatorias
 
+## 0. Protocolo obligatorio antes de responder o modificar código
+Este archivo **no se carga automáticamente en todas las integraciones de ChatGPT/GitHub**. Cualquier asistente o desarrollador que trabaje en este repositorio debe **abrir el `AGENTS.md` de la rama activa antes de cada pedido de cambios**; no esperar a que el usuario lo recuerde ni a recibir un comando `/agents.md`.
+
+1. **Leer y delimitar:** leer este `AGENTS.md`, identificar la rama solicitada y examinar el código real, sus componentes reutilizables y las reglas aplicables. Si se cambia un componente compartido, localizar sus consumidores.
+2. **Preparar la verificación:** definir antes de editar qué debe funcionar y cómo comprobarlo. No confundir una captura, un build correcto o el texto de `AGENTS.md` con una prueba funcional.
+3. **Implementar respetando contratos:** preservar cálculos, permisos, persistencia y rutas no solicitadas. Para cambios de UI, comprobar expresamente:
+   - Tablas: filtros pertinentes, combinación con búsqueda, ordenamiento, paginación, estados vacío/error/carga y lectura sin scroll horizontal en escritorio **cuando sea viable**; respetar el estándar de tablas de este archivo.
+   - Dropdowns y calendarios: usar `Select.tsx`, `SearchableSelect.tsx` y `DatePickerField.tsx` según corresponda, con posición, teclado y apertura/cierre correctos en ~200 ms y colores acordes al estilo de La Central Burger.
+   - Modales, tabs y secciones expandibles: transiciones discretas en entrada y salida de ~200 ms, con `prefers-reduced-motion`.
+   - Skeletons ajustados a las dimensiones del contenido, sin saltos de layout.
+   - Formularios: validaciones, doble envío y confirmación de cambios pendientes.
+   - Responsive y accesibilidad: foco visible, labels, contraste y pantallas móviles.
+   Si una regla no aplica, explicarlo brevemente al revisar; no omitirla por olvido.
+4. **Auditar antes del push:** revisar el diff contra estas reglas; ejecutar los controles disponibles de tipos, lint, tests y build (si el entorno lo permite), además de pruebas manuales relacionadas. **No marcar como comprobado aquello que no se ejecutó.**
+5. **Publicación controlada:** preferir un commit/push por pedido y por rama, salvo una corrección excepcional; **no hacer merge a `main` por iniciativa propia**. Actualizar directamente `main` solo cuando el usuario lo solicite explícitamente, como en este pedido de documentación. Si existe plantilla de PR y controles de CI, respetarlos; nunca asumir que verificaciones automáticas o visuales se ejecutaron sin comprobarlo.
+
+Estas reglas aplican a todo La Central Burger (pantallas, modales, componentes, datos y cambios nuevos). Antes de modificar una interfaz, revisar los componentes existentes y seguir estas pautas. Si una indicación explícita del pedido exige otra solución, respetarla sin cambiar funcionalidades ajenas.
+
+
 Estas reglas aplican a toda modificación de código, base de datos, configuración o despliegue. **Prioridad: soluciones intuitivas, simples, seguras y mantenibles.** No autorizan modificar datos ni módulos fuera del alcance pedido.
 
 ## Antes de programar
