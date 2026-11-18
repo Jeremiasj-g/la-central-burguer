@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Check, ChevronDown, CreditCard, Plus, RefreshCw, Wallet } from 'lucide-react';
+import { Check, CreditCard, Plus, RefreshCw, Wallet } from 'lucide-react';
 import { toast } from 'react-toastify';
 import { Button } from '@/shared/components/ui/Button';
 import { DatePickerField } from '@/shared/components/ui/DatePickerField';
@@ -17,7 +17,7 @@ import {
 } from '../services/staff-payroll.service';
 import { StaffEditorModal, type StaffEditor } from '../components/StaffEditorModal';
 import { StaffTable, type StaffColumn } from '../components/StaffTable';
-import { WeeklyAttendanceGrid } from '../components/WeeklyAttendanceGrid';
+import { WeeklyAttendanceColumn, type WeeklyAttendanceDraft } from '../components/WeeklyAttendanceGrid';
 import {
   getPayrollBalance, getUnallocatedAdvance, type StaffAttendance,
   type StaffDashboard, type StaffEmployee, type StaffPayment, type StaffPayroll,
@@ -61,7 +61,7 @@ export function PersonalAdminPage() {
   const [from, setFrom] = useState(today.slice(0, 7) + '-01');
   const [to, setTo] = useState(today);
   const [tab, setTab] = useState<Tab>('employees');
-  const [attendanceDetailsOpen, setAttendanceDetailsOpen] = useState(false);
+  const [weeklyDraft, setWeeklyDraft] = useState<WeeklyAttendanceDraft>({});
   const [employeeFilter, setEmployeeFilter] = useState('all');
   const [search, setSearch] = useState('');
   const [dashboard, setDashboard] = useState<StaffDashboard>(EMPTY);
@@ -224,6 +224,10 @@ export function PersonalAdminPage() {
   const attendanceColumns: StaffColumn<StaffAttendance>[] = [
     { id: 'work_date', title: 'Fecha', value: (row) => row.work_date, render: (row) => dayLabel(row.work_date) },
     { id: 'employee', title: 'Empleado', value: (row) => nameFor(row.employee_id), render: (row) => nameFor(row.employee_id) },
+    { id: 'week', title: <WeeklyAttendanceColumn employees={displayedEmployees} attendance={dashboard.attendance}
+        lines={dashboard.lines} today={today} draft={weeklyDraft} onChange={setWeeklyDraft} />,
+      render: (row) => <WeeklyAttendanceColumn employees={displayedEmployees} attendance={dashboard.attendance}
+        lines={dashboard.lines} today={today} draft={weeklyDraft} onChange={setWeeklyDraft} employeeId={row.employee_id} /> },
     { id: 'kind', title: 'Registro', value: (row) => row.attendance_kind, render: (row) => row.attendance_kind === 'present' ? 'Presente' : 'Ausente' },
     { id: 'amount', title: 'Importe aprobado', numeric: true, value: (row) => row.amount_snapshot,
       render: (row) => row.amount_snapshot !== null ? money(Number(row.amount_snapshot)) : '—' },
@@ -380,29 +384,24 @@ export function PersonalAdminPage() {
         <StaffTable rows={displayedEmployees} columns={employeeColumns} getId={rowId}
           initialSort="name" emptyMessage="No hay usuarios con rol Personal. Asigná ese rol desde Usuarios para comenzar."/>
       </div>
-      <div className={tab === 'attendance' && !loading ? 'space-y-4' : 'hidden'}>
-        <WeeklyAttendanceGrid key={revision} employees={displayedEmployees} attendance={dashboard.attendance}
-          lines={dashboard.lines} today={today}/>
-        <div>
-          <button type="button" aria-expanded={attendanceDetailsOpen}
-            onClick={() => setAttendanceDetailsOpen(open => !open)}
-            className="inline-flex items-center gap-2 rounded-[10px] px-1 py-2 text-[12px] font-medium text-neutral-600 transition-colors duration-200 hover:text-central-orange focus-visible:outline-2 focus-visible:outline-central-orange">
-            Detalle y aprobaciones
-            <ChevronDown size={15} className={'transition-transform duration-200 ' + (attendanceDetailsOpen ? 'rotate-180' : '')}/>
-          </button>
-          {attendanceDetailsOpen ? (
-            <div className="mt-2 space-y-3">
-              <div className="flex flex-wrap gap-3">
-                <div className="w-[170px]"><span className="mb-1 block text-[11px] text-neutral-500">Desde</span>
-                  <DatePickerField ariaLabel="Filtrar asistencias desde" maxDate={today} value={from} onChange={setFrom}/></div>
-                <div className="w-[170px]"><span className="mb-1 block text-[11px] text-neutral-500">Hasta</span>
-                  <DatePickerField ariaLabel="Filtrar asistencias hasta" maxDate={today} value={to} onChange={setTo}/></div>
-              </div>
-              <StaffTable rows={displayedAttendance} columns={attendanceColumns} getId={rowId}
-                initialSort="work_date" emptyMessage="No hay asistencias para ese período."/>
-            </div>
-          ) : null}
+      <div className={tab === 'attendance' && !loading ? 'space-y-3' : 'hidden'}>
+        <div className="flex flex-wrap items-end justify-between gap-3">
+          <div className="flex flex-wrap gap-3">
+            <div className="w-[170px]"><span className="mb-1 block text-[11px] text-neutral-500">Desde</span>
+              <DatePickerField ariaLabel="Filtrar asistencias desde" maxDate={today} value={from} onChange={setFrom}/></div>
+            <div className="w-[170px]"><span className="mb-1 block text-[11px] text-neutral-500">Hasta</span>
+              <DatePickerField ariaLabel="Filtrar asistencias hasta" maxDate={today} value={to} onChange={setTo}/></div>
+          </div>
+          <button type="button" onClick={() => setWeeklyDraft({})} disabled={!Object.keys(weeklyDraft).length}
+            className={actionClass}>Restablecer checks</button>
         </div>
+        <StaffTable rows={displayedAttendance} columns={attendanceColumns} getId={rowId}
+          minWidthClassName="min-w-[1150px]"
+          initialSort="work_date" emptyMessage="No hay asistencias para ese período."/>
+        <p className="text-[11px] text-neutral-500">
+          Los checks semanales son una vista previa: todavía no guardan ni aprueban asistencias.
+          Los días futuros y los registros aprobados o liquidados no se pueden modificar desde los checks.
+        </p>
       </div>
       <div className={tab === 'payrolls' && !loading ? '' : 'hidden'}>
         <StaffTable rows={displayedPayrolls} columns={payrollColumns} getId={rowId}
