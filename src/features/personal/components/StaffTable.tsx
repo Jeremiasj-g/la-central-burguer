@@ -6,20 +6,21 @@ import { TablePagination } from '@/shared/components/ui/TablePagination';
 
 export interface StaffColumn<T> {
   id: string;
-  title: string;
+  title: ReactNode;
   value?: (row: T) => string | number | null;
   render: (row: T) => ReactNode;
   numeric?: boolean;
 }
 
 export function StaffTable<T>({
-  rows, columns, getId, initialSort, emptyMessage = 'No hay registros para mostrar.',
+  rows, columns, getId, initialSort, emptyMessage = 'No hay registros para mostrar.', minWidthClassName = 'min-w-[740px]',
 }: {
   rows: T[];
   columns: StaffColumn<T>[];
   getId: (row: T) => string;
   initialSort?: string;
   emptyMessage?: string;
+  minWidthClassName?: string;
 }) {
   const [sortBy, setSortBy] = useState(initialSort ?? columns.find((column) => column.value)?.id ?? '');
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc');
@@ -46,7 +47,7 @@ export function StaffTable<T>({
   return (
     <section className="min-w-0 overflow-hidden rounded-[15px] border border-neutral-200/80 bg-white">
       <div className="w-full overflow-x-auto">
-        <table className="w-full min-w-[740px] border-collapse text-left text-[12px] text-neutral-700">
+        <table className={"w-full border-collapse text-left text-[12px] text-neutral-700 " + minWidthClassName}>
           <thead className="bg-[#f8f8f9] text-[11px] font-medium text-neutral-500">
             <tr>
               {columns.map((column) => (
