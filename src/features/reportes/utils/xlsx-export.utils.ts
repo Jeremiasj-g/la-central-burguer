@@ -778,3 +778,21 @@ export function exportRawDataToExcel(params: {
     `${slugifyFile(params.businessName) || 'reporte'}-base-cruda-${today}.xlsx`,
   );
 }
+
+/** Exportación simple reutilizable (sin transformar los datos financieros de origen). */
+export function exportSimpleTableToExcel(params: {
+  filename: string;
+  sheetName: string;
+  columns: { header: string; key: string; width: number; kind?: CellKind }[];
+  rows: Record<string, CellValue>[];
+}) {
+  const sheet: ExportSheet = {
+    name: params.sheetName,
+    title: '',
+    subtitle: '',
+    columns: params.columns,
+    rows: params.rows,
+  };
+  const filename = params.filename.endsWith('.xlsx') ? params.filename : params.filename + '.xlsx';
+  downloadWorkbook(buildWorkbookBytes([sheet], true), filename);
+}
