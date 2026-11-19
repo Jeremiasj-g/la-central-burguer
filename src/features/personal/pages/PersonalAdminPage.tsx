@@ -165,7 +165,7 @@ export function PersonalAdminPage() {
   function exportMovements() {
     if (!displayedPayments.length) return;
     const csv = toStaffMovementsCsv(displayedPayments,nameFor);
-    const blob = new Blob(['\\uFEFF'.replace('\\uFEFF','\uFEFF'),csv], {type:'text/csv;charset=utf-8;'});
+    const blob = new Blob(['\uFEFF', csv], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const anchor = document.createElement('a');
     anchor.href = url;
@@ -173,7 +173,7 @@ export function PersonalAdminPage() {
     document.body.appendChild(anchor);
     anchor.click();
     anchor.remove();
-    window.setTimeout(()=>URL.revokeObjectURL(url),0);
+    window.setTimeout(()=>URL.revokeObjectURL(url),1000);
   }
 
   async function showReceipt(payroll: StaffPayroll) {
