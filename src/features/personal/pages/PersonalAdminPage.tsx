@@ -13,7 +13,7 @@ import { useAdminUnsavedChanges } from '@/shared/components/layout/AdminUnsavedC
 import {
   addStaffRate, applyStaffAdvance, approveStaffAttendance, createStaffPayroll,
   readStaffDashboard, recordStaffPayment, reverseStaffAllocation, reverseStaffPayment,
-  saveStaffAttendance, saveStaffWeek, createStaffPayrollBatch,
+  saveStaffAttendance, saveStaffWeek, createStaffPayrollBatch, approveStaffWeek,
 } from '../services/staff-payroll.service';
 import { StaffEditorModal, type StaffEditor } from '../components/StaffEditorModal';
 import { StaffTable, type StaffColumn } from '../components/StaffTable';
@@ -64,8 +64,9 @@ export function PersonalAdminPage() {
   const [tab, setTab] = useState<Tab>('employees');
   const [weeklyDraft, setWeeklyDraft] = useState<AttendanceDraft>({});
   const [weekAnchor, setWeekAnchor] = useState(today);
-  const [confirmOperation, setConfirmOperation] = useState<'week' | 'batch' | null>(null);
+  const [confirmOperation, setConfirmOperation] = useState<'week' | 'batch' | 'approve' | null>(null);
   const [batchIds, setBatchIds] = useState<string[]>([]);
+  const [approvalIds, setApprovalIds] = useState<string[]>([]);
   const [paymentView, setPaymentView] = useState<'all' | 'advance' | 'payroll'>('all');
   const [employeeFilter, setEmployeeFilter] = useState('all');
   const [search, setSearch] = useState('');
@@ -186,6 +187,11 @@ export function PersonalAdminPage() {
         await saveStaffWeek(changes);
         setWeeklyDraft({});
       }, `${changes.length} asistencias guardadas. Quedan pendientes de aprobación.`);
+    } else if (operation === 'approve') {
+      const ids = [...approvalIds];
+      if (!ids.length) return;
+      await runAction(() => approveStaffWeek(ids), `${ids.length} asistencias aprobadas.`);
+      setApprovalIds([]);
     } else if (operation === 'batch') {
       const ids = [...batchIds];
       if (!ids.length) return;
@@ -400,6 +406,7 @@ export function PersonalAdminPage() {
           onWeekChange={date=>setWeekAnchor(date)}
           draft={weeklyDraft} onDraft={setWeeklyDraft} busy={busy}
           onSave={()=>setConfirmOperation('week')}
+          onApproveAll={ids=>{setApprovalIds(ids);setConfirmOperation('approve');}}
           onApprove={id=>{
             if (Object.keys(weeklyDraft).length) {
               toast.warning('Guardá o descartá los cambios de la semana antes de aprobar.');
@@ -446,10 +453,12 @@ export function PersonalAdminPage() {
       <p className="text-[11px] text-neutral-500">Versión de desarrollo: las tarifas aplican por jornada completa y día de semana. Feriados especiales, horarios parciales y automatizaciones no están habilitados.</p>
 
       <ConfirmDialog open={confirmOperation !== null}
-        title={confirmOperation==='week'?'Guardar asistencias':'Confirmar liquidaciones'}
-        theme="light" isLoading={busy} confirmLabel={confirmOperation==='week'?'Guardar registros':'Generar liquidaciones'}
+        title={confirmOperation==='week'?'Guardar asistencias':confirmOperation==='approve'?'Aprobar asistencias':'Confirmar liquidaciones'}
+        theme="light" isLoading={busy} confirmLabel={confirmOperation==='week'?'Guardar registros':confirmOperation==='approve'?'Aprobar registros':'Generar liquidaciones'}
         description={confirmOperation==='week'
           ? `Vas a guardar ${Object.keys(weeklyDraft).length} cambios de asistencia. Quedarán pendientes de aprobación; no se generará ningún pago.`
+          : confirmOperation==='approve'
+          ? `Vas a aprobar ${approvalIds.length} asistencias en una sola operación. Sus importes quedarán fijados según la tarifa vigente en cada día.`
           : `Vas a generar ${batchIds.length} liquidaciones del ${dayLabel(from)} al ${dayLabel(to)}. Esta operación fija los importes históricos y no puede deshacerse desde la interfaz.`}
         onConfirm={confirmChanges} onCancel={()=>setConfirmOperation(null)}/>
       {editor ? <StaffEditorModal draft={editor} onChange={setEditor} onClose={closeEditor}
