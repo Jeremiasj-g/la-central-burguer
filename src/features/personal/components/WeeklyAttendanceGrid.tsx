@@ -4,6 +4,7 @@ import { Fragment, useMemo, useState } from 'react';
 import { Check, ChevronDown, ChevronLeft, ChevronRight, Minus, RotateCcw } from 'lucide-react';
 import { Button } from '@/shared/components/ui/Button';
 import { TablePagination } from '@/shared/components/ui/TablePagination';
+import { StaffCheckbox } from './StaffCheckbox';
 import type { StaffAttendance, StaffEmployee, StaffPayroll, StaffPayrollLine } from '../types/staff-payroll.types';
 
 export type AttendanceDraft = Record<string, 'present' | 'absent'>;
@@ -133,12 +134,13 @@ export function WeeklyAttendanceGrid({
             <tr className="border-b border-neutral-200">
               {week.map(({day,name}) => {
                 const eligible = employees.filter(e => !disabled(e,day));
-                const all = eligible.length > 0 && eligible.every(e => getState(e,day) === 'present');
+                const selectedCount = eligible.filter(e => getState(e,day) === 'present').length;
+                const all = eligible.length > 0 && selectedCount === eligible.length;
                 return <th key={day} className="px-1 py-1 text-center">
-                  <input type="checkbox" aria-label={`Marcar todos los empleados presentes el ${name}`}
-                    title={`Marcar a todos como presentes el ${name}; al desmarcar se descarta esa selección masiva`} checked={all} disabled={!eligible.length}
-                    onChange={event => bulkDay(day,event.target.checked)}
-                    className="h-[17px] w-[17px] cursor-pointer accent-[#D88918] disabled:cursor-not-allowed disabled:opacity-40"/>
+                  <StaffCheckbox label={`Marcar todos los empleados presentes el ${name}`}
+                    title={`Marcar a todos como presentes el ${name}; desmarcar restaura la selección previa`}
+                    checked={all} mixed={selectedCount>0 && !all} disabled={!eligible.length}
+                    onChange={value=>bulkDay(day,value)}/>
                 </th>;
               })}
             </tr>
