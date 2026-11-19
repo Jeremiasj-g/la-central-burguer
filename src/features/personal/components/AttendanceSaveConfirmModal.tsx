@@ -3,6 +3,7 @@
 import { useMemo } from 'react';
 import { Button } from '@/shared/components/ui/Button';
 import { Modal } from '@/shared/components/ui/Modal';
+import { staffButtonAccent, staffButtonSecondary } from './staff-button.styles';
 import type { StaffAttendanceKind } from '../types/staff-payroll.types';
 
 interface AttendanceChange {
@@ -47,10 +48,10 @@ export function AttendanceSaveConfirmModal({
       theme="light" size="md"
       footer={
         <div className="flex flex-wrap justify-end gap-2 border-t border-neutral-100 px-3.5 py-3.5 sm:px-5 sm:py-4">
-          <Button type="button" variant="secondary" disabled={busy} onClick={onClose}>
+          <Button type="button" variant="secondary" size="sm" className={staffButtonSecondary} disabled={busy} onClick={onClose}>
             Cancelar
           </Button>
-          <Button type="button" variant="primary" disabled={busy || count === 0} onClick={onConfirm}>
+          <Button type="button" variant="primary" size="sm" className={staffButtonAccent} disabled={busy || count === 0} onClick={onConfirm}>
             {busy ? 'Guardando…' : 'Guardar registros'}
           </Button>
         </div>
