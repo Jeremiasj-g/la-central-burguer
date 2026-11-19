@@ -1,0 +1,43 @@
+name: QA Pago a empleados
+
+on:
+  push:
+    branches:
+      - feat/staff-payroll-v1-dev-20261116
+    paths:
+      - 'src/features/personal/**'
+      - 'src/features/reportes/utils/xlsx-export.utils.ts'
+      - 'tests/personal/**'
+      - 'package.json'
+      - '.github/workflows/personal-qa.yml'
+  pull_request:
+    paths:
+      - 'src/features/personal/**'
+      - 'tests/personal/**'
+      - 'package.json'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  qa-personal:
+    name: Node 22 · QA automatizado
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - name: Obtener rama
+        uses: actions/checkout@v4
+      - name: Preparar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Instalar dependencias exactas
+        run: npm ci
+      - name: Ejecutar pruebas de Pago a empleados
+        run: npm run test:personal
+      - name: Verificar TypeScript
+        run: npm run typecheck
+      - name: Verificar ESLint
+        run: npm run lint
