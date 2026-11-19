@@ -4,6 +4,7 @@ import { useMemo, useState } from 'react';
 import { AlertCircle, Check } from 'lucide-react';
 import { Button } from '@/shared/components/ui/Button';
 import { DatePickerField } from '@/shared/components/ui/DatePickerField';
+import { StaffCheckbox } from './StaffCheckbox';
 import { formatCurrency } from '@/shared/utils/format.utils';
 import type { StaffDashboard } from '../types/staff-payroll.types';
 
@@ -56,10 +57,10 @@ export function PayrollBatchReview({
         </div>
         <div className="flex flex-wrap items-end gap-2">
           <label className="w-[150px]"><span className="mb-1 block text-[11px] text-neutral-500">Desde</span>
-            <DatePickerField ariaLabel="Inicio del período" value={from} maxDate={today} onChange={value=>{setSelected([]);onFrom(value);}}/>
+            <DatePickerField ariaLabel="Inicio del período" value={from} maxDate={today} allowClear={false} onChange={value=>{setSelected([]);onFrom(value);}}/>
           </label>
           <label className="w-[150px]"><span className="mb-1 block text-[11px] text-neutral-500">Hasta</span>
-            <DatePickerField ariaLabel="Fin del período" value={to} maxDate={today} onChange={value=>{setSelected([]);onTo(value);}}/>
+            <DatePickerField ariaLabel="Fin del período" value={to} maxDate={today} allowClear={false} onChange={value=>{setSelected([]);onTo(value);}}/>
           </label>
         </div>
       </div>
@@ -69,10 +70,11 @@ export function PayrollBatchReview({
           <thead className="bg-neutral-50 text-[11px] text-neutral-500">
             <tr>
               <th scope="col" className="w-12 px-4 py-3">
-                <input type="checkbox" aria-label="Seleccionar todos los empleados elegibles"
-                  disabled={!ready.length || busy} checked={ready.length>0 && ready.every(row=>selected.includes(row.id))}
-                  onChange={event=>setSelected(event.target.checked?ready.map(row=>row.id):[])}
-                  className="h-[17px] w-[17px] accent-[#D88918]"/>
+                <StaffCheckbox label="Seleccionar todos los empleados elegibles"
+                  disabled={!ready.length || busy}
+                  checked={ready.length>0 && ready.every(row=>selected.includes(row.id))}
+                  mixed={ready.some(row=>selected.includes(row.id)) && !ready.every(row=>selected.includes(row.id))}
+                  onChange={value=>setSelected(value?ready.map(row=>row.id):[])} />
               </th>
               <th scope="col" className="px-3 py-3 text-left font-medium">Empleado</th>
               <th scope="col" className="px-3 py-3 text-right font-medium">Jornadas</th>
@@ -83,10 +85,9 @@ export function PayrollBatchReview({
           <tbody>
             {rows.map(row=><tr key={row.id} className="border-t border-neutral-100">
               <td className="px-4 py-3">
-                <input type="checkbox" aria-label={`Seleccionar ${row.name}`} disabled={!valid || !row.ready || busy}
+                <StaffCheckbox label={`Seleccionar ${row.name}`} disabled={!valid || !row.ready || busy}
                   checked={row.ready && selected.includes(row.id)}
-                  onChange={event=>setSelected(old=>event.target.checked?[...old,row.id]:old.filter(id=>id!==row.id))}
-                  className="h-[17px] w-[17px] accent-[#D88918] disabled:opacity-40"/>
+                  onChange={value=>setSelected(old=>value?[...old,row.id]:old.filter(id=>id!==row.id))}/>
               </td>
               <td className="px-3 py-3 font-medium text-neutral-900">{row.name}</td>
               <td className="px-3 py-3 text-right tabular-nums">{row.days}</td>
