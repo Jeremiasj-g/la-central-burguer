@@ -3,6 +3,7 @@
 import { Printer } from 'lucide-react';
 import { Modal } from '@/shared/components/ui/Modal';
 import { Button } from '@/shared/components/ui/Button';
+import { staffButtonAccent, staffButtonSecondary } from './staff-button.styles';
 import { formatCurrency } from '@/shared/utils/format.utils';
 import { getPayrollBalance, type StaffDashboard, type StaffPayroll } from '../types/staff-payroll.types';
 
@@ -23,8 +24,8 @@ export function PayrollReceiptModal({
   const advances = dashboard.allocations.filter(a=>a.payroll_id===payroll.id && !a.reversed_at);
   return <Modal open title="Detalle de liquidación" size="lg" theme="light" onClose={onClose}
     footer={<div className="flex flex-wrap justify-end gap-2 border-t border-neutral-100 px-4 py-3 sm:px-5">
-      <Button variant="secondary" onClick={onClose}>Cerrar</Button>
-      <Button variant="primary" onClick={()=>window.print()}><Printer size={15} className="mr-1 inline"/>Imprimir / PDF</Button>
+      <Button variant="secondary" size="sm" className={staffButtonSecondary} onClick={onClose}>Cerrar</Button>
+      <Button variant="primary" size="sm" className={staffButtonAccent} onClick={()=>window.print()}><Printer size={15} className="mr-1 inline"/>Imprimir / PDF</Button>
     </div>}>
     <style>{`@media print {
       body * { visibility: hidden !important; }
