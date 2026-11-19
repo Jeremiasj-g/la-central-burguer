@@ -18,6 +18,7 @@ Alternativas:
 
 ```bash
 npm run test:personal           # Lo mismo, sólo Pago a empleados
+npm run test:qa                 # Tests + TypeScript + ESLint en una sola ejecución
 npm run test:personal:coverage  # Informe de cobertura del ejecutor Node
 npm run typecheck               # Validación TypeScript de todo el proyecto
 npm run lint                    # ESLint de todo el proyecto
