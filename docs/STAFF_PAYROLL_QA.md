@@ -51,6 +51,25 @@ La ejecución SQL desde una conexión directa necesita el rol apropiado para sim
 
 En `central-burguer-dev` la versión inicial de `admin_staff_save_week` admitía dos elementos JSON idénticos para un mismo empleado y día. Se reprodujo mediante una transacción reversible: devolvía `count=2` en lugar de rechazar el lote. Se corrigió validando duplicados de **(employee_id, day) antes de escribir ninguna fila**, se creó la migración `supabase/migrations/20261119160000_staff_week_reject_duplicate_items.sql`, se aplicó **únicamente a DEV** y se añadió una prueba de regresión en la suite V2. La prueba posterior **pasó**, y todas las suites SQL siguieron completándose con `ROLLBACK`.
 
+## Resultado verificado en GitHub Actions — 19/11/2026
+
+**Commit de código QA:** `e6ea13630582abde4514eb00f0be0baec719f436`
+
+- ✔ **89/89 tests**, 0 fallos, 12 grupos (ejecución real en Node 22).
+- ✔ **TypeScript** con `npm run typecheck`.
+- ✔ **ESLint de Personal** con `npm run lint:personal`.
+- ✔ **Build de Vercel** exitoso en ese mismo commit.
+- ✔ **Tres suites SQL reversibles en Supabase DEV**; repetidas después de corregir el defecto de duplicados. Se añadió luego la validación de permisos de las tres RPC por lote con usuario no-admin y también pasó.
+- ✔ Las ocho tablas `staff_*` tienen **RLS habilitado** y las RPC masivas no conceden `EXECUTE` a `anon`.
+
+**Evidencias:** [GitHub Actions](https://github.com/Jeremiasj-g/la-central-burguer/actions/runs/44567703789) · [Vercel build](https://vercel.com/jeremias-projects-1e321cbe/la-central-burguer-gus/8kTfByrF7TKfmJFGtpXcUjPE3VPG).
+
+**Advertencia de seguridad:** los asesores de Supabase aún señalan varias funciones `SECURITY DEFINER` accesibles al rol `authenticated`. En este módulo son intencionales para invocar RPC, con comprobación interna de administrador y pruebas negativas de permisos, pero hay que mantener el análisis de seguridad y revisar sus cambios futuros. Esto no equivale a una certificación de seguridad.
+
+**Lint global:** el primer workflow falló al ejecutar ESLint sobre *todo* el repositorio por errores preexistentes de otros módulos y avisos de reglas React. Se corrigieron los errores identificados en Personal y en la suite; el segundo workflow (enlace anterior) pasó con lint acotado. `npm run lint` global conserva sus errores pendientes y no debe informarse como aprobado.
+
+**Pendiente para aceptación final:** pruebas de interacción completas con navegador, mobile/responsive, focus y teclado, impresión/PDF real, apertura del .xlsx en Excel y flujos multiusuario reales en DEV. Los tests SSR y de handlers no sustituyen E2E con navegador.
+
 ## Inventario de casos automatizados
 
 | Archivo | Casos | Lo que verifica |
@@ -69,11 +88,11 @@ Las pruebas SSR y de handlers son automatizadas pero **no sustituyen** interacci
 
 Para declarar la versión lista, el equipo debe confirmar:
 
-- [ ] `npm test` termina con **89 aprobados y 0 fallos**.
-- [ ] `npm run typecheck` sin errores.
-- [ ] `npm run lint` sin errores.
-- [ ] `npm run build` sin errores, con variables apropiadas.
-- [ ] `npm run test:personal:db` termina con tres suites SQL revertidas en DEV, o ejecución SQL equivalente verificada por el equipo.
+- [x] `npm test` (equivalente `npm run test:personal` en CI) termina con **89 aprobados y 0 fallos**.
+- [x] `npm run typecheck` sin errores.
+- [x] `npm run lint:personal` sin errores. (Lint global tiene errores ajenos pendientes.)
+- [x] Build Vercel para el commit QA verificado (equivalente comprobación de compilación; `npm run build` local todavía no ejecutado).
+- [x] Tres suites SQL ejecutadas y revertidas en DEV mediante conexión administrada equivalente.
 - [ ] Prueba real en escritorio y móvil de navegación de semanas, checks y estado pendiente.
 - [ ] Modal guardar por empleado: filtros, scroll, botón Cancelar, guardar, error de red y doble clic.
 - [ ] Aprobar y corregir una asistencia; comprobar que lo aprobado mantiene su tarifa snapshot.
