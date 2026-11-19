@@ -79,3 +79,37 @@ begin
  raise exception 'Una RPC de nómina es accesible por anon'; end if;
 end $test$;
 rollback;
+
+
+-- Prueba de autorización real (no-admin); no depende de la interfaz.
+begin;
+select set_config('request.jwt.claim.sub',(
+ select ur.user_id::text from public.user_roles ur
+ where not exists (
+   select 1 from public.user_roles x join public.roles r on r.id=x.role_id
+   where x.user_id=ur.user_id and r.code='admin'
+ ) limit 1
+),true);
+select set_config('request.jwt.claim.role','authenticated',true);
+set local role authenticated;
+do $deny$
+declare rejected boolean;
+begin
+ if auth.uid() is null then raise exception 'La suite requiere un usuario no-admin en DEV'; end if;
+
+ rejected:=false;
+ begin perform public.admin_staff_save_week('[]'::jsonb);
+ exception when others then rejected:=true; end;
+ if not rejected then raise exception 'No-admin puede guardar asistencias por lote'; end if;
+
+ rejected:=false;
+ begin perform public.admin_staff_approve_week(array[]::uuid[]);
+ exception when others then rejected:=true; end;
+ if not rejected then raise exception 'No-admin puede aprobar asistencias por lote'; end if;
+
+ rejected:=false;
+ begin perform public.admin_staff_create_payroll_batch(array[]::uuid[],current_date,current_date);
+ exception when others then rejected:=true; end;
+ if not rejected then raise exception 'No-admin puede liquidar por lote'; end if;
+end $deny$;
+rollback;
