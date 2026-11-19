@@ -45,6 +45,14 @@ begin
  exception when others then v_failed:=true; end;
  if not v_failed then raise exception 'Se permitió una fecha futura'; end if;
 
+ -- Two identical changes to the same employee/day must be rejected, not counted twice.
+ v_failed:=false;
+ begin perform public.admin_staff_save_week(jsonb_build_array(
+   jsonb_build_object('employee_id',v_emp,'day',v_day,'kind','present','expected_id',v_att),
+   jsonb_build_object('employee_id',v_emp,'day',v_day,'kind','present','expected_id',v_att)));
+ exception when others then v_failed:=true; end;
+ if not v_failed then raise exception 'El guardado masivo aceptó dos modificaciones idénticas de la misma jornada'; end if;
+
  v_count:=public.admin_staff_approve_week(array[v_att]);
  if v_count<>1 or not exists(select 1 from public.staff_attendance
  where id=v_att and approval_status='approved' and amount_snapshot=0) then
