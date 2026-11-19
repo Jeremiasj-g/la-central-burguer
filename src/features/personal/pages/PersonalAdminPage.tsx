@@ -20,6 +20,7 @@ import { StaffTable, type StaffColumn } from '../components/StaffTable';
 import { WeeklyAttendanceGrid, attendanceWeek, type AttendanceDraft } from '../components/WeeklyAttendanceGrid';
 import { PayrollBatchReview } from '../components/PayrollBatchReview';
 import { PayrollReceiptModal } from '../components/PayrollReceiptModal';
+import { AttendanceSaveConfirmModal } from '../components/AttendanceSaveConfirmModal';
 import { toStaffMovementsCsv } from '../utils/staff-ledger-export.utils';
 import {
   getPayrollBalance, getUnallocatedAdvance, type StaffAttendance,
@@ -370,10 +371,6 @@ export function PersonalAdminPage() {
   ];
 
   const weeklyChangeList = weeklyEntries();
-  const weeklyPreviewText = weeklyChangeList.slice(0,5)
-    .map(change => `${nameFor(change.employee_id)} · ${dayLabel(change.day)}: ${change.kind==='present'?'Presente':'Ausente'}`)
-    .join('; ');
-  const weeklyRemainder = weeklyChangeList.length>5 ? ` y ${weeklyChangeList.length-5} más.` : '.';
 
   const pendingApproval = dashboard.attendance.filter((item) => item.approval_status === 'pending').length;
   const pendingBalance = dashboard.payrolls.reduce((total, row) => total + getPayrollBalance(row.id, dashboard).pending, 0);
@@ -516,12 +513,15 @@ export function PersonalAdminPage() {
 
       <p className="text-[11px] text-neutral-500">Versión de desarrollo: las tarifas aplican por jornada completa y día de semana. Feriados especiales, horarios parciales y automatizaciones no están habilitados.</p>
 
-      <ConfirmDialog open={confirmOperation !== null}
-        title={confirmOperation==='week'?'Guardar asistencias':confirmOperation==='approve'?'Aprobar asistencias':'Confirmar liquidaciones'}
-        theme="light" isLoading={busy} confirmLabel={confirmOperation==='week'?'Guardar registros':confirmOperation==='approve'?'Aprobar registros':'Generar liquidaciones'}
-        description={confirmOperation==='week'
-          ? `Vas a guardar ${weeklyChangeList.length} cambios: ${weeklyPreviewText}${weeklyRemainder} Quedarán pendientes de aprobación y no generarán pagos.`
-          : confirmOperation==='approve'
+      <AttendanceSaveConfirmModal open={confirmOperation==='week'}
+        changes={weeklyChangeList} nameFor={nameFor} busy={busy}
+        onConfirm={()=>void confirmChanges()}
+        onClose={()=>{if(!busy)setConfirmOperation(null);}}/>
+      <ConfirmDialog open={confirmOperation==='approve' || confirmOperation==='batch'}
+        title={confirmOperation==='approve'?'Aprobar asistencias':'Confirmar liquidaciones'}
+        theme="light" isLoading={busy}
+        confirmLabel={confirmOperation==='approve'?'Aprobar registros':'Generar liquidaciones'}
+        description={confirmOperation==='approve'
           ? `Vas a aprobar ${approvalIds.length} asistencias en una sola operación. Sus importes quedarán fijados según la tarifa vigente en cada día.`
           : `Vas a generar ${batchIds.length} liquidaciones del ${dayLabel(from)} al ${dayLabel(to)}. Esta operación fija los importes históricos y no puede deshacerse desde la interfaz.`}
         onConfirm={confirmChanges} onCancel={()=>{if(!busy)setConfirmOperation(null);}}/>
