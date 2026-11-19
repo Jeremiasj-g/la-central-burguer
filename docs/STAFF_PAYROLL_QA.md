@@ -39,11 +39,15 @@ npm run test:personal:db
 El runner ejecuta por orden:
 1. `supabase/tests/20261116_staff_payroll_v1.sql` — tarifas sábado/domingo, correcciones y auditoría, pagos y anticipos, dobles importes, idempotencia, sobrepagos, reversiones, sincronización de rol y denegación de no-admin.
 2. `supabase/tests/20261116_staff_factual_dates.sql` — fechas futuras de asistencia, pagos, liquidación y aprobación.
-3. `supabase/tests/20261119_staff_payroll_v2.sql` — guardado semanal, snapshot obsoleto, fechas futuras, aprobación masiva, ausencia a $0, lote de liquidaciones, protección de períodos liquidados y RPC sin permiso anónimo.
+3. `supabase/tests/20261119_staff_payroll_v2.sql` — guardado semanal, snapshot obsoleto, fechas futuras, **rechazo de cambios duplicados idénticos sobre un mismo empleado/día**, aprobación masiva, ausencia a $0, lote de liquidaciones, protección de períodos liquidados y RPC sin permiso anónimo.
 
 Los tres archivos usan transacciones con `BEGIN` y `ROLLBACK`. **No** usar este comando contra producción; no agregar credenciales ni contraseñas a Git. El comando corta inmediatamente ante el primer error y confirma en consola que observó `ROLLBACK`.
 
 La ejecución SQL desde una conexión directa necesita el rol apropiado para simular los JWT de prueba y tener al menos un usuario administrador y un empleado habilitado. Si la base no tiene los fixtures requeridos, fallará con una explicación; no se crearán datos persistentes para forzar el pase.
+
+## Hallazgo real y corrección durante QA
+
+En `central-burguer-dev` la versión inicial de `admin_staff_save_week` admitía dos elementos JSON idénticos para un mismo empleado y día. Se reprodujo mediante una transacción reversible: devolvía `count=2` en lugar de rechazar el lote. Se corrigió validando duplicados de **(employee_id, day) antes de escribir ninguna fila**, se creó la migración `supabase/migrations/20261119160000_staff_week_reject_duplicate_items.sql`, se aplicó **únicamente a DEV** y se añadió una prueba de regresión en la suite V2. La prueba posterior **pasó**, y todas las suites SQL siguieron completándose con `ROLLBACK`.
 
 ## Inventario de casos automatizados
 
