@@ -5,6 +5,9 @@ import { Check, ChevronDown, ChevronLeft, ChevronRight, Minus, RotateCcw } from 
 import { Button } from '@/shared/components/ui/Button';
 import { TablePagination } from '@/shared/components/ui/TablePagination';
 import { StaffCheckbox } from './StaffCheckbox';
+import {
+  staffButtonAccent, staffButtonSecondary, staffButtonTable, staffButtonIcon,
+} from './staff-button.styles';
 import type { StaffAttendance, StaffEmployee, StaffPayroll, StaffPayrollLine } from '../types/staff-payroll.types';
 
 export type AttendanceDraft = Record<string, 'present' | 'absent'>;
@@ -106,16 +109,16 @@ export function WeeklyAttendanceGrid({
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <button type="button" aria-label="Semana anterior" disabled={busy || keys.length>0} onClick={()=>moveWeek(-1)}
-            className="grid h-9 w-9 place-items-center rounded-[9px] border border-neutral-200 text-neutral-600 disabled:opacity-40"><ChevronLeft size={15}/></button>
+            className={staffButtonIcon}><ChevronLeft size={15}/></button>
           <button type="button" aria-label="Semana siguiente" disabled={busy || keys.length>0 || !canNext} onClick={()=>moveWeek(1)}
-            className="grid h-9 w-9 place-items-center rounded-[9px] border border-neutral-200 text-neutral-600 disabled:opacity-40"><ChevronRight size={15}/></button>
+            className={staffButtonIcon}><ChevronRight size={15}/></button>
           <button type="button" disabled={busy || !keys.length} onClick={() => onDraft({})}
-            className="inline-flex items-center gap-1.5 rounded-[9px] border border-neutral-200 px-3 py-2 text-[11px] font-medium text-neutral-600 transition-colors duration-200 hover:bg-neutral-50 disabled:opacity-40">
+            className={staffButtonSecondary}>
             <RotateCcw size={13}/> Descartar
           </button>
-          <Button variant="secondary" disabled={busy || keys.length>0 || !pendingIds.length}
+          <Button variant="secondary" size="sm" className={staffButtonSecondary} disabled={busy || keys.length>0 || !pendingIds.length}
             onClick={()=>onApproveAll(pendingIds)}>Aprobar pendientes ({pendingIds.length})</Button>
-          <Button variant="primary" disabled={busy || !keys.length} onClick={onSave}>
+          <Button variant="primary" size="sm" className={staffButtonAccent} disabled={busy || !keys.length} onClick={onSave}>
             {busy ? 'Guardando…' : `Revisar y guardar (${keys.length})`}
           </Button>
         </div>
@@ -183,7 +186,7 @@ export function WeeklyAttendanceGrid({
                   <td className="px-3 py-2 text-right">
                     <button type="button" aria-expanded={expanded===employee.id}
                       onClick={() => setExpanded(prev=>prev===employee.id?null:employee.id)}
-                      className="inline-flex items-center gap-1 rounded px-2 py-1.5 text-[11px] text-neutral-600 hover:text-central-orange focus-visible:outline-2 focus-visible:outline-central-orange">
+                      className={staffButtonTable}>
                       Ver <ChevronDown size={14} className={expanded===employee.id ? 'rotate-180':''}/>
                     </button>
                   </td>
@@ -200,9 +203,9 @@ export function WeeklyAttendanceGrid({
                         <span className="tabular-nums">{row.amount_snapshot==null?'Sin importe aprobado':new Intl.NumberFormat('es-AR',{style:'currency',currency:'ARS'}).format(Number(row.amount_snapshot))}</span>
                         {!settled.has(row.id) && <span className="ml-auto flex gap-2">
                           {row.approval_status==='pending' && row.work_date<=today &&
-                            <button type="button" disabled={busy} onClick={()=>onApprove(row.id)} className="rounded border border-neutral-200 bg-white px-2 py-1 hover:border-central-orange">Aprobar</button>}
+                            <button type="button" disabled={busy} onClick={()=>onApprove(row.id)} className={staffButtonTable}>Aprobar</button>}
                           <button type="button" disabled={busy || row.work_date>today} onClick={()=>onCorrect(row)}
-                            className="rounded border border-neutral-200 bg-white px-2 py-1 hover:border-central-orange">Corregir</button>
+                            className={staffButtonTable}>Corregir</button>
                         </span>}
                       </div>)
                       : <p className="py-2 text-[11px] text-neutral-500">Todavía no hay asistencias registradas esta semana.</p>}
