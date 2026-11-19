@@ -129,7 +129,7 @@ export function StaffEditorModal({
               </Field>
             </div>
             <Field label="Observaciones">
-              <Textarea rows={2} value={draft.notes} placeholder="Detalle de la liquidación" className={controlClass + ' !h-auto !py-3'} placeholder="Detalle del registro"
+              <Textarea rows={2} value={draft.notes} placeholder="Detalle de la liquidación" className={controlClass + ' !h-auto !py-3'}
                 onChange={(event) => onChange({ ...draft, notes: event.target.value })}/>
             </Field>
             <p className="text-[12px] text-amber-700">La liquidación fija los importes de las asistencias aprobadas y no se puede editar después. No incluye feriados especiales ni jornadas parciales.</p>
@@ -143,13 +143,13 @@ export function StaffEditorModal({
             ) : employeeSelector(draft.employeeId, (value) => onChange({ ...draft, employeeId: value }))}
             <Field label="Importe entregado">
               <NumericInput kind="money" value={draft.amount} min={0.01} onValueChange={(value) => onChange({ ...draft, amount: value })}
-                className={controlClass} placeholder="0"/>
+                className={controlClass} placeholder="Ej.: 2500,50"/>
             </Field>
             <Field label="Fecha de pago">
               <DatePickerField ariaLabel="Fecha del pago" maxDate={today} value={draft.day} onChange={(value) => onChange({ ...draft, day: value })}/>
             </Field>
             <Field label="Observaciones">
-              <Textarea rows={2} value={draft.notes} className={controlClass + ' !h-auto !py-3'}
+              <Textarea rows={2} value={draft.notes} placeholder="Detalle del pago" className={controlClass + ' !h-auto !py-3'}
                 onChange={(event) => onChange({ ...draft, notes: event.target.value })}/>
             </Field>
             <p className="text-[12px] text-neutral-500">Registrá únicamente dinero efectivamente entregado. No se puede superar el saldo.</p>
@@ -166,7 +166,7 @@ export function StaffEditorModal({
             </Field>
             <Field label="Importe a aplicar">
               <NumericInput kind="money" min={0.01} value={draft.amount} onValueChange={(value) => onChange({ ...draft, amount: value })}
-                className={controlClass} placeholder="0"/>
+                className={controlClass} placeholder="Ej.: 2500,50"/>
             </Field>
             <p className="text-[12px] text-neutral-500">Aplicar un anticipo descuenta el saldo, pero no registra una nueva salida de dinero.</p>
           </>
