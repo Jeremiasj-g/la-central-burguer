@@ -12,7 +12,7 @@ La identidad proviene de los perfiles de Usuarios con rol `staff`; no se crean e
 4. **Aprobaciones:** pueden aprobarse individualmente o por semana, con confirmación. `admin_staff_approve_week(uuid[])` utiliza la RPC de aprobación existente y revierte todo el lote ante cualquier error. El snapshot del importe se fija al aprobar.
 5. **Liquidaciones:** el administrador elige período (máximo 93 días) y revisa por empleado jornadas aprobadas, importes y bloqueos por pendientes, falta de aprobadas o períodos solapados. Puede liquidar individualmente o seleccionar a los elegibles para `admin_staff_create_payroll_batch(uuid[],date,date)`. Todo el lote es atómico. Días sin registrar **no se suponen** como ausencias ni como presentes; requieren gestión humana.
 6. **Anticipos y pagos:** se diferencian mediante un filtro dentro de Pagos. Cada anticipo puede aplicarse explícitamente a una liquidación y se descuenta de su saldo; una aplicación no representa una nueva salida de dinero. Reversiones con motivo y conservación del historial.
-7. **Movimientos y reportes:** en Pagos se filtra por anticipos, pagos de liquidación o todos; se visualiza la cantidad y el importe entregado según el filtro, y se pueden exportar movimientos a CSV para Excel. El CSV identifica registros revertidos y neutraliza fórmulas en campos de texto.
+7. **Movimientos y reportes:** en Pagos se filtra por anticipos, pagos de liquidación o todos; se visualiza la cantidad y el importe entregado según el filtro, y se pueden exportar los movimientos filtrados a un archivo Excel real (.xlsx), reutilizando el generador de libros de Reportes. Se conservan identificadores, estados revertidos y observaciones, y los importes permanecen numéricos.
 8. **Comprobante interno:** en una liquidación, botón `Comprobante`: carga el período histórico, muestra jornadas e importes snapshot, pagos, anticipos y saldo. `Imprimir / PDF` abre el diálogo del navegador para imprimir o guardar como PDF. **No es un recibo laboral legal ni acredita una transferencia.**
 
 ## Migraciones versionadas V2
@@ -35,6 +35,12 @@ Estas migraciones fueron aplicadas a `central-burguer-dev`. Se conservan las tab
 
 La suite SQL pasó en desarrollo y revirtió sus operaciones. Aún quedan por ejecutar localmente `typecheck`, `lint`, `build` y revisión visual real en escritorio/móvil; no confundir pruebas SQL con aceptación completa de frontend.
 
+## Estándar visual aplicado
+
+- Botones del módulo compactos, referencia a Productos y Reportes: altura 36 px, radio 11 px, tipografía 12 px.
+- Acciones principales de cabecera en carbón; guardar y confirmar en naranja; secundarios claros, y exportación Excel verde, igual a Reportes.
+- Estilos reutilizables locales en `src/features/personal/components/staff-button.styles.ts`, sin alterar el botón compartido global de otras secciones.
+
 ## Recorrido manual de aceptación
 
 1. Abrir `/admin/personal` con administrador y comprobar los empleados vinculados a Usuarios.
@@ -44,7 +50,7 @@ La suite SQL pasó en desarrollo y revirtió sus operaciones. Aún quedan por ej
 5. Ir a Liquidaciones. Seleccionar período, observar incidencias, seleccionar elegibles y confirmar lote. Comprobar que no se duplican liquidaciones ni jornadas.
 6. Registrar anticipo, aplicar a una liquidación, registrar pago parcial, comprobar saldo y revertir con motivo.
 7. Abrir Comprobante, comprobar importes históricos y probar Imprimir / PDF.
-8. Filtrar anticipos/pagos, comprobar totales y exportar CSV. Verificar comillas, separadores, acentos y campos maliciosos tipo fórmula.
+8. Filtrar anticipos/pagos, comprobar totales y descargar .xlsx. Verificar que se abra en Excel, respete los filtros, los importes numéricos, las tildes y que las observaciones se mantengan como texto.
 9. Probar sin rol de administrador y con datos concurrentes; las operaciones deben rechazarse sin cambios parciales.
 
 ## Límites explícitos
