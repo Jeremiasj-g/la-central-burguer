@@ -74,3 +74,6 @@ export const createStaffPayrollBatch = (ids: string[], fromDay: string, toDay: s
   staffRpc<{ employee_id: string; payroll_id: string }[]>('admin_staff_create_payroll_batch', {
     employee_uuids: ids, from_day: fromDay, to_day: toDay,
   });
+
+export const approveStaffWeek = (ids: string[]) =>
+  staffRpc<number>('admin_staff_approve_week', { attendance_uuids: ids });
