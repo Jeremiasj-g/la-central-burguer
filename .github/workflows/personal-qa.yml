@@ -40,8 +40,8 @@ jobs:
         run: npm run test:personal
       - name: Verificar TypeScript
         run: npm run typecheck
-      - name: Verificar ESLint
-        run: npm run lint
+      - name: Verificar ESLint de Pago a empleados
+        run: npm run lint:personal
       - name: Publicar estado visible de QA del commit
         if: always() && github.event_name != 'pull_request'
         uses: actions/github-script@v7
