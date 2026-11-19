@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-require-imports -- Node tests and CLI scripts intentionally use CommonJS. */
 'use strict';
 /*
  * Uso voluntario (únicamente DEV):
