@@ -5,6 +5,7 @@ import { AlertCircle, Check } from 'lucide-react';
 import { Button } from '@/shared/components/ui/Button';
 import { DatePickerField } from '@/shared/components/ui/DatePickerField';
 import { StaffCheckbox } from './StaffCheckbox';
+import { staffButtonAccent } from './staff-button.styles';
 import { formatCurrency } from '@/shared/utils/format.utils';
 import type { StaffDashboard } from '../types/staff-payroll.types';
 
@@ -105,7 +106,7 @@ export function PayrollBatchReview({
       </div>
       <div className="flex flex-wrap items-center justify-between gap-3 border-t border-neutral-100 px-4 py-3 sm:px-5">
         <p className="text-[11px] text-neutral-500">{blocked.length} con incidencias · {ready.length} elegible(s) · {chosen.length} seleccionado(s) · {formatCurrency(chosen.reduce((sum,r)=>sum+r.gross,0))}</p>
-        <Button variant="primary" disabled={busy || !valid || !chosen.length} onClick={()=>onBatch(chosen.map(row=>row.id))}>
+        <Button variant="primary" size="sm" className={staffButtonAccent} disabled={busy || !valid || !chosen.length} onClick={()=>onBatch(chosen.map(row=>row.id))}>
           Liquidar seleccionados
         </Button>
       </div>
