@@ -19,6 +19,7 @@ import { StaffEditorModal, type StaffEditor } from '../components/StaffEditorMod
 import { StaffTable, type StaffColumn } from '../components/StaffTable';
 import { WeeklyAttendanceGrid, attendanceWeek, type AttendanceDraft } from '../components/WeeklyAttendanceGrid';
 import { PayrollBatchReview } from '../components/PayrollBatchReview';
+import { PayrollReceiptModal } from '../components/PayrollReceiptModal';
 import {
   getPayrollBalance, getUnallocatedAdvance, type StaffAttendance,
   type StaffDashboard, type StaffEmployee, type StaffPayment, type StaffPayroll,
@@ -76,6 +77,7 @@ export function PersonalAdminPage() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [editor, setEditor] = useState<StaffEditor | null>(null);
+  const [receipt, setReceipt] = useState<{payroll:StaffPayroll; data:StaffDashboard}|null>(null);
   const editorInitial = useRef('');
   const dirty = Boolean(editor && JSON.stringify(editor) !== editorInitial.current)
     || Object.keys(weeklyDraft).length > 0;
@@ -136,6 +138,19 @@ export function PersonalAdminPage() {
       refresh();
     } catch (caught) {
       toast.error(caught instanceof Error ? caught.message : 'No se pudo completar la operación.');
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function showReceipt(payroll: StaffPayroll) {
+    if (busy) return;
+    setBusy(true);
+    try {
+      const detail = await readStaffDashboard(payroll.period_from, payroll.period_to);
+      setReceipt({ payroll, data: detail });
+    } catch (caught) {
+      toast.error(caught instanceof Error ? caught.message : 'No se pudo abrir el comprobante.');
     } finally {
       setBusy(false);
     }
@@ -282,6 +297,8 @@ export function PersonalAdminPage() {
         <button type="button" className={actionClass} disabled={due <= 0} onClick={() => newPayment(row)}>Pagar</button>
         <button type="button" className={actionClass} disabled={due <= 0 || !advanceAvailable}
           onClick={() => newAllocation(row)}>Aplicar anticipo</button>
+        <button type="button" className={actionClass} disabled={busy}
+          onClick={() => void showReceipt(row)}>Comprobante</button>
       </div>;
     } },
   ];
@@ -461,6 +478,9 @@ export function PersonalAdminPage() {
           ? `Vas a aprobar ${approvalIds.length} asistencias en una sola operación. Sus importes quedarán fijados según la tarifa vigente en cada día.`
           : `Vas a generar ${batchIds.length} liquidaciones del ${dayLabel(from)} al ${dayLabel(to)}. Esta operación fija los importes históricos y no puede deshacerse desde la interfaz.`}
         onConfirm={confirmChanges} onCancel={()=>setConfirmOperation(null)}/>
+      {receipt ? <PayrollReceiptModal payroll={receipt.payroll} dashboard={receipt.data}
+        employeeName={receipt.data.employees.find(e=>e.id===receipt.payroll.employee_id)?.full_name ?? 'Empleado'}
+        onClose={()=>setReceipt(null)} /> : null}
       {editor ? <StaffEditorModal draft={editor} onChange={setEditor} onClose={closeEditor}
         onSave={() => void saveEditor()} busy={busy} dashboard={dashboard}/> : null}
     </div>
