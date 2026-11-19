@@ -67,7 +67,7 @@ export function PayrollBatchReview({
       {!valid ? <p role="alert" className="px-5 py-3 text-[12px] text-red-600">Seleccioná un período válido de hasta 93 días, sin fechas futuras.</p> : null}
       <div className="overflow-x-auto">
         <table className="w-full min-w-[640px] text-[12px] text-neutral-700">
-          <thead className="bg-neutral-50 text-[11px] text-neutral-500">
+          <thead className="bg-central-orange/10 text-[11px] text-neutral-600">
             <tr>
               <th scope="col" className="w-12 px-4 py-3">
                 <StaffCheckbox label="Seleccionar todos los empleados elegibles"
