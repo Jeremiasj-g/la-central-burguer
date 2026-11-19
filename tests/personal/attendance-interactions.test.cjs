@@ -2,7 +2,7 @@
 const {test,describe}=require('node:test');
 const assert=require('node:assert/strict');
 const {loadSource}=require('./helpers/load-source.cjs');
-const {employee,attendance,payroll,line}=require('./helpers/fixtures.cjs');
+const {employee,attendance,payroll}=require('./helpers/fixtures.cjs');
 
 // Modelo de elementos JSX: inspecciona callbacks de la UI real, sin browser ni mocks de reglas.
 const h=(type,props,key)=>({type,props:props??{},key});
