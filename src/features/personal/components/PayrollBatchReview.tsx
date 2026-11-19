@@ -67,10 +67,10 @@ export function PayrollBatchReview({
       {!valid ? <p role="alert" className="px-5 py-3 text-[12px] text-red-600">Seleccioná un período válido de hasta 93 días, sin fechas futuras.</p> : null}
       <div className="overflow-x-auto">
         <table className="w-full min-w-[640px] text-[12px] text-neutral-700">
-          <thead className="bg-[#EDF0F3] text-[11px] text-neutral-600">
+          <thead className="bg-central-orange text-[11px] text-white">
             <tr>
               <th scope="col" className="w-12 px-4 py-3">
-                <StaffCheckbox label="Seleccionar todos los empleados elegibles"
+                <StaffCheckbox onOrange label="Seleccionar todos los empleados elegibles"
                   disabled={!ready.length || busy}
                   checked={ready.length>0 && ready.every(row=>selected.includes(row.id))}
                   mixed={ready.some(row=>selected.includes(row.id)) && !ready.every(row=>selected.includes(row.id))}
