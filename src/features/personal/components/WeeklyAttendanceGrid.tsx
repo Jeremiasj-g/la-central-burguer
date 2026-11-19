@@ -33,11 +33,12 @@ interface Props {
   onDraft: (next: AttendanceDraft) => void;
   onSave: () => void;
   onApprove: (id: string) => void;
+  onApproveAll: (ids: string[]) => void;
   onCorrect: (row: StaffAttendance) => void;
   busy: boolean;
 }
 export function WeeklyAttendanceGrid({
-  employees, attendance, lines, payrolls, today, weekAnchor, onWeekChange, draft, onDraft, onSave, onApprove, onCorrect, busy,
+  employees, attendance, lines, payrolls, today, weekAnchor, onWeekChange, draft, onDraft, onSave, onApprove, onApproveAll, onCorrect, busy,
 }: Props) {
   const week = useMemo(() => attendanceWeek(weekAnchor), [weekAnchor]);
   const moveWeek = (offset: number) => {
@@ -56,6 +57,13 @@ export function WeeklyAttendanceGrid({
   const pageSafe = Math.min(page, Math.max(1, Math.ceil(employees.length / PAGE_SIZE)));
   const visible = employees.slice((pageSafe - 1) * PAGE_SIZE, pageSafe * PAGE_SIZE);
   const keys = Object.keys(draft);
+  const pendingIds = attendance.filter(a =>
+    a.approval_status === 'pending' && a.work_date <= today
+    && week.some(w=>w.day===a.work_date)
+    && employees.some(e=>e.id===a.employee_id)
+    && !settled.has(a.id)
+    && !payrolls.some(p=>p.employee_id===a.employee_id && a.work_date>=p.period_from && a.work_date<=p.period_to)
+  ).map(a=>a.id);
   const getState = (employee: StaffEmployee, day: string) => {
     const key = attendanceKey(employee.id, day);
     return draft[key] ?? byKey.get(key)?.attendance_kind ?? null;
@@ -104,6 +112,8 @@ export function WeeklyAttendanceGrid({
             className="inline-flex items-center gap-1.5 rounded-[9px] border border-neutral-200 px-3 py-2 text-[11px] font-medium text-neutral-600 transition-colors duration-200 hover:bg-neutral-50 disabled:opacity-40">
             <RotateCcw size={13}/> Descartar
           </button>
+          <Button variant="secondary" disabled={busy || keys.length>0 || !pendingIds.length}
+            onClick={()=>onApproveAll(pendingIds)}>Aprobar pendientes ({pendingIds.length})</Button>
           <Button variant="primary" disabled={busy || !keys.length} onClick={onSave}>
             {busy ? 'Guardando…' : `Revisar y guardar (${keys.length})`}
           </Button>
