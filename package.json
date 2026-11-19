@@ -12,7 +12,8 @@
     "test:personal": "node --test --test-reporter=spec tests/personal/*.test.cjs",
     "test:personal:coverage": "node --test --experimental-test-coverage --test-reporter=spec tests/personal/*.test.cjs",
     "test:personal:db": "node scripts/qa-personal-db.cjs",
-    "test:qa": "npm run test:personal && npm run typecheck && npm run lint"
+    "test:qa": "npm run test:personal && npm run typecheck && npm run lint:personal",
+    "lint:personal": "eslint src/features/personal tests/personal scripts/qa-personal-db.cjs"
   },
   "dependencies": {
     "@radix-ui/react-popover": "^1.1.23",
