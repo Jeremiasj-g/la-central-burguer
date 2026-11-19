@@ -88,9 +88,27 @@ export function PersonalAdminPage() {
     setLoading(true);
     // Include the selected attendance week alongside the payroll preview period.
     const days = attendanceWeek(weekAnchor);
-    const start = from < days[0].day ? from : days[0].day;
-    const end = to > days[6].day ? to : days[6].day;
-    readStaffDashboard(start, end).then((result) => {
+    const weekFrom = days[0].day;
+    const weekTo = days[6].day;
+    // A cleared/invalid preview range must not break the weekly attendance lookup.
+    const validPeriod = from.length===10 && to.length===10 && from<=to;
+    const periodFrom = validPeriod ? from : weekFrom;
+    const periodTo = validPeriod ? to : weekTo;
+    const start = periodFrom < weekFrom ? periodFrom : weekFrom;
+    const end = periodTo > weekTo ? periodTo : weekTo;
+    const spanDays = Math.round((Date.parse(end+'T12:00:00Z')-Date.parse(start+'T12:00:00Z'))/86400000);
+    const request = spanDays <= 366
+      ? readStaffDashboard(start,end)
+      : Promise.all([
+          readStaffDashboard(periodFrom,periodTo),
+          readStaffDashboard(weekFrom,weekTo),
+        ]).then(([period,weekly]) => ({
+          ...period,
+          attendance: Array.from(new Map(
+            [...period.attendance,...weekly.attendance].map(a=>[a.id,a])
+          ).values()),
+        }));
+    request.then((result) => {
       if (!active) return;
       setDashboard(result);
       setError('');
