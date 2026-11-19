@@ -45,7 +45,7 @@ export function PayrollReceiptModal({
       <div>
         <p className="mb-2 font-semibold">Jornadas liquidadas</p>
         <table className="w-full border-collapse text-[12px]">
-          <thead className="border-y border-neutral-200 text-left text-neutral-500"><tr>
+          <thead className="border-y border-neutral-200 bg-central-orange/10 text-left text-neutral-600"><tr>
             <th className="py-2 font-medium">Fecha</th>
             <th className="py-2 font-medium">Registro</th>
             <th className="py-2 text-right font-medium">Tarifa aplicada</th>
