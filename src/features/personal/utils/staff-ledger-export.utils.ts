@@ -1,18 +1,34 @@
 import type { StaffPayment } from '../types/staff-payroll.types';
+import { exportSimpleTableToExcel } from '@/features/reportes/utils/xlsx-export.utils';
 
-// Escapar celdas y neutralizar fórmulas al abrir el CSV en Excel.
-function csvCell(value: string | number | null | undefined) {
-  const text = String(value ?? '');
-  const escaped = /^[=+@\-\t\r]/.test(text.trimStart()) ? '\'' + text : text;
-  return '"' + escaped.replace(/"/g, '""') + '"';
-}
-export function toStaffMovementsCsv(payments: StaffPayment[], employeeName: (id:string)=>string) {
-  const columns = ['ID','Fecha','Empleado','Tipo','Importe ARS','Estado','Liquidación ID','Observaciones','Motivo reversión'];
-  const rows = payments.map(p => [
-    p.id, p.paid_on, employeeName(p.employee_id),
-    p.payment_kind === 'advance' ? 'Anticipo' : 'Pago de liquidación',
-    Number(p.amount), p.reversed_at ? 'Revertido' : 'Registrado',
-    p.payroll_id ?? '', p.notes ?? '', p.reversal_reason ?? '',
-  ]);
-  return [columns,...rows].map(row=>row.map(csvCell).join(';')).join('\r\n') + '\r\n';
+/** Excel real: mismos importes históricos, filtro y estado de reversión de la tabla. */
+export function exportStaffMovementsExcel(
+  payments: StaffPayment[], employeeName: (id: string) => string, filename: string,
+) {
+  exportSimpleTableToExcel({
+    filename,
+    sheetName: 'Movimientos personal',
+    columns: [
+      { key: 'id', header: 'ID', width: 39 },
+      { key: 'fecha', header: 'Fecha', width: 16 },
+      { key: 'empleado', header: 'Empleado', width: 32 },
+      { key: 'tipo', header: 'Tipo', width: 23 },
+      { key: 'importe', header: 'Importe ARS', width: 19, kind: 'currency' },
+      { key: 'estado', header: 'Estado', width: 16 },
+      { key: 'liquidacion', header: 'Liquidación ID', width: 39 },
+      { key: 'observaciones', header: 'Observaciones', width: 44 },
+      { key: 'reversion', header: 'Motivo reversión', width: 42 },
+    ],
+    rows: payments.map(payment => ({
+      id: payment.id,
+      fecha: payment.paid_on,
+      empleado: employeeName(payment.employee_id),
+      tipo: payment.payment_kind === 'advance' ? 'Anticipo' : 'Pago de liquidación',
+      importe: Number(payment.amount),
+      estado: payment.reversed_at ? 'Revertido' : 'Registrado',
+      liquidacion: payment.payroll_id ?? '',
+      observaciones: payment.notes ?? '',
+      reversion: payment.reversal_reason ?? '',
+    })),
+  });
 }
