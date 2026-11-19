@@ -48,20 +48,20 @@ export function StaffTable<T>({
     <section className="min-w-0 overflow-hidden rounded-[15px] border border-neutral-200/80 bg-white">
       <div className="w-full overflow-x-auto">
         <table className={"w-full border-collapse text-left text-[12px] text-neutral-700 " + minWidthClassName}>
-          <thead className="bg-central-orange text-[11px] font-medium text-white">
+          <thead className="bg-[#F3F4F6] text-[11px] font-medium text-neutral-600">
             <tr>
               {columns.map((column) => (
                 <th key={column.id} scope="col"
                   aria-sort={column.value ? sortBy === column.id ? sortDir === 'asc' ? 'ascending' : 'descending' : 'none' : undefined}
-                  className={'border-b border-white/20 px-4 py-3 font-medium ' + (column.numeric ? 'text-right' : 'text-left')}>
+                  className={'border-b border-neutral-200/75 px-4 py-3 font-medium ' + (column.numeric ? 'text-right' : 'text-left')}>
                   {column.value ? (
                     <button type="button" onClick={() => {
                       if (sortBy === column.id) setSortDir((current) => current === 'asc' ? 'desc' : 'asc');
                       else { setSortBy(column.id); setSortDir('asc'); }
                       setPage(1);
-                    }} className="inline-flex items-center gap-1.5 rounded text-inherit transition-colors duration-200 hover:text-white/75 focus-visible:outline-2 focus-visible:outline-white">
+                    }} className="inline-flex items-center gap-1.5 rounded text-inherit transition-colors duration-200 hover:text-neutral-950 focus-visible:outline-2 focus-visible:outline-central-orange">
                       {column.title}
-                      {sortBy === column.id ? sortDir === 'asc' ? <ArrowUp size={13}/> : <ArrowDown size={13}/> : <ArrowDownUp size={13} className="text-white/75"/>}
+                      {sortBy === column.id ? sortDir === 'asc' ? <ArrowUp size={13}/> : <ArrowDown size={13}/> : <ArrowDownUp size={13} className="text-neutral-400"/>}
                     </button>
                   ) : column.title}
                 </th>
