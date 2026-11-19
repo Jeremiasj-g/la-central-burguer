@@ -122,7 +122,7 @@ export function WeeklyAttendanceGrid({
       </div>
       <div className="overflow-x-auto">
         <table className="w-full min-w-[820px] border-collapse text-[12px] text-neutral-700">
-          <thead className="bg-central-orange/10 text-[11px] font-medium text-neutral-600">
+          <thead className="bg-[#EDF0F3] text-[11px] font-medium text-neutral-600">
             <tr className="border-b border-neutral-200">
               <th scope="col" rowSpan={2} className="min-w-[210px] px-4 py-3 text-left font-medium sm:px-5">Empleado</th>
               {week.map(({name,day}) => <th key={day} scope="col" className="px-1.5 py-2 text-center font-medium">
