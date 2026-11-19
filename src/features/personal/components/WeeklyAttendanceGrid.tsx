@@ -87,9 +87,9 @@ export function WeeklyAttendanceGrid({
     const next = { ...draft };
     employees.filter(employee => !disabled(employee, day)).forEach(employee => {
       const key = attendanceKey(employee.id, day);
-      const kind = checked ? 'present' : 'absent';
-      if (byKey.get(key)?.attendance_kind === kind) delete next[key];
-      else next[key] = kind;
+      // Desmarcar el encabezado restaura la selección previa: no crea ausencias masivas.
+      if (!checked || byKey.get(key)?.attendance_kind === 'present') delete next[key];
+      else next[key] = 'present';
     });
     onDraft(next);
   };
@@ -136,7 +136,7 @@ export function WeeklyAttendanceGrid({
                 const all = eligible.length > 0 && eligible.every(e => getState(e,day) === 'present');
                 return <th key={day} className="px-1 py-1 text-center">
                   <input type="checkbox" aria-label={`Marcar todos los empleados presentes el ${name}`}
-                    title={`Marcar o desmarcar a todos el ${name}`} checked={all} disabled={!eligible.length}
+                    title={`Marcar a todos como presentes el ${name}; al desmarcar se descarta esa selección masiva`} checked={all} disabled={!eligible.length}
                     onChange={event => bulkDay(day,event.target.checked)}
                     className="h-[17px] w-[17px] cursor-pointer accent-[#D88918] disabled:cursor-not-allowed disabled:opacity-40"/>
                 </th>;
