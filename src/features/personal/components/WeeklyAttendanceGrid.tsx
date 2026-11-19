@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { Fragment, useMemo, useState } from 'react';
 import { Check, ChevronDown, Minus, RotateCcw } from 'lucide-react';
 import { Button } from '@/shared/components/ui/Button';
 import { TablePagination } from '@/shared/components/ui/TablePagination';
@@ -120,8 +120,8 @@ export function WeeklyAttendanceGrid({
           <tbody>
             {visible.map(employee => {
               const weeklyRows = week.map(w => byKey.get(attendanceKey(employee.id,w.day))).filter((r): r is StaffAttendance => Boolean(r));
-              return <tbody key={employee.id} className="border-b border-neutral-100 last:border-0">
-                <tr className="transition-colors duration-200 hover:bg-neutral-50/60">
+              return <Fragment key={employee.id}>
+                <tr className="border-b border-neutral-100 transition-colors duration-200 hover:bg-neutral-50/60">
                   <th scope="row" className="px-4 py-3 text-left font-medium text-neutral-900 sm:px-5">
                     {employee.full_name}
                     {!employee.active ? <span className="block text-[10px] font-normal text-neutral-400">Inactivo</span> : null}
@@ -180,7 +180,7 @@ export function WeeklyAttendanceGrid({
                       : <p className="py-2 text-[11px] text-neutral-500">Todavía no hay asistencias registradas esta semana.</p>}
                   </div>
                 </td></tr> : null}
-              </tbody>;
+              </Fragment>;
             })}
             {!employees.length && <tr><td colSpan={9} className="px-4 py-12 text-center text-neutral-500">No hay empleados para estos filtros.</td></tr>}
           </tbody>
