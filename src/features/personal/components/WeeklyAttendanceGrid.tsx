@@ -1,7 +1,7 @@
 'use client';
 
 import { Fragment, useMemo, useState } from 'react';
-import { Check, ChevronDown, Minus, RotateCcw } from 'lucide-react';
+import { Check, ChevronDown, ChevronLeft, ChevronRight, Minus, RotateCcw } from 'lucide-react';
 import { Button } from '@/shared/components/ui/Button';
 import { TablePagination } from '@/shared/components/ui/TablePagination';
 import type { StaffAttendance, StaffEmployee, StaffPayrollLine } from '../types/staff-payroll.types';
@@ -26,6 +26,8 @@ interface Props {
   attendance: StaffAttendance[];
   lines: StaffPayrollLine[];
   today: string;
+  weekAnchor: string;
+  onWeekChange: (date: string) => void;
   draft: AttendanceDraft;
   onDraft: (next: AttendanceDraft) => void;
   onSave: () => void;
@@ -34,9 +36,17 @@ interface Props {
   busy: boolean;
 }
 export function WeeklyAttendanceGrid({
-  employees, attendance, lines, today, draft, onDraft, onSave, onApprove, onCorrect, busy,
+  employees, attendance, lines, today, weekAnchor, onWeekChange, draft, onDraft, onSave, onApprove, onCorrect, busy,
 }: Props) {
-  const week = useMemo(() => attendanceWeek(today), [today]);
+  const week = useMemo(() => attendanceWeek(weekAnchor), [weekAnchor]);
+  const moveWeek = (offset: number) => {
+    const day = new Date(week[0].day + 'T12:00:00Z');
+    day.setUTCDate(day.getUTCDate() + offset * 7);
+    onWeekChange(day.toISOString().slice(0,10));
+    setPage(1);
+    setExpanded(null);
+  };
+  const canNext = week[6].day < today;
   const [page, setPage] = useState(1);
   const [expanded, setExpanded] = useState<string | null>(null);
   const byKey = useMemo(() =>
@@ -78,12 +88,16 @@ export function WeeklyAttendanceGrid({
     <section aria-label="Asistencias semanales" className="min-w-0 overflow-hidden rounded-[15px] border border-neutral-200/80 bg-white">
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-neutral-100 px-4 py-3 sm:px-5">
         <div>
-          <h2 className="text-[14px] font-semibold text-neutral-900">Semana actual</h2>
+          <h2 className="text-[14px] font-semibold text-neutral-900">Asistencias por semana</h2>
           <p className="mt-0.5 text-[11px] text-neutral-500">
             {week[0].day.split('-').reverse().join('/')} – {week[6].day.split('-').reverse().join('/')}
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
+          <button type="button" aria-label="Semana anterior" disabled={busy || keys.length>0} onClick={()=>moveWeek(-1)}
+            className="grid h-9 w-9 place-items-center rounded-[9px] border border-neutral-200 text-neutral-600 disabled:opacity-40"><ChevronLeft size={15}/></button>
+          <button type="button" aria-label="Semana siguiente" disabled={busy || keys.length>0 || !canNext} onClick={()=>moveWeek(1)}
+            className="grid h-9 w-9 place-items-center rounded-[9px] border border-neutral-200 text-neutral-600 disabled:opacity-40"><ChevronRight size={15}/></button>
           <button type="button" disabled={busy || !keys.length} onClick={() => onDraft({})}
             className="inline-flex items-center gap-1.5 rounded-[9px] border border-neutral-200 px-3 py-2 text-[11px] font-medium text-neutral-600 transition-colors duration-200 hover:bg-neutral-50 disabled:opacity-40">
             <RotateCcw size={13}/> Descartar
