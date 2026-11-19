@@ -122,12 +122,12 @@ export function WeeklyAttendanceGrid({
       </div>
       <div className="overflow-x-auto">
         <table className="w-full min-w-[820px] border-collapse text-[12px] text-neutral-700">
-          <thead className="bg-[#EDF0F3] text-[11px] font-medium text-neutral-600">
-            <tr className="border-b border-neutral-200">
+          <thead className="bg-central-orange text-[11px] font-medium text-white">
+            <tr className="border-b border-white/20">
               <th scope="col" rowSpan={2} className="min-w-[210px] px-4 py-3 text-left font-medium sm:px-5">Empleado</th>
               {week.map(({name,day}) => <th key={day} scope="col" className="px-1.5 py-2 text-center font-medium">
                 {name.slice(0,2).toUpperCase()}
-                <span className="block text-[10px] font-normal text-neutral-400">{day.slice(8)}</span>
+                <span className="block text-[10px] font-normal text-white/75">{day.slice(8)}</span>
               </th>)}
               <th scope="col" rowSpan={2} className="px-3 py-3 text-right font-medium">Detalle</th>
             </tr>
@@ -137,7 +137,7 @@ export function WeeklyAttendanceGrid({
                 const selectedCount = eligible.filter(e => getState(e,day) === 'present').length;
                 const all = eligible.length > 0 && selectedCount === eligible.length;
                 return <th key={day} className="px-1 py-1 text-center">
-                  <StaffCheckbox label={`Marcar todos los empleados presentes el ${name}`}
+                  <StaffCheckbox onOrange label={`Marcar todos los empleados presentes el ${name}`}
                     title={`Marcar a todos como presentes el ${name}; desmarcar restaura la selección previa`}
                     checked={all} mixed={selectedCount>0 && !all} disabled={!eligible.length}
                     onChange={value=>bulkDay(day,value)}/>
