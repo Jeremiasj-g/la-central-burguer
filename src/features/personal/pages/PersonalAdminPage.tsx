@@ -21,7 +21,10 @@ import { WeeklyAttendanceGrid, attendanceWeek, type AttendanceDraft } from '../c
 import { PayrollBatchReview } from '../components/PayrollBatchReview';
 import { PayrollReceiptModal } from '../components/PayrollReceiptModal';
 import { AttendanceSaveConfirmModal } from '../components/AttendanceSaveConfirmModal';
-import { toStaffMovementsCsv } from '../utils/staff-ledger-export.utils';
+import { exportStaffMovementsExcel } from '../utils/staff-ledger-export.utils';
+import {
+  staffButtonPrimary, staffButtonSecondary, staffButtonExport, staffButtonTable,
+} from '../components/staff-button.styles';
 import {
   getPayrollBalance, getUnallocatedAdvance, type StaffAttendance,
   type StaffDashboard, type StaffEmployee, type StaffPayment, type StaffPayroll,
@@ -46,7 +49,7 @@ function argentinaDay() {
 }
 const dayLabel = (date: string) => date.split('-').reverse().join('/');
 const money = (value: number) => formatCurrency(Math.round(value * 100) / 100);
-const actionClass = 'rounded-[9px] border border-neutral-200 bg-white px-2.5 py-1.5 text-[11px] font-medium text-neutral-700 transition-colors duration-200 hover:bg-neutral-100 focus-visible:outline-2 focus-visible:outline-central-orange disabled:opacity-40';
+const actionClass = staffButtonTable;
 
 function TableLoading() {
   return <div className="animate-pulse overflow-hidden rounded-[15px] border border-neutral-200 bg-white">
@@ -165,16 +168,12 @@ export function PersonalAdminPage() {
 
   function exportMovements() {
     if (!displayedPayments.length) return;
-    const csv = toStaffMovementsCsv(displayedPayments,nameFor);
-    const blob = new Blob(['\uFEFF', csv], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const anchor = document.createElement('a');
-    anchor.href = url;
-    anchor.download = `movimientos-personal-${today}.csv`;
-    document.body.appendChild(anchor);
-    anchor.click();
-    anchor.remove();
-    window.setTimeout(()=>URL.revokeObjectURL(url),1000);
+    try {
+      exportStaffMovementsExcel(displayedPayments, nameFor, `movimientos-personal-${today}.xlsx`);
+      toast.success('Movimientos exportados a Excel.');
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'No se pudo exportar el archivo Excel.');
+    }
   }
 
   async function showReceipt(payroll: StaffPayroll) {
@@ -381,10 +380,10 @@ export function PersonalAdminPage() {
     <div className="min-w-0 space-y-5 pb-8">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div><h1 className="text-[28px] font-semibold tracking-[-.045em] text-neutral-950 sm:text-[34px]">Pago a empleados</h1></div>
-        <button type="button" onClick={discardAndRefresh} disabled={loading}
-          className={actionClass + ' inline-flex items-center gap-2'}>
-          <RefreshCw size={14}/> Actualizar
-        </button>
+        <Button type="button" variant="secondary" size="sm" className={staffButtonSecondary}
+          onClick={discardAndRefresh} disabled={loading} title="Actualizar información">
+          <RefreshCw size={14} className={loading ? 'animate-spin' : ''}/> Actualizar
+        </Button>
       </div>
 
       <div className="grid grid-cols-2 gap-3 border-b border-neutral-200 pb-4 sm:grid-cols-4">
@@ -427,17 +426,17 @@ export function PersonalAdminPage() {
           </div>
         </div>
         <div className="flex flex-wrap gap-2">
-          {tab === 'employees' ? <Button variant="primary" asChild href={ROUTES.adminUsuarios}>
+          {tab === 'employees' ? <Button variant="dark" asChild href={ROUTES.adminUsuarios} className={staffButtonPrimary}>
             Gestionar personal
           </Button> : null}
-          {tab === 'attendance' ? <Button variant="primary" type="button"
+          {tab === 'attendance' ? <Button variant="dark" type="button" className={staffButtonPrimary}
             onClick={() => requestNavigation(() => { setWeeklyDraft({}); editAttendance(); })}>
             <Plus size={14} className="mr-1 inline"/>Asistencia
           </Button> : null}
-          {tab === 'payrolls' ? <Button variant="primary" type="button" onClick={() => newPayroll()}>
+          {tab === 'payrolls' ? <Button variant="dark" type="button" className={staffButtonPrimary} onClick={() => newPayroll()}>
             <Wallet size={14} className="mr-1 inline"/>Liquidar
           </Button> : null}
-          {tab === 'payments' ? <Button variant="primary" type="button" onClick={() => newPayment()}>
+          {tab === 'payments' ? <Button variant="dark" type="button" className={staffButtonPrimary} onClick={() => newPayment()}>
             <CreditCard size={14} className="mr-1 inline"/>Anticipo
           </Button> : null}
         </div>
@@ -499,8 +498,9 @@ export function PersonalAdminPage() {
                 {money(displayedPayments.filter(p=>!p.reversed_at).reduce((total,p)=>total+Number(p.amount),0))}
               </span>
             </p>
-            <Button variant="secondary" disabled={!displayedPayments.length} onClick={exportMovements}>
-              <Download size={14} className="mr-1 inline"/>Exportar CSV
+            <Button variant="secondary" size="sm" className={staffButtonExport}
+              disabled={!displayedPayments.length} onClick={exportMovements} title="Exportar movimientos filtrados a Excel">
+              <Download size={14}/>Exportar Excel
             </Button>
           </div>
         </div>
