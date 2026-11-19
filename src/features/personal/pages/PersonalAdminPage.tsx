@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { CreditCard, Plus, RefreshCw, Wallet } from 'lucide-react';
+import { CreditCard, Download, Plus, RefreshCw, Wallet } from 'lucide-react';
 import { toast } from 'react-toastify';
 import { Button } from '@/shared/components/ui/Button';
 import { ConfirmDialog } from '@/shared/components/ui/ConfirmDialog';
@@ -20,6 +20,7 @@ import { StaffTable, type StaffColumn } from '../components/StaffTable';
 import { WeeklyAttendanceGrid, attendanceWeek, type AttendanceDraft } from '../components/WeeklyAttendanceGrid';
 import { PayrollBatchReview } from '../components/PayrollBatchReview';
 import { PayrollReceiptModal } from '../components/PayrollReceiptModal';
+import { toStaffMovementsCsv } from '../utils/staff-ledger-export.utils';
 import {
   getPayrollBalance, getUnallocatedAdvance, type StaffAttendance,
   type StaffDashboard, type StaffEmployee, type StaffPayment, type StaffPayroll,
@@ -159,6 +160,20 @@ export function PersonalAdminPage() {
     } finally {
       setBusy(false);
     }
+  }
+
+  function exportMovements() {
+    if (!displayedPayments.length) return;
+    const csv = toStaffMovementsCsv(displayedPayments,nameFor);
+    const blob = new Blob(['\\uFEFF'.replace('\\uFEFF','\uFEFF'),csv], {type:'text/csv;charset=utf-8;'});
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement('a');
+    anchor.href = url;
+    anchor.download = `movimientos-personal-${today}.csv`;
+    document.body.appendChild(anchor);
+    anchor.click();
+    anchor.remove();
+    window.setTimeout(()=>URL.revokeObjectURL(url),0);
   }
 
   async function showReceipt(payroll: StaffPayroll) {
@@ -480,8 +495,16 @@ export function PersonalAdminPage() {
                 {label}
               </button>)}
           </div>
-          <div className="text-[12px] text-neutral-500">
-            Anticipos disponibles: <span className="font-semibold text-neutral-900">{money(unallocated)}</span>
+          <div className="flex flex-wrap items-center gap-3">
+            <p className="text-[12px] text-neutral-500">
+              {displayedPayments.length} movimientos · Total entregado:
+              <span className="ml-1 font-semibold tabular-nums text-neutral-900">
+                {money(displayedPayments.filter(p=>!p.reversed_at).reduce((total,p)=>total+Number(p.amount),0))}
+              </span>
+            </p>
+            <Button variant="secondary" disabled={!displayedPayments.length} onClick={exportMovements}>
+              <Download size={14} className="mr-1 inline"/>Exportar CSV
+            </Button>
           </div>
         </div>
         <StaffTable rows={displayedPayments} columns={paymentColumns} getId={rowId}
