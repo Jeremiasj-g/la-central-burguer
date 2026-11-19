@@ -1,10 +1,10 @@
 'use client';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Check, CreditCard, Plus, RefreshCw, Wallet } from 'lucide-react';
+import { CreditCard, Plus, RefreshCw, Wallet } from 'lucide-react';
 import { toast } from 'react-toastify';
 import { Button } from '@/shared/components/ui/Button';
-import { DatePickerField } from '@/shared/components/ui/DatePickerField';
+import { ConfirmDialog } from '@/shared/components/ui/ConfirmDialog';
 import { Input } from '@/shared/components/ui/Input';
 import { Select } from '@/shared/components/ui/Select';
 import { formatCurrency } from '@/shared/utils/format.utils';
@@ -13,11 +13,12 @@ import { useAdminUnsavedChanges } from '@/shared/components/layout/AdminUnsavedC
 import {
   addStaffRate, applyStaffAdvance, approveStaffAttendance, createStaffPayroll,
   readStaffDashboard, recordStaffPayment, reverseStaffAllocation, reverseStaffPayment,
-  saveStaffAttendance,
+  saveStaffAttendance, saveStaffWeek, createStaffPayrollBatch,
 } from '../services/staff-payroll.service';
 import { StaffEditorModal, type StaffEditor } from '../components/StaffEditorModal';
 import { StaffTable, type StaffColumn } from '../components/StaffTable';
-import { WeeklyAttendanceColumn, type WeeklyAttendanceDraft } from '../components/WeeklyAttendanceGrid';
+import { WeeklyAttendanceGrid, attendanceWeek, type AttendanceDraft } from '../components/WeeklyAttendanceGrid';
+import { PayrollBatchReview } from '../components/PayrollBatchReview';
 import {
   getPayrollBalance, getUnallocatedAdvance, type StaffAttendance,
   type StaffDashboard, type StaffEmployee, type StaffPayment, type StaffPayroll,
@@ -61,7 +62,11 @@ export function PersonalAdminPage() {
   const [from, setFrom] = useState(today.slice(0, 7) + '-01');
   const [to, setTo] = useState(today);
   const [tab, setTab] = useState<Tab>('employees');
-  const [weeklyDraft, setWeeklyDraft] = useState<WeeklyAttendanceDraft>({});
+  const [weeklyDraft, setWeeklyDraft] = useState<AttendanceDraft>({});
+  const [weekAnchor, setWeekAnchor] = useState(today);
+  const [confirmOperation, setConfirmOperation] = useState<'week' | 'batch' | null>(null);
+  const [batchIds, setBatchIds] = useState<string[]>([]);
+  const [paymentView, setPaymentView] = useState<'all' | 'advance' | 'payroll'>('all');
   const [employeeFilter, setEmployeeFilter] = useState('all');
   const [search, setSearch] = useState('');
   const [dashboard, setDashboard] = useState<StaffDashboard>(EMPTY);
@@ -71,17 +76,18 @@ export function PersonalAdminPage() {
   const [error, setError] = useState('');
   const [editor, setEditor] = useState<StaffEditor | null>(null);
   const editorInitial = useRef('');
-  const dirty = Boolean(editor && JSON.stringify(editor) !== editorInitial.current);
+  const dirty = Boolean(editor && JSON.stringify(editor) !== editorInitial.current)
+    || Object.keys(weeklyDraft).length > 0;
   const requestNavigation = useAdminUnsavedChanges(dirty);
 
   useEffect(() => {
     let active = true;
     setLoading(true);
-    // La semana en curso puede empezar el mes anterior; incluirla sin alterar los filtros del detalle.
-    const currentDate = new Date(argentinaDay() + 'T12:00:00Z');
-    currentDate.setUTCDate(currentDate.getUTCDate() - ((currentDate.getUTCDay() + 6) % 7));
-    const weekStart = currentDate.toISOString().slice(0, 10);
-    readStaffDashboard(from < weekStart ? from : weekStart, to > argentinaDay() ? to : argentinaDay()).then((result) => {
+    // Include the selected attendance week alongside the payroll preview period.
+    const days = attendanceWeek(weekAnchor);
+    const start = from < days[0].day ? from : days[0].day;
+    const end = to > days[6].day ? to : days[6].day;
+    readStaffDashboard(start, end).then((result) => {
       if (!active) return;
       setDashboard(result);
       setError('');
@@ -90,7 +96,7 @@ export function PersonalAdminPage() {
       setError(caught instanceof Error ? caught.message : 'No se pudieron cargar los datos del personal.');
     }).finally(() => { if (active) setLoading(false); });
     return () => { active = false; };
-  }, [from, to, revision]);
+  }, [from, to, weekAnchor, revision]);
 
   const employeesById = useMemo(() => new Map(dashboard.employees.map((employee) => [employee.id, employee])), [dashboard]);
   const latestRates = useMemo(() => {
@@ -106,9 +112,9 @@ export function PersonalAdminPage() {
     && nameFor(employeeId).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
       .includes(search.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim());
   const displayedEmployees = dashboard.employees.filter((employee) => eligible(employee.id));
-  const displayedAttendance = dashboard.attendance.filter((item) => eligible(item.employee_id) && item.work_date >= from && item.work_date <= to);
   const displayedPayrolls = dashboard.payrolls.filter((item) => eligible(item.employee_id));
-  const displayedPayments = dashboard.payments.filter((item) => eligible(item.employee_id));
+  const displayedPayments = dashboard.payments.filter((item) => eligible(item.employee_id)
+    && (paymentView === 'all' || item.payment_kind === paymentView));
   const displayedAllocations = dashboard.allocations.filter((item) =>
     eligible(dashboard.payrolls.find((p) => p.id === item.payroll_id)?.employee_id ?? ''));
 
@@ -160,6 +166,32 @@ export function PersonalAdminPage() {
       && getUnallocatedAdvance(payment.id, dashboard) > 0);
     openEditor({ type: 'apply', employeeId: payroll.employee_id, payrollId: payroll.id,
       advanceId: available?.id ?? '', amount: undefined, requestKey: crypto.randomUUID() });
+  }
+
+  const weeklyEntries = () => Object.entries(weeklyDraft).map(([key,kind]) => {
+    const separator = key.lastIndexOf(':');
+    const id = key.slice(0, separator);
+    const day = key.slice(separator+1);
+    const expected = dashboard.attendance.find(a => a.employee_id === id && a.work_date === day);
+    return { employee_id:id, day, kind, expected_id:expected?.id ?? null };
+  });
+  async function confirmChanges() {
+    const operation = confirmOperation;
+    setConfirmOperation(null);
+    if (operation === 'week') {
+      const changes = weeklyEntries();
+      if (!changes.length) return;
+      await runAction(async () => {
+        await saveStaffWeek(changes);
+        setWeeklyDraft({});
+      }, `${changes.length} asistencias guardadas. Quedan pendientes de aprobación.`);
+    } else if (operation === 'batch') {
+      const ids = [...batchIds];
+      if (!ids.length) return;
+      await runAction(() => createStaffPayrollBatch(ids,from,to),
+        `${ids.length} liquidaciones generadas correctamente.`);
+      setBatchIds([]);
+    }
   }
 
   async function saveEditor() {
@@ -219,31 +251,6 @@ export function PersonalAdminPage() {
     { id: 'action', title: 'Acción', render: (row) => <div className="flex flex-wrap gap-2">
       <button type="button" className={actionClass} disabled={!row.active} onClick={() => newRate(row.id)}>Tarifas</button>
     </div> },
-  ];
-
-  const attendanceColumns: StaffColumn<StaffAttendance>[] = [
-    { id: 'work_date', title: 'Fecha', value: (row) => row.work_date, render: (row) => dayLabel(row.work_date) },
-    { id: 'employee', title: 'Empleado', value: (row) => nameFor(row.employee_id), render: (row) => nameFor(row.employee_id) },
-    { id: 'week', title: <WeeklyAttendanceColumn employees={displayedEmployees} attendance={dashboard.attendance}
-        lines={dashboard.lines} today={today} draft={weeklyDraft} onChange={setWeeklyDraft} />,
-      render: (row) => <WeeklyAttendanceColumn employees={displayedEmployees} attendance={dashboard.attendance}
-        lines={dashboard.lines} today={today} draft={weeklyDraft} onChange={setWeeklyDraft} employeeId={row.employee_id} /> },
-    { id: 'kind', title: 'Registro', value: (row) => row.attendance_kind, render: (row) => row.attendance_kind === 'present' ? 'Presente' : 'Ausente' },
-    { id: 'amount', title: 'Importe aprobado', numeric: true, value: (row) => row.amount_snapshot,
-      render: (row) => row.amount_snapshot !== null ? money(Number(row.amount_snapshot)) : '—' },
-    { id: 'status', title: 'Estado', value: (row) => row.approval_status,
-      render: (row) => row.approval_status === 'approved' ? 'Aprobada' : 'Pendiente' },
-    { id: 'action', title: 'Acción', render: (row) => (
-      <div className="flex flex-wrap gap-2">
-        {!dashboard.lines.some((line) => line.attendance_id === row.id) ? <>
-          {row.approval_status === 'pending' ? <button type="button" className={actionClass} disabled={busy || row.work_date > today}
-            title={row.work_date > today ? 'No se puede aprobar una asistencia futura' : undefined}
-            onClick={() => void runAction(() => approveStaffAttendance(row.id), 'Asistencia aprobada.')}>
-            <Check size={12} className="mr-1 inline"/>{row.work_date > today ? 'Fecha futura' : 'Aprobar'}</button> : null}
-          <button type="button" className={actionClass} disabled={row.work_date > today} title={row.work_date > today ? "No se puede corregir una asistencia futura" : undefined} onClick={() => editAttendance(row)}>Corregir</button>
-        </> : <span className="text-[11px] text-emerald-700">Liquidada</span>}
-      </div>
-    ) },
   ];
 
   const payrollColumns: StaffColumn<StaffPayroll>[] = [
@@ -384,30 +391,43 @@ export function PersonalAdminPage() {
         <StaffTable rows={displayedEmployees} columns={employeeColumns} getId={rowId}
           initialSort="name" emptyMessage="No hay usuarios con rol Personal. Asigná ese rol desde Usuarios para comenzar."/>
       </div>
-      <div className={tab === 'attendance' && !loading ? 'space-y-3' : 'hidden'}>
-        <div className="flex flex-wrap items-end justify-between gap-3">
-          <div className="flex flex-wrap gap-3">
-            <div className="w-[170px]"><span className="mb-1 block text-[11px] text-neutral-500">Desde</span>
-              <DatePickerField ariaLabel="Filtrar asistencias desde" maxDate={today} value={from} onChange={setFrom}/></div>
-            <div className="w-[170px]"><span className="mb-1 block text-[11px] text-neutral-500">Hasta</span>
-              <DatePickerField ariaLabel="Filtrar asistencias hasta" maxDate={today} value={to} onChange={setTo}/></div>
-          </div>
-          <button type="button" onClick={() => setWeeklyDraft({})} disabled={!Object.keys(weeklyDraft).length}
-            className={actionClass}>Restablecer checks</button>
-        </div>
-        <StaffTable rows={displayedAttendance} columns={attendanceColumns} getId={rowId}
-          minWidthClassName="min-w-[1150px]"
-          initialSort="work_date" emptyMessage="No hay asistencias para ese período."/>
-        <p className="text-[11px] text-neutral-500">
-          Los checks semanales son una vista previa: todavía no guardan ni aprueban asistencias.
-          Los días futuros y los registros aprobados o liquidados no se pueden modificar desde los checks.
-        </p>
+      <div className={tab === 'attendance' && !loading ? '' : 'hidden'}>
+        <WeeklyAttendanceGrid employees={displayedEmployees}
+          attendance={dashboard.attendance} lines={dashboard.lines}
+          today={today} weekAnchor={weekAnchor}
+          onWeekChange={date=>setWeekAnchor(date)}
+          draft={weeklyDraft} onDraft={setWeeklyDraft} busy={busy}
+          onSave={()=>setConfirmOperation('week')}
+          onApprove={id=>void runAction(()=>approveStaffAttendance(id),'Asistencia aprobada.')}
+          onCorrect={row=>requestNavigation(()=>{setWeeklyDraft({});editAttendance(row);})}/>
       </div>
-      <div className={tab === 'payrolls' && !loading ? '' : 'hidden'}>
+      <div className={tab === 'payrolls' && !loading ? 'space-y-4' : 'hidden'}>
+        <PayrollBatchReview data={dashboard} from={from} to={to}
+          onFrom={setFrom} onTo={setTo} today={today} busy={busy}
+          employees={displayedEmployees.map(e=>e.id)}
+          onBatch={ids=>{setBatchIds(ids);setConfirmOperation('batch');}}/>
         <StaffTable rows={displayedPayrolls} columns={payrollColumns} getId={rowId}
           initialSort="period" emptyMessage="Todavía no hay liquidaciones. Primero aprobá asistencias."/>
       </div>
-      <div className={tab === 'payments' && !loading ? 'space-y-5' : 'hidden'}>
+      <div className={tab === 'payments' && !loading ? 'space-y-4' : 'hidden'}>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex flex-wrap gap-1 rounded-[11px] bg-neutral-100 p-1">
+            {([
+              ['all','Todos'],
+              ['advance','Anticipos'],
+              ['payroll','Pagos de liquidación'],
+            ] as const).map(([value,label])=>
+              <button key={value} type="button" aria-pressed={paymentView===value}
+                onClick={()=>setPaymentView(value)}
+                className={'rounded-[9px] px-3 py-2 text-[12px] font-medium transition-colors duration-200 ' +
+                  (paymentView===value?'bg-white text-neutral-900 shadow-sm':'text-neutral-500 hover:text-neutral-900')}>
+                {label}
+              </button>)}
+          </div>
+          <div className="text-[12px] text-neutral-500">
+            Anticipos disponibles: <span className="font-semibold text-neutral-900">{money(unallocated)}</span>
+          </div>
+        </div>
         <StaffTable rows={displayedPayments} columns={paymentColumns} getId={rowId}
           initialSort="date" emptyMessage="Todavía no hay pagos ni anticipos registrados."/>
         <h2 className="text-[14px] font-semibold text-neutral-800">Anticipos aplicados a liquidaciones</h2>
@@ -415,8 +435,15 @@ export function PersonalAdminPage() {
           initialSort="period" emptyMessage="No hay anticipos aplicados."/>
       </div>
 
-      <p className="text-[11px] text-neutral-500">V1 de prueba: las tarifas aplican por jornada completa y día de semana. Feriados especiales, horarios parciales y automatizaciones no están habilitados.</p>
+      <p className="text-[11px] text-neutral-500">Versión de desarrollo: las tarifas aplican por jornada completa y día de semana. Feriados especiales, horarios parciales y automatizaciones no están habilitados.</p>
 
+      <ConfirmDialog open={confirmOperation !== null}
+        title={confirmOperation==='week'?'Guardar asistencias':'Confirmar liquidaciones'}
+        theme="light" isLoading={busy} confirmLabel={confirmOperation==='week'?'Guardar registros':'Generar liquidaciones'}
+        description={confirmOperation==='week'
+          ? `Vas a guardar ${Object.keys(weeklyDraft).length} cambios de asistencia. Quedarán pendientes de aprobación; no se generará ningún pago.`
+          : `Vas a generar ${batchIds.length} liquidaciones del ${dayLabel(from)} al ${dayLabel(to)}. Esta operación fija los importes históricos y no puede deshacerse desde la interfaz.`}
+        onConfirm={confirmChanges} onCancel={()=>setConfirmOperation(null)}/>
       {editor ? <StaffEditorModal draft={editor} onChange={setEditor} onClose={closeEditor}
         onSave={() => void saveEditor()} busy={busy} dashboard={dashboard}/> : null}
     </div>
