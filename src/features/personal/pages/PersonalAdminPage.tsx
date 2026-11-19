@@ -145,7 +145,7 @@ export function PersonalAdminPage() {
   };
   const closeEditor = () => requestNavigation(() => setEditor(null));
   const refresh = () => setRevision((value) => value + 1);
-  const discardAndRefresh = () => requestNavigation(() => { setWeeklyDraft({}); refresh(); });
+  const discardAndRefresh = () => requestNavigation(() => { setWeeklyDraft({}); setEditor(null); refresh(); });
   async function runAction(task: () => Promise<unknown>, success: string) {
     if (busy) return;
     setBusy(true);
@@ -354,6 +354,12 @@ export function PersonalAdminPage() {
         openEditor({ type: 'reverse', kind: 'allocation', id: row.id, reason: '' })}>Revertir</button> },
   ];
 
+  const weeklyChangeList = weeklyEntries();
+  const weeklyPreviewText = weeklyChangeList.slice(0,5)
+    .map(change => `${nameFor(change.employee_id)} · ${dayLabel(change.day)}: ${change.kind==='present'?'Presente':'Ausente'}`)
+    .join('; ');
+  const weeklyRemainder = weeklyChangeList.length>5 ? ` y ${weeklyChangeList.length-5} más.` : '.';
+
   const pendingApproval = dashboard.attendance.filter((item) => item.approval_status === 'pending').length;
   const pendingBalance = dashboard.payrolls.reduce((total, row) => total + getPayrollBalance(row.id, dashboard).pending, 0);
   const unallocated = dashboard.payments.reduce((total, pay) =>
@@ -385,7 +391,7 @@ export function PersonalAdminPage() {
         className="flex flex-wrap gap-1 border-b border-neutral-200">
         {TABS.map(({ id, label }) => (
           <button key={id} type="button" role="tab" aria-selected={tab === id}
-            onClick={() => requestNavigation(() => { setWeeklyDraft({}); setTab(id); })}
+            onClick={() => requestNavigation(() => { setWeeklyDraft({}); setEditor(null); setTab(id); })}
             className={'border-b-2 px-4 py-3 text-[13px] font-medium transition-colors duration-200 ' +
               (tab === id ? 'border-central-orange text-neutral-900' : 'border-transparent text-neutral-500 hover:text-neutral-900')}>
             {label}
@@ -491,11 +497,11 @@ export function PersonalAdminPage() {
         title={confirmOperation==='week'?'Guardar asistencias':confirmOperation==='approve'?'Aprobar asistencias':'Confirmar liquidaciones'}
         theme="light" isLoading={busy} confirmLabel={confirmOperation==='week'?'Guardar registros':confirmOperation==='approve'?'Aprobar registros':'Generar liquidaciones'}
         description={confirmOperation==='week'
-          ? `Vas a guardar ${Object.keys(weeklyDraft).length} cambios de asistencia. Quedarán pendientes de aprobación; no se generará ningún pago.`
+          ? `Vas a guardar ${weeklyChangeList.length} cambios: ${weeklyPreviewText}${weeklyRemainder} Quedarán pendientes de aprobación y no generarán pagos.`
           : confirmOperation==='approve'
           ? `Vas a aprobar ${approvalIds.length} asistencias en una sola operación. Sus importes quedarán fijados según la tarifa vigente en cada día.`
           : `Vas a generar ${batchIds.length} liquidaciones del ${dayLabel(from)} al ${dayLabel(to)}. Esta operación fija los importes históricos y no puede deshacerse desde la interfaz.`}
-        onConfirm={confirmChanges} onCancel={()=>setConfirmOperation(null)}/>
+        onConfirm={confirmChanges} onCancel={()=>{if(!busy)setConfirmOperation(null);}}/>
       {receipt ? <PayrollReceiptModal payroll={receipt.payroll} dashboard={receipt.data}
         employeeName={receipt.data.employees.find(e=>e.id===receipt.payroll.employee_id)?.full_name ?? 'Empleado'}
         onClose={()=>setReceipt(null)} /> : null}
