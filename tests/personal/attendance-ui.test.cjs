@@ -4,7 +4,7 @@ const assert = require('node:assert/strict');
 const { loadSource } = require('./helpers/load-source.cjs');
 const React = require('react');
 const { renderToStaticMarkup } = require('react-dom/server');
-const { employee, attendance, payroll, line, dashboard } = require('./helpers/fixtures.cjs');
+const { employee, attendance, payroll } = require('./helpers/fixtures.cjs');
 
 const layout = loadSource('src/features/personal/components/WeeklyAttendanceGrid.tsx', {
   '@/shared/components/ui/Button': { Button: ({children,disabled}) => React.createElement('button',{disabled},children) },
