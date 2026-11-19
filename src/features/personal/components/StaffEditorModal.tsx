@@ -1,6 +1,7 @@
 'use client';
 
 import { Button } from '@/shared/components/ui/Button';
+import { staffButtonAccent, staffButtonSecondary } from './staff-button.styles';
 import { DatePickerField } from '@/shared/components/ui/DatePickerField';
 import { Modal } from '@/shared/components/ui/Modal';
 import { NumericInput } from '@/shared/components/ui/NumericInput';
@@ -63,8 +64,8 @@ export function StaffEditorModal({
     <Modal open title={title} theme="light" onClose={onClose} size="md"
       footer={
         <div className="flex flex-wrap justify-end gap-2 border-t border-neutral-100 px-3.5 py-3.5 sm:px-5 sm:py-4">
-          <Button variant="secondary" type="button" onClick={onClose} disabled={busy}>Cancelar</Button>
-          <Button variant={draft.type === 'reverse' ? 'danger' : 'primary'} type="submit" form="staff-editor" disabled={busy}>
+          <Button variant="secondary" size="sm" className={staffButtonSecondary} type="button" onClick={onClose} disabled={busy}>Cancelar</Button>
+          <Button variant={draft.type === 'reverse' ? 'danger' : 'primary'} size="sm" className={staffButtonAccent} type="submit" form="staff-editor" disabled={busy}>
             {busy ? 'Guardando…' : draft.type === 'reverse' ? 'Confirmar reversión' : 'Guardar'}
           </Button>
         </div>
