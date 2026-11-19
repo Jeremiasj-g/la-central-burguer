@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-require-imports -- Node tests and CLI scripts intentionally use CommonJS. */
 'use strict';
 // Testeamos el TypeScript/TSX real del proyecto, sin build y sin crear una copia de la lógica.
 const fs = require('node:fs');
