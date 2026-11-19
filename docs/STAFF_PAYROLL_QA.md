@@ -18,10 +18,11 @@ Alternativas:
 
 ```bash
 npm run test:personal           # Lo mismo, sólo Pago a empleados
-npm run test:qa                 # Tests + TypeScript + ESLint en una sola ejecución
+npm run test:qa                 # Tests + TypeScript + ESLint del módulo, en una sola ejecución
 npm run test:personal:coverage  # Informe de cobertura del ejecutor Node
 npm run typecheck               # Validación TypeScript de todo el proyecto
-npm run lint                    # ESLint de todo el proyecto
+npm run lint:personal           # ESLint de Pago a empleados y scripts de QA
+npm run lint                    # ESLint global (puede mostrar problemas preexistentes de otros módulos)
 npm run build                   # Build Next.js; puede requerir variables de entorno
 ```
 
@@ -83,7 +84,7 @@ Para declarar la versión lista, el equipo debe confirmar:
 
 ## CI
 
-`.github/workflows/personal-qa.yml` ejecuta `npm run test:personal`, TypeScript y ESLint al publicar cambios relevantes en la rama de pruebas o al crear un PR. No necesita credenciales Supabase. Los SQL contra DEV se ejecutan **sólo por opt-in**, para evitar acciones financieras remotas accidentales.
+`.github/workflows/personal-qa.yml` ejecuta `npm run test:personal`, TypeScript y **ESLint acotado al módulo** al publicar cambios relevantes en la rama de pruebas o al crear un PR. No necesita credenciales Supabase. El lint global del repositorio se mantiene disponible con `npm run lint` pero no bloquea este workflow por errores preexistentes ajenos a Pago a empleados. Los SQL contra DEV se ejecutan **sólo por opt-in**, para evitar acciones financieras remotas accidentales.
 
 ## Limitaciones y reglas de interpretación
 
