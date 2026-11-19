@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { CreditCard, Download, Plus, RefreshCw, Wallet } from 'lucide-react';
 import { toast } from 'react-toastify';
 import { Button } from '@/shared/components/ui/Button';
@@ -83,14 +83,13 @@ export function PersonalAdminPage() {
   const [error, setError] = useState('');
   const [editor, setEditor] = useState<StaffEditor | null>(null);
   const [receipt, setReceipt] = useState<{payroll:StaffPayroll; data:StaffDashboard}|null>(null);
-  const editorInitial = useRef('');
-  const dirty = Boolean(editor && JSON.stringify(editor) !== editorInitial.current)
+  const [editorInitial, setEditorInitial] = useState('');
+  const dirty = Boolean(editor && JSON.stringify(editor) !== editorInitial)
     || Object.keys(weeklyDraft).length > 0;
   const requestNavigation = useAdminUnsavedChanges(dirty);
 
   useEffect(() => {
     let active = true;
-    setLoading(true);
     // Include the selected attendance week alongside the payroll preview period.
     const days = attendanceWeek(weekAnchor);
     const weekFrom = days[0].day;
@@ -113,6 +112,7 @@ export function PersonalAdminPage() {
             [...period.attendance,...weekly.attendance].map(a=>[a.id,a])
           ).values()),
         }));
+    queueMicrotask(() => { if (active) setLoading(true); });
     request.then((result) => {
       if (!active) return;
       setDashboard(result);
@@ -145,7 +145,7 @@ export function PersonalAdminPage() {
     eligible(dashboard.payrolls.find((p) => p.id === item.payroll_id)?.employee_id ?? ''));
 
   const openEditor = (next: StaffEditor) => {
-    editorInitial.current = JSON.stringify(next);
+    setEditorInitial(JSON.stringify(next));
     setEditor(next);
   };
   const closeEditor = () => requestNavigation(() => setEditor(null));
@@ -253,7 +253,7 @@ export function PersonalAdminPage() {
     if (!editor) return;
     // Evitar reabrir asistencias sin modificaciones.
     if (editor.type === 'attendance' && editor.locked
-      && JSON.stringify(editor) === editorInitial.current) {
+      && JSON.stringify(editor) === editorInitial) {
       setEditor(null);
       return;
     }
