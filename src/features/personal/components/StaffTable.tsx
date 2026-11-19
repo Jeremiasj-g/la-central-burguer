@@ -48,7 +48,7 @@ export function StaffTable<T>({
     <section className="min-w-0 overflow-hidden rounded-[15px] border border-neutral-200/80 bg-white">
       <div className="w-full overflow-x-auto">
         <table className={"w-full border-collapse text-left text-[12px] text-neutral-700 " + minWidthClassName}>
-          <thead className="bg-central-orange/10 text-[11px] font-medium text-neutral-600">
+          <thead className="bg-[#EDF0F3] text-[11px] font-medium text-neutral-600">
             <tr>
               {columns.map((column) => (
                 <th key={column.id} scope="col"
