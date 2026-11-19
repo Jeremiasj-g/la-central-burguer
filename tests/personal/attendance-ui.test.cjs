@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-require-imports -- Node tests and CLI scripts intentionally use CommonJS. */
 'use strict';
 const { test, describe } = require('node:test');
 const assert = require('node:assert/strict');
