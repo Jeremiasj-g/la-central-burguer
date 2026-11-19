@@ -185,14 +185,22 @@ export function WeeklyAttendanceGrid({
                   })}
                   <td className="px-3 py-2 text-right">
                     <button type="button" aria-expanded={expanded===employee.id}
+                      aria-controls={`attendance-detail-${employee.id}`}
                       onClick={() => setExpanded(prev=>prev===employee.id?null:employee.id)}
                       className={staffButtonTable}>
-                      Ver <ChevronDown size={14} className={expanded===employee.id ? 'rotate-180':''}/>
+                      Ver <ChevronDown size={14} className={'transition-transform duration-200 motion-reduce:transition-none ' + (expanded===employee.id ? 'rotate-180':'')}/>
                     </button>
                   </td>
                 </tr>
-                {expanded===employee.id ? <tr><td colSpan={9} className="bg-neutral-50/70 px-4 py-3 sm:px-5">
-                  <div className="space-y-2">
+                <tr><td colSpan={9} className="p-0">
+                  <div id={`attendance-detail-${employee.id}`}
+                    aria-hidden={expanded!==employee.id}
+                    inert={expanded!==employee.id}
+                    className={'grid min-w-0 transition-[grid-template-rows] duration-200 ease-out motion-reduce:transition-none ' +
+                      (expanded===employee.id ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]')}>
+                    <div className="min-h-0 overflow-hidden">
+                      <div className="bg-neutral-50/70 px-4 py-3 sm:px-5">
+                        <div className="space-y-2">
                     {weeklyRows.length ? weeklyRows.map(row =>
                       <div key={row.id} className="flex flex-wrap items-center gap-x-4 gap-y-2 border-b border-neutral-100 py-2 text-[11px] last:border-0">
                         <span className="min-w-20 text-neutral-700">{row.work_date.split('-').reverse().join('/')}</span>
@@ -209,8 +217,11 @@ export function WeeklyAttendanceGrid({
                         </span>}
                       </div>)
                       : <p className="py-2 text-[11px] text-neutral-500">Todavía no hay asistencias registradas esta semana.</p>}
+                        </div>
+                      </div>
+                    </div>
                   </div>
-                </td></tr> : null}
+                </td></tr>
               </Fragment>;
             })}
             {!employees.length && <tr><td colSpan={9} className="px-4 py-12 text-center text-neutral-500">No hay empleados para estos filtros.</td></tr>}
