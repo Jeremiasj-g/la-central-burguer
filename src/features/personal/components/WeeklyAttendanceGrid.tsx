@@ -4,7 +4,7 @@ import { Fragment, useMemo, useState } from 'react';
 import { Check, ChevronDown, ChevronLeft, ChevronRight, Minus, RotateCcw } from 'lucide-react';
 import { Button } from '@/shared/components/ui/Button';
 import { TablePagination } from '@/shared/components/ui/TablePagination';
-import type { StaffAttendance, StaffEmployee, StaffPayrollLine } from '../types/staff-payroll.types';
+import type { StaffAttendance, StaffEmployee, StaffPayroll, StaffPayrollLine } from '../types/staff-payroll.types';
 
 export type AttendanceDraft = Record<string, 'present' | 'absent'>;
 
@@ -25,6 +25,7 @@ interface Props {
   employees: StaffEmployee[];
   attendance: StaffAttendance[];
   lines: StaffPayrollLine[];
+  payrolls: StaffPayroll[];
   today: string;
   weekAnchor: string;
   onWeekChange: (date: string) => void;
@@ -36,7 +37,7 @@ interface Props {
   busy: boolean;
 }
 export function WeeklyAttendanceGrid({
-  employees, attendance, lines, today, weekAnchor, onWeekChange, draft, onDraft, onSave, onApprove, onCorrect, busy,
+  employees, attendance, lines, payrolls, today, weekAnchor, onWeekChange, draft, onDraft, onSave, onApprove, onCorrect, busy,
 }: Props) {
   const week = useMemo(() => attendanceWeek(weekAnchor), [weekAnchor]);
   const moveWeek = (offset: number) => {
@@ -62,6 +63,7 @@ export function WeeklyAttendanceGrid({
   const disabled = (employee: StaffEmployee, day: string) => {
     const record = byKey.get(attendanceKey(employee.id, day));
     return busy || !employee.active || day > today
+      || payrolls.some(p => p.employee_id === employee.id && day >= p.period_from && day <= p.period_to)
       || Boolean(record && (record.approval_status === 'approved' || settled.has(record.id)));
   };
   const setDay = (employee: StaffEmployee, day: string, kind: 'present' | 'absent') => {
@@ -204,7 +206,7 @@ export function WeeklyAttendanceGrid({
         <span className="mr-2 text-emerald-700">✓ Presente</span>
         <span className="mr-2 text-red-600">— Ausente</span>
         <span className="mr-2">Vacío: sin registrar</span>
-        <span>Los cambios requieren confirmación; registros aprobados, liquidados y fechas futuras están protegidos.</span>
+        <span>Los cambios requieren confirmación; jornadas aprobadas, períodos liquidados y fechas futuras están protegidos.</span>
       </div>
       <TablePagination page={pageSafe} pageSize={PAGE_SIZE} totalItems={employees.length} onPageChange={setPage}/>
     </section>
