@@ -60,3 +60,17 @@ export const reverseStaffPayment = (id: string, reason: string) =>
 
 export const reverseStaffAllocation = (id: string, reason: string) =>
   staffRpc<void>('admin_staff_reverse_allocation', { allocation_uuid: id, reverse_reason: reason });
+
+export interface StaffWeekChange {
+  employee_id: string;
+  day: string;
+  kind: StaffAttendanceKind;
+  expected_id: string | null;
+}
+export const saveStaffWeek = (changes: StaffWeekChange[]) =>
+  staffRpc<number>('admin_staff_save_week', { jsonb_changes: changes });
+
+export const createStaffPayrollBatch = (ids: string[], fromDay: string, toDay: string) =>
+  staffRpc<{ employee_id: string; payroll_id: string }[]>('admin_staff_create_payroll_batch', {
+    employee_uuids: ids, from_day: fromDay, to_day: toDay,
+  });
