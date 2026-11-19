@@ -124,6 +124,7 @@ export function PersonalAdminPage() {
   };
   const closeEditor = () => requestNavigation(() => setEditor(null));
   const refresh = () => setRevision((value) => value + 1);
+  const discardAndRefresh = () => requestNavigation(() => { setWeeklyDraft({}); refresh(); });
   async function runAction(task: () => Promise<unknown>, success: string) {
     if (busy) return;
     setBusy(true);
@@ -321,7 +322,7 @@ export function PersonalAdminPage() {
     <div className="min-w-0 space-y-5 pb-8">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div><h1 className="text-[28px] font-semibold tracking-[-.045em] text-neutral-950 sm:text-[34px]">Pago a empleados</h1></div>
-        <button type="button" onClick={refresh} disabled={loading}
+        <button type="button" onClick={discardAndRefresh} disabled={loading}
           className={actionClass + ' inline-flex items-center gap-2'}>
           <RefreshCw size={14}/> Actualizar
         </button>
@@ -343,7 +344,7 @@ export function PersonalAdminPage() {
         className="flex flex-wrap gap-1 border-b border-neutral-200">
         {TABS.map(({ id, label }) => (
           <button key={id} type="button" role="tab" aria-selected={tab === id}
-            onClick={() => requestNavigation(() => setTab(id))}
+            onClick={() => requestNavigation(() => { setWeeklyDraft({}); setTab(id); })}
             className={'border-b-2 px-4 py-3 text-[13px] font-medium transition-colors duration-200 ' +
               (tab === id ? 'border-central-orange text-neutral-900' : 'border-transparent text-neutral-500 hover:text-neutral-900')}>
             {label}
@@ -370,13 +371,14 @@ export function PersonalAdminPage() {
           {tab === 'employees' ? <Button variant="primary" asChild href={ROUTES.adminUsuarios}>
             Gestionar personal
           </Button> : null}
-          {tab === 'attendance' ? <Button variant="dark" type="button" onClick={() => editAttendance()}>
+          {tab === 'attendance' ? <Button variant="primary" type="button"
+            onClick={() => requestNavigation(() => { setWeeklyDraft({}); editAttendance(); })}>
             <Plus size={14} className="mr-1 inline"/>Asistencia
           </Button> : null}
-          {tab === 'payrolls' ? <Button variant="dark" type="button" onClick={() => newPayroll()}>
+          {tab === 'payrolls' ? <Button variant="primary" type="button" onClick={() => newPayroll()}>
             <Wallet size={14} className="mr-1 inline"/>Liquidar
           </Button> : null}
-          {tab === 'payments' ? <Button variant="dark" type="button" onClick={() => newPayment()}>
+          {tab === 'payments' ? <Button variant="primary" type="button" onClick={() => newPayment()}>
             <CreditCard size={14} className="mr-1 inline"/>Anticipo
           </Button> : null}
         </div>
@@ -393,12 +395,18 @@ export function PersonalAdminPage() {
       </div>
       <div className={tab === 'attendance' && !loading ? '' : 'hidden'}>
         <WeeklyAttendanceGrid employees={displayedEmployees}
-          attendance={dashboard.attendance} lines={dashboard.lines}
+          attendance={dashboard.attendance} lines={dashboard.lines} payrolls={dashboard.payrolls}
           today={today} weekAnchor={weekAnchor}
           onWeekChange={date=>setWeekAnchor(date)}
           draft={weeklyDraft} onDraft={setWeeklyDraft} busy={busy}
           onSave={()=>setConfirmOperation('week')}
-          onApprove={id=>void runAction(()=>approveStaffAttendance(id),'Asistencia aprobada.')}
+          onApprove={id=>{
+            if (Object.keys(weeklyDraft).length) {
+              toast.warning('Guardá o descartá los cambios de la semana antes de aprobar.');
+              return;
+            }
+            void runAction(()=>approveStaffAttendance(id),'Asistencia aprobada.');
+          }}
           onCorrect={row=>requestNavigation(()=>{setWeeklyDraft({});editAttendance(row);})}/>
       </div>
       <div className={tab === 'payrolls' && !loading ? 'space-y-4' : 'hidden'}>
