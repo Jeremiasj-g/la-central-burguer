@@ -41,7 +41,7 @@ export function CustomerAccountPage() {
     await claimPendingCustomerOrder();
     const history=await getMyCustomerOrders();
     if(cancelled)return;
-    setAccount(profile);setDraft(profile);setEmailDraft(profile.email??'');setOrders(history);setAccountOwner(userId);setLoadError('');
+    setAccount(profile);setDraft(profile);setEmailDraft(profile.email??'');setOrders(history);setAccountOwner(profile.id);setLoadError('');
    }catch(e){if(!cancelled){const message=e instanceof Error?e.message:'No se pudo cargar tu cuenta.';setLoadError(message);toast.error(message);}}
    finally{if(!cancelled)setLoading(false);}
   }
