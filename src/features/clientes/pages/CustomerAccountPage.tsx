@@ -220,13 +220,28 @@ export function CustomerAccountPage(){
             <div className="mb-9">
               <h1 className="text-[29px] font-semibold tracking-tight">{navigation.find(item=>item.id===section)?.label}</h1>
             </div>
-            {sectionLoading?<div aria-label="Cargando sección" role="status" className="lcb-account-section max-w-[900px] space-y-6">
-              <div className={`h-11 w-full animate-pulse rounded-[11px] ${dark?'bg-white/10':'bg-neutral-200/80'}`}/>
-              <div className="grid gap-5 sm:grid-cols-2">
+            {sectionLoading?<div aria-label="Cargando sección" role="status" className="lcb-account-section max-w-[900px] space-y-5" aria-live="polite">
+              {section==='profile'?<>
+                <div className="grid gap-5 sm:grid-cols-2">
+                  {[0,1].map(index=><div key={index} className="space-y-2">
+                    <div className={`h-3 w-24 animate-pulse rounded ${dark?'bg-white/10':'bg-neutral-200/80'}`}/>
+                    <div className={`h-11 animate-pulse rounded-[11px] ${dark?'bg-white/10':'bg-neutral-200/80'}`}/>
+                  </div>)}
+                </div>
                 <div className={`h-11 animate-pulse rounded-[11px] ${dark?'bg-white/10':'bg-neutral-200/80'}`}/>
-                <div className={`h-11 animate-pulse rounded-[11px] ${dark?'bg-white/10':'bg-neutral-200/80'}`}/>
-              </div>
-              {section==='orders'&&Array.from({length:2},(_,index)=><div key={index} className={`h-20 animate-pulse border-b ${border} ${dark?'border-white/10':'border-neutral-200'}`}/>)}
+                <div className={`ml-auto h-10 w-40 animate-pulse rounded-[11px] ${dark?'bg-white/10':'bg-neutral-200/80'}`}/>
+              </>:section==='orders'?
+                Array.from({length:3},(_,index)=><div key={index} className={`space-y-3 border-b py-3 ${border}`}>
+                  <div className="flex justify-between gap-4">
+                    <div className={`h-4 w-48 max-w-[65%] animate-pulse rounded ${dark?'bg-white/10':'bg-neutral-200/80'}`}/>
+                    <div className={`h-4 w-20 animate-pulse rounded ${dark?'bg-white/10':'bg-neutral-200/80'}`}/>
+                  </div>
+                  <div className={`h-3 w-24 animate-pulse rounded ${dark?'bg-white/10':'bg-neutral-200/80'}`}/>
+                  <div className={`h-3 w-56 max-w-full animate-pulse rounded ${dark?'bg-white/10':'bg-neutral-200/80'}`}/>
+                </div>):
+                <div className="flex items-center justify-center py-16">
+                  <div className={`h-24 w-56 animate-pulse rounded-[11px] ${dark?'bg-white/10':'bg-neutral-200/80'}`}/>
+                </div>}
             </div>:<div key={renderedSection} className="lcb-account-section">
             {renderedSection==='profile'&&<div className="max-w-[900px] space-y-9">
               <form onSubmit={event=>{event.preventDefault();void save();}} className="space-y-5">
