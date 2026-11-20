@@ -20,6 +20,8 @@ export function CustomerAccountPage() {
  const [draft,setDraft]=useState<CustomerAccount|null>(null);
  const [orders,setOrders]=useState<CustomerOrderSummary[]>([]);
  const [loading,setLoading]=useState(true);
+ const [accountOwner,setAccountOwner]=useState<string|null>(null);
+ const [loadError,setLoadError]=useState('');
  const [saving,setSaving]=useState(false);
  const [tab,setTab]=useState<Tab>('profile');
  const [pendingTab,setPendingTab]=useState<Tab|null>(null);
@@ -29,8 +31,9 @@ export function CustomerAccountPage() {
  const dirty=Boolean(draft&&account&&JSON.stringify({
   name:draft.name,phone:draft.phone,address:draft.address
  })!==JSON.stringify({name:account.name,phone:account.phone,address:account.address}));
+ const userId=user?.id;
  useEffect(()=>{
-  if(!user){return;}
+  if(!userId){return;}
   let cancelled=false;
   async function load(){
    try{
@@ -38,13 +41,13 @@ export function CustomerAccountPage() {
     await claimPendingCustomerOrder();
     const history=await getMyCustomerOrders();
     if(cancelled)return;
-    setAccount(profile);setDraft(profile);setEmailDraft(profile.email??'');setOrders(history);
-   }catch(e){if(!cancelled)toast.error(e instanceof Error?e.message:'No se pudo cargar tu cuenta.');}
+    setAccount(profile);setDraft(profile);setEmailDraft(profile.email??'');setOrders(history);setAccountOwner(userId);setLoadError('');
+   }catch(e){if(!cancelled){const message=e instanceof Error?e.message:'No se pudo cargar tu cuenta.';setLoadError(message);toast.error(message);}}
    finally{if(!cancelled)setLoading(false);}
   }
   void load();
   return()=>{cancelled=true;};
- },[user?.id]);
+ },[userId]);
  useEffect(()=>{
   if(!dirty)return;
   const warn=(event:BeforeUnloadEvent)=>{event.preventDefault();event.returnValue='';};
@@ -78,7 +81,7 @@ export function CustomerAccountPage() {
   catch(e){toast.error(e instanceof Error?e.message:'No se pudo cambiar la contraseña.');}
   finally{setSecurityBusy(false);}
  }
- if(authLoading||loading&&user)return <main className="mx-auto min-h-[55vh] max-w-4xl px-4 py-14 text-white">
+ if(authLoading||(user&&loading)||Boolean(user&&accountOwner&&accountOwner!==user.id))return <main className="mx-auto min-h-[55vh] max-w-4xl px-4 py-14 text-white">
   <div className="h-9 w-48 animate-pulse rounded bg-white/10"/>
   <div className="mt-8 h-64 animate-pulse rounded-[18px] bg-white/5"/>
  </main>;
@@ -87,6 +90,11 @@ export function CustomerAccountPage() {
   <h1 className="text-[28px] font-semibold">Tu cuenta de cliente</h1>
   <p className="text-[13px] leading-6 text-white/60">Iniciá sesión para guardar tus datos y consultar tus pedidos. También podés comprar sin una cuenta.</p>
   <button onClick={()=>openAuth('header')} className="h-11 rounded-[11px] bg-central-orange px-6 text-[13px] font-semibold text-[#191919]">Iniciar sesión o registrarme</button>
+ </main>;
+ if(loadError||!account||!draft)return <main className="mx-auto min-h-[55vh] max-w-xl space-y-4 px-5 py-16 text-white">
+  <h1 className="text-[25px] font-semibold">No pudimos cargar tu cuenta</h1>
+  <p role="alert" className="text-[13px] text-white/65">{loadError||'No se encontraron datos de la cuenta.'}</p>
+  <button type="button" onClick={()=>window.location.reload()} className="rounded-[11px] bg-central-orange px-4 py-2.5 text-[12px] font-medium text-[#191919]">Reintentar</button>
  </main>;
  return <main className="mx-auto min-h-[60vh] max-w-4xl px-4 py-12 text-white sm:px-6">
   <div className="mb-8 flex flex-wrap items-center justify-between gap-3">
