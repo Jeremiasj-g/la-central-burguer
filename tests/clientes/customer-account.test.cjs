@@ -100,3 +100,43 @@ describe('Clientes / administración protegida',()=>{
   assert.deepEqual(rpcCalls[0],{name:'admin_delete_customer_without_orders',args:{target_id:'c1'}});
  });
 });
+
+
+describe('Clientes / diseño responsive y aislamiento de identidad',()=>{
+ test('Mi cuenta utiliza layout dedicado sin footer ni header de tienda',()=>{
+   const page=fs.readFileSync('src/app/(public)/mi-cuenta/page.tsx','utf8');
+   assert.match(page,/CustomerAuthProvider/);
+   assert.doesNotMatch(page,/PublicShell|PublicFooter|PublicHeader/);
+ });
+ test('El header personal sólo ofrece casa, tema y salida; drawer para móvil',()=>{
+   const page=fs.readFileSync('src/features/clientes/pages/CustomerAccountPage.tsx','utf8');
+   assert.match(page,/aria-label="Ir al inicio"/);
+   assert.match(page,/PublicThemeToggle/);
+   assert.match(page,/aria-label="Cerrar sesión"/);
+   assert.match(page,/aria-label="Abrir menú de mi cuenta"/);
+   assert.match(page,/aria-label="Cerrar menú"/);
+ });
+ test('Cada sección está disponible y las futuras indican Próximamente',()=>{
+   const page=fs.readFileSync('src/features/clientes/pages/CustomerAccountPage.tsx','utf8');
+   for(const section of ["Mi perfil","Mis pedidos","Beneficios","Preferencias","Próximamente"]){
+     assert.ok(page.includes(section),section);
+   }
+ });
+ test('Perfil respeta modo claro y oscuro desde el proveedor público',()=>{
+   const page=fs.readFileSync('src/features/clientes/pages/CustomerAccountPage.tsx','utf8');
+   assert.match(page,/usePublicTheme\(\)/);
+   assert.match(page,/theme==='dark'/);
+   assert.match(page,/bg-\[#F7F7F8\]/);
+   assert.match(page,/bg-\[#111216\]/);
+ });
+ test('No renderiza un perfil ajeno mientras cambia la sesión OAuth',()=>{
+   const page=fs.readFileSync('src/features/clientes/pages/CustomerAccountPage.tsx','utf8');
+   assert.match(page,/profile\.id!==userId/);
+   assert.match(page,/account\?\.id===userId/);
+ });
+ test('Clientes usa el ancho completo del shell administrativo',()=>{
+   const page=fs.readFileSync('src/features/clientes/pages/CustomerAdminPage.tsx','utf8');
+   assert.match(page,/w-full min-w-0 space-y-5/);
+   assert.doesNotMatch(page,/max-w-\[1440px\]/);
+ });
+});
