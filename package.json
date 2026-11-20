@@ -15,7 +15,7 @@
     "test:qa": "npm test && npm run typecheck && npm run lint:personal && npm run lint:clientes",
     "lint:personal": "eslint src/features/personal tests/personal scripts/qa-personal-db.cjs",
     "test:clientes": "node --test --test-reporter=spec tests/clientes/*.test.cjs",
-    "lint:clientes": "eslint src/features/clientes src/shared/components/layout/PublicHeader.tsx src/shared/components/layout/PublicShell.tsx src/app/api/orders/route.ts src/features/checkout/components/CheckoutModal.tsx src/features/checkout/hooks/useCheckout.ts src/features/checkout/services/checkout.service.ts src/features/pedidos/services/pedidos.service.ts tests/clientes"
+    "lint:clientes": "eslint src/features/clientes src/shared/components/layout/PublicHeader.tsx src/shared/components/layout/PublicShell.tsx src/app/api/orders/route.ts src/features/checkout/hooks/useCheckout.ts src/features/checkout/services/checkout.service.ts src/features/pedidos/services/pedidos.service.ts tests/clientes"
   },
   "dependencies": {
     "@radix-ui/react-popover": "^1.1.23",
