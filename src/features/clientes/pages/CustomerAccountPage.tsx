@@ -156,14 +156,13 @@ export function CustomerAccountPage(){
   return <div className={`min-h-screen ${surface}`}>
     <header className={`sticky top-0 z-40 border-b ${panel}`}>
       <div className="flex h-[66px] items-center justify-between gap-3 px-4 sm:px-6">
-        <div className="flex items-center gap-3">
-          <button type="button" onClick={()=>setMobileOpen(true)} aria-label="Abrir menú de mi cuenta"
-            className={`${action} ${secondary} lg:hidden`}><Menu size={19}/></button>
-          <span className="text-[14px] font-semibold tracking-tight">La Central Burger <span className={muted}>/ Mi cuenta</span></span>
-        </div>
         <div className="flex items-center gap-2">
+          <button type="button" onClick={()=>setMobileOpen(true)} aria-label="Abrir menú de mi cuenta"
+            className={`${action} ${secondary} h-10 w-10 !px-0 lg:hidden`}><Menu size={19}/></button>
           <Link href="/" title="Ir al inicio" aria-label="Ir al inicio"
             className={`${action} ${secondary} h-10 w-10 !px-0`}><Home size={18}/></Link>
+        </div>
+        <div className="flex items-center gap-2">
           <PublicThemeToggle/>
           {user&&<button type="button" onClick={requestLogout} disabled={signingOut}
             title="Cerrar sesión" aria-label="Cerrar sesión"
