@@ -176,8 +176,10 @@ describe('Clientes / identidad Google y controles públicos consistentes',()=>{
  test('avatar redondo prioriza foto verificada de Google con fallback de usuario',()=>{
   const avatar=fs.readFileSync('src/features/clientes/components/CustomerGoogleAvatar.tsx','utf8');
   const page=fs.readFileSync('src/features/clientes/pages/CustomerAccountPage.tsx','utf8');
-  assert.match(avatar,/user\?\.user_metadata\?\.avatar_url/);
-  assert.match(avatar,/user\?\.user_metadata\?\.picture/);
+  assert.match(avatar,/googleIdentity\?\.identity_data\?\.avatar_url/);
+  assert.match(avatar,/metadata\?\.picture/);
+  assert.match(avatar,/key=\{src\}/);
+  assert.match(avatar,/referrerPolicy="no-referrer"/);
   assert.match(avatar,/googleusercontent\.com/);
   assert.match(avatar,/rounded-full/);
   assert.match(avatar,/onError=\{\(\)=>setFailed\(true\)\}/);
