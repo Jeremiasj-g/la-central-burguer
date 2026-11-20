@@ -69,9 +69,9 @@ export async function getCustomerAccount():Promise<CustomerAccount> {
   return data as unknown as CustomerAccount;
 }
 export async function saveCustomerAccount(name:string,phone:string,address:string){
-  const digits=phone.replace(/\\D/g,'');
+  const digits=phone.replace(/\D/g,'');
   if(name.trim().length<2||name.length>120||phone.length>40||address.length>240
-    ||(phone.trim() && (digits.length<6 || !/^[+()\\d\\s.-]+$/.test(phone.trim())))){
+    ||(phone.trim() && (digits.length<6 || !/^[+()\d\s.-]+$/.test(phone.trim())))){
     throw new Error('Revisá nombre, teléfono y dirección. El teléfono debe tener al menos seis números.');
   }
   const {error}=await getSupabaseBrowserClient().rpc('save_my_customer_account',{
