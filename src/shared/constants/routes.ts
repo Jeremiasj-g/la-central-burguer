@@ -14,6 +14,8 @@ export const ROUTES = {
   adminDelivery: '/admin/delivery',
   adminPersonal: '/admin/personal',
   adminUsuarios: '/admin/usuarios',
+  adminClientes: '/admin/clientes',
+  customerAccount: '/mi-cuenta',
   adminReportes: '/admin/reportes',
   adminConfiguracion: '/admin/configuracion',
   deliveryLogin: '/delivery/login',
