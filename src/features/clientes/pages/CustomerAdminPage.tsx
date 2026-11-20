@@ -50,7 +50,7 @@ export function CustomerAdminPage(){
   catch(e){const message=e instanceof Error?e.message:'No se pudieron obtener los clientes';setError(message);toast.error(message);}
   finally{setLoading(false);}
  }
- useEffect(()=>{void refresh();},[]);
+ useEffect(()=>{queueMicrotask(()=>{void refresh();});},[]);
  const switchTab=(next:'registered'|'commercial')=>{
   setTab(next);setPage(1);setSearch('');
  };
