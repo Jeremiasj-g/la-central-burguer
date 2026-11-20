@@ -1,7 +1,8 @@
 'use client';
 
 import Link from 'next/link';
-import { ShoppingCart } from 'lucide-react';
+import { ShoppingCart, UserRound } from 'lucide-react';
+import { useCustomerAuth } from '@/features/clientes/components/CustomerAuthProvider';
 import { useCarrito } from '@/features/carrito/hooks/useCarrito';
 import { useBusinessConfig } from '@/features/configuracion/hooks/useBusinessConfig';
 import { ROUTES } from '@/shared/constants/routes';
@@ -16,6 +17,7 @@ const navigation = [
 export function PublicHeader() {
   const { config, isLoading } = useBusinessConfig();
   const cart = useCarrito();
+  const {user,openAuth}=useCustomerAuth();
   const businessName = config?.businessName ?? 'La Central Burger';
   const cartCount = cart.items.reduce((total, item) => total + item.quantity, 0);
 
@@ -63,6 +65,18 @@ export function PublicHeader() {
           >
             Pedir ahora
           </Link>
+
+          {user ? (
+            <Link href="/mi-cuenta" title="Mi cuenta"
+              className="inline-flex h-10 items-center justify-center gap-2 rounded-[11px] border border-white/15 px-3 text-[12px] font-medium text-white transition-colors duration-200 hover:border-central-orange/50 hover:text-central-orange focus-visible:outline-2 focus-visible:outline-central-orange">
+              <UserRound size={16}/><span className="hidden sm:inline">Mi cuenta</span>
+            </Link>
+          ) : (
+            <button type="button" onClick={()=>openAuth('header')} title="Iniciar sesión"
+              className="inline-flex h-10 items-center justify-center gap-2 rounded-[11px] border border-white/15 px-3 text-[12px] font-medium text-white transition-colors duration-200 hover:border-central-orange/50 hover:text-central-orange focus-visible:outline-2 focus-visible:outline-central-orange">
+              <UserRound size={16}/><span className="hidden sm:inline">Iniciar sesión</span>
+            </button>
+          )}
 
           <PublicThemeToggle />
 
