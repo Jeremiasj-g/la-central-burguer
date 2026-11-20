@@ -2,9 +2,9 @@
 
 ## Alcance implementado
 
-- Login y registro opcionales desde el header público, con Supabase Auth (Google OAuth y correo/contraseña).
+- Inicio de sesión/registro opcional desde el header público, únicamente mediante Google OAuth de Supabase Auth. La modal destaca «¡Registrate para obtener más beneficios!» y permite continuar sin cuenta.
 - Invitación después de **crear correctamente** el pedido. «Ahora no» nunca impide comprar.
-- Pantalla `/mi-cuenta`: perfil editable (nombre, teléfono, dirección informativa), correo con cambio verificado, contraseña e historial de pedidos propios.
+- Pantalla `/mi-cuenta`: perfil editable (nombre, teléfono, dirección informativa), correo vinculado a Google de solo lectura e historial de pedidos propios. No hay contraseñas propias de La Central Burger ni edición de correo desde el perfil.
 - Administrador `/admin/clientes`: cuentas registradas y clientes comerciales en pestañas separadas, búsqueda, paginación, edición y creación de contactos comerciales. Eliminación de contactos **sin pedidos**; nunca borrado de historial.
 - Pedido: `/api/orders` sigue usando **únicamente el formulario del checkout** para nombre, WhatsApp, ubicación GPS, tarifa de envío y entrega. Si el usuario inicia sesión se pueden precargar **nombre y teléfono** desde su perfil cuando los campos están vacíos, pero siempre son editables antes de confirmar; la dirección, GPS y cotización de envío **nunca se precargan desde el perfil**. La dirección del perfil NO es fuente de despacho.
 - Un pedido nuevo realizado con una sesión Auth válida se vincula al usuario. Un invitado recibe un comprobante aleatorio de un solo uso, almacenado temporalmente en `sessionStorage`, que permite asociar **ese único pedido** al registrarse en ese navegador, durante 7 días. No se hacen vinculaciones por coincidencia de teléfono, nombre o email.
@@ -13,18 +13,18 @@
 
 ## Configuración manual necesaria para Google (SUPABASE DEV)
 
-La implementación no puede generar credenciales OAuth de Google por sí sola. **Hasta completar esto, el botón Google mostrará un error de proveedor no configurado.**
+La implementación no puede generar credenciales OAuth de Google por sí sola. **Hasta completar esto, el botón Google mostrará un error de proveedor no configurado y el visitante podrá continuar sin cuenta.**
 
 1. En Google Cloud Console, crear/configurar el consentimiento OAuth y un cliente OAuth de aplicación web.
 2. En **Authorized redirect URIs**, registrar la URL de callback de Supabase DEV:
    `https://vsfcjmyiiviyydvbdlrn.supabase.co/auth/v1/callback`.
 3. En el panel del proyecto Supabase **DEV** → Authentication → Providers → Google: habilitarlo e introducir el Client ID y Client Secret de Google. El secreto se configura allí, **nunca en Git ni en `NEXT_PUBLIC_*`**.
-4. En Authentication → URL Configuration: registrar `http://localhost:3000/mi-cuenta` y las direcciones de preview autorizadas para volver tras Google o confirmar correo. Probar el flujo desde origen exacto permitido.
-5. Para registro por correo, revisar Email Auth/confirmación y configurar SMTP propio antes de usarse en producción. Los nuevos registros sin sesión requieren verificación del correo.
+4. En Authentication → URL Configuration: registrar `http://localhost:3000/mi-cuenta` y las direcciones de preview autorizadas para volver tras Google. Probar el flujo desde origen exacto permitido.
+5. El registro público de clientes utiliza solo Google; no necesita SMTP para invitaciones o confirmaciones propias del flujo de clientes. **No deshabilitar Email Auth globalmente sin analizar los usuarios internos**, porque el personal puede depender de ese proveedor.
 
-Referencia: https://supabase.com/docs/guides/auth/social-sign-in/auth-google y https://supabase.com/docs/guides/auth/passwords
+Referencia: https://supabase.com/docs/guides/auth/social-sign-in/auth-google
 
-**Producción NO fue modificada**. Al aprobar el QA y el lanzamiento, migrar el esquema y configurar OAuth/SMTP en PROD como tarea separada. No utilizar credenciales DEV en producción.
+**Producción NO fue modificada**. Al aprobar el QA y el lanzamiento, migrar el esquema y configurar Google OAuth en PROD como tarea separada. No utilizar credenciales DEV en producción.
 
 ## Migraciones DEV
 
@@ -55,8 +55,8 @@ Se ha ejecutado de forma reversible; comprueba cuenta propia, perfil, reclamo v�
 ### Aceptación manual antes de habilitar en producción
 
 - [ ] Registro con Google con proveedor real de Google DEV.
-- [ ] Registro por correo con confirmación y posterior login.
-- [ ] Inicio de sesión, cierre de sesión, correo inválido, contraseña equivocada, recuperación.
+- [ ] Comprobar que la modal muestra «¡Registrate para obtener más beneficios!» y únicamente «Continuar con Google» y el acceso de invitado.
+- [ ] Inicio y cierre de sesión con Google, cancelación del consentimiento y errores de OAuth.
 - [ ] Comprar sin cuenta desde Home hasta WhatsApp (DEV no abre WhatsApp).
 - [ ] Comprar con sesión y comprobar historial solo del propio usuario.
 - [ ] Comprar como invitado, luego registrarse y reclamar únicamente ese pedido.
@@ -69,7 +69,7 @@ Se ha ejecutado de forma reversible; comprueba cuenta propia, perfil, reclamo v�
 
 ## Consideraciones de seguridad
 
-- Supabase Auth administra el correo y las contraseñas; las tablas de perfiles no tienen claves.
+- Supabase Auth administra la identidad de Google; las tablas de perfiles no guardan contraseñas.
 - `customer_order_links` no tiene escritura desde `authenticated` ni `anon`. Solo el servidor después de verificar JWT o la función de reclamación tras autenticar puede vincular un pedido.
 - `customer_order_claims` no expone SELECT/INSERT/UPDATE a los clientes. Se almacenan hashes SHA-256; un token de 32 bytes solo se entrega al navegador que creó el pedido.
 - El historial se sirve por `my_customer_orders()` con `auth.uid()`, no por coincidencia con `customer_id` comercial.
@@ -86,4 +86,4 @@ Se ha ejecutado de forma reversible; comprueba cuenta propia, perfil, reclamo v�
 
 [Ver ejecución CI](https://github.com/Jeremiasj-g/la-central-burguer/actions/runs/44766791993)
 
-Los botones Google y de correo no pueden considerarse probados con proveedores reales hasta configurar Google OAuth, URLs de redirección y SMTP en DEV. Eso queda como paso operativo obligatorio previo al lanzamiento.
+El botón de Google todavía necesita pruebas con el proveedor real, sus credenciales OAuth y las URLs de redirección en DEV. La modalidad pública de correo y contraseña fue retirada por decisión del negocio; no se modificó la configuración global de correo del personal.
