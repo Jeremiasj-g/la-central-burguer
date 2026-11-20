@@ -36,20 +36,19 @@ describe('Clientes / autenticación opcional',()=>{
   assert.equal(authCalls[0][1].provider,'google');
   assert.equal(authCalls[0][1].options.redirectTo,'http://localhost:3000/mi-cuenta');
  });
- test('registro por correo no exige sesión inmediata si requiere verificación',async()=>{
-  browser();const result=await service.signUpCustomer(' CLIENTE@EXAMPLE.COM ','12345678');
-  assert.equal(result.needsConfirmation,true);
-  assert.equal(authCalls.at(-1)[1].email,'cliente@example.com');
+ test('el acceso público no ofrece correo ni contraseña como métodos',()=>{
+  const dialog=fs.readFileSync('src/features/clientes/components/CustomerAuthModal.tsx','utf8');
+  const page=fs.readFileSync('src/features/clientes/pages/CustomerAccountPage.tsx','utf8');
+  assert.match(dialog,/¡Registrate para obtener más beneficios!/);
+  assert.match(dialog,/Continuar con Google/);
+  assert.match(dialog,/Continuar como invitado/);
+  assert.doesNotMatch(dialog,/signUpCustomer|signInCustomer\(|PasswordInput|Recuperar contraseña|resetCustomerPassword/);
+  assert.doesNotMatch(page,/updateCustomerPassword|updateCustomerEmail|Cambiar contraseña|Cambiar correo/);
  });
- test('el inicio de sesión nunca crea órdenes ni usa el teléfono',async()=>{
-  authCalls.length=0;rpcCalls.length=0;
-  await service.signInCustomer('cliente@example.com','12345678');
-  assert.equal(authCalls[0][0],'password');
-  assert.equal(rpcCalls.length,0);
- });
- test('recuperación por correo mantiene retorno a Mi cuenta',async()=>{
-  browser();await service.resetCustomerPassword('cliente@example.com');
-  assert.equal(authCalls.at(-1)[1][1].redirectTo,'http://localhost:3000/mi-cuenta?recuperar=1');
+ test('se conserva OAuth como único método público de acceso',()=>{
+  const source=fs.readFileSync('src/features/clientes/services/customer-account.service.ts','utf8');
+  assert.match(source,/signInWithOAuth/);
+  assert.doesNotMatch(source,/signUp\(|signInWithPassword\(|resetPasswordForEmail\(/);
  });
 });
 describe('Clientes / perfil independiente del checkout',()=>{
