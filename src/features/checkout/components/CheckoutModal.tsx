@@ -6,6 +6,7 @@ import { toast } from 'react-toastify';
 import type { CartItem } from '@/features/carrito/types/carrito.types';
 import type { CheckoutFormValues } from '../types/checkout.types';
 import { useCheckout } from '../hooks/useCheckout';
+import { useCustomerAuth } from '@/features/clientes/components/CustomerAuthProvider';
 import { isValidCustomerPhone } from '../schemas/checkout.schema';
 import { getDeliveryQuote } from '@/features/delivery/services/delivery.service';
 import type { DeliveryQuote } from '@/features/delivery/types/delivery.types';
@@ -91,6 +92,7 @@ function isFreshQuote(expiresAt: string | undefined) {
 
 export function CheckoutModal({ open, onClose, items, onOrderCreated }: CheckoutModalProps) {
   const theme = usePublicTheme();
+  const {user,openAuth}=useCustomerAuth();
   const [confirmSendOpen, setConfirmSendOpen] = useState(false);
   const [summaryExpanded, setSummaryExpanded] = useState(false);
   const [deliveryQuote, setDeliveryQuote] = useState<DeliveryQuote | null>(null);
@@ -283,6 +285,7 @@ export function CheckoutModal({ open, onClose, items, onOrderCreated }: Checkout
       clearLocation();
       setValues(EMPTY_CHECKOUT_VALUES);
       onOrderCreated?.();
+      if(!user)openAuth('after-order');
     }
   }
 
@@ -365,6 +368,10 @@ export function CheckoutModal({ open, onClose, items, onOrderCreated }: Checkout
               {createdOrder.orderCode}
             </p>
           </div>
+          {!user&&<button type="button" onClick={()=>openAuth('after-order')}
+            className="mt-5 w-full rounded-[11px] border border-central-orange/35 px-4 py-3 text-[12px] font-medium text-central-orange transition-colors duration-200 hover:bg-central-orange/10">
+            Registrate para obtener más beneficios · Opcional
+          </button>}
           <button type="button" className="mt-6 inline-flex h-11 w-full items-center justify-center rounded-[12px] bg-central-orange text-[13px] font-semibold text-[#191919] transition-colors duration-200 hover:bg-[#ffc04a]"
             onClick={() => { setCreatedOrder(null); onClose(); }}>
             Entendido
