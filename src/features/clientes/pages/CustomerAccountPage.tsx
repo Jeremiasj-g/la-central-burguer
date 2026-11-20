@@ -7,7 +7,7 @@ import { ConfirmDialog } from '@/shared/components/ui/ConfirmDialog';
 import { useCustomerAuth } from '../components/CustomerAuthProvider';
 import {
  claimPendingCustomerOrder, getCustomerAccount, getMyCustomerOrders,
- saveCustomerAccount, signOutCustomer, updateCustomerEmail, updateCustomerPassword,
+ saveCustomerAccount, signOutCustomer,
  type CustomerAccount, type CustomerOrderSummary,
 } from '../services/customer-account.service';
 
@@ -25,9 +25,6 @@ export function CustomerAccountPage() {
  const [saving,setSaving]=useState(false);
  const [tab,setTab]=useState<Tab>('profile');
  const [pendingTab,setPendingTab]=useState<Tab|null>(null);
- const [emailDraft,setEmailDraft]=useState('');
- const [newPassword,setNewPassword]=useState('');
- const [securityBusy,setSecurityBusy]=useState(false);
  const dirty=Boolean(draft&&account&&JSON.stringify({
   name:draft.name,phone:draft.phone,address:draft.address
  })!==JSON.stringify({name:account.name,phone:account.phone,address:account.address}));
@@ -41,7 +38,7 @@ export function CustomerAccountPage() {
     await claimPendingCustomerOrder();
     const history=await getMyCustomerOrders();
     if(cancelled)return;
-    setAccount(profile);setDraft(profile);setEmailDraft(profile.email??'');setOrders(history);setAccountOwner(profile.id);setLoadError('');
+    setAccount(profile);setDraft(profile);setOrders(history);setAccountOwner(profile.id);setLoadError('');
    }catch(e){if(!cancelled){const message=e instanceof Error?e.message:'No se pudo cargar tu cuenta.';setLoadError(message);toast.error(message);}}
    finally{if(!cancelled)setLoading(false);}
   }
@@ -66,20 +63,6 @@ export function CustomerAccountPage() {
    toast.success('Tus datos se guardaron correctamente.');
   }catch(e){toast.error(e instanceof Error?e.message:'No se pudieron guardar los cambios.');}
   finally{setSaving(false);}
- }
- async function updateEmail(){
-  if(!emailDraft.includes('@')||securityBusy)return;
-  setSecurityBusy(true);
-  try{await updateCustomerEmail(emailDraft);toast.info('Revisá tu correo para confirmar el cambio de dirección.');}
-  catch(e){toast.error(e instanceof Error?e.message:'No se pudo actualizar el correo.');}
-  finally{setSecurityBusy(false);}
- }
- async function updatePassword(){
-  if(newPassword.length<8||securityBusy)return;
-  setSecurityBusy(true);
-  try{await updateCustomerPassword(newPassword);setNewPassword('');toast.success('Contraseña actualizada.');}
-  catch(e){toast.error(e instanceof Error?e.message:'No se pudo cambiar la contraseña.');}
-  finally{setSecurityBusy(false);}
  }
  if(authLoading||(user&&loading)||Boolean(user&&accountOwner&&accountOwner!==user.id))return <main className="mx-auto min-h-[55vh] max-w-4xl px-4 py-14 text-white">
   <div className="h-9 w-48 animate-pulse rounded bg-white/10"/>
@@ -130,24 +113,10 @@ export function CustomerAccountPage() {
      <button type="submit" disabled={saving||!dirty} className="inline-flex h-10 items-center gap-2 rounded-[11px] bg-central-orange px-4 text-[12px] font-semibold text-[#191919] transition-colors duration-200 hover:bg-[#ffc04a] disabled:opacity-50"><Save size={15}/>{saving?'Guardando…':'Guardar cambios'}</button>
     </div>
    </form>
-   <section className="space-y-4 border-t border-white/10 pt-6">
-    <h2 className="text-[16px] font-semibold">Seguridad de la cuenta</h2>
-    <div className="grid gap-4 sm:grid-cols-[1fr_auto] sm:items-end">
-     <label className="space-y-1.5 text-[12px] text-white/75">Correo electrónico
-      <input className={input} type="email" value={emailDraft} onChange={e=>setEmailDraft(e.target.value)} placeholder="tu@email.com"/>
-     </label>
-     <button type="button" disabled={securityBusy||emailDraft===account?.email} onClick={()=>void updateEmail()}
-      className="h-11 rounded-[11px] border border-white/20 px-4 text-[12px] text-white/80 disabled:opacity-40">Cambiar correo</button>
-    </div>
-    <div className="grid gap-4 sm:grid-cols-[1fr_auto] sm:items-end">
-     <label className="space-y-1.5 text-[12px] text-white/75">Nueva contraseña
-      <input className={input} type="password" autoComplete="new-password" minLength={8}
-       value={newPassword} onChange={e=>setNewPassword(e.target.value)} placeholder="Mínimo 8 caracteres"/>
-     </label>
-     <button type="button" disabled={securityBusy||newPassword.length<8} onClick={()=>void updatePassword()}
-      className="h-11 rounded-[11px] border border-white/20 px-4 text-[12px] text-white/80 disabled:opacity-40">Cambiar contraseña</button>
-    </div>
-    <p className="text-[11px] text-white/45">Si accediste con Google, podés seguir usando ese método sin crear una contraseña.</p>
+   <section className="space-y-2 border-t border-white/10 pt-6">
+    <h2 className="text-[16px] font-semibold">Acceso con Google</h2>
+    <p className="text-[12px] leading-6 text-white/65">Correo vinculado: <span className="text-white">{account.email}</span></p>
+    <p className="text-[11px] text-white/45">El acceso a tu cuenta se administra desde Google. No necesitás crear ni guardar una contraseña para La Central Burger.</p>
    </section>
   </div>}
   {tab==='orders'&&<section className="space-y-3">
