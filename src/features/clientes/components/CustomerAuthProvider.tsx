@@ -33,7 +33,7 @@ export function CustomerAuthProvider({children}:{children:React.ReactNode}){
   const value=useMemo(()=>({user,loading,openAuth}),[user,loading,openAuth]);
   return <Context.Provider value={value}>
     {children}
-    <CustomerAuthModal open={dialog!==null} afterOrder={dialog==='after-order'}
+    <CustomerAuthModal key={dialog??'closed'} open={dialog!==null} initialMode={dialog==='header'?'login':'signup'} afterOrder={dialog==='after-order'}
       onClose={()=>setDialog(null)} onAuthenticated={()=>setDialog(null)}/>
   </Context.Provider>;
 }
