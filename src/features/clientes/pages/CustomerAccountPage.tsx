@@ -1,11 +1,12 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Gift, Heart, Home, LogOut, MapPin, Menu, Package, Save, Settings2, UserRound, X } from 'lucide-react';
 import { toast } from 'react-toastify';
 import { ConfirmDialog } from '@/shared/components/ui/ConfirmDialog';
 import { PublicThemeToggle, usePublicTheme } from '@/shared/components/layout/PublicThemeProvider';
+import { useBodyScrollLock } from '@/shared/hooks/useBodyScrollLock';
 import { useCustomerAuth } from '../components/CustomerAuthProvider';
 import {
   claimPendingCustomerOrder, getCustomerAccount, getMyCustomerOrders,
@@ -29,6 +30,8 @@ export function CustomerAccountPage(){
   const theme=usePublicTheme();
   const dark=theme==='dark';
   const [mobileOpen,setMobileOpen]=useState(false);
+  const drawerCloseRef=useRef<HTMLButtonElement>(null);
+  useBodyScrollLock(mobileOpen);
   const [section,setSection]=useState<Section>('profile');
   const [pendingAction,setPendingAction]=useState<Section|'logout'|null>(null);
   const [account,setAccount]=useState<CustomerAccount|null>(null);
@@ -63,6 +66,15 @@ export function CustomerAccountPage(){
     void load();
     return()=>{active=false;};
   },[userId]);
+
+  useEffect(()=>{
+    if(!mobileOpen)return;
+    const previous=document.activeElement instanceof HTMLElement?document.activeElement:null;
+    drawerCloseRef.current?.focus();
+    const onKey=(event:KeyboardEvent)=>{if(event.key==='Escape')setMobileOpen(false);};
+    document.addEventListener('keydown',onKey);
+    return()=>{document.removeEventListener('keydown',onKey);previous?.focus();};
+  },[mobileOpen]);
 
   useEffect(()=>{
     if(!dirty)return;
@@ -259,9 +271,9 @@ export function CustomerAccountPage(){
     {mobileOpen&&<div className="fixed inset-0 z-[70] lg:hidden">
       <button type="button" aria-label="Cerrar menú" onClick={()=>setMobileOpen(false)}
         className="absolute inset-0 bg-black/65"/>
-      <div className="relative h-full w-[264px] max-w-[85vw] animate-in slide-in-from-left duration-200">
+      <div role="dialog" aria-modal="true" aria-label="Menú de mi cuenta" className="relative h-full w-[264px] max-w-[85vw] animate-in slide-in-from-left duration-200">
         <div className="absolute right-3 top-3 z-10">
-          <button type="button" aria-label="Cerrar menú" onClick={()=>setMobileOpen(false)} className="rounded-lg p-2 text-central-orange"><X size={18}/></button>
+          <button ref={drawerCloseRef} type="button" aria-label="Cerrar menú" onClick={()=>setMobileOpen(false)} className="rounded-lg p-2 text-central-orange"><X size={18}/></button>
         </div>
         {sidebar}
       </div>
