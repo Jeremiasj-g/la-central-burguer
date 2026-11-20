@@ -140,3 +140,33 @@ describe('Clientes / diseño responsive y aislamiento de identidad',()=>{
    assert.doesNotMatch(page,/max-w-\[1440px\]/);
  });
 });
+
+
+describe('Clientes / animaciones de navegación y skeletons',()=>{
+ test('el drawer permanece montado para animar apertura y cierre',()=>{
+  const page=fs.readFileSync('src/features/clientes/pages/CustomerAccountPage.tsx','utf8');
+  const css=fs.readFileSync('src/app/(public)/mi-cuenta/account-motion.css','utf8');
+  assert.match(page,/useAnimatedPresence\(mobileOpen,200\)/);
+  assert.match(page,/data-state=\{mobileOpen\?'open':'closed'\}/);
+  assert.match(css,/lcb-account-drawer-in/);
+  assert.match(css,/lcb-account-drawer-out/);
+  assert.match(css,/prefers-reduced-motion: reduce/);
+ });
+ test('navegar muestra skeletons con la forma de cada sección',()=>{
+  const page=fs.readFileSync('src/features/clientes/pages/CustomerAccountPage.tsx','utf8');
+  assert.match(page,/setSectionLoading\(true\)/);
+  assert.match(page,/aria-label="Cargando sección"/);
+  assert.match(page,/section==='orders'\?/);
+  assert.match(page,/setRenderedSection\(section\)/);
+ });
+ test('la sección entra suavemente y no usa transiciones de solo opacidad',()=>{
+  const css=fs.readFileSync('src/app/(public)/mi-cuenta/account-motion.css','utf8');
+  assert.match(css,/lcb-account-content-enter/);
+  assert.match(css,/translateY\(9px\)/);
+  assert.match(css,/clip-path: inset/);
+ });
+ test('no quedan subtítulos ornamentales ni textos duplicados',()=>{
+  const page=fs.readFileSync('src/features/clientes/pages/CustomerAccountPage.tsx','utf8');
+  assert.doesNotMatch(page,/Espacio personal|Administrá tus datos personales|Consultá las compras vinculadas a tu cuenta/);
+ });
+});
