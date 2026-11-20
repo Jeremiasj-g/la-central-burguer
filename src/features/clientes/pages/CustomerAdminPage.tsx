@@ -64,7 +64,7 @@ export function CustomerAdminPage(){
  async function save(event:React.FormEvent){
   event.preventDefault();
   if(!editing||busy)return;
-  if(editing.name.trim().length<2||editing.phone.length>40||editing.address?.length>240){
+  if(editing.name.trim().length<2||editing.phone.length>40||(editing.address??'').length>240){
    toast.warning('Revisá nombre, teléfono y dirección.');return;
   }
   setBusy(true);
