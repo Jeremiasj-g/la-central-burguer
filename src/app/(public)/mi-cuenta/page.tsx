@@ -1,3 +1,4 @@
+import './account-motion.css';
 import { CustomerAuthProvider } from '@/features/clientes/components/CustomerAuthProvider';
 import { CustomerAccountPage } from '@/features/clientes/pages/CustomerAccountPage';
 
