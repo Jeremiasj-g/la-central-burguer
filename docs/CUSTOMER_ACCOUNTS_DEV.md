@@ -87,3 +87,14 @@ Se ha ejecutado de forma reversible; comprueba cuenta propia, perfil, reclamo v�
 [Ver ejecución CI](https://github.com/Jeremiasj-g/la-central-burguer/actions/runs/44766791993)
 
 El botón de Google todavía necesita pruebas con el proveedor real, sus credenciales OAuth y las URLs de redirección en DEV. La modalidad pública de correo y contraseña fue retirada por decisión del negocio; no se modificó la configuración global de correo del personal.
+
+
+## Rediseño de Mi cuenta y diagnóstico de identidad
+
+- `/mi-cuenta` utiliza un layout exclusivo: header mínimo (Inicio mediante icono de casa, selector de tema y cerrar sesión), sin menú ni footer comercial. En escritorio muestra navegación lateral y en móvil un drawer con cierre, Escape, bloqueo de scroll y foco inicial.
+- Menú: **Mi perfil**, **Mis pedidos**, **Beneficios** y **Preferencias**. Las dos últimas páginas indican explícitamente **Próximamente**; no ofrecen descuentos ficticios.
+- El panel y los formularios se adaptan a **claro y oscuro** con `usePublicTheme()`; la elección existente se conserva. En `AGENTS.md` se volvió obligatoria la compatibilidad de ambos temas para módulos públicos nuevos.
+- El administrador `/admin/clientes` ahora utiliza el ancho disponible de `AdminShell`, sin otro `max-width` ni padding que reduzca la superficie.
+- **Hallazgo de datos:** en DEV había dos registros de cuenta diferentes: una cuenta con el nombre inicial «Administrador» sin teléfono/dirección y otra cuenta con el nombre y datos personalizados. El segundo registro conserva sus datos. No se fusionan cuentas ni se copian datos por correo o nombre, para proteger el historial privado de pedidos.
+- Se añadió comprobación de coincidencia entre el ID de sesión autenticada y el ID del perfil antes de renderizar información. Al cambiar de cuenta no se muestra temporalmente el perfil de la sesión anterior.
+
