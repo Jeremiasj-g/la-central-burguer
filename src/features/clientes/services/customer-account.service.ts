@@ -17,7 +17,15 @@ export type CustomerDirectory = {
 };
 export const PENDING_CUSTOMER_ORDER_KEY='lcb_pending_order_claim_v1';
 
-function throwIfError(error: {message:string}|null) { if(error) throw new Error(error.message); }
+function throwIfError(error: {message:string}|null) {
+  if(!error)return;
+  const message=error.message;
+  if(/invalid login credentials/i.test(message))throw new Error('Correo o contraseña incorrectos.');
+  if(/email not confirmed/i.test(message))throw new Error('Confirmá tu correo electrónico antes de iniciar sesión.');
+  if(/provider is not enabled|unsupported provider|provider not enabled/i.test(message))
+    throw new Error('Google todavía no está habilitado. Podés registrarte con correo.');
+  throw new Error(message);
+}
 export const customerAuth = () => getSupabaseBrowserClient().auth;
 export async function currentCustomerUser():Promise<User|null> {
   const {data,error}=await customerAuth().getUser();
@@ -61,6 +69,11 @@ export async function getCustomerAccount():Promise<CustomerAccount> {
   return data as unknown as CustomerAccount;
 }
 export async function saveCustomerAccount(name:string,phone:string,address:string){
+  const digits=phone.replace(/\\D/g,'');
+  if(name.trim().length<2||name.length>120||phone.length>40||address.length>240
+    ||(phone.trim() && (digits.length<6 || !/^[+()\\d\\s.-]+$/.test(phone.trim())))){
+    throw new Error('Revisá nombre, teléfono y dirección. El teléfono debe tener al menos seis números.');
+  }
   const {error}=await getSupabaseBrowserClient().rpc('save_my_customer_account',{
     new_name:name,new_phone:phone,new_address:address,
   });
