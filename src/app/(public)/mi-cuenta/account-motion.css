@@ -1,0 +1,42 @@
+/* Cuenta pública: movimiento real, discreto, con entrada y salida. */
+.lcb-account-drawer-backdrop {
+  animation: lcb-account-backdrop-in 200ms ease-out both;
+}
+.lcb-account-drawer-panel {
+  animation: lcb-account-drawer-in 200ms cubic-bezier(.2,.7,.2,1) both;
+  will-change: transform;
+}
+.lcb-account-drawer-overlay[data-state="closed"] .lcb-account-drawer-backdrop {
+  animation: lcb-account-backdrop-out 200ms ease-in both;
+}
+.lcb-account-drawer-overlay[data-state="closed"] .lcb-account-drawer-panel {
+  animation: lcb-account-drawer-out 200ms cubic-bezier(.4,0,.8,.3) both;
+}
+.lcb-account-section {
+  animation: lcb-account-content-enter 200ms ease-out both;
+}
+@keyframes lcb-account-backdrop-in {
+  from { background-color: transparent; }
+  to { background-color: rgb(0 0 0 / .65); }
+}
+@keyframes lcb-account-backdrop-out {
+  from { background-color: rgb(0 0 0 / .65); }
+  to { background-color: transparent; }
+}
+@keyframes lcb-account-drawer-in {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(0); }
+}
+@keyframes lcb-account-drawer-out {
+  from { transform: translateX(0); }
+  to { transform: translateX(-100%); }
+}
+@keyframes lcb-account-content-enter {
+  from { transform: translateY(9px); clip-path: inset(0 0 6% 0); }
+  to { transform: translateY(0); clip-path: inset(0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .lcb-account-drawer-backdrop,
+  .lcb-account-drawer-panel,
+  .lcb-account-section { animation: none !important; will-change: auto; }
+}
