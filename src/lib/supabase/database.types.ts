@@ -235,6 +235,8 @@ export interface Database {
       my_customer_orders: {Args:Record<PropertyKey, never>;Returns:Json};
       claim_my_customer_order: {Args:{claim_token:string};Returns:boolean};
       admin_customer_directory: {Args:Record<PropertyKey, never>;Returns:Json};
+      admin_create_customer: {Args:{new_name:string;new_phone:string;new_address:string};Returns:string};
+      admin_delete_customer_without_orders: {Args:{target_id:string};Returns:undefined};
       admin_update_customer_directory: {Args:{kind:string;target_id:string;new_name:string;new_phone:string;new_address:string};Returns:undefined};
       admin_edit_order_items: { Args: { target_order_id: string; expected_updated_at: string; requested_items: Json }; Returns: Json };
       admin_set_order_payment_plan: { Args: { target_order_id: string; transfer_value: number; cash_value: number }; Returns: Json };
