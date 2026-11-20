@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-require-imports -- Node QA uses CommonJS. */
 'use strict';
 const {test,describe}=require('node:test');
 const assert=require('node:assert/strict');
