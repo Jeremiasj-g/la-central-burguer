@@ -39,6 +39,7 @@ export function CustomerAccountPage(){
   const [saving,setSaving]=useState(false);
   const [signingOut,setSigningOut]=useState(false);
   const userId=user?.id;
+  const profileMatchesSession=Boolean(userId && account?.id===userId);
   const dirty=Boolean(account && draft &&
     (account.name!==draft.name || account.phone!==draft.phone || account.address!==draft.address));
 
@@ -174,7 +175,7 @@ export function CustomerAccountPage(){
     <div className="flex min-h-[calc(100vh-66px)]">
       <div className="hidden shrink-0 lg:block">{sidebar}</div>
       <main className="min-w-0 flex-1 px-5 py-8 sm:px-9 sm:py-11 xl:px-12">
-        {authLoading||Boolean(user&&loading)?<>
+        {authLoading||Boolean(user&&(loading||(!profileMatchesSession&&!error)))?<>
           <div className={`h-7 w-40 animate-pulse rounded ${dark?'bg-white/10':'bg-neutral-200'}`}/>
           <div className={`mt-7 h-52 max-w-3xl animate-pulse rounded-[14px] ${dark?'bg-white/5':'bg-neutral-100'}`}/>
         </>:!user?
