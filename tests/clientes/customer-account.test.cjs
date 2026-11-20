@@ -170,3 +170,37 @@ describe('Clientes / animaciones de navegación y skeletons',()=>{
   assert.doesNotMatch(page,/Espacio personal|Administrá tus datos personales|Consultá las compras vinculadas a tu cuenta/);
  });
 });
+
+
+describe('Clientes / identidad Google y controles públicos consistentes',()=>{
+ test('avatar redondo prioriza foto verificada de Google con fallback de usuario',()=>{
+  const avatar=fs.readFileSync('src/features/clientes/components/CustomerGoogleAvatar.tsx','utf8');
+  const page=fs.readFileSync('src/features/clientes/pages/CustomerAccountPage.tsx','utf8');
+  assert.match(avatar,/user\?\.user_metadata\?\.avatar_url/);
+  assert.match(avatar,/user\?\.user_metadata\?\.picture/);
+  assert.match(avatar,/googleusercontent\.com/);
+  assert.match(avatar,/rounded-full/);
+  assert.match(avatar,/onError=\{\(\)=>setFailed\(true\)\}/);
+  assert.match(page,/<CustomerGoogleAvatar user=\{user\}/);
+ });
+ test('modal de Google respeta el tema público y nunca fuerza modo oscuro',()=>{
+  const modal=fs.readFileSync('src/features/clientes/components/CustomerAuthModal.tsx','utf8');
+  assert.match(modal,/usePublicTheme\(\)/);
+  assert.match(modal,/theme=\{theme\}/);
+  assert.match(modal,/text-neutral-600/);
+  assert.doesNotMatch(modal,/theme="dark"/);
+  assert.match(modal,/¡Registrate para obtener más beneficios!/);
+ });
+ test('header público usa carta ilustrada y controles móviles de 40px uniformes',()=>{
+  const header=fs.readFileSync('src/shared/components/layout/PublicHeader.tsx','utf8');
+  const css=fs.readFileSync('src/app/(public)/light.css','utf8');
+  assert.match(header,/BookOpenText/);
+  assert.match(header,/aria-label="Ver carta"/);
+  assert.doesNotMatch(header,/>\s*Menú\s*<\/Link>/);
+  assert.match(header,/lcb-public-header-theme/);
+  assert.match(css,/lcb-public-header-action/);
+  assert.match(css,/max-width: 639px/);
+  assert.match(css,/min-width: 40px/);
+  assert.match(css,/data-public-theme="light"/);
+ });
+});
