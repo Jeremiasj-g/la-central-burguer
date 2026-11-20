@@ -7,6 +7,7 @@ import type { CartItem } from '@/features/carrito/types/carrito.types';
 import type { CheckoutFormValues } from '../types/checkout.types';
 import { useCheckout } from '../hooks/useCheckout';
 import { useCustomerAuth } from '@/features/clientes/components/CustomerAuthProvider';
+import { getCustomerAccount } from '@/features/clientes/services/customer-account.service';
 import { isValidCustomerPhone } from '../schemas/checkout.schema';
 import { getDeliveryQuote } from '@/features/delivery/services/delivery.service';
 import type { DeliveryQuote } from '@/features/delivery/types/delivery.types';
@@ -165,6 +166,24 @@ export function CheckoutModal({ open, onClose, items, onOrderCreated }: Checkout
     }
     setIsDraftHydrated(true);
   }, [isDraftHydrated, open]);
+
+  // Use only contact fields that the customer saved in their account.
+  // Delivery address, GPS and quote always belong to this checkout form.
+  useEffect(() => {
+    if (!user?.id || !isDraftHydrated || createdOrder) return;
+    let active = true;
+    getCustomerAccount().then(profile => {
+      if (!active) return;
+      setValues(current => ({
+        ...current,
+        customerName: current.customerName || profile.name || '',
+        customerPhone: current.customerPhone || profile.phone || '',
+      }));
+    }).catch(() => {
+      // An account lookup failure never blocks guest-style checkout.
+    });
+    return () => { active = false; };
+  }, [user?.id, isDraftHydrated, createdOrder]);
 
   useEffect(() => {
     if (!isDraftHydrated || createdOrder) return;
