@@ -1,4 +1,5 @@
 import { after, NextResponse } from 'next/server';
+import { randomBytes, createHash } from 'node:crypto';
 import { getSupabaseAdminClient } from '@/lib/supabase/admin';
 import { verifyDeliveryQuote } from '@/features/delivery/server/route-quote.server';
 import { notifyAdminNewOrder } from '@/features/pedidos/server/admin-push.server';
@@ -138,8 +139,42 @@ export async function POST(request: Request) {
       });
     }
 
+    // One-time guest proof; optional: never block checkout or WhatsApp.
+    let claimToken: string | null = null;
+    if (typeof newOrderId === 'string') {
+      try {
+        const token = randomBytes(32).toString('base64url');
+        const tokenHash = createHash('sha256').update(token).digest('hex');
+        const { error: claimError } = await supabase.from('customer_order_claims').insert({
+          order_id: newOrderId,
+          token_hash: tokenHash,
+          expires_at: new Date(Date.now()+7*24*60*60*1000).toISOString(),
+        });
+        if (claimError) throw claimError;
+        claimToken = token;
+        const bearer = request.headers.get('authorization')?.match(/^Bearer (.+)$/i)?.[1];
+        if (bearer) {
+          const { data: verified } = await supabase.auth.getUser(bearer);
+          if (verified.user?.id) {
+            const accountId=verified.user.id;
+            const { error: profileError } = await supabase.from('customer_accounts')
+              .upsert({ user_id: accountId }, {onConflict:'user_id',ignoreDuplicates:true});
+            if (profileError) throw profileError;
+            const {error: ownerError}=await supabase.from('customer_order_links').insert({
+              order_id:newOrderId,user_id:accountId,
+            });
+            if (ownerError) throw ownerError;
+            await supabase.from('customer_order_claims').update({claimed_at:new Date().toISOString()}).eq('order_id',newOrderId);
+            claimToken=null;
+          }
+        }
+      } catch (claimError) {
+        console.error('[customer-claims] Pedido creado pero no se pudo preparar la vinculación:', claimError instanceof Error ? claimError.message : 'Error de vinculación');
+      }
+    }
+
     return NextResponse.json(
-      { order: data },
+      { order: data, claimToken },
       {
         status: 201,
         headers: {
