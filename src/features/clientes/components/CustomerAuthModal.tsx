@@ -12,12 +12,12 @@ import {
 
 type Mode='signup'|'login'|'reset';
 export function CustomerAuthModal({
-  open, onClose, afterOrder=false, onAuthenticated,
+  open, onClose, afterOrder=false, initialMode='signup', onAuthenticated,
 }:{
-  open:boolean;onClose:()=>void;afterOrder?:boolean;onAuthenticated:()=>void;
+  open:boolean;onClose:()=>void;afterOrder?:boolean;initialMode?:Mode;onAuthenticated:()=>void;
 }) {
   const router=useRouter();
-  const [mode,setMode]=useState<Mode>('signup');
+  const [mode,setMode]=useState<Mode>(initialMode);
   const [email,setEmail]=useState('');
   const [password,setPassword]=useState('');
   const [busy,setBusy]=useState(false);
