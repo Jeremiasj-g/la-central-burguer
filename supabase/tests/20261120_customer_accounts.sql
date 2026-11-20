@@ -1,10 +1,10 @@
 -- Full transaction rollback. Never persist test changes.
 begin;
-set local role authenticated;
 select set_config('request.jwt.claim.sub',(
  select ur.user_id::text from public.user_roles ur join public.roles r on r.id=ur.role_id
  where r.code='admin' limit 1),true);
 select set_config('request.jwt.claim.role','authenticated',true);
+set local role authenticated;
 do $qa$
 declare uid uuid:=auth.uid(); order_uuid uuid; token text:='qa-lcb-customer-order-claim-20261120-token'; result jsonb;
 begin
@@ -35,12 +35,12 @@ end $qa$;
 rollback;
 
 begin;
-set local role authenticated;
 select set_config('request.jwt.claim.sub',(
  select ur.user_id::text from public.user_roles ur
  where not exists(select 1 from public.user_roles x join public.roles r on r.id=x.role_id
  where x.user_id=ur.user_id and r.code='admin') limit 1),true);
 select set_config('request.jwt.claim.role','authenticated',true);
+set local role authenticated;
 do $security$
 declare blocked boolean:=false;
 begin
