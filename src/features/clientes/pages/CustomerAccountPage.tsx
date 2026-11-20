@@ -9,6 +9,7 @@ import { PublicThemeToggle, usePublicTheme } from '@/shared/components/layout/Pu
 import { useBodyScrollLock } from '@/shared/hooks/useBodyScrollLock';
 import { useAnimatedPresence } from '@/shared/hooks/useAnimatedPresence';
 import { useCustomerAuth } from '../components/CustomerAuthProvider';
+import { CustomerGoogleAvatar } from '../components/CustomerGoogleAvatar';
 import {
   claimPendingCustomerOrder, getCustomerAccount, getMyCustomerOrders,
   saveCustomerAccount, signOutCustomer,
@@ -153,9 +154,7 @@ export function CustomerAccountPage(){
 
   const sidebar=<aside aria-label="Opciones de mi cuenta" className={`flex h-full w-[264px] flex-col border-r ${panel}`}>
     <div className={`border-b px-5 py-7 ${border}`}>
-      <div className="mb-3 flex h-11 w-11 items-center justify-center rounded-[14px] bg-central-orange/15 text-central-orange">
-        <UserRound size={21}/>
-      </div>
+      <div className="mb-3"><CustomerGoogleAvatar user={user}/></div>
       <p className={`truncate text-[14px] font-semibold ${primary}`}>{account?.name||'Mi cuenta'}</p>
       <p className={`mt-1 truncate text-[11px] ${muted}`}>{user?.email||'Cuenta de cliente'}</p>
     </div>
