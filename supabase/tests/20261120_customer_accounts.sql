@@ -58,3 +58,21 @@ begin
  if not blocked then raise exception 'Non-admin updated customer data';end if;
 end $security$;
 rollback;
+
+begin;
+select set_config('request.jwt.claim.sub',(
+ select ur.user_id::text from public.user_roles ur join public.roles r on r.id=ur.role_id where r.code='admin' limit 1),true);
+select set_config('request.jwt.claim.role','authenticated',true);
+set local role authenticated;
+do $crud$
+declare created uuid; phone text:='37999992026';
+begin
+ created:=public.admin_create_customer('QA Contacto','37999992026','Primera dirección');
+ if created is null then raise exception 'Admin create returned null'; end if;
+ perform public.admin_update_customer_directory('commercial',created,'QA Editado',phone,'Segunda dirección');
+ if not exists(select 1 from public.customers where id=created and full_name='QA Editado' and default_address='Segunda dirección')
+ then raise exception 'Admin edit did not persist'; end if;
+ perform public.admin_delete_customer_without_orders(created);
+ if exists(select 1 from public.customers where id=created) then raise exception 'Admin delete failed'; end if;
+end $crud$;
+rollback;
