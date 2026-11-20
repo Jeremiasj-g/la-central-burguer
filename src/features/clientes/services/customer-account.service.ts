@@ -92,3 +92,15 @@ export async function adminUpdateCustomer(kind:'registered'|'commercial',id:stri
   });
   throwIfError(error);
 }
+
+export async function adminCreateCommercialCustomer(name:string,phone:string,address:string){
+  const {data,error}=await getSupabaseBrowserClient().rpc('admin_create_customer',{
+    new_name:name,new_phone:phone,new_address:address,
+  });
+  throwIfError(error);
+  return data;
+}
+export async function adminDeleteCommercialCustomer(id:string){
+  const {error}=await getSupabaseBrowserClient().rpc('admin_delete_customer_without_orders',{target_id:id});
+  throwIfError(error);
+}
