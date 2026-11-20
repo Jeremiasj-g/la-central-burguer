@@ -35,6 +35,7 @@ export const ADMIN_NAVIGATION = [
   { label: 'Delivery', group: 'Operación', href: ROUTES.adminDelivery, icon: Truck, development: true },
   { label: 'Pago a empleados', group: 'Administración', href: ROUTES.adminPersonal, icon: HandCoins, development: true },
   { label: 'Usuarios y roles', group: 'Administración', href: ROUTES.adminUsuarios, icon: Users, development: false },
+  { label: 'Clientes', group: 'Administración', href: ROUTES.adminClientes, icon: Users, development: true },
   { label: 'Reportes', group: 'Administración', href: ROUTES.adminReportes, icon: FileSpreadsheet, development: false },
   { label: 'Configuración', group: 'Administración', href: ROUTES.adminConfiguracion, icon: Settings, development: false },
 ] as const;
