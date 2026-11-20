@@ -20,10 +20,8 @@ export const PENDING_CUSTOMER_ORDER_KEY='lcb_pending_order_claim_v1';
 function throwIfError(error: {message:string}|null) {
   if(!error)return;
   const message=error.message;
-  if(/invalid login credentials/i.test(message))throw new Error('Correo o contraseña incorrectos.');
-  if(/email not confirmed/i.test(message))throw new Error('Confirmá tu correo electrónico antes de iniciar sesión.');
   if(/provider is not enabled|unsupported provider|provider not enabled/i.test(message))
-    throw new Error('Google todavía no está habilitado. Podés registrarte con correo.');
+    throw new Error('Google todavía no está habilitado. Podés continuar comprando sin cuenta.');
   throw new Error(message);
 }
 export const customerAuth = () => getSupabaseBrowserClient().auth;
@@ -32,18 +30,6 @@ export async function currentCustomerUser():Promise<User|null> {
   if(error) return null;
   return data.user;
 }
-export async function signUpCustomer(email:string,password:string) {
-  const {data,error}=await customerAuth().signUp({
-    email:email.trim().toLowerCase(), password,
-    options:{emailRedirectTo:typeof window!=='undefined' ? `${window.location.origin}/mi-cuenta`:undefined},
-  });
-  throwIfError(error);
-  return { needsConfirmation:!data.session };
-}
-export async function signInCustomer(email:string,password:string) {
-  const {error}=await customerAuth().signInWithPassword({email:email.trim(),password});
-  throwIfError(error);
-}
 export async function signInCustomerWithGoogle() {
   const {error}=await customerAuth().signInWithOAuth({
     provider:'google',options:{redirectTo:`${window.location.origin}/mi-cuenta`},
@@ -51,18 +37,6 @@ export async function signInCustomerWithGoogle() {
   throwIfError(error);
 }
 export async function signOutCustomer(){const {error}=await customerAuth().signOut();throwIfError(error);}
-export async function resetCustomerPassword(email:string) {
-  const {error}=await customerAuth().resetPasswordForEmail(email.trim(),{
-    redirectTo:`${window.location.origin}/mi-cuenta?recuperar=1`,
-  });
-  throwIfError(error);
-}
-export async function updateCustomerPassword(password:string) {
-  const {error}=await customerAuth().updateUser({password});throwIfError(error);
-}
-export async function updateCustomerEmail(email:string){
-  const {error}=await customerAuth().updateUser({email:email.trim().toLowerCase()});throwIfError(error);
-}
 export async function getCustomerAccount():Promise<CustomerAccount> {
   const {data,error}=await getSupabaseBrowserClient().rpc('my_customer_account');
   throwIfError(error);
