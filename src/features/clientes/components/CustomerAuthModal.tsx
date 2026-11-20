@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Mail, ShieldCheck } from 'lucide-react';
+import { ShieldCheck } from 'lucide-react';
 import { toast } from 'react-toastify';
 import { Modal } from '@/shared/components/ui/Modal';
 import { PasswordInput } from '@/shared/components/ui/PasswordInput';
