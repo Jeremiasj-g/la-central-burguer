@@ -4,6 +4,13 @@ select set_config('request.jwt.claim.sub',(
  select ur.user_id::text from public.user_roles ur join public.roles r on r.id=ur.role_id
  where r.code='admin' limit 1),true);
 select set_config('request.jwt.claim.role','authenticated',true);
+select set_config('qa.order_id',(
+ select o.id::text from public.orders o
+ where not exists(select 1 from public.customer_order_claims c where c.order_id=o.id)
+ and not exists(select 1 from public.customer_order_links l where l.order_id=o.id)
+ limit 1),true);
+insert into public.customer_order_claims(order_id,token_hash,expires_at)
+values(current_setting('qa.order_id')::uuid,encode(sha256(convert_to('qa-lcb-customer-order-claim-20261120-token','UTF8')),'hex'),now()+interval '1 hour');
 set local role authenticated;
 do $qa$
 declare uid uuid:=auth.uid(); order_uuid uuid; token text:='qa-lcb-customer-order-claim-20261120-token'; result jsonb;
@@ -13,12 +20,7 @@ begin
  perform public.save_my_customer_account('QA Admin','3794111222','Dirección de prueba');
  if not exists(select 1 from public.customer_accounts where user_id=uid and full_name='QA Admin')
  then raise exception 'Self-service profile was not saved'; end if;
- select o.id into order_uuid from public.orders o
- where not exists(select 1 from public.customer_order_claims c where c.order_id=o.id)
-   and not exists(select 1 from public.customer_order_links l where l.order_id=o.id) limit 1;
- if order_uuid is null then raise exception 'Missing unclaimed DEV order fixture'; end if;
- insert into public.customer_order_claims(order_id,token_hash,expires_at)
- values(order_uuid,encode(sha256(convert_to(token,'UTF8')),'hex'),now()+interval '1 hour');
+ order_uuid:=current_setting('qa.order_id')::uuid;
  if public.claim_my_customer_order('invalid-invalid-invalid-invalid-invalid') then
  raise exception 'Invalid claim was accepted'; end if;
  if not public.claim_my_customer_order(token) then raise exception 'Valid claim was not accepted';end if;
