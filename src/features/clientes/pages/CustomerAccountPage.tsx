@@ -7,6 +7,7 @@ import { toast } from 'react-toastify';
 import { ConfirmDialog } from '@/shared/components/ui/ConfirmDialog';
 import { PublicThemeToggle, usePublicTheme } from '@/shared/components/layout/PublicThemeProvider';
 import { useBodyScrollLock } from '@/shared/hooks/useBodyScrollLock';
+import { useAnimatedPresence } from '@/shared/hooks/useAnimatedPresence';
 import { useCustomerAuth } from '../components/CustomerAuthProvider';
 import {
   claimPendingCustomerOrder, getCustomerAccount, getMyCustomerOrders,
@@ -32,7 +33,10 @@ export function CustomerAccountPage(){
   const [mobileOpen,setMobileOpen]=useState(false);
   const drawerCloseRef=useRef<HTMLButtonElement>(null);
   useBodyScrollLock(mobileOpen);
+  const drawerMounted=useAnimatedPresence(mobileOpen,200);
   const [section,setSection]=useState<Section>('profile');
+  const [renderedSection,setRenderedSection]=useState<Section>('profile');
+  const [sectionLoading,setSectionLoading]=useState(false);
   const [pendingAction,setPendingAction]=useState<Section|'logout'|null>(null);
   const [account,setAccount]=useState<CustomerAccount|null>(null);
   const [draft,setDraft]=useState<CustomerAccount|null>(null);
@@ -66,6 +70,16 @@ export function CustomerAccountPage(){
     void load();
     return()=>{active=false;};
   },[userId]);
+
+  useEffect(()=>{
+    if(section===renderedSection)return;
+    const reducedMotion=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const timeout=window.setTimeout(()=>{
+      setRenderedSection(section);
+      setSectionLoading(false);
+    },reducedMotion?0:180);
+    return()=>window.clearTimeout(timeout);
+  },[section,renderedSection]);
 
   useEffect(()=>{
     if(!mobileOpen)return;
@@ -110,6 +124,7 @@ export function CustomerAccountPage(){
     setMobileOpen(false);
     if(next===section)return;
     if(dirty){setPendingAction(next);return;}
+    setSectionLoading(true);
     setSection(next);
   }
   function requestLogout(){
@@ -122,7 +137,7 @@ export function CustomerAccountPage(){
     const target=pendingAction;
     setPendingAction(null);
     if(target==='logout')void logout();
-    else if(target)setSection(target);
+    else if(target){setSectionLoading(true);setSection(target);}
   }
 
   const surface=dark?'bg-[#111216] text-white':'bg-[#F7F7F8] text-[#191b20]';
@@ -203,15 +218,17 @@ export function CustomerAccountPage(){
           </div>:
           <>
             <div className="mb-9">
-              <p className="text-[11px] font-semibold uppercase tracking-[.12em] text-central-orange">Espacio personal</p>
-              <h1 className="mt-2 text-[29px] font-semibold tracking-tight">{navigation.find(item=>item.id===section)?.label}</h1>
-              <p className={`mt-2 text-[13px] ${muted}`}>
-                {section==='profile'?'Administrá tus datos personales.'
-                  :section==='orders'?'Consultá las compras vinculadas a tu cuenta.'
-                  :'Esta sección estará disponible próximamente.'}
-              </p>
+              <h1 className="text-[29px] font-semibold tracking-tight">{navigation.find(item=>item.id===section)?.label}</h1>
             </div>
-            {section==='profile'&&<div className="max-w-[900px] space-y-9">
+            {sectionLoading?<div aria-label="Cargando sección" role="status" className="lcb-account-section max-w-[900px] space-y-6">
+              <div className={`h-11 w-full animate-pulse rounded-[11px] ${dark?'bg-white/10':'bg-neutral-200/80'}`}/>
+              <div className="grid gap-5 sm:grid-cols-2">
+                <div className={`h-11 animate-pulse rounded-[11px] ${dark?'bg-white/10':'bg-neutral-200/80'}`}/>
+                <div className={`h-11 animate-pulse rounded-[11px] ${dark?'bg-white/10':'bg-neutral-200/80'}`}/>
+              </div>
+              {section==='orders'&&Array.from({length:2},(_,index)=><div key={index} className={`h-20 animate-pulse border-b ${border} ${dark?'border-white/10':'border-neutral-200'}`}/>)}
+            </div>:<div key={renderedSection} className="lcb-account-section">
+            {renderedSection==='profile'&&<div className="max-w-[900px] space-y-9">
               <form onSubmit={event=>{event.preventDefault();void save();}} className="space-y-5">
                 <div className="grid gap-5 sm:grid-cols-2">
                   <label className={`block space-y-2 text-[12px] font-medium ${muted}`}>Nombre completo
@@ -244,7 +261,7 @@ export function CustomerAccountPage(){
                 <p className={`mt-2 text-[11px] ${muted}`}>Tu identidad se administra desde Google. No necesitás una contraseña propia para La Central Burger.</p>
               </section>
             </div>}
-            {section==='orders'&&<div className="max-w-[900px]">
+            {renderedSection==='orders'&&<div className="max-w-[900px]">
               {!orders.length?<div className={`border-t py-12 text-[13px] ${border} ${muted}`}>
                 Todavía no hay pedidos vinculados a esta cuenta. Las compras como invitado no se asocian automáticamente por teléfono.
               </div>:orders.map(order=><article key={order.id} className={`border-b py-5 ${border}`}>
@@ -256,22 +273,23 @@ export function CustomerAccountPage(){
                 <p className={`mt-3 text-[12px] leading-6 ${muted}`}>{order.items.map(item=>`${item.quantity} × ${item.name}`).join(' · ')}</p>
               </article>)}
             </div>}
-            {(section==='benefits'||section==='preferences')&&<div className={`flex max-w-[700px] flex-col items-center border-t py-16 text-center ${border}`}>
-              {section==='benefits'?<Gift size={34} className="text-central-orange"/>:<Heart size={34} className="text-central-orange"/>}
+            {(renderedSection==='benefits'||renderedSection==='preferences')&&<div className={`flex max-w-[700px] flex-col items-center border-t py-16 text-center ${border}`}>
+              {renderedSection==='benefits'?<Gift size={34} className="text-central-orange"/>:<Heart size={34} className="text-central-orange"/>}
               <h2 className="mt-4 text-[20px] font-semibold">Próximamente</h2>
               <p className={`mt-2 max-w-md text-[13px] leading-6 ${muted}`}>
-                {section==='benefits'?'Estamos preparando nuevas novedades para nuestros clientes. Los beneficios se anunciarán cuando estén disponibles.'
+                {renderedSection==='benefits'?'Estamos preparando nuevas novedades para nuestros clientes. Los beneficios se anunciarán cuando estén disponibles.'
                   :'Pronto vas a tener más opciones para personalizar tu experiencia en La Central Burger.'}
               </p>
+            </div>}
             </div>}
           </>}
       </main>
     </div>
 
-    {mobileOpen&&<div className="fixed inset-0 z-[70] lg:hidden">
+    {drawerMounted&&<div data-state={mobileOpen?'open':'closed'} aria-hidden={!mobileOpen} className={`lcb-account-drawer-overlay fixed inset-0 z-[70] lg:hidden ${!mobileOpen?'pointer-events-none':''}`}>
       <button type="button" aria-label="Cerrar menú" onClick={()=>setMobileOpen(false)}
-        className="absolute inset-0 bg-black/65"/>
-      <div role="dialog" aria-modal="true" aria-label="Menú de mi cuenta" className="relative h-full w-[264px] max-w-[85vw] animate-in slide-in-from-left duration-200">
+        className="lcb-account-drawer-backdrop absolute inset-0 bg-black/65"/>
+      <div role="dialog" aria-modal={mobileOpen} aria-label="Menú de mi cuenta" className="lcb-account-drawer-panel relative h-full w-[264px] max-w-[85vw]">
         <div className="absolute right-3 top-3 z-10">
           <button ref={drawerCloseRef} type="button" aria-label="Cerrar menú" onClick={()=>setMobileOpen(false)} className="rounded-lg p-2 text-central-orange"><X size={18}/></button>
         </div>
