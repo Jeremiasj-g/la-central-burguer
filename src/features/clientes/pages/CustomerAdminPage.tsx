@@ -86,7 +86,7 @@ export function CustomerAdminPage(){
   catch(e){toast.error(e instanceof Error?e.message:'No se pudo eliminar el cliente.');}
   finally{setBusy(false);}
  }
- return <main className="mx-auto w-full max-w-[1440px] space-y-5 px-4 py-8 sm:px-7">
+ return <main className="w-full min-w-0 space-y-5">
   <div className="flex flex-wrap items-center justify-between gap-3">
    <h1 className="text-[27px] font-semibold tracking-tight text-neutral-950">Clientes</h1>
    <div className="flex gap-2">
