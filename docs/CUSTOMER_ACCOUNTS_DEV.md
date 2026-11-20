@@ -6,7 +6,7 @@
 - Invitación después de **crear correctamente** el pedido. «Ahora no» nunca impide comprar.
 - Pantalla `/mi-cuenta`: perfil editable (nombre, teléfono, dirección informativa), correo con cambio verificado, contraseña e historial de pedidos propios.
 - Administrador `/admin/clientes`: cuentas registradas y clientes comerciales en pestañas separadas, búsqueda, paginación, edición y creación de contactos comerciales. Eliminación de contactos **sin pedidos**; nunca borrado de historial.
-- Pedido: `/api/orders` sigue usando **únicamente el formulario del checkout** para nombre, WhatsApp, ubicación GPS, tarifa de envío y entrega. La dirección del perfil NO es fuente de despacho.
+- Pedido: `/api/orders` sigue usando **únicamente el formulario del checkout** para nombre, WhatsApp, ubicación GPS, tarifa de envío y entrega. Si el usuario inicia sesión se pueden precargar **nombre y teléfono** desde su perfil cuando los campos están vacíos, pero siempre son editables antes de confirmar; la dirección, GPS y cotización de envío **nunca se precargan desde el perfil**. La dirección del perfil NO es fuente de despacho.
 - Un pedido nuevo realizado con una sesión Auth válida se vincula al usuario. Un invitado recibe un comprobante aleatorio de un solo uso, almacenado temporalmente en `sessionStorage`, que permite asociar **ese único pedido** al registrarse en ese navegador, durante 7 días. No se hacen vinculaciones por coincidencia de teléfono, nombre o email.
 - Las cuentas Auth y los clientes comerciales (`customers`, agrupados por teléfono) **no son la misma entidad**, y no se crean roles `admin`, `staff` ni `delivery` para compradores.
 - Los beneficios/promociones especiales quedan pendientes de definición con el comercio.
@@ -33,8 +33,9 @@ Referencia: https://supabase.com/docs/guides/auth/social-sign-in/auth-google y h
 - `20261120122000_customer_order_claims.sql`: tokens aleatorios hasheados, expiración, reclamación única.
 - `20261120124000_admin_customer_crud.sql`: alta/edición/eliminación controladas de contactos sin historial.
 - `20261120125000_customer_orders_owner_alias_fix.sql`: corrige ambigüedad SQL detectada por pruebas de integración.
+- `20261120130000_customer_phone_validations.sql`: validación de teléfono opcional de perfil y de clientes desde RPC.
 
-Las cinco migraciones están aplicadas solamente en `central-burguer-dev`.
+Las seis migraciones están aplicadas solamente en `central-burguer-dev`.
 
 ## QA automático y escenarios
 
@@ -74,3 +75,15 @@ Se ha ejecutado de forma reversible; comprueba cuenta propia, perfil, reclamo v�
 - El historial se sirve por `my_customer_orders()` con `auth.uid()`, no por coincidencia con `customer_id` comercial.
 - Las funciones administrativas comprueban `private.is_admin()` en la base de datos.
 - No habilitar recompensas hasta decidir reglas de negocio, consentimiento y prevención de abuso.
+
+## Resultado de QA automatizado
+
+- ✔ **101/101 tests de Node**, 0 fallos, al incorporar los 12 casos de clientes a los 89 existentes.
+- ✔ TypeScript aprobado.
+- ✔ ESLint acotado al módulo de clientes aprobado, conservando sin modificaciones dos errores previos del checkout antiguo que pertenecen al lint global.
+- ✔ Build de Vercel aprobado en la rama (commit `fbc84980b85baacd13679edd10144faa7f13279c`). Cada commit posterior debe volver a pasar sus verificaciones antes de aprobar su merge.
+- ✔ SQL de `supabase/tests/20261120_customer_accounts.sql` ejecutado de nuevo después de aplicar las validaciones; concluye con `ROLLBACK`. Cuenta, historial y claims sin registros de QA persistentes.
+
+[Ver ejecución CI](https://github.com/Jeremiasj-g/la-central-burguer/actions/runs/44766791993)
+
+Los botones Google y de correo no pueden considerarse probados con proveedores reales hasta configurar Google OAuth, URLs de redirección y SMTP en DEV. Eso queda como paso operativo obligatorio previo al lanzamiento.
