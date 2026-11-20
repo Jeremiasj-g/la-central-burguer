@@ -175,7 +175,7 @@ export function CustomerAccountPage(){
             className={`${action} ${secondary} h-10 w-10 !px-0`}><Home size={18}/></Link>
         </div>
         <div className="flex items-center gap-2">
-          <PublicThemeToggle/>
+          <span className="[&_span]:!hidden"><PublicThemeToggle/></span>
           {user&&<button type="button" onClick={requestLogout} disabled={signingOut}
             title="Cerrar sesión" aria-label="Cerrar sesión"
             className={`${action} ${secondary} h-10 w-10 !px-0 disabled:opacity-40`}><LogOut size={18}/></button>}
