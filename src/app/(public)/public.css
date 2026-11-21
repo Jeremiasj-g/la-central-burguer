@@ -694,9 +694,9 @@ body.lcb-public-typography .lcb-gallery-lightbox .lcb-gallery-zoom-enter {
 .lcb-navigation-veil {
   position: absolute;
   inset: 0;
-  background: rgba(0, 0, 0, .12);
+  background: rgba(0, 0, 0, .24);
 }
-.public-site[data-public-theme="dark"] .lcb-navigation-veil { background: rgba(0, 0, 0, .20); }
+.public-site[data-public-theme="dark"] .lcb-navigation-veil { background: rgba(0, 0, 0, .34); }
 .lcb-navigation-progress {
   position: absolute;
   left: 0;
