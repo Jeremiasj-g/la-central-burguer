@@ -28,9 +28,9 @@ function googleAvatarUrl(user:User|null):string|null {
   return null;
 }
 
-function AvatarImage({src}:{src:string}){
+function AvatarImage({src,compact}:{src:string;compact:boolean}){
   const [failed,setFailed]=useState(false);
-  return <span className="relative grid h-11 w-11 shrink-0 place-items-center overflow-hidden rounded-full bg-central-orange/15 text-central-orange">
+  return <span className={`relative grid ${compact?'h-9 w-9':'h-11 w-11'} shrink-0 place-items-center overflow-hidden rounded-full bg-central-orange/15 text-central-orange`}>
     {failed?
       <UserRound size={21} aria-label="Avatar de usuario"/>:
       <Image src={src} alt="Foto de perfil de Google" width={44} height={44}
@@ -40,10 +40,10 @@ function AvatarImage({src}:{src:string}){
   </span>;
 }
 
-export function CustomerGoogleAvatar({user}:{user:User|null}){
+export function CustomerGoogleAvatar({user,compact=false}:{user:User|null;compact?:boolean}){
   const src=googleAvatarUrl(user);
-  if(src)return <AvatarImage key={src} src={src}/>;
-  return <span className="grid h-11 w-11 shrink-0 place-items-center overflow-hidden rounded-full bg-central-orange/15 text-central-orange">
+  if(src)return <AvatarImage key={src} src={src} compact={compact}/>;
+  return <span className={`grid ${compact?'h-9 w-9':'h-11 w-11'} shrink-0 place-items-center overflow-hidden rounded-full bg-central-orange/15 text-central-orange`}>
     <UserRound size={21} aria-label="Avatar de usuario"/>
   </span>;
 }
