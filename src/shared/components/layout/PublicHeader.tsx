@@ -7,12 +7,8 @@ import { useCarrito } from '@/features/carrito/hooks/useCarrito';
 import { useBusinessConfig } from '@/features/configuracion/hooks/useBusinessConfig';
 import { ROUTES } from '@/shared/constants/routes';
 import { BusinessLogo } from '@/features/configuracion/components/BusinessLogo';
+import { CustomerGoogleAvatar } from '@/features/clientes/components/CustomerGoogleAvatar';
 import { PublicThemeToggle } from './PublicThemeProvider';
-
-const navigation = [
-  { label: 'Inicio', href: ROUTES.home },
-  { label: 'Menú', href: '#menu' },
-];
 
 export function PublicHeader() {
   const { config, isLoading } = useBusinessConfig();
@@ -38,20 +34,10 @@ export function PublicHeader() {
             <BusinessLogo logoUrl={config?.logoUrl} businessName={businessName} mode="navbar" loading={isLoading} />
           </Link>
 
-          <nav aria-label="Navegación principal" className="hidden items-center gap-1 border-l border-white/10 pl-5 md:flex lg:pl-8">
-            {navigation.map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                className="inline-flex h-10 items-center rounded-[11px] px-4 text-[13px] font-medium tracking-normal text-central-cream/75 transition-colors duration-200 hover:bg-central-orange/10 hover:text-central-orange focus-visible:outline focus-visible:outline-2 focus-visible:outline-central-orange"
-              >
-                {item.label}
-              </Link>
-            ))}
-          </nav>
         </div>
 
         <div className="flex shrink-0 items-center gap-1.5 sm:gap-2 lg:gap-3">
+          <span className="lcb-public-header-theme"><PublicThemeToggle /></span>
           <Link
             href="#menu"
             aria-label="Ver carta"
@@ -69,18 +55,16 @@ export function PublicHeader() {
           </Link>
 
           {user ? (
-            <Link href="/mi-cuenta" title="Mi cuenta"
-              className="lcb-public-header-action inline-flex h-10 w-10 shrink-0 items-center justify-center gap-2 rounded-[11px] border border-white/15 bg-white/[.035] text-[12px] font-medium text-white transition-colors duration-200 hover:border-central-orange/50 hover:text-central-orange focus-visible:outline-2 focus-visible:outline-central-orange sm:w-auto sm:px-3">
-              <UserRound size={16}/><span className="hidden sm:inline">Mi cuenta</span>
+            <Link href="/mi-cuenta" title="Mi cuenta" aria-label="Ir a mi cuenta"
+              className="lcb-public-header-action inline-flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full border border-white/15 bg-white/[.035] transition-colors duration-200 hover:border-central-orange/50 focus-visible:outline-2 focus-visible:outline-central-orange">
+              <CustomerGoogleAvatar user={user} compact/>
             </Link>
           ) : (
-            <button type="button" onClick={()=>openAuth('header')} title="Iniciar sesión"
-              className="lcb-public-header-action inline-flex h-10 w-10 shrink-0 items-center justify-center gap-2 rounded-[11px] border border-white/15 bg-white/[.035] text-[12px] font-medium text-white transition-colors duration-200 hover:border-central-orange/50 hover:text-central-orange focus-visible:outline-2 focus-visible:outline-central-orange sm:w-auto sm:px-3">
-              <UserRound size={16}/><span className="hidden sm:inline">Iniciar sesión</span>
+            <button type="button" onClick={()=>openAuth('header')} title="Iniciar sesión" aria-label="Iniciar sesión"
+              className="lcb-public-header-action inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-white/15 bg-white/[.035] text-white transition-colors duration-200 hover:border-central-orange/50 hover:text-central-orange focus-visible:outline-2 focus-visible:outline-central-orange">
+              <UserRound size={18}/>
             </button>
           )}
-
-          <span className="lcb-public-header-theme"><PublicThemeToggle /></span>
 
           <button
             type="button"
@@ -91,7 +75,7 @@ export function PublicHeader() {
           >
             <ShoppingCart size={21} className={cartCount > 0 ? 'lcb-bell-vibrate' : undefined} />
             {cartCount > 0 ? (
-              <span className="absolute -right-1.5 -top-1.5 grid min-h-5 min-w-5 place-items-center rounded-full bg-central-orange px-1 text-[10px] font-black leading-none text-black ring-2 ring-[#0d0c0b]">
+              <span className="absolute -right-1.5 -top-1.5 grid min-h-5 min-w-5 place-items-center rounded-full bg-central-orange px-1 text-[10px] font-semibold leading-none text-black ring-2 ring-[#0d0c0b]">
                 {cartCount > 99 ? '99+' : cartCount}
               </span>
             ) : null}
