@@ -121,6 +121,13 @@ Estas reglas aplican a **toda interfaz nueva y toda interfaz existente que se mo
 - **Selects y calendarios:** reutilizar `Select.tsx`, `SearchableSelect.tsx` y `DatePickerField.tsx`; conservar pesos <=600, estados hover/focus/disabled, y comprobar que popovers no se recorten.
 - **Antes de entregar:** comparar cada nuevo formulario con el modal de usuarios en escritorio y móvil, incluyendo checkbox, switch, selects, placeholders, botón primario, cancelación y márgenes.
 
+
+### Control preventivo de encabezados de modales (obligatorio)
+
+- `Modal.tsx` es la **fuente única** del título: por defecto `font-semibold` (600), tamaño y espacios coherentes con `AccessUserModal.tsx`. No aplicar `font-black`, `font-bold`, estilos inline con pesos mayores a 600 ni variantes locales que eleven el peso.
+- Antes de agregar o tocar cualquier modal, revisar el encabezado **en el propio `Modal.tsx`** y buscar overrides `titleClassName` / `headerClassName` que rompan la regla. Corregir en el origen común, no mediante parches dispersos.
+- En la revisión del diff, buscar explícitamente `font-black`, `font-extrabold`, `font-bold` y `font-weight: 700/800/900` en componentes modificados. Verificar títulos de creación y edición en escritorio y móvil.
+
 ## Tablas: un único patrón visual y funcional
 
 **Toda tabla de datos nueva o modificada debe seguir un estándar uniforme**, también en Reportes; no crear estilos de tabla diferentes por módulo.
