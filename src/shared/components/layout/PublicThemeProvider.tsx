@@ -56,7 +56,7 @@ export function PublicThemeToggle() {
       aria-label={isDark ? 'Activar modo claro' : 'Activar modo oscuro'}
       aria-pressed={!isDark}>
       {isDark ? <Sun size={18} strokeWidth={1.8} /> : <Moon size={18} strokeWidth={1.8} />}
-      <span className="hidden lg:inline">{isDark ? 'Modo claro' : 'Modo oscuro'}</span>
+      <span className="sr-only">{isDark ? 'Modo claro' : 'Modo oscuro'}</span>
     </button>
   );
 }
