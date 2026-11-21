@@ -206,3 +206,25 @@ describe('Clientes / identidad Google y controles públicos consistentes',()=>{
   assert.match(css,/data-public-theme="light"/);
  });
 });
+
+
+describe('Clientes / refinamiento de registro y drawer',()=>{
+ test('título de beneficios más protagonista sin romper estilos de modal compartida',()=>{
+  const modal=fs.readFileSync('src/features/clientes/components/CustomerAuthModal.tsx','utf8');
+  assert.match(modal,/titleClassName="!text-\\[23px\\] sm:!text-\\[27px\\]/);
+  assert.match(modal,/!font-semibold/);
+  assert.match(modal,/theme=\\{theme\\}/);
+ });
+ test('logo de Google usa marca multicolor y no una G azul textual',()=>{
+  const modal=fs.readFileSync('src/features/clientes/components/CustomerAuthModal.tsx','utf8');
+  for(const color of ['#EA4335','#4285F4','#FBBC05','#34A853'])assert.ok(modal.includes(color),color);
+  assert.doesNotMatch(modal,/>G<\\/span>/);
+ });
+ test('drawer aplica blur real al fondo y mantiene el panel nítido',()=>{
+  const css=fs.readFileSync('src/app/(public)/mi-cuenta/account-motion.css','utf8');
+  assert.match(css,/\\.lcb-account-drawer-backdrop\\s*\\{[^}]*backdrop-filter: blur\\(6px\\)/s);
+  assert.match(css,/lcb-account-drawer-out/);
+  assert.match(css,/prefers-reduced-motion: reduce/);
+  assert.doesNotMatch(css,/\\.lcb-account-drawer-panel\\s*\\{[^}]*backdrop-filter/s);
+ });
+});
