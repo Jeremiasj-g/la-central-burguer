@@ -31,7 +31,7 @@ export function CustomerDashboard({ account, orders, dark, onViewOrders }: Props
     <div className={`grid grid-cols-1 gap-5 border-y py-6 sm:grid-cols-3 sm:gap-0 ${border}`}>
       {[
         { label: 'Pedidos realizados', value: String(orders.length), Icon: ShoppingBag },
-        { label: 'Total de pedidos', value: money(total), Icon: Wallet },
+        { label: 'Importe en pedidos', value: money(total), Icon: Wallet },
         { label: 'Último pedido', value: lastOrder ? new Date(lastOrder.createdAt).toLocaleDateString('es-AR') : '—', Icon: Clock3 },
       ].map(({ label, value, Icon }, index) => <div key={label}
         className={`min-w-0 ${index > 0 ? `sm:border-l sm:pl-6 ${border}` : ''}`}>
