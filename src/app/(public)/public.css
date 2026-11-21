@@ -679,3 +679,67 @@ body.lcb-public-typography .lcb-gallery-lightbox .lcb-gallery-zoom-enter {
     animation: none !important;
   }
 }
+
+/* Navegación pública: feedback sin bloquear clicks ni retrasar rutas rápidas. */
+.lcb-navigation-feedback {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 180ms ease, visibility 180ms ease;
+}
+.lcb-navigation-feedback.is-visible { opacity: 1; visibility: visible; }
+.lcb-navigation-veil {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, .12);
+}
+.public-site[data-public-theme="dark"] .lcb-navigation-veil { background: rgba(0, 0, 0, .20); }
+.lcb-navigation-progress {
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: 1;
+  height: 3px;
+  width: 100%;
+  transform-origin: left;
+  background: #ffb21a;
+  box-shadow: 0 0 10px rgba(255, 178, 26, .35);
+  animation: lcb-navigation-progress 5s cubic-bezier(.18,.5,.25,1) forwards;
+}
+@keyframes lcb-navigation-progress {
+  from { transform: scaleX(.08); }
+  to { transform: scaleX(.86); }
+}
+.lcb-public-route-enter {
+  animation: lcb-route-enter 200ms ease-out both;
+}
+@keyframes lcb-route-enter {
+  from { opacity: .82; }
+  to { opacity: 1; }
+}
+
+/* Presionar confirma la interacción; el foco visible sigue reservado al teclado.
+   La propiedad scale evita sobrescribir transformaciones de componentes existentes. */
+.public-site :is(button:not(:disabled), a.lcb-public-header-action, a.lcb-public-header-theme, a[href].lcb-pressable) {
+  transition-property: background-color, border-color, color, opacity, box-shadow, scale;
+  transition-duration: 180ms;
+  transition-timing-function: ease;
+}
+.public-site :is(button:not(:disabled), a.lcb-public-header-action, a[href].lcb-pressable):active {
+  scale: .965;
+}
+.public-site :is(button:not(:disabled), a.lcb-public-header-action, a[href].lcb-pressable):focus-visible {
+  outline: 2px solid #ffb21a;
+  outline-offset: 3px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .lcb-public-route-enter, .lcb-navigation-progress { animation: none !important; }
+  .lcb-navigation-feedback { transition: none; }
+  .public-site :is(button:not(:disabled), a.lcb-public-header-action, a[href].lcb-pressable) {
+    scale: 1 !important;
+    transition: none !important;
+  }
+}
