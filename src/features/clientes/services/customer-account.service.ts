@@ -4,6 +4,14 @@ import { getSupabaseBrowserClient } from '@/lib/supabase/client';
 export interface CustomerAccount {
   id: string; name: string; email: string; phone: string; address: string;
 }
+export function isCustomerAccountComplete(account: Pick<CustomerAccount, 'name' | 'phone' | 'address'>): boolean {
+  const phone = account.phone.trim();
+  const digits = phone.replace(/\D/g, '');
+  return account.name.trim().length >= 2
+    && digits.length >= 6 && digits.length <= 20
+    && phone.length <= 40 && /^[+()\d\s.-]+$/.test(phone)
+    && account.address.trim().length >= 6 && account.address.length <= 240;
+}
 export interface CustomerOrderSummary {
   id:string; code:string; createdAt:string;status:string;total:number;
   deliveryMethod:string;items:Array<{name:string;quantity:number;price:number}>;
