@@ -118,7 +118,7 @@ describe('Clientes / diseño responsive y aislamiento de identidad',()=>{
  });
  test('Cada sección está disponible y las futuras indican Próximamente',()=>{
    const page=fs.readFileSync('src/features/clientes/pages/CustomerAccountPage.tsx','utf8');
-   for(const section of ["Mi perfil","Mis pedidos","Beneficios","Preferencias","Próximamente"]){
+   for(const section of ["Configuración del perfil","Mis pedidos","Beneficios","Preferencias","Próximamente"]){
      assert.ok(page.includes(section),section);
    }
  });
@@ -127,7 +127,31 @@ describe('Clientes / diseño responsive y aislamiento de identidad',()=>{
    assert.match(page,/usePublicTheme\(\)/);
    assert.match(page,/theme==='dark'/);
    assert.match(page,/bg-\[#F7F7F8\]/);
-   assert.match(page,/bg-\[#111216\]/);
+   assert.match(page,/bg-\[#111111\]/);
+   assert.match(page,/bg-\[#20201f\]/);
+ });
+ test('el tema oscuro de Mi cuenta reutiliza la paleta de las tarjetas del Home',()=>{
+   const account=fs.readFileSync('src/features/clientes/pages/CustomerAccountPage.tsx','utf8');
+   const card=fs.readFileSync('src/features/productos/components/ProductoCard.tsx','utf8');
+   const onboarding=fs.readFileSync('src/features/clientes/components/CustomerOnboarding.tsx','utf8');
+   assert.ok(card.includes('bg-[#20201f]'));
+   assert.ok(account.includes('bg-[#20201f]'));
+   assert.ok(account.includes('bg-[#111111]'));
+   assert.ok(onboarding.includes('bg-[#1d1d1d]'));
+   assert.ok(!account.includes('bg-[#111216]'));
+   assert.ok(!account.includes('bg-[#191b20]'));
+ });
+ test('checkout autocompleta contacto verificado sin pisar ediciones ni ubicación GPS',()=>{
+   const checkout=fs.readFileSync('src/features/checkout/components/CheckoutModal.tsx','utf8');
+   assert.ok(checkout.includes('getCustomerAccount().then(profile'));
+   assert.ok(checkout.includes('profile.id !== user.id'));
+   assert.ok(checkout.includes('customerName: !contactEditedRef.current.name'));
+   assert.ok(checkout.includes('customerPhone: !contactEditedRef.current.phone'));
+   assert.ok(checkout.includes("key === 'customerName'"));
+   assert.ok(checkout.includes("key === 'customerPhone'"));
+   assert.ok(checkout.includes('getCheckoutDraft()'));
+   assert.ok(checkout.includes('requestLocation()'));
+   assert.ok(checkout.includes('deliveryQuoteToken: quote.quoteToken'));
  });
  test('No renderiza un perfil ajeno mientras cambia la sesión OAuth',()=>{
    const page=fs.readFileSync('src/features/clientes/pages/CustomerAccountPage.tsx','utf8');
