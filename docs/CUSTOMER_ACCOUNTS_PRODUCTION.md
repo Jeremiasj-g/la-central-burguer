@@ -14,12 +14,12 @@ El alcance de esta release es **exclusivamente** la autenticación Google y la c
 Proyecto: `nryrcodrtmsrsqstozjj`, La Central Burger.
 
 Migraciones aplicadas selectivamente, en orden:
-1. `20261120120000_customer_accounts.sql`
-2. `20261120121000_customer_profile_rpc.sql`
-3. `20261120122000_customer_order_claims.sql`
-4. `20261120124000_admin_customer_crud.sql`
-5. `20261120125000_customer_orders_owner_alias_fix.sql`
-6. `20261120130000_customer_phone_validations.sql`
+1. `20261120235813_prod_customer_accounts_and_order_ownership.sql`
+2. `20261120235817_prod_customer_profile_self_service.sql`
+3. `20261120235820_prod_customer_order_claims_private.sql`
+4. `20261120235823_prod_admin_customer_directory_create_delete.sql`
+5. `20261120235826_prod_customer_orders_owner_alias_fix.sql`
+6. `20261120235829_prod_customer_phone_validations.sql`
 
 Conteos antes/después del cambio: **279 pedidos, 173 clientes comerciales y 7 usuarios Auth**. Las tres tablas nuevas iniciaron vacías. Sus RLS están habilitadas y las ocho RPC del nuevo módulo no pueden ejecutarse por `anon`.
 
