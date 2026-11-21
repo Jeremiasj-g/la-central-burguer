@@ -152,13 +152,13 @@ export function CustomerAccountPage(){
     if(target){setSectionLoading(true);setSection(target);}
   }
 
-  const surface=dark?'bg-[#111216] text-white':'bg-[#F7F7F8] text-[#191b20]';
-  const panel=dark?'bg-[#191b20] border-white/10':'bg-white border-neutral-200';
+  const surface=dark?'bg-[#111111] text-[#f6f5f2]':'bg-[#F7F7F8] text-[#191b20]';
+  const panel=dark?'bg-[#20201f] border-white/10':'bg-white border-neutral-200';
   const primary=dark?'text-white':'text-[#191b20]';
   const muted=dark?'text-white/55':'text-neutral-500';
   const border=dark?'border-white/10':'border-neutral-200';
   const input=dark
-    ? 'border-white/15 bg-white/[.055] text-white placeholder:text-white/35 focus:border-central-orange'
+    ? 'border-white/15 bg-[#1d1d1d] text-white placeholder:text-white/35 focus:border-central-orange'
     : 'border-neutral-200 bg-[#F8F8FA] text-neutral-900 placeholder:text-neutral-400 focus:border-central-orange';
   const action='inline-flex min-h-9 items-center justify-center gap-2 rounded-[11px] border px-3 text-[12px] font-medium transition-colors duration-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-central-orange';
   const secondary=dark?'border-white/15 text-white/80 hover:bg-white/5':'border-neutral-200 text-neutral-700 hover:bg-neutral-50';

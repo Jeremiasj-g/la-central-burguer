@@ -17,7 +17,7 @@ export function CustomerOnboarding({ account, dark, onCompleted }: Props) {
   const [name, setName] = useState(account.name);
   const [saving, setSaving] = useState(false);
   const input = dark
-    ? 'border-white/15 bg-white/[.05] text-white placeholder:text-white/35 focus:border-central-orange'
+    ? 'border-white/15 bg-[#1d1d1d] text-white placeholder:text-white/35 focus:border-central-orange'
     : 'border-neutral-200 bg-[#F7F7F8] text-[#191b20] placeholder:text-neutral-400 focus:border-central-orange';
   const muted = dark ? 'text-white/55' : 'text-neutral-500';
   const valid = isCustomerAccountComplete({ name, phone, address });

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { ArrowRight, Check, ChevronDown, CreditCard, MapPin, MessageSquareText, Navigation, ShoppingBag, Store, Truck, UserRound, XCircle } from 'lucide-react';
 import { toast } from 'react-toastify';
 import type { CartItem } from '@/features/carrito/types/carrito.types';
@@ -99,6 +99,7 @@ export function CheckoutModal({ open, onClose, items, onOrderCreated }: Checkout
   const [deliveryQuote, setDeliveryQuote] = useState<DeliveryQuote | null>(null);
   const [isQuotingDelivery, setIsQuotingDelivery] = useState(false);
   const [values, setValues] = useState<CheckoutFormValues>(EMPTY_CHECKOUT_VALUES);
+  const contactEditedRef = useRef({ name: false, phone: false });
   const [isDraftHydrated, setIsDraftHydrated] = useState(false);
   const { submit, isSubmitting, errors, createdOrder, setCreatedOrder, clearError } = useCheckout();
   const { config } = useBusinessConfig();
@@ -167,23 +168,30 @@ export function CheckoutModal({ open, onClose, items, onOrderCreated }: Checkout
     setIsDraftHydrated(true);
   }, [isDraftHydrated, open]);
 
-  // Use only contact fields that the customer saved in their account.
-  // Delivery address, GPS and quote always belong to this checkout form.
+  // Protect manual contact edits during checkout, even if profile lookup is slow.
   useEffect(() => {
-    if (!user?.id || !isDraftHydrated || createdOrder) return;
+    if (!open) contactEditedRef.current = { name: false, phone: false };
+  }, [open]);
+
+  // Saved contact data overrides an older guest draft for signed-in customers.
+  // Delivery address, GPS and quote always stay specific to this order.
+  useEffect(() => {
+    if (!open || !user?.id || !isDraftHydrated || createdOrder) return;
     let active = true;
     getCustomerAccount().then(profile => {
-      if (!active) return;
+      if (!active || profile.id !== user.id) return;
       setValues(current => ({
         ...current,
-        customerName: current.customerName || profile.name || '',
-        customerPhone: current.customerPhone || profile.phone || '',
+        customerName: !contactEditedRef.current.name && profile.name.trim()
+          ? profile.name.trim() : current.customerName,
+        customerPhone: !contactEditedRef.current.phone && profile.phone.trim()
+          ? profile.phone.trim() : current.customerPhone,
       }));
     }).catch(() => {
       // An account lookup failure never blocks guest-style checkout.
     });
     return () => { active = false; };
-  }, [user?.id, isDraftHydrated, createdOrder]);
+  }, [open, user?.id, isDraftHydrated, createdOrder]);
 
   useEffect(() => {
     if (!isDraftHydrated || createdOrder) return;
@@ -204,6 +212,8 @@ export function CheckoutModal({ open, onClose, items, onOrderCreated }: Checkout
   }, [activePaymentMethods, bothPaymentMethodsEnabled, values.paymentMethod]);
 
   function update<K extends keyof CheckoutFormValues>(key: K, value: CheckoutFormValues[K]) {
+    if (key === 'customerName') contactEditedRef.current.name = true;
+    if (key === 'customerPhone') contactEditedRef.current.phone = true;
     clearError(key);
     setValues((current) => ({ ...current, [key]: value }));
   }
