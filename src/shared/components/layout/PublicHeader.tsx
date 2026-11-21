@@ -42,7 +42,7 @@ export function PublicHeader() {
             href="#menu"
             aria-label="Ver carta"
             title="Ver carta"
-            className="lcb-public-header-action inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-[11px] border border-white/15 bg-white/[.035] text-central-cream transition-colors duration-200 hover:border-central-orange/50 hover:text-central-orange md:hidden"
+            className="lcb-public-header-action inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-white/15 bg-white/[.035] text-central-cream transition-colors duration-200 hover:border-central-orange/50 hover:text-central-orange md:hidden"
           >
             <BookOpenText size={19} aria-hidden="true"/>
           </Link>
@@ -54,22 +54,10 @@ export function PublicHeader() {
             Pedir ahora
           </Link>
 
-          {user ? (
-            <Link href="/mi-cuenta" title="Mi cuenta" aria-label="Ir a mi cuenta"
-              className="lcb-public-header-action inline-flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full bg-transparent transition-transform duration-200 hover:scale-[1.04] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-central-orange">
-              <CustomerGoogleAvatar user={user} compact/>
-            </Link>
-          ) : (
-            <button type="button" onClick={()=>openAuth('header')} title="Iniciar sesión" aria-label="Iniciar sesión"
-              className="lcb-public-header-action inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-white/15 bg-white/[.035] text-white transition-colors duration-200 hover:border-central-orange/50 hover:text-central-orange focus-visible:outline-2 focus-visible:outline-central-orange">
-              <UserRound size={18}/>
-            </button>
-          )}
-
           <button
             type="button"
             onClick={handleCartClick}
-            className="lcb-public-header-action relative grid h-10 w-10 shrink-0 place-items-center rounded-[11px] border border-white/15 bg-white/[.035] text-central-cream transition-colors duration-200 hover:border-central-orange/50 hover:text-central-orange lg:hidden"
+            className="lcb-public-header-action relative grid h-10 w-10 shrink-0 place-items-center rounded-full border border-white/15 bg-white/[.035] text-central-cream transition-colors duration-200 hover:border-central-orange/50 hover:text-central-orange lg:hidden"
             aria-label={cartCount > 0 ? `Abrir carrito, ${cartCount} productos` : 'Abrir carrito'}
             title="Carrito"
           >
@@ -80,6 +68,18 @@ export function PublicHeader() {
               </span>
             ) : null}
           </button>
+
+          {user ? (
+            <Link href="/mi-cuenta" title="Mi cuenta" aria-label="Ir a mi cuenta"
+              className="lcb-public-header-action lcb-public-header-avatar inline-flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full bg-transparent transition-transform duration-200 hover:scale-[1.04] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-central-orange">
+              <CustomerGoogleAvatar user={user} compact/>
+            </Link>
+          ) : (
+            <button type="button" onClick={()=>openAuth('header')} title="Iniciar sesión" aria-label="Iniciar sesión"
+              className="lcb-public-header-action lcb-public-header-avatar inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-white/15 bg-white/[.035] text-white transition-colors duration-200 hover:border-central-orange/50 hover:text-central-orange focus-visible:outline-2 focus-visible:outline-central-orange">
+              <UserRound size={18}/>
+            </button>
+          )}
         </div>
       </div>
     </header>
