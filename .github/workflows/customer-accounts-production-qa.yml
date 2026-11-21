@@ -10,7 +10,7 @@ on:
       - 'src/app/(public)/mi-cuenta/**'
       - 'src/app/api/orders/**'
       - 'tests/clientes/**'
-      - 'supabase/migrations/20261120*customer*'
+      - 'supabase/migrations/20261120*'
       - 'package.json'
   workflow_dispatch:
 
