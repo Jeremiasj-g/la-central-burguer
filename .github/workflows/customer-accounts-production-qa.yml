@@ -1,0 +1,37 @@
+name: QA release de clientes
+
+on:
+  push:
+    branches:
+      - release/customer-accounts-production-20261120
+  pull_request:
+    paths:
+      - 'src/features/clientes/**'
+      - 'src/app/(public)/mi-cuenta/**'
+      - 'src/app/api/orders/**'
+      - 'tests/clientes/**'
+      - 'supabase/migrations/20261120*customer*'
+      - 'package.json'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  customer-release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Instalar dependencias
+        run: npm ci
+      - name: Probar clientes
+        run: npm test
+      - name: Verificar TypeScript
+        run: npm run typecheck
+      - name: Revisar ESLint de clientes
+        run: npm run lint:clientes
