@@ -1,5 +1,7 @@
 /* Cuenta pública: movimiento real, discreto, con entrada y salida. */
 .lcb-account-drawer-backdrop {
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
   animation: lcb-account-backdrop-in 200ms ease-out both;
 }
 .lcb-account-drawer-panel {
@@ -39,4 +41,5 @@
   .lcb-account-drawer-backdrop,
   .lcb-account-drawer-panel,
   .lcb-account-section { animation: none !important; will-change: auto; }
+  .lcb-account-drawer-backdrop { -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
 }
