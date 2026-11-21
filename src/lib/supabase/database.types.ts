@@ -26,6 +26,21 @@ type TableDefinition<Row, Insert, Update> = {
 export interface Database {
   public: {
     Tables: {
+      customer_accounts: TableDefinition<
+        {user_id:string;full_name:string;phone:string;address:string;created_at:string;updated_at:string},
+        {user_id:string;full_name?:string;phone?:string;address?:string;created_at?:string;updated_at?:string},
+        {full_name?:string;phone?:string;address?:string;updated_at?:string}
+      >;
+      customer_order_links: TableDefinition<
+        {order_id:string;user_id:string;created_at:string},
+        {order_id:string;user_id:string;created_at?:string},
+        {user_id?:string;created_at?:string}
+      >;
+      customer_order_claims: TableDefinition<
+        {order_id:string;token_hash:string;expires_at:string;claimed_at:string|null},
+        {order_id:string;token_hash:string;expires_at:string;claimed_at?:string|null},
+        {token_hash?:string;expires_at?:string;claimed_at?:string|null}
+      >;
       profiles: TableDefinition<
         { id: string; full_name: string; phone: string | null; notes: string | null; active: boolean; archived_at: string | null; created_at: string; updated_at: string },
         { id: string; full_name?: string; phone?: string | null; notes?: string | null; active?: boolean; archived_at?: string | null; created_at?: string; updated_at?: string },
@@ -215,6 +230,14 @@ export interface Database {
       };
     };
     Functions: {
+      my_customer_account: {Args: Record<PropertyKey, never>; Returns: Json};
+      save_my_customer_account: {Args:{new_name:string;new_phone:string;new_address:string};Returns:undefined};
+      my_customer_orders: {Args:Record<PropertyKey, never>;Returns:Json};
+      claim_my_customer_order: {Args:{claim_token:string};Returns:boolean};
+      admin_customer_directory: {Args:Record<PropertyKey, never>;Returns:Json};
+      admin_create_customer: {Args:{new_name:string;new_phone:string;new_address:string};Returns:string};
+      admin_delete_customer_without_orders: {Args:{target_id:string};Returns:undefined};
+      admin_update_customer_directory: {Args:{kind:string;target_id:string;new_name:string;new_phone:string;new_address:string};Returns:undefined};
       admin_edit_order_items: { Args: { target_order_id: string; expected_updated_at: string; requested_items: Json }; Returns: Json };
       admin_set_order_payment_plan: { Args: { target_order_id: string; transfer_value: number; cash_value: number }; Returns: Json };
       admin_confirm_order_payment: { Args: { target_order_id: string; payment_method: PaymentMethodCode; payment_amount: number; request_key: string }; Returns: Json };
