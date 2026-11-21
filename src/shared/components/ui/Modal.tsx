@@ -140,7 +140,7 @@ export function Modal({ open, title, children, footer, footerClassName, onClose,
         onMouseDown={(event) => event.stopPropagation()}
       >
         <div className={cn("flex shrink-0 items-start justify-between gap-4 border-b border-current/10 px-3.5 py-3 sm:px-5 sm:py-4", headerClassName)}>
-          {title ? <h2 className={cn("min-w-0 text-base font-black tracking-tight sm:text-xl", titleClassName)}>{title}</h2> : <span />}
+          {title ? <h2 className={cn("min-w-0 text-[18px] font-semibold tracking-tight sm:text-[20px]", titleClassName)}>{title}</h2> : <span />}
           <button className={cn("shrink-0 rounded-full p-2 text-current/70 transition duration-200 hover:bg-current/10 hover:text-current", closeButtonClassName)} onClick={onClose} aria-label="Cerrar modal">
             <X size={20} />
           </button>

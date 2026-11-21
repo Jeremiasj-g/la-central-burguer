@@ -91,3 +91,18 @@ export async function adminDeleteCommercialCustomer(id:string){
   const {error}=await getSupabaseBrowserClient().rpc('admin_delete_customer_without_orders',{target_id:id});
   throwIfError(error);
 }
+
+export async function adminCreateCustomerAccount(input: {name:string;email:string;password:string;phone:string;address:string}) {
+  const {data,error}=await getSupabaseBrowserClient().functions.invoke('create-customer-account',{body:input});
+  if(error){
+    const response='context' in error && error.context instanceof Response?error.context:null;
+    const payload=response?await response.clone().json().catch(()=>null) as {error?:string}|null:null;
+    throw new Error(payload?.error??'No se pudo crear la cuenta del cliente.');
+  }
+  if(data?.error)throw new Error(String(data.error));
+  if(!data?.ok)throw new Error('No se confirmó el alta de la cuenta.');
+}
+export async function signInCustomerWithPassword(email:string,password:string) {
+  const {error}=await customerAuth().signInWithPassword({email:email.trim().toLowerCase(),password});
+  if(error)throw new Error('No se pudo iniciar sesión. Revisá el correo y la contraseña.');
+}

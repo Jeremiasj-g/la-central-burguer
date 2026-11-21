@@ -207,8 +207,8 @@ export function CustomerAccountPage(){
           <div className="mx-auto max-w-lg py-16 text-center">
             <UserRound size={32} className="mx-auto text-central-orange"/>
             <h1 className="mt-5 text-[28px] font-semibold">Mi cuenta</h1>
-            <p className={`mt-3 text-[13px] leading-6 ${muted}`}>Iniciá sesión con Google para ver tus pedidos y editar tus datos. También podés comprar sin registrarte.</p>
-            <button type="button" onClick={()=>openAuth('header')} className="mt-6 h-10 rounded-[11px] bg-central-orange px-5 text-[12px] font-semibold text-[#171717]">Iniciar sesión con Google</button>
+            <p className={`mt-3 text-[13px] leading-6 ${muted}`}>Iniciá sesión con Google o con tu correo y contraseña para ver tus pedidos y editar tus datos. También podés comprar sin registrarte.</p>
+            <button type="button" onClick={()=>openAuth('header')} className="mt-6 h-10 rounded-[11px] bg-central-orange px-5 text-[12px] font-semibold text-[#171717]">Iniciar sesión</button>
           </div>:
           error||!account||!draft?
           <div className="py-8"><h1 className="text-[23px] font-semibold">No pudimos cargar tu perfil</h1>
