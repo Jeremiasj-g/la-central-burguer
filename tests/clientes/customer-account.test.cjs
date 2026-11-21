@@ -73,7 +73,7 @@ describe('Clientes / perfil independiente del checkout',()=>{
   assert.equal(rpcCalls.length,1);
  });
  test('nunca genera vínculo de propiedad basado en nombre, correo o teléfono',()=>{
-  const sql=fs.readFileSync('supabase/migrations/20261120122000_customer_order_claims.sql','utf8');
+  const sql=fs.readFileSync('supabase/migrations/20261120235820_prod_customer_order_claims_private.sql','utf8');
   assert.match(sql,/token_hash=encode\(sha256/);
   assert.match(sql,/claimed_at is null and expires_at>now\(\)/);
   assert.doesNotMatch(sql,/where\s+(?:phone|customer_phone|normalized_phone)\s*=/i);
