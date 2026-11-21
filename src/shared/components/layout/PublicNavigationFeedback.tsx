@@ -3,23 +3,26 @@
 import { useEffect, useRef, useState } from 'react';
 import { usePathname } from 'next/navigation';
 
-// Feedback only for real cross-page navigations. Hash scrolling and external
-// links keep their original behavior from PublicSectionNavigation.
+type NavigationPhase = 'idle' | 'loading' | 'complete';
+
+// One shared indicator for real cross-page navigation. Hash-only movement,
+// external links and unrelated actions never trigger the global overlay.
 export function PublicNavigationFeedback() {
   const pathname = usePathname();
-  const [visible, setVisible] = useState(false);
+  const [phase, setPhase] = useState<NavigationPhase>('idle');
+  const [cycle, setCycle] = useState(0);
   const startedFrom = useRef<string | null>(null);
-  const delay = useRef<ReturnType<typeof setTimeout> | null>(null);
   const watchdog = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const completion = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     function clear() {
-      if (delay.current) clearTimeout(delay.current);
       if (watchdog.current) clearTimeout(watchdog.current);
-      delay.current = null;
+      if (completion.current) clearTimeout(completion.current);
       watchdog.current = null;
+      completion.current = null;
       startedFrom.current = null;
-      setVisible(false);
+      setPhase('idle');
     }
 
     function onClick(event: MouseEvent) {
@@ -31,15 +34,18 @@ export function PublicNavigationFeedback() {
       let destination: URL;
       try { destination = new URL(anchor.href); } catch { return; }
       if (destination.origin !== window.location.origin) return;
-      // Hash navigation is handled by PublicSectionNavigation, with no route loader.
-      if (destination.hash || destination.pathname === window.location.pathname) return;
+      // Hash-only and same-path changes do not load a different page.
+      if (destination.pathname === window.location.pathname) return;
 
-      if (delay.current) clearTimeout(delay.current);
       if (watchdog.current) clearTimeout(watchdog.current);
+      if (completion.current) clearTimeout(completion.current);
+      completion.current = null;
       startedFrom.current = window.location.pathname;
-      delay.current = setTimeout(() => setVisible(true), 140);
-      // Never leave a stuck loading overlay if navigation is cancelled.
-      watchdog.current = setTimeout(clear, 8000);
+      // Restart the fill and shimmer on every new navigation, including rapid clicks.
+      setCycle(current => current + 1);
+      setPhase('loading');
+      // A failed or cancelled navigation cannot leave the screen dimmed forever.
+      watchdog.current = setTimeout(clear, 30000);
     }
 
     document.addEventListener('click', onClick, true);
@@ -49,24 +55,29 @@ export function PublicNavigationFeedback() {
       document.removeEventListener('click', onClick, true);
       window.removeEventListener('pageshow', clear);
       window.removeEventListener('popstate', clear);
-      if (delay.current) clearTimeout(delay.current);
       if (watchdog.current) clearTimeout(watchdog.current);
+      if (completion.current) clearTimeout(completion.current);
     };
   }, []);
 
   useEffect(() => {
     if (startedFrom.current !== null && pathname !== startedFrom.current) {
-      if (delay.current) clearTimeout(delay.current);
       if (watchdog.current) clearTimeout(watchdog.current);
-      delay.current = null;
       watchdog.current = null;
       startedFrom.current = null;
-      setVisible(false);
+      setPhase('complete');
+      if (completion.current) clearTimeout(completion.current);
+      completion.current = setTimeout(() => {
+        completion.current = null;
+        setPhase('idle');
+      }, 220);
     }
   }, [pathname]);
 
-  return <div aria-hidden="true" className={`lcb-navigation-feedback ${visible ? 'is-visible' : ''}`}>
-    <div className="lcb-navigation-progress" />
-    <div className="lcb-navigation-veil" />
-  </div>;
+  return (
+    <div aria-hidden="true" className={`lcb-navigation-feedback ${phase === 'idle' ? '' : `is-visible is-${phase}`}`}>
+      <div className="lcb-navigation-progress" key={cycle} />
+      <div className="lcb-navigation-veil" />
+    </div>
+  );
 }
