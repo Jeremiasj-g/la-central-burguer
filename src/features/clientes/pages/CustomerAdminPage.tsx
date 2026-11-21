@@ -4,11 +4,13 @@ import { useEffect, useMemo, useState } from 'react';
 import { Plus, RefreshCw, Search, Trash2 } from 'lucide-react';
 import { toast } from 'react-toastify';
 import { Modal } from '@/shared/components/ui/Modal';
+import { PasswordInput } from '@/shared/components/ui/PasswordInput';
+import { Button } from '@/shared/components/ui/Button';
 import { ConfirmDialog } from '@/shared/components/ui/ConfirmDialog';
 import { TablePagination } from '@/shared/components/ui/TablePagination';
 import { useAdminUnsavedChanges } from '@/shared/components/layout/AdminUnsavedChanges';
 import {
-  getCustomerDirectory, adminUpdateCustomer, adminCreateCommercialCustomer,
+  getCustomerDirectory, adminUpdateCustomer, adminCreateCustomerAccount,
   adminDeleteCommercialCustomer, type CustomerDirectory, type CustomerDirectoryEntry,
 } from '../services/customer-account.service';
 
@@ -32,9 +34,10 @@ export function CustomerAdminPage(){
  const [editing,setEditing]=useState<CustomerDirectoryEntry|null>(null);
  const [original,setOriginal]=useState<CustomerDirectoryEntry|null>(null);
  const [creating,setCreating]=useState(false);
+ const [password,setPassword]=useState('');
  const [deleting,setDeleting]=useState<CustomerDirectoryEntry|null>(null);
  const [error,setError]=useState('');
- const dirty=Boolean(editing&&original&&JSON.stringify(editing)!==JSON.stringify(original));
+ const dirty=Boolean(editing&&original&&(JSON.stringify(editing)!==JSON.stringify(original)||(creating&&password.length>0)));
  const requestNavigation=useAdminUnsavedChanges(dirty);
  const rows=useMemo(()=>{
   const key=normalize(search.trim());
@@ -59,6 +62,7 @@ export function CustomerAdminPage(){
   setOriginal({...value});
   setEditing({...value});
   setCreating(!row);
+  setPassword('');
  }
  const close=()=>requestNavigation(()=>{setEditing(null);setOriginal(null);setCreating(false);});
  async function save(event:React.FormEvent){
@@ -70,11 +74,14 @@ export function CustomerAdminPage(){
   setBusy(true);
   try{
    if(creating){
-    if(editing.phone.replace(/\D/g,'').length<6)throw new Error('Ingresá al menos seis dígitos de teléfono.');
-    await adminCreateCommercialCustomer(editing.name,editing.phone,editing.address??'');
+    if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(editing.email??''))throw new Error('Ingresá un correo válido.');
+    if(password.length<8)throw new Error('La contraseña debe tener al menos ocho caracteres.');
+    if(editing.phone && editing.phone.replace(/\D/g,'').length<6)throw new Error('Ingresá al menos seis dígitos de teléfono.');
+    await adminCreateCustomerAccount({name:editing.name,email:editing.email??'',password,phone:editing.phone,address:editing.address??''});
+    setTab('registered');setPage(1);
    }else await adminUpdateCustomer(tab,editing.id,editing.name,editing.phone,editing.address??'');
-   setEditing(null);setOriginal(null);setCreating(false);
-   toast.success('Datos del cliente guardados.');
+   setEditing(null);setOriginal(null);setCreating(false);setPassword('');
+   toast.success(creating?'Cuenta de cliente creada. Ya puede iniciar sesión con correo y contraseña.':'Datos del cliente guardados.');
    await refresh();
   }catch(e){toast.error(e instanceof Error?e.message:'No se pudo guardar el cliente.');}
   finally{setBusy(false);}
@@ -94,7 +101,7 @@ export function CustomerAdminPage(){
       className="inline-flex h-9 items-center gap-2 rounded-[11px] border border-neutral-200 bg-white px-3 text-[12px] text-neutral-700 transition-colors duration-200 hover:bg-neutral-50">
       <RefreshCw size={14}/>Actualizar
     </button>
-    {tab==='commercial'&&<button type="button" onClick={()=>edit()} className="inline-flex h-9 items-center gap-2 rounded-[11px] bg-[#191b20] px-3.5 text-[12px] font-medium text-white hover:bg-neutral-700">
+    {<button type="button" onClick={()=>edit()} className="inline-flex h-9 items-center gap-2 rounded-[11px] bg-[#191b20] px-3.5 text-[12px] font-medium text-white hover:bg-neutral-700">
      <Plus size={15}/>Nuevo cliente</button>}
    </div>
   </div>
@@ -144,16 +151,22 @@ export function CustomerAdminPage(){
   </div>
   <p className="text-[11px] leading-5 text-neutral-500">Las cuentas registradas y los clientes comerciales son entidades diferentes. Los pedidos históricos no se vinculan por coincidencia de teléfono. Las direcciones del perfil nunca sustituyen los datos de entrega de cada pedido.</p>
   <Modal open={editing!==null} onClose={close} theme="light" title={creating?'Nuevo cliente':'Editar cliente'} size="sm"
-   footer={<div className="flex justify-end gap-2 border-t border-neutral-100 px-4 py-3">
-    <button type="button" onClick={close} disabled={busy} className="h-9 rounded-[11px] border border-neutral-200 px-3 text-[12px] text-neutral-700">Cancelar</button>
-    <button form="customer-admin-form" type="submit" disabled={busy} className="h-9 rounded-[11px] bg-central-orange px-4 text-[12px] font-medium text-[#191919] disabled:opacity-50">{busy?'Guardando…':'Guardar cambios'}</button>
+   footer={<div className="flex justify-end gap-2 border-t border-neutral-100 px-4 py-4 sm:px-5">
+    <Button type="button" size="sm" variant="secondary" onClick={close} disabled={busy}>Cancelar</Button>
+    <Button form="customer-admin-form" size="sm" type="submit" disabled={busy}>{busy?'Guardando…':creating?'Crear cliente':'Guardar cambios'}</Button>
    </div>}>
    {editing&&<form id="customer-admin-form" onSubmit={event=>void save(event)} className="space-y-4">
     {field('Nombre completo',editing.name,value=>setEditing({...editing,name:value}),'Nombre y apellido',true)}
+    {creating&&<label className="block space-y-1.5 text-[11px] font-medium text-neutral-600">Correo de acceso
+      <input type="email" required autoComplete="email" value={editing.email??''} onChange={event=>setEditing({...editing,email:event.target.value})} maxLength={254} placeholder="cliente@correo.com" className={control}/>
+    </label>}
+    {creating&&<label className="block space-y-1.5 text-[11px] font-medium text-neutral-600">Contraseña inicial
+      <PasswordInput variant="light" value={password} onChange={event=>setPassword(event.target.value)} placeholder="Mínimo 8 caracteres" minLength={8} autoComplete="new-password" required/>
+    </label>}
     {field('Teléfono',editing.phone,value=>setEditing({...editing,phone:value}),'Ej.: 3794123456',creating)}
     {field('Dirección de referencia',editing.address??'',value=>setEditing({...editing,address:value}),'Calle, número y localidad')}
     {!creating&&editing.email&&<p className="text-[11px] leading-5 text-neutral-500">Correo asociado: {editing.email}. Los correos de cuentas registradas deben cambiarse mediante verificación de Supabase Auth.</p>}
-    <p className="text-[11px] leading-5 text-neutral-500">La dirección de referencia no se utiliza para enviar pedidos. Cada compra conserva sus datos de entrega originales.</p>
+    <p className="text-[11px] leading-5 text-neutral-500">{creating?'Se creará una cuenta para iniciar sesión con correo y contraseña. Los pedidos anteriores no se vinculan automáticamente por teléfono.':'La dirección de referencia no modifica los datos de entrega de pedidos anteriores.'}</p>
    </form>}
   </Modal>
   <ConfirmDialog open={Boolean(deleting)} theme="light" tone="danger" title="Eliminar cliente"
