@@ -81,7 +81,7 @@ export function CustomerAdminPage(){
     setTab('registered');setPage(1);
    }else await adminUpdateCustomer(tab,editing.id,editing.name,editing.phone,editing.address??'');
    setEditing(null);setOriginal(null);setCreating(false);setPassword('');
-   toast.success(creating?'Cuenta de cliente creada. Ya puede iniciar sesión con correo y contraseña.':'Datos del cliente guardados.');
+   toast.success(creating?'Cuenta creada. El cliente puede iniciar sesión con correo y contraseña.':'Datos del cliente guardados.');
    await refresh();
   }catch(e){toast.error(e instanceof Error?e.message:'No se pudo guardar el cliente.');}
   finally{setBusy(false);}
@@ -101,8 +101,8 @@ export function CustomerAdminPage(){
       className="inline-flex h-9 items-center gap-2 rounded-[11px] border border-neutral-200 bg-white px-3 text-[12px] text-neutral-700 transition-colors duration-200 hover:bg-neutral-50">
       <RefreshCw size={14}/>Actualizar
     </button>
-    {<button type="button" onClick={()=>edit()} className="inline-flex h-9 items-center gap-2 rounded-[11px] bg-[#191b20] px-3.5 text-[12px] font-medium text-white hover:bg-neutral-700">
-     <Plus size={15}/>Nuevo cliente</button>}
+    <button type="button" onClick={()=>edit()} className="inline-flex h-9 items-center gap-2 rounded-[11px] bg-[#191b20] px-3.5 text-[12px] font-medium text-white hover:bg-neutral-700">
+     <Plus size={15}/>Crear cuenta</button>
    </div>
   </div>
   <div className="flex gap-1 border-b border-neutral-200">
@@ -150,7 +150,7 @@ export function CustomerAdminPage(){
    <TablePagination page={current} pageSize={pageSize} totalItems={rows.length} onPageChange={setPage}/>
   </div>
   <p className="text-[11px] leading-5 text-neutral-500">Las cuentas registradas y los clientes comerciales son entidades diferentes. Los pedidos históricos no se vinculan por coincidencia de teléfono. Las direcciones del perfil nunca sustituyen los datos de entrega de cada pedido.</p>
-  <Modal open={editing!==null} onClose={close} theme="light" title={creating?'Nuevo cliente':'Editar cliente'} size="sm"
+  <Modal open={editing!==null} onClose={close} theme="light" title={creating?'Crear cuenta de cliente':'Editar cliente'} size="sm"
    footer={<div className="flex justify-end gap-2 border-t border-neutral-100 px-4 py-4 sm:px-5">
     <Button type="button" size="sm" variant="secondary" onClick={close} disabled={busy}>Cancelar</Button>
     <Button form="customer-admin-form" size="sm" type="submit" disabled={busy}>{busy?'Guardando…':creating?'Crear cliente':'Guardar cambios'}</Button>
