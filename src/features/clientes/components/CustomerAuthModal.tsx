@@ -2,10 +2,11 @@
 
 import { useState } from 'react';
 import { ShieldCheck } from 'lucide-react';
+import { PasswordInput } from '@/shared/components/ui/PasswordInput';
 import { toast } from 'react-toastify';
 import { Modal } from '@/shared/components/ui/Modal';
 import { usePublicTheme } from '@/shared/components/layout/PublicThemeProvider';
-import { signInCustomerWithGoogle } from '../services/customer-account.service';
+import { signInCustomerWithGoogle, signInCustomerWithPassword } from '../services/customer-account.service';
 
 export function CustomerAuthModal({
   open, onClose, afterOrder=false,
@@ -13,6 +14,8 @@ export function CustomerAuthModal({
   open:boolean;onClose:()=>void;afterOrder?:boolean;
 }) {
   const [busy,setBusy]=useState(false);
+  const [email,setEmail]=useState('');
+  const [password,setPassword]=useState('');
   const theme=usePublicTheme();
   const dark=theme==='dark';
   const description=dark?'text-white/65':'text-neutral-600';
@@ -30,13 +33,32 @@ export function CustomerAuthModal({
     }
   }
 
+  async function credentials(event:React.FormEvent){
+    event.preventDefault();
+    if(busy)return;
+    setBusy(true);
+    try{await signInCustomerWithPassword(email,password);setPassword('');onClose();}
+    catch(error){toast.error(error instanceof Error?error.message:'No se pudo iniciar sesión.');}
+    finally{setBusy(false);}
+  }
+
   return <Modal open={open} onClose={busy?()=>{}:onClose}
-    title="¡Registrate para obtener más beneficios!" titleClassName="!text-[23px] sm:!text-[27px] !font-semibold !leading-[1.2] !tracking-tight" size="sm" theme={theme}
+    title="Iniciar sesión" titleClassName="!text-[23px] sm:!text-[27px] !font-semibold !leading-[1.2] !tracking-tight" size="sm" theme={theme}
     panelClassName={dark?'!rounded-[22px] !bg-[#1a1a1d]':'!rounded-[22px] !bg-white'}>
     <div className="space-y-5 py-1">
       <p className={`text-[13px] leading-6 ${description}`}>
-        Iniciá sesión con Google para guardar tus datos, consultar tus pedidos y comprar más rápido la próxima vez.
+        Accedé a tu cuenta para consultar tus pedidos y guardar tus datos.
       </p>
+      <form onSubmit={event=>void credentials(event)} className="space-y-3">
+        <label className={`block space-y-1.5 text-[12px] font-medium ${description}`}>Correo electrónico
+          <input type="email" required autoComplete="username" value={email} onChange={event=>setEmail(event.target.value)} placeholder="cliente@correo.com" className={`h-11 w-full rounded-[11px] border px-3 text-[13px] outline-none focus:border-central-orange ${dark?'border-white/15 bg-white/5 text-white':'border-neutral-200 bg-[#f7f7f9] text-neutral-900'}`}/>
+        </label>
+        <label className={`block space-y-1.5 text-[12px] font-medium ${description}`}>Contraseña
+          <PasswordInput variant={theme} value={password} onChange={event=>setPassword(event.target.value)} placeholder="Tu contraseña" autoComplete="current-password" required/>
+        </label>
+        <button type="submit" disabled={busy} className="h-11 w-full rounded-[11px] bg-central-orange px-4 text-[13px] font-semibold text-[#191919] transition-colors duration-200 disabled:opacity-50">{busy?'Ingresando…':'Iniciar sesión'}</button>
+      </form>
+      <div className={`flex items-center gap-3 text-[11px] ${caption}`}><span className="h-px flex-1 bg-current opacity-20"/>o continuá con<span className="h-px flex-1 bg-current opacity-20"/></div>
       <button type="button" disabled={busy} onClick={()=>void google()}
         className="flex h-11 w-full items-center justify-center gap-3 rounded-[11px] border border-neutral-200 bg-white px-4 text-[13px] font-semibold text-[#202124] transition-colors duration-200 hover:bg-neutral-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-central-orange disabled:opacity-50">
         <svg aria-hidden="true" width="20" height="20" viewBox="0 0 48 48" className="shrink-0">
