@@ -41,7 +41,7 @@ body.lcb-public-typography[data-public-theme="light"] .bg-central-orange,
  backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
 }
 .public-site[data-public-theme="light"] header.sticky.top-0 :is(.lcb-theme-toggle,button[title="Carrito"]){
- background:#fff!important;color:var(--lcb-light-text)!important;border-color:var(--lcb-light-border)!important;border-radius:11px;
+ background:#fff!important;color:var(--lcb-light-text)!important;border-color:var(--lcb-light-border)!important;border-radius:9999px;
 }
 .public-site[data-public-theme="light"] header.sticky.top-0 a:not(.bg-central-orange){color:var(--lcb-light-text)!important;}
 .public-site[data-public-theme="light"] header.sticky.top-0 a.bg-central-orange{color:#1e1b16!important;}
@@ -497,10 +497,10 @@ body.lcb-public-typography[data-public-theme="light"]
 }
 
 
-/* El header público usa un solo lenguaje visual para carta, usuario, tema y carrito. */
+/* Controles del header: forma circular y estilos aislados por función. */
 .public-site .lcb-public-header .lcb-public-header-action,
 .public-site .lcb-public-header .lcb-public-header-theme .lcb-theme-toggle {
-  border-radius: 9999px;
+  border-radius: 9999px !important;
   transition: background-color .2s, border-color .2s, color .2s;
 }
 @media (max-width: 639px) {
@@ -524,36 +524,32 @@ body.lcb-public-typography[data-public-theme="light"]
   border-color: rgba(255,255,255,.15);
   background: rgba(255,255,255,.035);
 }
-.public-site[data-public-theme="light"] .lcb-public-header .lcb-public-header-action,
+/* Solo los controles normales llevan el fondo del modo claro; nunca el avatar con foto. */
+.public-site[data-public-theme="light"] .lcb-public-header .lcb-public-header-action:not(.lcb-public-header-avatar-photo),
 .public-site[data-public-theme="light"] .lcb-public-header .lcb-public-header-theme .lcb-theme-toggle {
   background: #fff !important;
   border-color: rgba(38,41,47,.12) !important;
   color: #25272c !important;
   box-shadow: none !important;
 }
-.public-site[data-public-theme="light"] .lcb-public-header .lcb-public-header-action:hover,
+.public-site[data-public-theme="light"] .lcb-public-header .lcb-public-header-action:not(.lcb-public-header-avatar-photo):hover,
 .public-site[data-public-theme="light"] .lcb-public-header .lcb-public-header-theme .lcb-theme-toggle:hover {
   background: #f6f6f5 !important;
   border-color: rgba(190,105,16,.35) !important;
+}
+/* No afectar el menú, el tema ni el carrito al quitar el marco de la foto. */
+.public-site .lcb-public-header .lcb-public-header-avatar-photo,
+.public-site[data-public-theme="light"] .lcb-public-header .lcb-public-header-avatar-photo,
+.public-site:not([data-public-theme="light"]) .lcb-public-header .lcb-public-header-avatar-photo,
+.public-site .lcb-public-header .lcb-public-header-avatar-photo:hover,
+.public-site[data-public-theme="light"] .lcb-public-header .lcb-public-header-avatar-photo:hover {
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
 }
 @media (prefers-reduced-motion: reduce) {
   .public-site .lcb-public-header .lcb-public-header-action,
   .public-site .lcb-public-header .lcb-public-header-theme .lcb-theme-toggle {
     transition: none !important;
   }
-}
-
-/* Header móvil: todos los controles son circulares; las fotos no llevan marco ni fondo. */
-.public-site .lcb-public-header .lcb-public-header-theme .lcb-theme-toggle { border-radius: 9999px; }
-.public-site .lcb-public-header .lcb-public-header-avatar-photo,
-.public-site[data-public-theme="light"] .lcb-public-header .lcb-public-header-avatar-photo,
-.public-site:not([data-public-theme="light"]) .lcb-public-header .lcb-public-header-avatar-photo {
-  border: 0 !important;
-  background: transparent !important;
-  box-shadow: none !important;
-}
-.public-site .lcb-public-header .lcb-public-header-avatar-photo:hover,
-.public-site[data-public-theme="light"] .lcb-public-header .lcb-public-header-avatar-photo:hover {
-  border-color: transparent !important;
-  background: transparent !important;
 }
