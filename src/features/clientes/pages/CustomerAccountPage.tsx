@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
-import { Gift, Heart, Home, LogOut, MapPin, Menu, Package, Save, Settings2, UserRound, X } from 'lucide-react';
+import { Gift, Heart, Home, LayoutDashboard, LogOut, MapPin, Menu, Package, Save, Settings2, UserRound, X } from 'lucide-react';
 import { toast } from 'react-toastify';
 import { ConfirmDialog } from '@/shared/components/ui/ConfirmDialog';
 import { PublicThemeToggle, usePublicTheme } from '@/shared/components/layout/PublicThemeProvider';
@@ -10,15 +10,18 @@ import { useBodyScrollLock } from '@/shared/hooks/useBodyScrollLock';
 import { useAnimatedPresence } from '@/shared/hooks/useAnimatedPresence';
 import { useCustomerAuth } from '../components/CustomerAuthProvider';
 import { CustomerGoogleAvatar } from '../components/CustomerGoogleAvatar';
+import { CustomerOnboarding } from '../components/CustomerOnboarding';
+import { CustomerDashboard } from '../components/CustomerDashboard';
 import {
   claimPendingCustomerOrder, getCustomerAccount, getMyCustomerOrders,
   saveCustomerAccount, signOutCustomer,
   type CustomerAccount, type CustomerOrderSummary,
 } from '../services/customer-account.service';
 
-type Section = 'profile' | 'orders' | 'benefits' | 'preferences';
+type Section = 'dashboard' | 'profile' | 'orders' | 'benefits' | 'preferences';
 const navigation = [
-  {id:'profile',label:'Mi perfil',icon:UserRound},
+  {id:'dashboard',label:'Resumen',icon:LayoutDashboard},
+  {id:'profile',label:'Configuración del perfil',icon:UserRound},
   {id:'orders',label:'Mis pedidos',icon:Package},
   {id:'benefits',label:'Beneficios',icon:Gift},
   {id:'preferences',label:'Preferencias',icon:Settings2},
@@ -35,7 +38,7 @@ export function CustomerAccountPage(){
   const drawerCloseRef=useRef<HTMLButtonElement>(null);
   useBodyScrollLock(mobileOpen);
   const drawerMounted=useAnimatedPresence(mobileOpen,200);
-  const [section,setSection]=useState<Section>('profile');
+  const [section,setSection]=useState<Section>('dashboard');
   const [renderedSection,setRenderedSection]=useState<Section>('profile');
   const [sectionLoading,setSectionLoading]=useState(false);
   const [pendingAction,setPendingAction]=useState<Section|'logout'|null>(null);
@@ -48,6 +51,7 @@ export function CustomerAccountPage(){
   const [signingOut,setSigningOut]=useState(false);
   const userId=user?.id;
   const profileMatchesSession=Boolean(userId && account?.id===userId);
+  const onboardingRequired=Boolean(account && (!account.phone.trim() || account.phone.replace(/\D/g,'').length<6 || !account.address.trim() || !account.name.trim()));
   const dirty=Boolean(account && draft &&
     (account.name!==draft.name || account.phone!==draft.phone || account.address!==draft.address));
 
@@ -116,13 +120,14 @@ export function CustomerAccountPage(){
   async function logout(){
     if(signingOut)return;
     setSigningOut(true);
-    try{await signOutCustomer();setAccount(null);setDraft(null);setOrders([]);setSection('profile');}
+    try{await signOutCustomer();setAccount(null);setDraft(null);setOrders([]);setSection('dashboard');}
     catch(cause){toast.error(cause instanceof Error?cause.message:'No se pudo cerrar la sesión.');}
     finally{setSigningOut(false);}
   }
 
   function navigate(next:Section){
     setMobileOpen(false);
+    if(onboardingRequired)return;
     if(next===section)return;
     if(dirty){setPendingAction(next);return;}
     setSectionLoading(true);
@@ -183,8 +188,8 @@ export function CustomerAccountPage(){
     <header className={`sticky top-0 z-40 border-b ${panel}`}>
       <div className="flex h-[66px] items-center justify-between gap-3 px-4 sm:px-6">
         <div className="flex items-center gap-2">
-          <button type="button" onClick={()=>setMobileOpen(true)} aria-label="Abrir menú de mi cuenta"
-            className={`${action} ${secondary} h-10 w-10 !px-0 lg:hidden`}><Menu size={19}/></button>
+          <button type="button" onClick={()=>setMobileOpen(true)} disabled={onboardingRequired} aria-label="Abrir menú de mi cuenta"
+            className={`${action} ${secondary} h-10 w-10 !px-0 disabled:hidden lg:hidden`}><Menu size={19}/></button>
           <Link href="/" title="Ir al inicio" aria-label="Ir al inicio"
             className={`${action} ${secondary} h-10 w-10 !px-0`}><Home size={18}/></Link>
         </div>
@@ -198,7 +203,7 @@ export function CustomerAccountPage(){
     </header>
 
     <div className="flex min-h-[calc(100vh-66px)]">
-      <div className="hidden shrink-0 lg:block">{sidebar}</div>
+      {!onboardingRequired&&<div className="hidden shrink-0 lg:block">{sidebar}</div>}
       <main className="min-w-0 flex-1 px-5 py-8 sm:px-9 sm:py-11 xl:px-12">
         {authLoading||Boolean(user&&(loading||(!profileMatchesSession&&!error)))?<>
           <div className={`h-7 w-40 animate-pulse rounded ${dark?'bg-white/10':'bg-neutral-200'}`}/>
@@ -215,12 +220,16 @@ export function CustomerAccountPage(){
             <p role="alert" className={`mt-3 text-[13px] ${muted}`}>{error||'No se encontraron datos.'}</p>
             <button type="button" className="mt-4 rounded-[11px] bg-central-orange px-4 py-2 text-[12px] font-medium text-black" onClick={()=>window.location.reload()}>Reintentar</button>
           </div>:
+          onboardingRequired?
+          <CustomerOnboarding account={account} dark={dark} onCompleted={completed=>{
+            setAccount(completed);setDraft(completed);setSection('dashboard');setRenderedSection('dashboard');
+          }}/>: 
           <>
             <div className="mb-9">
               <h1 className="text-[29px] font-semibold tracking-tight">{navigation.find(item=>item.id===section)?.label}</h1>
             </div>
             {sectionLoading?<div aria-label="Cargando sección" role="status" className="lcb-account-section max-w-[900px] space-y-5" aria-live="polite">
-              {section==='profile'?<>
+              {section==='dashboard'?<div className="grid gap-4 sm:grid-cols-3">{[0,1,2].map(index=><div key={index} className={`h-24 animate-pulse rounded-[11px] ${dark?'bg-white/10':'bg-neutral-200/80'}`}/>)}</div>:section==='profile'?<>
                 <div className="grid gap-5 sm:grid-cols-2">
                   {[0,1].map(index=><div key={index} className="space-y-2">
                     <div className={`h-3 w-24 animate-pulse rounded ${dark?'bg-white/10':'bg-neutral-200/80'}`}/>
@@ -242,6 +251,7 @@ export function CustomerAccountPage(){
                   <div className={`h-24 w-56 animate-pulse rounded-[11px] ${dark?'bg-white/10':'bg-neutral-200/80'}`}/>
                 </div>}
             </div>:<div key={renderedSection} className="lcb-account-section">
+            {renderedSection==='dashboard'&&<CustomerDashboard account={account} orders={orders} dark={dark} onViewOrders={()=>navigate('orders')}/>}
             {renderedSection==='profile'&&<div className="max-w-[900px] space-y-9">
               <form onSubmit={event=>{event.preventDefault();void save();}} className="space-y-5">
                 <div className="grid gap-5 sm:grid-cols-2">
@@ -270,9 +280,9 @@ export function CustomerAccountPage(){
                 </div>
               </form>
               <section className={`border-t pt-7 ${border}`}>
-                <h2 className="text-[16px] font-semibold">Acceso con Google</h2>
+                <h2 className="text-[16px] font-semibold">Datos de acceso</h2>
                 <p className={`mt-3 text-[12px] ${muted}`}>Correo vinculado: <span className={primary}>{account.email}</span></p>
-                <p className={`mt-2 text-[11px] ${muted}`}>Tu identidad se administra desde Google. No necesitás una contraseña propia para La Central Burger.</p>
+                <p className={`mt-2 text-[11px] ${muted}`}>Podés ingresar con el método de acceso vinculado a este correo.</p>
               </section>
             </div>}
             {renderedSection==='orders'&&<div className="max-w-[900px]">
@@ -300,7 +310,7 @@ export function CustomerAccountPage(){
       </main>
     </div>
 
-    {drawerMounted&&<div data-state={mobileOpen?'open':'closed'} aria-hidden={!mobileOpen} className={`lcb-account-drawer-overlay fixed inset-0 z-[70] lg:hidden ${!mobileOpen?'pointer-events-none':''}`}>
+    {!onboardingRequired&&drawerMounted&&<div data-state={mobileOpen?'open':'closed'} aria-hidden={!mobileOpen} className={`lcb-account-drawer-overlay fixed inset-0 z-[70] lg:hidden ${!mobileOpen?'pointer-events-none':''}`}>
       <button type="button" aria-label="Cerrar menú" onClick={()=>setMobileOpen(false)}
         className="lcb-account-drawer-backdrop absolute inset-0 bg-black/65"/>
       <div role="dialog" aria-modal={mobileOpen} aria-label="Menú de mi cuenta" className="lcb-account-drawer-panel relative h-full w-[264px] max-w-[85vw]">
