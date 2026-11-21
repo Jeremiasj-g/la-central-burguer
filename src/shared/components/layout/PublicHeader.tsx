@@ -56,7 +56,7 @@ export function PublicHeader() {
 
           {user ? (
             <Link href="/mi-cuenta" title="Mi cuenta" aria-label="Ir a mi cuenta"
-              className="lcb-public-header-action inline-flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full border border-white/15 bg-white/[.035] transition-colors duration-200 hover:border-central-orange/50 focus-visible:outline-2 focus-visible:outline-central-orange">
+              className="lcb-public-header-action inline-flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full bg-transparent transition-transform duration-200 hover:scale-[1.04] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-central-orange">
               <CustomerGoogleAvatar user={user} compact/>
             </Link>
           ) : (
