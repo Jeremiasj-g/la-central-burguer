@@ -3,7 +3,7 @@
 import { useState, type FormEvent } from 'react';
 import { Check, MapPin, Phone, ShieldCheck } from 'lucide-react';
 import { toast } from 'react-toastify';
-import { saveCustomerAccount, type CustomerAccount } from '../services/customer-account.service';
+import { isCustomerAccountComplete, saveCustomerAccount, type CustomerAccount } from '../services/customer-account.service';
 
 type Props = {
   account: CustomerAccount;
@@ -20,9 +20,7 @@ export function CustomerOnboarding({ account, dark, onCompleted }: Props) {
     ? 'border-white/15 bg-white/[.05] text-white placeholder:text-white/35 focus:border-central-orange'
     : 'border-neutral-200 bg-[#F7F7F8] text-[#191b20] placeholder:text-neutral-400 focus:border-central-orange';
   const muted = dark ? 'text-white/55' : 'text-neutral-500';
-  const digits = phone.replace(/\D/g, '');
-  const valid = name.trim().length >= 2 && digits.length >= 6 && digits.length <= 20
-    && /^[+()\d\s.-]+$/.test(phone.trim()) && address.trim().length >= 6;
+  const valid = isCustomerAccountComplete({ name, phone, address });
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -57,7 +55,7 @@ export function CustomerOnboarding({ account, dark, onCompleted }: Props) {
         <input value={name} onChange={event => setName(event.target.value)}
           maxLength={120} autoComplete="name" required placeholder="Nombre y apellido"
           className={`h-11 w-full rounded-[11px] border px-3.5 text-[13px] font-normal outline-none transition-colors duration-200 ${input}`} />
-        <span className="block text-[11px] font-normal">Lo tomamos de tu cuenta de Google. Podés corregirlo si hace falta.</span>
+        <span className="block text-[11px] font-normal">Si tu nombre ya figura, podés corregirlo si hace falta.</span>
       </label>
       <label className={`block space-y-2 text-[12px] font-medium ${muted}`}>
         <span className="flex items-center gap-2"><Phone size={14}/> Número de teléfono</span>
