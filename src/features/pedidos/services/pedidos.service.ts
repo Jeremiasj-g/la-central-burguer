@@ -1,4 +1,5 @@
 import type { Order, OrderFilters, OrderStatus } from '../types/pedido.types';
+import { getSupabaseBrowserClient as getCustomerSupabase } from '@/lib/supabase/client';
 import { mapHistoryRow, mapOrderItemRow, mapOrderRow } from '../mappers/pedido.mapper';
 import { isSupabaseConfigured, requireSupabaseConfigured } from '@/lib/config/env';
 import { getSupabaseBrowserClient } from '@/lib/supabase/client';
@@ -88,23 +89,25 @@ export async function getPedidoByCode(code: string): Promise<Order | null> {
   return (await hydrateOrders([data as OrderRow]))[0] ?? null;
 }
 
-export async function createPublicPedido(payload: Json): Promise<Order> {
+export async function createPublicPedido(payload: Json): Promise<Order & {claimToken?:string}> {
+  const {data:{session}}=await getCustomerSupabase().auth.getSession();
   const response = await fetch('/api/orders', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
+      ...(session?.access_token ? {Authorization:`Bearer ${session.access_token}`} : {}),
     },
     cache: 'no-store',
     body: JSON.stringify({ payload }),
   });
 
-  const result = await response.json() as { order?: Order; error?: string };
+  const result = await response.json() as { order?: Order; claimToken?:string|null;error?: string };
 
   if (!response.ok || !result.order) {
     throw new Error(result.error || 'No se pudo confirmar el pedido.');
   }
 
-  return result.order;
+  return {...result.order,claimToken:result.claimToken??undefined};
 }
 
 export async function updatePedidoStatus(id: string, status: OrderStatus): Promise<Order> {

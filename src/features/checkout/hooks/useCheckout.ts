@@ -12,6 +12,7 @@ import {
 } from '../services/checkout.service';
 import { clearCart } from '@/features/carrito/services/carrito.service';
 import { clearCheckoutDraft } from '../services/checkout-draft.service';
+import { PENDING_CUSTOMER_ORDER_KEY } from '@/features/clientes/services/customer-account.service';
 
 export function useCheckout() {
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -43,6 +44,7 @@ export function useCheckout() {
       const whatsappUrl = isDevelopment ? null : await buildWhatsappUrl(order);
 
       setCreatedOrder(order);
+      if(order.claimToken)window.sessionStorage.setItem(PENDING_CUSTOMER_ORDER_KEY,order.claimToken);
       clearCart();
       clearCheckoutDraft();
       if (whatsappUrl) window.open(whatsappUrl, '_blank', 'noopener,noreferrer');

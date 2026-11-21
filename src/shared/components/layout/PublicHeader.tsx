@@ -1,7 +1,8 @@
 'use client';
 
 import Link from 'next/link';
-import { ShoppingCart } from 'lucide-react';
+import { BookOpenText, ShoppingCart, UserRound } from 'lucide-react';
+import { useCustomerAuth } from '@/features/clientes/components/CustomerAuthProvider';
 import { useCarrito } from '@/features/carrito/hooks/useCarrito';
 import { useBusinessConfig } from '@/features/configuracion/hooks/useBusinessConfig';
 import { ROUTES } from '@/shared/constants/routes';
@@ -16,6 +17,7 @@ const navigation = [
 export function PublicHeader() {
   const { config, isLoading } = useBusinessConfig();
   const cart = useCarrito();
+  const {user,openAuth}=useCustomerAuth();
   const businessName = config?.businessName ?? 'La Central Burger';
   const cartCount = cart.items.reduce((total, item) => total + item.quantity, 0);
 
@@ -24,7 +26,7 @@ export function PublicHeader() {
   }
 
   return (
-    <header className="sticky top-0 z-40 border-b border-central-orange/25 bg-[#0d0c0b]/88 text-central-cream shadow-dark backdrop-blur-xl">
+    <header className="lcb-public-header sticky top-0 z-40 border-b border-central-orange/25 bg-[#0d0c0b]/88 text-central-cream shadow-dark backdrop-blur-xl">
       <div className="mx-auto flex min-h-[68px] w-full max-w-[1120px] items-center justify-between gap-3 px-4 py-2 sm:min-h-[72px] sm:px-6 lg:px-8">
         <div className="flex min-w-0 items-center gap-5 lg:gap-8">
           <Link
@@ -52,9 +54,11 @@ export function PublicHeader() {
         <div className="flex shrink-0 items-center gap-1.5 sm:gap-2 lg:gap-3">
           <Link
             href="#menu"
-            className="inline-flex h-10 items-center rounded-[11px] border border-white/10 bg-white/[.035] px-3 text-[12px] font-semibold text-central-cream transition-colors duration-200 hover:border-central-orange/50 hover:text-central-orange md:hidden"
+            aria-label="Ver carta"
+            title="Ver carta"
+            className="lcb-public-header-action inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-[11px] border border-white/15 bg-white/[.035] text-central-cream transition-colors duration-200 hover:border-central-orange/50 hover:text-central-orange md:hidden"
           >
-            Menú
+            <BookOpenText size={19} aria-hidden="true"/>
           </Link>
 
           <Link
@@ -64,12 +68,24 @@ export function PublicHeader() {
             Pedir ahora
           </Link>
 
-          <PublicThemeToggle />
+          {user ? (
+            <Link href="/mi-cuenta" title="Mi cuenta"
+              className="lcb-public-header-action inline-flex h-10 w-10 shrink-0 items-center justify-center gap-2 rounded-[11px] border border-white/15 bg-white/[.035] text-[12px] font-medium text-white transition-colors duration-200 hover:border-central-orange/50 hover:text-central-orange focus-visible:outline-2 focus-visible:outline-central-orange sm:w-auto sm:px-3">
+              <UserRound size={16}/><span className="hidden sm:inline">Mi cuenta</span>
+            </Link>
+          ) : (
+            <button type="button" onClick={()=>openAuth('header')} title="Iniciar sesión"
+              className="lcb-public-header-action inline-flex h-10 w-10 shrink-0 items-center justify-center gap-2 rounded-[11px] border border-white/15 bg-white/[.035] text-[12px] font-medium text-white transition-colors duration-200 hover:border-central-orange/50 hover:text-central-orange focus-visible:outline-2 focus-visible:outline-central-orange sm:w-auto sm:px-3">
+              <UserRound size={16}/><span className="hidden sm:inline">Iniciar sesión</span>
+            </button>
+          )}
+
+          <span className="lcb-public-header-theme"><PublicThemeToggle /></span>
 
           <button
             type="button"
             onClick={handleCartClick}
-            className="relative grid h-10 w-10 shrink-0 place-items-center rounded-[11px] border border-central-orange/30 text-central-cream transition-colors duration-200 hover:border-central-orange hover:text-central-orange lg:hidden"
+            className="lcb-public-header-action relative grid h-10 w-10 shrink-0 place-items-center rounded-[11px] border border-white/15 bg-white/[.035] text-central-cream transition-colors duration-200 hover:border-central-orange/50 hover:text-central-orange lg:hidden"
             aria-label={cartCount > 0 ? `Abrir carrito, ${cartCount} productos` : 'Abrir carrito'}
             title="Carrito"
           >

@@ -13,6 +13,8 @@ export const ROUTES = {
   adminVentaMostrador: '/admin/venta-mostrador',
   adminDelivery: '/admin/delivery',
   adminUsuarios: '/admin/usuarios',
+  adminClientes: '/admin/clientes',
+  customerAccount: '/mi-cuenta',
   adminReportes: '/admin/reportes',
   adminConfiguracion: '/admin/configuracion',
   deliveryLogin: '/delivery/login',

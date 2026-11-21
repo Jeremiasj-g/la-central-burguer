@@ -54,7 +54,7 @@ export function validateCheckout(values: CheckoutFormValues) {
 export async function createCheckoutOrder(
   values: CheckoutFormValues,
   items: CartItem[],
-): Promise<Order> {
+): Promise<Order & {claimToken?:string}> {
   return createPublicPedido({
     customerName: values.customerName,
     customerPhone: values.customerPhone,

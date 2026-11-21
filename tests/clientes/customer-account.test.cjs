@@ -1,0 +1,208 @@
+/* eslint-disable @typescript-eslint/no-require-imports -- Node QA uses CommonJS. */
+'use strict';
+const {test,describe}=require('node:test');
+const assert=require('node:assert/strict');
+const fs=require('node:fs');
+const {loadSource}=require('../personal/helpers/load-source.cjs');
+
+const authCalls=[];
+const rpcCalls=[];
+let fakeSession={access_token:'test-access-token'};
+const auth={
+  getUser:async()=>({data:{user:{id:'user1',email:'cliente@example.com'}},error:null}),
+  getSession:async()=>({data:{session:fakeSession},error:null}),
+  signUp:async args=>{authCalls.push(['signup',args]);return {data:{user:{id:'user1'},session:null},error:null};},
+  signInWithPassword:async args=>{authCalls.push(['password',args]);return {error:null};},
+  signInWithOAuth:async args=>{authCalls.push(['oauth',args]);return {error:null};},
+  resetPasswordForEmail:async(...args)=>{authCalls.push(['reset',args]);return {error:null};},
+  updateUser:async args=>{authCalls.push(['update',args]);return {error:null};},
+  signOut:async()=>({error:null}),
+};
+const client={
+  auth,
+  rpc:async(name,args)=>{rpcCalls.push({name,args});return {data:name==='claim_my_customer_order'?true:{id:'user1',name:'Cliente'},error:null};},
+};
+const service=loadSource('src/features/clientes/services/customer-account.service.ts',{
+  '@/lib/supabase/client':{getSupabaseBrowserClient:()=>client},
+});
+const browser=()=>{global.window={location:{origin:'http://localhost:3000'},sessionStorage:{
+  data:new Map(),getItem(k){return this.data.get(k)??null;},setItem(k,v){this.data.set(k,v);},removeItem(k){this.data.delete(k);},
+}};};
+describe('Clientes / autenticación opcional',()=>{
+ test('Google usa OAuth oficial y regresa al perfil',async()=>{
+  browser();authCalls.length=0;
+  await service.signInCustomerWithGoogle();
+  assert.equal(authCalls[0][0],'oauth');
+  assert.equal(authCalls[0][1].provider,'google');
+  assert.equal(authCalls[0][1].options.redirectTo,'http://localhost:3000/mi-cuenta');
+ });
+ test('el acceso público no ofrece correo ni contraseña como métodos',()=>{
+  const dialog=fs.readFileSync('src/features/clientes/components/CustomerAuthModal.tsx','utf8');
+  const page=fs.readFileSync('src/features/clientes/pages/CustomerAccountPage.tsx','utf8');
+  assert.match(dialog,/¡Registrate para obtener más beneficios!/);
+  assert.match(dialog,/Continuar con Google/);
+  assert.match(dialog,/Continuar como invitado/);
+  assert.doesNotMatch(dialog,/signUpCustomer|signInCustomer\(|PasswordInput|Recuperar contraseña|resetCustomerPassword/);
+  assert.doesNotMatch(page,/updateCustomerPassword|updateCustomerEmail|Cambiar contraseña|Cambiar correo/);
+ });
+ test('se conserva OAuth como único método público de acceso',()=>{
+  const source=fs.readFileSync('src/features/clientes/services/customer-account.service.ts','utf8');
+  assert.match(source,/signInWithOAuth/);
+  assert.doesNotMatch(source,/signUp\(|signInWithPassword\(|resetPasswordForEmail\(/);
+ });
+});
+describe('Clientes / perfil independiente del checkout',()=>{
+ test('guardar perfil solo envía nombre teléfono y dirección de referencia',async()=>{
+  rpcCalls.length=0;
+  await service.saveCustomerAccount('Gabriel','3794555555','Calle de perfil 123');
+  assert.deepEqual(rpcCalls[0],{name:'save_my_customer_account',
+   args:{new_name:'Gabriel',new_phone:'3794555555',new_address:'Calle de perfil 123'}});
+ });
+ test('el historial no admite teléfono ni ID arbitrario como parámetro',async()=>{
+  rpcCalls.length=0;await service.getMyCustomerOrders();
+  assert.deepEqual(rpcCalls[0],{name:'my_customer_orders',args:undefined});
+ });
+ test('el comprobante de pedido de invitado se reclama una sola vez',async()=>{
+  browser();rpcCalls.length=0;
+  window.sessionStorage.setItem(service.PENDING_CUSTOMER_ORDER_KEY,'token-seguro');
+  assert.equal(await service.claimPendingCustomerOrder(),true);
+  assert.equal(rpcCalls[0].name,'claim_my_customer_order');
+  assert.equal(rpcCalls[0].args.claim_token,'token-seguro');
+  assert.equal(window.sessionStorage.getItem(service.PENDING_CUSTOMER_ORDER_KEY),null);
+  assert.equal(await service.claimPendingCustomerOrder(),false);
+  assert.equal(rpcCalls.length,1);
+ });
+ test('nunca genera vínculo de propiedad basado en nombre, correo o teléfono',()=>{
+  const sql=fs.readFileSync('supabase/migrations/20261120235820_prod_customer_order_claims_private.sql','utf8');
+  assert.match(sql,/token_hash=encode\(sha256/);
+  assert.match(sql,/claimed_at is null and expires_at>now\(\)/);
+  assert.doesNotMatch(sql,/where\s+(?:phone|customer_phone|normalized_phone)\s*=/i);
+ });
+ test('checkout no envía la dirección del perfil al pedido',()=>{
+  const checkout=fs.readFileSync('src/features/checkout/services/checkout.service.ts','utf8');
+  assert.match(checkout,/address: ''/);
+  assert.doesNotMatch(checkout,/getCustomerAccount/);
+ });
+});
+describe('Clientes / administración protegida',()=>{
+ test('directorio de administradores usa RPC sin exponer auth.users a clientes',async()=>{
+  rpcCalls.length=0;await service.getCustomerDirectory();
+  assert.equal(rpcCalls[0].name,'admin_customer_directory');
+ });
+ test('edición distingue cuentas y clientes comerciales',async()=>{
+  rpcCalls.length=0;
+  await service.adminUpdateCustomer('registered','u1','Nombre','379','Dirección');
+  await service.adminUpdateCustomer('commercial','c1','Comercial','379','Dirección');
+  assert.deepEqual(rpcCalls.map(x=>x.args.kind),['registered','commercial']);
+ });
+ test('los clientes comerciales solo se eliminan a través de RPC controlada',async()=>{
+  rpcCalls.length=0;await service.adminDeleteCommercialCustomer('c1');
+  assert.deepEqual(rpcCalls[0],{name:'admin_delete_customer_without_orders',args:{target_id:'c1'}});
+ });
+});
+
+
+describe('Clientes / diseño responsive y aislamiento de identidad',()=>{
+ test('Mi cuenta utiliza layout dedicado sin footer ni header de tienda',()=>{
+   const page=fs.readFileSync('src/app/(public)/mi-cuenta/page.tsx','utf8');
+   assert.match(page,/CustomerAuthProvider/);
+   assert.doesNotMatch(page,/PublicShell|PublicFooter|PublicHeader/);
+ });
+ test('El header personal sólo ofrece casa, tema y salida; drawer para móvil',()=>{
+   const page=fs.readFileSync('src/features/clientes/pages/CustomerAccountPage.tsx','utf8');
+   assert.match(page,/aria-label="Ir al inicio"/);
+   assert.match(page,/PublicThemeToggle/);
+   assert.match(page,/aria-label="Cerrar sesión"/);
+   assert.match(page,/aria-label="Abrir menú de mi cuenta"/);
+   assert.match(page,/aria-label="Cerrar menú"/);
+ });
+ test('Cada sección está disponible y las futuras indican Próximamente',()=>{
+   const page=fs.readFileSync('src/features/clientes/pages/CustomerAccountPage.tsx','utf8');
+   for(const section of ["Mi perfil","Mis pedidos","Beneficios","Preferencias","Próximamente"]){
+     assert.ok(page.includes(section),section);
+   }
+ });
+ test('Perfil respeta modo claro y oscuro desde el proveedor público',()=>{
+   const page=fs.readFileSync('src/features/clientes/pages/CustomerAccountPage.tsx','utf8');
+   assert.match(page,/usePublicTheme\(\)/);
+   assert.match(page,/theme==='dark'/);
+   assert.match(page,/bg-\[#F7F7F8\]/);
+   assert.match(page,/bg-\[#111216\]/);
+ });
+ test('No renderiza un perfil ajeno mientras cambia la sesión OAuth',()=>{
+   const page=fs.readFileSync('src/features/clientes/pages/CustomerAccountPage.tsx','utf8');
+   assert.match(page,/profile\.id!==userId/);
+   assert.match(page,/account\?\.id===userId/);
+ });
+ test('Clientes usa el ancho completo del shell administrativo',()=>{
+   const page=fs.readFileSync('src/features/clientes/pages/CustomerAdminPage.tsx','utf8');
+   assert.match(page,/w-full min-w-0 space-y-5/);
+   assert.doesNotMatch(page,/max-w-\[1440px\]/);
+ });
+});
+
+
+describe('Clientes / animaciones de navegación y skeletons',()=>{
+ test('el drawer permanece montado para animar apertura y cierre',()=>{
+  const page=fs.readFileSync('src/features/clientes/pages/CustomerAccountPage.tsx','utf8');
+  const css=fs.readFileSync('src/app/(public)/mi-cuenta/account-motion.css','utf8');
+  assert.match(page,/useAnimatedPresence\(mobileOpen,200\)/);
+  assert.match(page,/data-state=\{mobileOpen\?'open':'closed'\}/);
+  assert.match(css,/lcb-account-drawer-in/);
+  assert.match(css,/lcb-account-drawer-out/);
+  assert.match(css,/prefers-reduced-motion: reduce/);
+ });
+ test('navegar muestra skeletons con la forma de cada sección',()=>{
+  const page=fs.readFileSync('src/features/clientes/pages/CustomerAccountPage.tsx','utf8');
+  assert.match(page,/setSectionLoading\(true\)/);
+  assert.match(page,/aria-label="Cargando sección"/);
+  assert.match(page,/section==='orders'\?/);
+  assert.match(page,/setRenderedSection\(section\)/);
+ });
+ test('la sección entra suavemente y no usa transiciones de solo opacidad',()=>{
+  const css=fs.readFileSync('src/app/(public)/mi-cuenta/account-motion.css','utf8');
+  assert.match(css,/lcb-account-content-enter/);
+  assert.match(css,/translateY\(9px\)/);
+  assert.match(css,/clip-path: inset/);
+ });
+ test('no quedan subtítulos ornamentales ni textos duplicados',()=>{
+  const page=fs.readFileSync('src/features/clientes/pages/CustomerAccountPage.tsx','utf8');
+  assert.doesNotMatch(page,/Espacio personal|Administrá tus datos personales|Consultá las compras vinculadas a tu cuenta/);
+ });
+});
+
+
+describe('Clientes / identidad Google y controles públicos consistentes',()=>{
+ test('avatar redondo prioriza foto verificada de Google con fallback de usuario',()=>{
+  const avatar=fs.readFileSync('src/features/clientes/components/CustomerGoogleAvatar.tsx','utf8');
+  const page=fs.readFileSync('src/features/clientes/pages/CustomerAccountPage.tsx','utf8');
+  assert.match(avatar,/googleIdentity\?\.identity_data\?\.avatar_url/);
+  assert.match(avatar,/metadata\?\.picture/);
+  assert.match(avatar,/key=\{src\}/);
+  assert.match(avatar,/referrerPolicy="no-referrer"/);
+  assert.match(avatar,/googleusercontent\.com/);
+  assert.match(avatar,/rounded-full/);
+  assert.match(avatar,/onError=\{\(\)=>setFailed\(true\)\}/);
+  assert.match(page,/<CustomerGoogleAvatar user=\{user\}/);
+ });
+ test('modal de Google respeta el tema público y nunca fuerza modo oscuro',()=>{
+  const modal=fs.readFileSync('src/features/clientes/components/CustomerAuthModal.tsx','utf8');
+  assert.match(modal,/usePublicTheme\(\)/);
+  assert.match(modal,/theme=\{theme\}/);
+  assert.match(modal,/text-neutral-600/);
+  assert.doesNotMatch(modal,/theme="dark"/);
+  assert.match(modal,/¡Registrate para obtener más beneficios!/);
+ });
+ test('header público usa carta ilustrada y controles móviles de 40px uniformes',()=>{
+  const header=fs.readFileSync('src/shared/components/layout/PublicHeader.tsx','utf8');
+  const css=fs.readFileSync('src/app/(public)/light.css','utf8');
+  assert.match(header,/BookOpenText/);
+  assert.match(header,/aria-label="Ver carta"/);
+  assert.doesNotMatch(header,/>\s*Menú\s*<\/Link>/);
+  assert.match(header,/lcb-public-header-theme/);
+  assert.match(css,/lcb-public-header-action/);
+  assert.match(css,/max-width: 639px/);
+  assert.match(css,/min-width: 40px/);
+  assert.match(css,/data-public-theme="light"/);
+ });
+});
