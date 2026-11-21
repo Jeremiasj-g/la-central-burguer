@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 import { Gift, Heart, Home, LayoutDashboard, LogOut, MapPin, Menu, Package, Save, Settings2, UserRound, X } from 'lucide-react';
 import { toast } from 'react-toastify';
@@ -31,6 +32,7 @@ const money = (value:number) =>
   new Intl.NumberFormat('es-AR',{style:'currency',currency:'ARS',maximumFractionDigits:2}).format(value);
 
 export function CustomerAccountPage(){
+  const router=useRouter();
   const {user,loading:authLoading,openAuth}=useCustomerAuth();
   const theme=usePublicTheme();
   const dark=theme==='dark';
@@ -39,9 +41,10 @@ export function CustomerAccountPage(){
   useBodyScrollLock(mobileOpen);
   const drawerMounted=useAnimatedPresence(mobileOpen,200);
   const [section,setSection]=useState<Section>('dashboard');
-  const [renderedSection,setRenderedSection]=useState<Section>('profile');
+  const [renderedSection,setRenderedSection]=useState<Section>('dashboard');
   const [sectionLoading,setSectionLoading]=useState(false);
-  const [pendingAction,setPendingAction]=useState<Section|'logout'|null>(null);
+  const [pendingAction,setPendingAction]=useState<Section|null>(null);
+  const [logoutOpen,setLogoutOpen]=useState(false);
   const [account,setAccount]=useState<CustomerAccount|null>(null);
   const [draft,setDraft]=useState<CustomerAccount|null>(null);
   const [orders,setOrders]=useState<CustomerOrderSummary[]>([]);
@@ -120,9 +123,14 @@ export function CustomerAccountPage(){
   async function logout(){
     if(signingOut)return;
     setSigningOut(true);
-    try{await signOutCustomer();setAccount(null);setDraft(null);setOrders([]);setSection('dashboard');}
-    catch(cause){toast.error(cause instanceof Error?cause.message:'No se pudo cerrar la sesión.');}
-    finally{setSigningOut(false);}
+    try{
+      await signOutCustomer();
+      setLogoutOpen(false);
+      setAccount(null);setDraft(null);setOrders([]);
+      router.replace('/');
+    }catch(cause){
+      toast.error(cause instanceof Error?cause.message:'No se pudo cerrar la sesión.');
+    }finally{setSigningOut(false);}
   }
 
   function navigate(next:Section){
@@ -135,15 +143,13 @@ export function CustomerAccountPage(){
   }
   function requestLogout(){
     setMobileOpen(false);
-    if(dirty)setPendingAction('logout');
-    else void logout();
+    setLogoutOpen(true);
   }
   function discard(){
     setDraft(account);
     const target=pendingAction;
     setPendingAction(null);
-    if(target==='logout')void logout();
-    else if(target){setSectionLoading(true);setSection(target);}
+    if(target){setSectionLoading(true);setSection(target);}
   }
 
   const surface=dark?'bg-[#111216] text-white':'bg-[#F7F7F8] text-[#191b20]';
@@ -324,5 +330,14 @@ export function CustomerAccountPage(){
       description="Tenés modificaciones pendientes. Si salís ahora, se perderán los cambios no guardados."
       confirmLabel="Salir sin guardar" cancelLabel="Seguir editando"
       onConfirm={discard} onCancel={()=>setPendingAction(null)}/>
+    <ConfirmDialog open={logoutOpen} theme={theme} title="¿Cerrar sesión?"
+      description={dirty
+        ? 'Tenés cambios sin guardar en tu perfil. Si cerrás sesión, esos cambios se perderán. ¿Querés continuar?'
+        : onboardingRequired
+          ? 'Todavía no terminaste de completar tus datos. Podés volver cuando quieras para finalizar tu cuenta.'
+          : 'Vas a salir de tu cuenta de La Central Burger. ¿Querés continuar?'}
+      confirmLabel="Cerrar sesión" cancelLabel="Seguir conectado"
+      isLoading={signingOut}
+      onConfirm={logout} onCancel={()=>{if(!signingOut)setLogoutOpen(false);}}/>
   </div>;
 }
