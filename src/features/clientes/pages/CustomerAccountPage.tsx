@@ -14,7 +14,7 @@ import { CustomerOnboarding } from '../components/CustomerOnboarding';
 import { CustomerDashboard } from '../components/CustomerDashboard';
 import {
   claimPendingCustomerOrder, getCustomerAccount, getMyCustomerOrders,
-  saveCustomerAccount, signOutCustomer,
+  isCustomerAccountComplete, saveCustomerAccount, signOutCustomer,
   type CustomerAccount, type CustomerOrderSummary,
 } from '../services/customer-account.service';
 
@@ -51,7 +51,7 @@ export function CustomerAccountPage(){
   const [signingOut,setSigningOut]=useState(false);
   const userId=user?.id;
   const profileMatchesSession=Boolean(userId && account?.id===userId);
-  const onboardingRequired=Boolean(account && (!account.phone.trim() || account.phone.replace(/\D/g,'').length<6 || !account.address.trim() || !account.name.trim()));
+  const onboardingRequired=Boolean(account && !isCustomerAccountComplete(account));
   const dirty=Boolean(account && draft &&
     (account.name!==draft.name || account.phone!==draft.phone || account.address!==draft.address));
 
