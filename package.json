@@ -7,7 +7,10 @@
     "build": "next build --webpack",
     "start": "next start",
     "lint": "eslint",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "node --test --test-reporter=spec tests/clientes/*.test.cjs",
+    "test:clientes": "node --test --test-reporter=spec tests/clientes/*.test.cjs",
+    "lint:clientes": "eslint src/features/clientes src/shared/components/layout/PublicHeader.tsx src/shared/components/layout/PublicShell.tsx src/app/api/orders/route.ts src/features/checkout/hooks/useCheckout.ts src/features/checkout/services/checkout.service.ts src/features/pedidos/services/pedidos.service.ts tests/clientes"
   },
   "dependencies": {
     "@radix-ui/react-popover": "^1.1.23",
