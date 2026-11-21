@@ -53,7 +53,7 @@ export function CustomerAccountPage(){
   const [saving,setSaving]=useState(false);
   const [signingOut,setSigningOut]=useState(false);
   const lastSessionUserRef=useRef<typeof user>(null);
-  const logoutFallbackRef=useRef<ReturnType<typeof setTimeout>|null>(null);
+  const logoutFallbackRef=useRef<number|null>(null);
   const displayUser=user ?? (signingOut ? lastSessionUserRef.current : null);
   const userId=user?.id;
   const profileMatchesSession=Boolean(userId && account?.id===userId);
