@@ -500,7 +500,7 @@ body.lcb-public-typography[data-public-theme="light"]
 /* El header público usa un solo lenguaje visual para carta, usuario, tema y carrito. */
 .public-site .lcb-public-header .lcb-public-header-action,
 .public-site .lcb-public-header .lcb-public-header-theme .lcb-theme-toggle {
-  border-radius: 11px;
+  border-radius: 9999px;
   transition: background-color .2s, border-color .2s, color .2s;
 }
 @media (max-width: 639px) {
@@ -541,4 +541,19 @@ body.lcb-public-typography[data-public-theme="light"]
   .public-site .lcb-public-header .lcb-public-header-theme .lcb-theme-toggle {
     transition: none !important;
   }
+}
+
+/* Header móvil: todos los controles son circulares; las fotos no llevan marco ni fondo. */
+.public-site .lcb-public-header .lcb-public-header-theme .lcb-theme-toggle { border-radius: 9999px; }
+.public-site .lcb-public-header .lcb-public-header-avatar-photo,
+.public-site[data-public-theme="light"] .lcb-public-header .lcb-public-header-avatar-photo,
+.public-site:not([data-public-theme="light"]) .lcb-public-header .lcb-public-header-avatar-photo {
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+.public-site .lcb-public-header .lcb-public-header-avatar-photo:hover,
+.public-site[data-public-theme="light"] .lcb-public-header .lcb-public-header-avatar-photo:hover {
+  border-color: transparent !important;
+  background: transparent !important;
 }
