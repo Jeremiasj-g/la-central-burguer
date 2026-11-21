@@ -51,10 +51,22 @@ describe('Sitio público / progreso de navegación persistente', () => {
     assert.match(js, /addEventListener\('pageshow', clear\)/);
   });
 
+  test('el velo añade blur real sin modificar las opacidades ni desenfocar la barra', () => {
+    const css = read('src/app/(public)/public.css');
+    const veil = css.split('.lcb-navigation-veil {')[1]?.split('}')[0] ?? '';
+    assert.match(veil, /background:\s*rgba\(0, 0, 0, \.24\)/);
+    assert.match(veil, /-webkit-backdrop-filter:\s*blur\(5px\)/);
+    assert.match(veil, /backdrop-filter:\s*blur\(5px\)/);
+    assert.match(css, /data-public-theme="dark"\] \.lcb-navigation-veil\s*\{\s*background:\s*rgba\(0, 0, 0, \.34\)/);
+    assert.match(css, /\.lcb-navigation-progress\s*\{[\s\S]*?z-index:\s*1/);
+  });
+
   test('AGENTS exige revisar la barra en cambios públicos posteriores', () => {
     const agents = read('AGENTS.md');
     assert.match(agents, /Barra superior naranja con animación continua \(regla estricta\)/);
     assert.match(agents, /no comienza mientras el indicador está oculto/);
     assert.match(agents, /shimmer durante esperas prolongadas/);
+    assert.match(agents, /oscuridad \+ blur real de 5 px/);
+    assert.match(agents, /no cerrar la modal, limpiar el perfil ni mostrar/);
   });
 });

@@ -254,3 +254,25 @@ describe('Clientes / refinamiento de registro y drawer',()=>{
   assert.equal(panelRule.includes('backdrop-filter'),false);
  });
 });
+
+describe('Clientes / cierre de sesión sin pantalla intermedia',()=>{
+ test('el diálogo permanece mientras Supabase cierra sesión y el router llega al Home',()=>{
+   const page=fs.readFileSync('src/features/clientes/pages/CustomerAccountPage.tsx','utf8');
+   const logout=page.split('  async function logout(){')[1]?.split('  function navigate(')[0] ?? '';
+   assert.match(logout,/await signOutCustomer\(\)/);
+   assert.match(logout,/router\.replace\('\/'\)/);
+   assert.match(logout,/logoutFallbackRef\.current=window\.setTimeout/);
+   assert.doesNotMatch(logout,/setLogoutOpen\(false\)|setAccount\(null\)|setDraft\(null\)|setOrders\(\[\]\)/);
+   assert.match(page,/displayUser=user \?\? \(signingOut \? lastSessionUserRef\.current : null\)/);
+   assert.match(page,/!user&&!signingOut/);
+   assert.match(page,/isLoading=\{signingOut\}/);
+ });
+ test('si Supabase falla la modal continúa y se puede volver a intentar',()=>{
+   const page=fs.readFileSync('src/features/clientes/pages/CustomerAccountPage.tsx','utf8');
+   const logout=page.split('  async function logout(){')[1]?.split('  function navigate(')[0] ?? '';
+   assert.match(logout,/catch\(cause\)\{[\s\S]*setSigningOut\(false\)/);
+   assert.match(logout,/toast\.error/);
+   assert.match(page,/if\(!signingOut\)setLogoutOpen\(false\)/);
+   assert.match(page,/if\(!dirty \|\| signingOut\)return/);
+ });
+});

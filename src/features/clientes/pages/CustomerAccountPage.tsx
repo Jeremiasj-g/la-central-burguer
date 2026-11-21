@@ -52,11 +52,17 @@ export function CustomerAccountPage(){
   const [error,setError]=useState('');
   const [saving,setSaving]=useState(false);
   const [signingOut,setSigningOut]=useState(false);
+  const lastSessionUserRef=useRef<typeof user>(null);
+  const logoutFallbackRef=useRef<number|null>(null);
+  const displayUser=user ?? (signingOut ? lastSessionUserRef.current : null);
   const userId=user?.id;
   const profileMatchesSession=Boolean(userId && account?.id===userId);
   const onboardingRequired=Boolean(account && !isCustomerAccountComplete(account));
   const dirty=Boolean(account && draft &&
     (account.name!==draft.name || account.phone!==draft.phone || account.address!==draft.address));
+
+  useEffect(()=>{if(user)lastSessionUserRef.current=user;},[user]);
+  useEffect(()=>()=>{if(logoutFallbackRef.current)window.clearTimeout(logoutFallbackRef.current);},[]);
 
   useEffect(()=>{
     if(!userId)return;
@@ -99,11 +105,11 @@ export function CustomerAccountPage(){
   },[mobileOpen]);
 
   useEffect(()=>{
-    if(!dirty)return;
+    if(!dirty || signingOut)return;
     const onUnload=(event:BeforeUnloadEvent)=>{event.preventDefault();event.returnValue='';};
     window.addEventListener('beforeunload',onUnload);
     return()=>window.removeEventListener('beforeunload',onUnload);
-  },[dirty]);
+  },[dirty,signingOut]);
 
   async function save(){
     if(!draft || saving)return;
@@ -125,12 +131,16 @@ export function CustomerAccountPage(){
     setSigningOut(true);
     try{
       await signOutCustomer();
-      setLogoutOpen(false);
-      setAccount(null);setDraft(null);setOrders([]);
+      // The dialog and the last account view stay mounted until Home replaces this route.
+      // If a client-side transition stalls, a full navigation still finishes sign-out.
+      logoutFallbackRef.current=window.setTimeout(()=>window.location.replace('/'),8000);
       router.replace('/');
     }catch(cause){
+      if(logoutFallbackRef.current)window.clearTimeout(logoutFallbackRef.current);
+      logoutFallbackRef.current=null;
+      setSigningOut(false);
       toast.error(cause instanceof Error?cause.message:'No se pudo cerrar la sesión.');
-    }finally{setSigningOut(false);}
+    }
   }
 
   function navigate(next:Section){
@@ -142,6 +152,7 @@ export function CustomerAccountPage(){
     setSection(next);
   }
   function requestLogout(){
+    if(user)lastSessionUserRef.current=user;
     setMobileOpen(false);
     setLogoutOpen(true);
   }
@@ -165,9 +176,9 @@ export function CustomerAccountPage(){
 
   const sidebar=<aside aria-label="Opciones de mi cuenta" className={`flex h-full w-[264px] flex-col border-r ${panel}`}>
     <div className={`border-b px-5 py-7 ${border}`}>
-      <div className="mb-3"><CustomerGoogleAvatar user={user}/></div>
+      <div className="mb-3"><CustomerGoogleAvatar user={displayUser}/></div>
       <p className={`truncate text-[14px] font-semibold ${primary}`}>{account?.name||'Mi cuenta'}</p>
-      <p className={`mt-1 truncate text-[11px] ${muted}`}>{user?.email||'Cuenta de cliente'}</p>
+      <p className={`mt-1 truncate text-[11px] ${muted}`}>{displayUser?.email||'Cuenta de cliente'}</p>
     </div>
     <nav aria-label="Secciones del perfil" className="flex-1 space-y-1 p-3">
       {navigation.map(item=>{
@@ -183,7 +194,7 @@ export function CustomerAccountPage(){
       })}
     </nav>
     <div className={`border-t p-3 ${border}`}>
-      <button type="button" disabled={!user||signingOut} onClick={requestLogout}
+      <button type="button" disabled={!displayUser||signingOut} onClick={requestLogout}
         className={`flex min-h-10 w-full items-center gap-3 rounded-[11px] px-3 text-[12px] transition-colors duration-200 ${muted} hover:text-central-orange disabled:opacity-40`}>
         <LogOut size={17}/>Cerrar sesión
       </button>
@@ -201,7 +212,7 @@ export function CustomerAccountPage(){
         </div>
         <div className="flex items-center gap-2">
           <span className="[&_span]:!hidden"><PublicThemeToggle/></span>
-          {user&&<button type="button" onClick={requestLogout} disabled={signingOut}
+          {displayUser&&<button type="button" onClick={requestLogout} disabled={signingOut}
             title="Cerrar sesión" aria-label="Cerrar sesión"
             className={`${action} ${secondary} h-10 w-10 !px-0 disabled:opacity-40`}><LogOut size={18}/></button>}
         </div>
@@ -211,10 +222,10 @@ export function CustomerAccountPage(){
     <div className="flex min-h-[calc(100vh-66px)]">
       {!onboardingRequired&&<div className="hidden shrink-0 lg:block">{sidebar}</div>}
       <main className="min-w-0 flex-1 px-5 py-8 sm:px-9 sm:py-11 xl:px-12">
-        {authLoading||Boolean(user&&(loading||(!profileMatchesSession&&!error)))?<>
+        {authLoading||Boolean(user&&(loading||(!profileMatchesSession&&!error)))||Boolean(signingOut&&(!account||!draft))?<>
           <div className={`h-7 w-40 animate-pulse rounded ${dark?'bg-white/10':'bg-neutral-200'}`}/>
           <div className={`mt-7 h-52 max-w-3xl animate-pulse rounded-[14px] ${dark?'bg-white/5':'bg-neutral-100'}`}/>
-        </>:!user?
+        </>:!user&&!signingOut?
           <div className="mx-auto max-w-lg py-16 text-center">
             <UserRound size={32} className="mx-auto text-central-orange"/>
             <h1 className="mt-5 text-[28px] font-semibold">Mi cuenta</h1>
