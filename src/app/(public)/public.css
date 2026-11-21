@@ -680,7 +680,8 @@ body.lcb-public-typography .lcb-gallery-lightbox .lcb-gallery-zoom-enter {
   }
 }
 
-/* Navegación pública: feedback sin bloquear clicks ni retrasar rutas rápidas. */
+/* Navegación pública: el indicador sólo se anima durante una navegación real.
+   Mantener visible la progresión desde el borde izquierdo y el brillo en esperas largas. */
 .lcb-navigation-feedback {
   position: fixed;
   inset: 0;
@@ -688,7 +689,7 @@ body.lcb-public-typography .lcb-gallery-lightbox .lcb-gallery-zoom-enter {
   pointer-events: none;
   opacity: 0;
   visibility: hidden;
-  transition: opacity 180ms ease, visibility 180ms ease;
+  transition: opacity 160ms ease, visibility 160ms ease;
 }
 .lcb-navigation-feedback.is-visible { opacity: 1; visibility: visible; }
 .lcb-navigation-veil {
@@ -699,19 +700,50 @@ body.lcb-public-typography .lcb-gallery-lightbox .lcb-gallery-zoom-enter {
 .public-site[data-public-theme="dark"] .lcb-navigation-veil { background: rgba(0, 0, 0, .34); }
 .lcb-navigation-progress {
   position: absolute;
-  left: 0;
   top: 0;
+  left: 0;
   z-index: 1;
-  height: 3px;
-  width: 100%;
-  transform-origin: left;
-  background: #ffb21a;
-  box-shadow: 0 0 10px rgba(255, 178, 26, .35);
-  animation: lcb-navigation-progress 5s cubic-bezier(.18,.5,.25,1) forwards;
+  width: 0;
+  height: 4px;
+  overflow: hidden;
+  background: linear-gradient(90deg, #f28a0a, #ffb21a 50%, #ffcf5b);
+  box-shadow: 0 0 12px rgba(255, 178, 26, .52);
 }
-@keyframes lcb-navigation-progress {
-  from { transform: scaleX(.08); }
-  to { transform: scaleX(.86); }
+/* Starting this animation ONLY in loading state fixes an invisible pre-played bar. */
+.lcb-navigation-feedback.is-loading .lcb-navigation-progress {
+  animation: lcb-navigation-progress-fill 5.2s cubic-bezier(.16,.57,.2,1) both;
+}
+@keyframes lcb-navigation-progress-fill {
+  0% { width: 0; }
+  7% { width: 19%; }
+  28% { width: 49%; }
+  61% { width: 73%; }
+  100% { width: 88%; }
+}
+/* A skeleton-like light sweep keeps indicating activity after the fill slows. */
+.lcb-navigation-progress::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: -65%;
+  width: 65%;
+  background: linear-gradient(90deg, transparent, rgba(255, 228, 166, .2) 22%, rgba(255, 255, 255, .9) 50%, rgba(255, 218, 134, .32) 78%, transparent);
+  pointer-events: none;
+}
+.lcb-navigation-feedback.is-loading .lcb-navigation-progress::after {
+  animation: lcb-navigation-shimmer 1.15s linear infinite;
+}
+@keyframes lcb-navigation-shimmer {
+  from { transform: translateX(0); }
+  to { transform: translateX(260%); }
+}
+.lcb-navigation-feedback.is-complete .lcb-navigation-progress {
+  width: 100%;
+  transition: width 170ms ease-out;
+}
+.lcb-navigation-feedback.is-complete .lcb-navigation-progress::after {
+  display: none;
 }
 .lcb-public-route-enter {
   animation: lcb-route-enter 200ms ease-out both;
@@ -736,8 +768,11 @@ body.lcb-public-typography .lcb-gallery-lightbox .lcb-gallery-zoom-enter {
   outline-offset: 3px;
 }
 @media (prefers-reduced-motion: reduce) {
-  .lcb-public-route-enter, .lcb-navigation-progress { animation: none !important; }
+  .lcb-public-route-enter, .lcb-navigation-progress, .lcb-navigation-progress::after { animation: none !important; }
   .lcb-navigation-feedback { transition: none; }
+  .lcb-navigation-feedback.is-loading .lcb-navigation-progress { width: 72%; }
+  .lcb-navigation-feedback.is-complete .lcb-navigation-progress { width: 100%; transition: none; }
+  .lcb-navigation-progress::after { display: none; }
   .public-site :is(button:not(:disabled), a.lcb-public-header-action, a[href].lcb-pressable) {
     scale: 1 !important;
     transition: none !important;
