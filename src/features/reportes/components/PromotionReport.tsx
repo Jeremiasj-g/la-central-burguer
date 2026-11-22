@@ -3,13 +3,16 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Select } from '@/shared/components/ui/Select';
 import { TablePagination } from '@/shared/components/ui/TablePagination';
-import type { ReportDataset } from '../types/reporte.types';
+import { useCategoryDiscounts } from '@/features/promociones/hooks/useCategoryDiscounts';
+import type { ReportDataset, ReportFilters } from '../types/reporte.types';
 import { formatCurrency, formatNumber, formatReportDateTime } from '../utils/reportes.utils';
-import { summarizePromotionSales, type PromotionGroupMode, type PromotionScope } from '../utils/report-promotions.utils';
+import { findCampaignsWithoutSales, summarizePromotionSales, type PromotionGroupMode, type PromotionScope } from '../utils/report-promotions.utils';
 
 const PAGE_SIZE = 10;
 
-export function PromotionReport({ dataset }: { dataset: ReportDataset }) {
+export function PromotionReport({ dataset, filters }: { dataset: ReportDataset; filters: ReportFilters }) {
+  const { campaigns, loading: campaignsLoading, error: campaignsError, refresh: refreshCampaigns } = useCategoryDiscounts();
+  const withoutSales = useMemo(() => findCampaignsWithoutSales(campaigns, dataset, filters), [campaigns, dataset, filters]);
   const [groupBy, setGroupBy] = useState<PromotionGroupMode>('campaign');
   const [scope, setScope] = useState<PromotionScope>('all');
   const [detailView, setDetailView] = useState(false);
@@ -106,6 +109,37 @@ export function PromotionReport({ dataset }: { dataset: ReportDataset }) {
         <span className="ml-auto text-[11px] text-neutral-400">Facturado en la selección: <strong className="font-semibold tabular-nums text-neutral-800">{formatCurrency(summary.revenue)}</strong></span>
       </div>
 
+      {scope !== 'other' && (campaignsLoading || campaignsError || withoutSales.length > 0) ? (
+        <section className="border-b border-neutral-100 px-5 py-4" aria-label="Campañas sin ventas registradas">
+          <div className="flex flex-wrap items-baseline justify-between gap-2">
+            <h3 className="text-[12px] font-semibold text-neutral-800">Campañas sin ventas con estos filtros</h3>
+            <p className="text-[11px] text-neutral-400">No suman facturación ni unidades al informe</p>
+          </div>
+          {campaignsLoading ? (
+            <div role="status" aria-label="Cargando campañas" className="mt-3 space-y-2">
+              <div className="h-4 w-52 animate-pulse rounded bg-neutral-100" />
+              <div className="h-4 w-36 animate-pulse rounded bg-neutral-100" />
+            </div>
+          ) : campaignsError ? (
+            <div className="mt-3 flex flex-wrap items-center gap-3 text-[12px] text-red-700" role="alert">
+              <span>No se pudo consultar el listado de campañas.</span>
+              <button type="button" onClick={() => void refreshCampaigns()} className="font-semibold underline underline-offset-4">Reintentar</button>
+            </div>
+          ) : withoutSales.map(campaign => (
+            <div key={campaign.id} className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 border-t border-neutral-100 py-2.5 first:mt-3">
+              <div className="min-w-0">
+                <p className="text-[12px] font-medium text-neutral-800">{campaign.title}</p>
+                <p className="mt-0.5 text-[11px] text-neutral-500">
+                  {campaign.starts_on.split('-').reverse().join('/')} — {campaign.ends_on.split('-').reverse().join('/')} · {Number(campaign.discount_percent)}% de descuento
+                  {!campaign.enabled ? ' · Deshabilitada' : ''}
+                </p>
+              </div>
+              <span className="shrink-0 text-[11px] font-medium text-neutral-500">0 ventas vinculadas</span>
+            </div>
+          ))}
+        </section>
+      ) : null}
+
       <div className="overflow-x-auto">
         {detailView ? (
           <table className="w-full min-w-[1040px] text-left text-sm">
@@ -176,7 +210,7 @@ export function PromotionReport({ dataset }: { dataset: ReportDataset }) {
 
       <p className="border-t border-neutral-100 px-5 py-3 text-[11px] leading-5 text-neutral-500">
         Se excluyen pedidos cancelados y envíos. Cada importe se suma desde el total histórico de la línea de pedido; no se consulta el precio actual del producto.
-        El ahorro solo se suma cuando el precio original quedó registrado en esa venta.
+        El ahorro solo se suma cuando el precio original quedó registrado en esa venta. Las campañas creadas sin ventas válidas vinculadas se muestran aparte, sin alterar estos importes.
         {summary.savingsUntrackedUnits > 0
           ? ` ${formatNumber(summary.savingsUntrackedUnits)} unidades promocionales no tienen precio original histórico guardado, por lo que no se estima su ahorro.`
           : ''}

@@ -5,7 +5,7 @@ import { BadgePercent, Layers3, List } from 'lucide-react';
 import Skeleton from 'react-loading-skeleton';
 import { Select } from '@/shared/components/ui/Select';
 import { TablePagination } from '@/shared/components/ui/TablePagination';
-import type { ReportDataset, ReportGroupBy, ReportGroupRow, ReportOrder } from '../types/reporte.types';
+import type { ReportDataset, ReportFilters, ReportGroupBy, ReportGroupRow, ReportOrder } from '../types/reporte.types';
 import { PromotionReport } from './PromotionReport';
 import { summarizePromotionSales } from '../utils/report-promotions.utils';
 import {
@@ -19,6 +19,7 @@ import {
 interface ReportTablesProps {
   groups: ReportGroupRow[];
   dataset: ReportDataset;
+  filters: ReportFilters;
   groupBy: ReportGroupBy;
   onGroupByChange: (groupBy: ReportGroupBy) => void;
   detailOrders: ReportOrder[];
@@ -59,6 +60,7 @@ function ReportTableSkeleton({ view }: { view: 'consolidated' | 'detail' }) {
 export function ReportTables({
   groups,
   dataset,
+  filters,
   groupBy,
   onGroupByChange,
   detailOrders,
@@ -162,7 +164,7 @@ export function ReportTables({
       ) : null}
       <div className="min-h-[30rem] max-w-full overflow-x-auto overscroll-x-contain sm:min-h-[34rem] xl:min-h-[38rem]">
         {view === 'promotions' ? (
-          <PromotionReport dataset={dataset} />
+          <PromotionReport dataset={dataset} filters={filters} />
         ) : isTransitioning || (view === 'detail' && detailLoading) ? (
           <ReportTableSkeleton view={view} />
         ) : (
