@@ -452,7 +452,7 @@ export function ReportesAdminPage() {
         <div id="reports-panel-tables" role="tabpanel" aria-labelledby="reports-tab-tables">
           {isLoading
             ? <div className="rounded-[18px] border border-neutral-200 bg-white p-12 text-center text-sm text-neutral-500 shadow-soft">Preparando movimientos…</div>
-            : <ReportTables dataset={filteredData} groups={groups} groupBy={groupBy} onGroupByChange={setGroupBy} detailOrders={detailOrders} detailTotal={detailTotal} detailPage={detailPage} detailLoading={detailLoading} onDetailPageChange={setDetailPage} />}
+            : <ReportTables dataset={filteredData} filters={appliedFilters} groups={groups} groupBy={groupBy} onGroupByChange={setGroupBy} detailOrders={detailOrders} detailTotal={detailTotal} detailPage={detailPage} detailLoading={detailLoading} onDetailPageChange={setDetailPage} />}
         </div>
       ) : null}
 

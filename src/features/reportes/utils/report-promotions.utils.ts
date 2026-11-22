@@ -1,4 +1,5 @@
-import type { ReportDataset } from '../types/reporte.types';
+import type { CategoryDiscountCampaign } from '@/features/promociones/types/descuento.types';
+import type { ReportDataset, ReportFilters } from '../types/reporte.types';
 
 export type PromotionGroupMode = 'campaign' | 'product';
 export type PromotionScope = 'all' | 'campaign' | 'other';
@@ -94,4 +95,24 @@ export function summarizePromotionSales(dataset: ReportDataset, groupBy: Promoti
 
   return { revenue, units, orders: seenOrders.size, savings, savingsUntrackedUnits,
     share: subtotalProducts > 0 ? revenue / subtotalProducts : 0, rows };
+}
+
+/**
+ * Campañas creadas que no tienen ventas válidas vinculadas en la selección actual.
+ * No asignar ventas por nombre/producto ni alterar importes históricos: sólo los
+ * snapshots por ID prueban que un pedido perteneció a una campaña específica.
+ */
+export function findCampaignsWithoutSales(
+  campaigns: CategoryDiscountCampaign[],
+  dataset: ReportDataset,
+  filters: Pick<ReportFilters, 'from' | 'to' | 'allTime'>,
+): CategoryDiscountCampaign[] {
+  const validOrderIds = new Set(dataset.orders.filter(order => order.status !== 'cancelado').map(order => order.id));
+  const soldCampaignIds = new Set(dataset.items.flatMap(item =>
+    validOrderIds.has(item.orderId) && item.discountCampaignId ? [item.discountCampaignId] : [],
+  ));
+  return campaigns
+    .filter(campaign => (filters.allTime || (campaign.starts_on <= filters.to && campaign.ends_on >= filters.from))
+      && !soldCampaignIds.has(campaign.id))
+    .sort((a, b) => b.starts_on.localeCompare(a.starts_on) || a.title.localeCompare(b.title, 'es'));
 }

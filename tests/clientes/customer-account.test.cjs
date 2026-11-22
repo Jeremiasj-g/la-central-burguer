@@ -247,8 +247,9 @@ describe('Clientes / refinamiento de registro y drawer',()=>{
   assert.ok(modal.includes('lcb-customer-auth-panel !rounded-[22px] !border-white/10 !bg-[#20201f]'));
   assert.ok(modal.includes("border-white/15 bg-[#1d1d1d] text-white placeholder:text-white/35"));
   assert.ok(modal.includes("!h-11 !rounded-[11px] !border-white/15 !bg-[#1d1d1d]"));
-  assert.ok(modal.includes("border-white/15 bg-[#1d1d1d] text-[#f6f5f2] hover:bg-[#292725]"));
-  assert.ok(modal.includes("border-neutral-200 bg-white text-[#202124] hover:bg-neutral-100"));
+  assert.ok(modal.includes('border border-neutral-200 bg-white px-4'));
+  assert.ok(modal.includes('text-[#202124] transition-colors duration-200 hover:bg-neutral-100'));
+  assert.ok(!modal.includes("bg-[#292725]"));
   assert.ok(css.includes('[data-theme="dark"] section.lcb-customer-auth-panel[role="dialog"]'));
   assert.ok(!modal.includes('!bg-[#1a1a1d]'));
  });
