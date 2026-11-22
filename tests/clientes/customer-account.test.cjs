@@ -239,6 +239,19 @@ describe('Clientes / refinamiento de registro y drawer',()=>{
   assert.ok(modal.includes('!font-semibold'));
   assert.ok(modal.includes('theme={theme}'));
  });
+ test('el login oscuro usa el carbón de las cards y no cambia el tema claro',()=>{
+  const modal=fs.readFileSync('src/features/clientes/components/CustomerAuthModal.tsx','utf8');
+  const product=fs.readFileSync('src/features/productos/components/ProductoCard.tsx','utf8');
+  const css=fs.readFileSync('src/app/(public)/public.css','utf8');
+  assert.ok(product.includes('bg-[#20201f]'));
+  assert.ok(modal.includes('lcb-customer-auth-panel !rounded-[22px] !border-white/10 !bg-[#20201f]'));
+  assert.ok(modal.includes("border-white/15 bg-[#1d1d1d] text-white placeholder:text-white/35"));
+  assert.ok(modal.includes("!h-11 !rounded-[11px] !border-white/15 !bg-[#1d1d1d]"));
+  assert.ok(modal.includes("border-white/15 bg-[#1d1d1d] text-[#f6f5f2] hover:bg-[#292725]"));
+  assert.ok(modal.includes("border-neutral-200 bg-white text-[#202124] hover:bg-neutral-100"));
+  assert.ok(css.includes('[data-theme="dark"] section.lcb-customer-auth-panel[role="dialog"]'));
+  assert.ok(!modal.includes('!bg-[#1a1a1d]'));
+ });
  test('logo de Google usa marca multicolor y no una G azul textual',()=>{
   const modal=fs.readFileSync('src/features/clientes/components/CustomerAuthModal.tsx','utf8');
   for(const color of ['#EA4335','#4285F4','#FBBC05','#34A853']) assert.ok(modal.includes(color),color);

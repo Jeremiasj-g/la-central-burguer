@@ -200,6 +200,13 @@ body.lcb-public-typography [data-lcb-scroll-lock-overlay="true"] :is(section, as
   border-color: rgba(255, 255, 255, .12) !important;
 }
 
+/* La modal de acceso comparte el carbón cálido de las cards del Home.
+   Se aplica exclusivamente a este diálogo oscuro, sin modificar otros modales ni el tema claro. */
+body.lcb-public-typography [data-lcb-scroll-lock-overlay="true"][data-theme="dark"] section.lcb-customer-auth-panel[role="dialog"] {
+  background-color: #20201f !important;
+  border-color: rgba(255, 255, 255, .10) !important;
+}
+
 body.lcb-public-typography [data-lcb-scroll-lock-overlay="true"] input:not([type="radio"]):not([type="checkbox"]),
 body.lcb-public-typography [data-lcb-scroll-lock-overlay="true"] textarea,
 body.lcb-public-typography [data-lcb-scroll-lock-overlay="true"] select {
