@@ -27,6 +27,18 @@ Estas reglas aplican a todo La Central Burger (pantallas, modales, componentes, 
 
 Estas reglas aplican a toda modificación de código, base de datos, configuración o despliegue. **Prioridad: soluciones intuitivas, simples, seguras y mantenibles.** No autorizan modificar datos ni módulos fuera del alcance pedido.
 
+## 0.1. Skills técnicas y consulta selectiva
+
+Después de leer AGENTS.md e inspeccionar el código afectado, cargar únicamente las guías locales pertinentes antes de implementar:
+
+- [modern-frontend](.agents/skills/modern-frontend/SKILL.md): React, Next.js, renderizado, navegación, accesibilidad y rendimiento web.
+- [supabase-postgres](.agents/skills/supabase-postgres/SKILL.md): SQL, RLS, índices, migraciones, integridad y rendimiento de PostgreSQL.
+- [node-backend](.agents/skills/node-backend/SKILL.md): APIs, servicios Node.js, arquitectura backend, seguridad y manejo de errores.
+
+No cargar todas las Skills por defecto. Un ajuste visual simple puede resolverse sólo con AGENTS.md y los componentes existentes. Una optimización SQL requiere supabase-postgres; añadir modern-frontend o node-backend sólo si afecta esas capas.
+
+Consultar las referencias externas de cada Skill únicamente cuando las instrucciones locales no sean suficientes, haya incertidumbre técnica o sea necesario verificar recomendaciones vigentes. Leer sólo las secciones relevantes; no descargar ni recorrer repositorios completos ni repetir investigaciones innecesarias. Contrastar con documentación oficial de la versión instalada y respetar las reglas del proyecto. Si la integración no descubre Skills automáticamente, abrir explícitamente los archivos enlazados en GitHub de la rama activa. Estas guías no autorizan cambios fuera del alcance, ni sustituyen pruebas o controles de publicación.
+
 ## Antes de programar
 
 1. Leer `AGENTS.md`, inspeccionar el **código real y el esquema vigente** e identificar dependencias y consumidores; los documentos pueden estar desactualizados. No tomar ninguna descripción antigua como fuente de verdad.
